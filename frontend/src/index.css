@@ -1,0 +1,315 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ========================================================================== */
+/* TIPOGRAFÍAS OFICIALES DE LA MARCA                                          */
+/* 1. Primeform Pro DEMO: Títulos, subtítulos y cuerpo de texto               */
+/*    (Sans-serif moderna, geométrica, versátil y de máxima legibilidad)      */
+/* 2. DT PHUBU: Títulos con peso y grosor                                     */
+/* ========================================================================== */
+
+@font-face {
+  font-family: 'Primeform Pro DEMO';
+  src: local('Primeform Pro DEMO'), local('Primeform Pro'), local('PrimeformPro-Regular'), local('PrimeformPro-Bold'), local('PrimeformPro');
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Primeform Pro';
+  src: local('Primeform Pro DEMO'), local('Primeform Pro'), local('PrimeformPro');
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DT PHUBU';
+  src: local('DT PHUBU'), local('DTPHUBU'), local('DT-PHUBU'), local('DTPHUBU-Bold');
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* PALETA OFICIAL VETLAB */
+  --brand-cyan: #01FADA;
+  --brand-purple: #6F2BCC;
+  --brand-deep: #2B017C;
+  --brand-white: #FFFFFF;
+
+  /* STACKS TIPOGRÁFICOS */
+  /* Primeform Pro DEMO es la tipografía para Títulos, Subtítulos y Cuerpo de Texto */
+  --font-body: 'Primeform Pro DEMO', 'Primeform Pro', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: 'Primeform Pro DEMO', 'Primeform Pro', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-phubu: 'DT PHUBU', 'Outfit', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background-color: #f7f5fd;
+  color: #1e1b4b;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ENCABEZADOS Y TÍTULOS CON PRIMEFORM PRO (Limpios, Proporcionales, Geométricos) */
+h1, h2, h3, h4, .font-heading {
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+}
+
+/* CUERPO DE TEXTO, FORMULARIOS Y BOTONES CON PRIMEFORM PRO */
+body, input, select, textarea, button, p, span, .font-primeform, .font-body {
+  font-family: var(--font-body);
+}
+
+/* VARIANTE DISPLAY DT PHUBU (Geométrica limpia y robusta, sin deformaciones) */
+.font-phubu {
+  font-family: var(--font-phubu);
+  letter-spacing: -0.01em;
+}
+
+/* UTILIDADES DE COLOR OFICIALES */
+.bg-brand-deep { background-color: #2B017C; }
+.bg-brand-purple { background-color: #6F2BCC; }
+.bg-brand-cyan { background-color: #01FADA; }
+
+.text-brand-deep { color: #2B017C; }
+.text-brand-purple { color: #6F2BCC; }
+.text-brand-cyan { color: #01FADA; }
+
+.border-brand-deep { border-color: #2B017C; }
+.border-brand-purple { border-color: #6F2BCC; }
+.border-brand-cyan { border-color: #01FADA; }
+
+/* ========================================================================== */
+/* SISTEMA DE MODO OSCURO GLOBAL (VETLAB OBSIDIAN MIDNIGHT THEME)              */
+/* ========================================================================== */
+
+html.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: #0c0a18;
+  color: #f1f5f9;
+}
+
+/* 1. Fondo general de la aplicación */
+.dark .bg-\[\#f7f5fd\],
+.dark .bg-slate-100 {
+  background-color: #0c0a18 !important;
+}
+
+/* 2. Cabeceras fijas y barras de navegación */
+.dark header,
+.dark header.bg-white\/95 {
+  background-color: rgba(18, 14, 34, 0.95) !important;
+  border-color: #281f47 !important;
+}
+
+/* 3. Panel Lateral Administrativo (Sidebar) */
+.dark aside.bg-\[\#eceff4\] {
+  background-color: #110d22 !important;
+  border-color: #241b42 !important;
+}
+
+.dark aside .bg-\[\#e4e8f0\] {
+  background-color: #17122e !important;
+  border-color: #281f47 !important;
+}
+
+.dark aside button:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark aside button.bg-white {
+  background-color: #1c1538 !important;
+  color: #f1f5f9 !important;
+  border-color: #6F2BCC !important;
+}
+
+/* 4. Tarjetas, Paneles y Contenedores */
+.dark .bg-white {
+  background-color: #15102a !important;
+  color: #f1f5f9;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-50\/50,
+.dark .bg-slate-50\/60,
+.dark .bg-slate-50\/70,
+.dark .bg-slate-50\/80 {
+  background-color: #1c1636 !important;
+}
+
+.dark .bg-sky-50,
+.dark .bg-sky-50\/70 {
+  background-color: rgba(1, 250, 218, 0.08) !important;
+}
+
+.dark .bg-purple-50,
+.dark .bg-purple-50\/60,
+.dark .bg-purple-50\/70,
+.dark .bg-purple-50\/80 {
+  background-color: rgba(111, 43, 204, 0.15) !important;
+}
+
+.dark .bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+}
+
+.dark .bg-amber-50,
+.dark .bg-amber-50\/60 {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+}
+
+.dark .bg-rose-50 {
+  background-color: rgba(244, 63, 94, 0.12) !important;
+}
+
+/* 5. Bordes y Delimitadores */
+.dark .border-slate-200,
+.dark .border-slate-200\/90,
+.dark .border-slate-200\/80,
+.dark .border-slate-200\/60,
+.dark .border-slate-300,
+.dark .border-slate-300\/70,
+.dark .border-slate-300\/80,
+.dark .border-slate-100 {
+  border-color: #2a2048 !important;
+}
+
+/* 6. Tipografía y Textos */
+.dark .text-slate-900,
+.dark .text-slate-800 {
+  color: #f8fafc !important;
+}
+
+.dark .text-slate-700,
+.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-slate-400 {
+  color: #64748b !important;
+}
+
+.dark .text-emerald-700,
+.dark .text-emerald-800 {
+  color: #34d399 !important;
+}
+
+.dark .text-amber-700,
+.dark .text-amber-800 {
+  color: #fbbf24 !important;
+}
+
+.dark .text-rose-700,
+.dark .text-rose-800 {
+  color: #fb7185 !important;
+}
+
+.dark .text-purple-700,
+.dark .text-purple-800 {
+  color: #c084fc !important;
+}
+
+/* 7. Formularios, Inputs, Selects y Textareas */
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark select,
+.dark textarea {
+  background-color: #191333 !important;
+  border-color: #36295c !important;
+  color: #f8fafc !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: #01FADA !important;
+  outline: none;
+}
+
+/* 8. Tablas y Filas */
+.dark table thead th {
+  background-color: #181230 !important;
+  color: #c4b5fd !important;
+  border-color: #271f45 !important;
+}
+
+.dark table tbody tr {
+  border-color: #241b40 !important;
+}
+
+.dark table tbody tr:hover {
+  background-color: #1f173b !important;
+}
+
+/* 9. Modales y Diálogos Superpuestos */
+.dark .fixed.inset-0.bg-slate-900\/50,
+.dark .fixed.inset-0.bg-slate-900\/60,
+.dark .fixed.inset-0.bg-black\/50,
+.dark .fixed.inset-0.bg-black\/60 {
+  background-color: rgba(5, 3, 10, 0.75) !important;
+  backdrop-filter: blur(4px);
+}
+
+/* 10. Barras de Desplazamiento (Scrollbars) Personalizadas */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0c0a18;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #2b214f;
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6F2BCC;
+}
+
+/* 11. Ajustes de Contraste para Colores de Marca en Modo Oscuro */
+.dark .text-\[\#2B017C\] {
+  color: #c4b5fd !important;
+}
+
+.dark .text-\[\#6F2BCC\] {
+  color: #a78bfa !important;
+}
+
+.dark .text-\[\#007a6a\],
+.dark .text-\[\#009e8a\] {
+  color: #01FADA !important;
+}
+
+/* 12. Badges de Estado en Modo Oscuro (Contraste Suave) */
+.dark .bg-\[\#eff6ff\] { background-color: rgba(37, 99, 235, 0.15) !important; color: #93c5fd !important; }
+.dark .bg-\[\#faf5ff\] { background-color: rgba(147, 51, 234, 0.15) !important; color: #d8b4fe !important; }
+.dark .bg-\[\#fff1f2\] { background-color: rgba(225, 29, 72, 0.18) !important; color: #fda4af !important; }
+.dark .bg-\[\#f0fdf4\] { background-color: rgba(22, 101, 52, 0.2) !important; color: #86efac !important; }
+.dark .bg-\[\#fefce8\] { background-color: rgba(161, 98, 7, 0.2) !important; color: #fde047 !important; }
+.dark .bg-\[\#f0fdfa\] { background-color: rgba(15, 118, 110, 0.2) !important; color: #5eead4 !important; }
+.dark .bg-\[\#fff7ed\] { background-color: rgba(194, 65, 12, 0.2) !important; color: #fdba74 !important; }
+.dark .bg-\[\#ecfeff\] { background-color: rgba(14, 116, 144, 0.2) !important; color: #67e8f9 !important; }
+.dark .bg-\[\#ecfdf5\] { background-color: rgba(4, 120, 87, 0.2) !important; color: #6ee7b7 !important; }
+.dark .bg-\[\#f5f3ff\] { background-color: rgba(109, 40, 217, 0.2) !important; color: #c4b5fd !important; }
+.dark .bg-\[\#f8fafc\] { background-color: rgba(255, 255, 255, 0.05) !important; color: #94a3b8 !important; }
