@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Entorno Full-Stack para VetLab (On Site Diagnostic) - Frontend (React/Vite) & Backend (Node.js/Express)",
   "private": true,
+  "workspaces": [
+    "frontend"
+  ],
   "scripts": {
     "build": "npm --prefix frontend run build",
     "postinstall": "npm --prefix frontend install",
