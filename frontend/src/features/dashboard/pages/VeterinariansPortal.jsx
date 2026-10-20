@@ -11,6 +11,7 @@ import OrdersTrackingView from '../components/OrdersTrackingView.jsx';
 import ResultadosView from '../components/ResultadosView.jsx';
 import CatalogView from '../components/CatalogView.jsx';
 import TemporalEvolutionView from '../components/TemporalEvolutionView.jsx';
+import SupportView from '../components/SupportView.jsx';
 import ThemeToggle from '../components/ThemeToggle.jsx';
 
 export default function VeterinariansPortal() {
@@ -147,6 +148,8 @@ export default function VeterinariansPortal() {
         return { section: 'Base de Datos', title: 'Catálogo de Perfiles qPCR', icon: '📖' };
       case 'evolucion-temporal':
         return { section: 'Analíticas', title: 'Evolución Temporal & Analíticas Longitudinales', icon: '📈' };
+      case 'soporte':
+        return { section: 'Atención & Ayuda', title: 'Centro de Ayuda y Soporte', icon: '🎧' };
       case 'pacientes':
       default:
         return { section: 'Clínica', title: 'Módulo de Pacientes & Admisiones', icon: '🐾' };
@@ -339,6 +342,11 @@ export default function VeterinariansPortal() {
               onSelectPatient={(p) => setSelectedPatient(p)}
               onNavigateToNewExam={(p, type) => handleOpenExamModule(p || null, type || 'control')}
             />
+          )}
+
+          {/* MÓDULO 7: AYUDA Y SOPORTE (FIGMA) */}
+          {activeModule === 'soporte' && (
+            <SupportView />
           )}
         </main>
       </div>

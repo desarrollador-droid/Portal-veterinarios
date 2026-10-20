@@ -77,6 +77,17 @@ function TimelineChartIcon({ className = "w-5 h-5 text-[#009e8a]" }) {
   );
 }
 
+// 7. Ayuda y Soporte - Morado (#6F2BCC)
+function SupportIcon({ className = "w-5 h-5 text-[#6F2BCC]" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
+      <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
+      <circle cx="12" cy="12" r="1.5" fill="#6F2BCC" />
+    </svg>
+  );
+}
+
 /**
  * Panel Lateral Administrativo (AdminSidebar)
  * - Fondo: Gris institucional (#eceff4 / #f1f3f7)
@@ -133,6 +144,13 @@ export default function AdminSidebar({
       iconColor: 'text-[#009e8a]',
       iconBg: 'bg-[#01FADA]/25 border border-[#01FADA]/60',
       renderIcon: () => <TimelineChartIcon className="w-5 h-5 text-[#009e8a]" />,
+    },
+    {
+      id: 'soporte',
+      label: 'Ayuda y soporte',
+      iconColor: 'text-[#6F2BCC]',
+      iconBg: 'bg-[#6F2BCC]/10 border border-[#6F2BCC]/20',
+      renderIcon: () => <SupportIcon className="w-5 h-5 text-[#6F2BCC]" />,
     },
   ];
 
