@@ -20,12 +20,13 @@ export const calculateAgeFromBirthDate = (birthDateString) => {
   return `${months} ${months === 1 ? 'mes' : 'meses'}`;
 };
 
-// Lista de los 17 síntomas clínicos según la Imagen 3 de referencia
+// Lista de síntomas clínicos y signos observados (con Mucosas cianóticas)
 const SYMPTOM_OPTIONS = [
   'Fiebre',
   'Anemia',
   'Mucosas pálidas',
   'Mucosas ictéricas',
+  'Mucosas cianóticas',
   'Linfadenopatía generalizada',
   'Hepatomegalia',
   'Esplenomegalia',
@@ -38,6 +39,18 @@ const SYMPTOM_OPTIONS = [
   'Tos',
   'Estornudos',
   'Pérdida de apetito',
+  'Otro',
+];
+
+export const DOCUMENT_TYPES = ['C.C.', 'C.E.', 'Pasaporte', 'NIT', 'T.I.'];
+export const PREDEFINED_COHABITING_SPECIES = ['Caninos', 'Felinos', 'Aves', 'Roedores', 'Equinos / Granja'];
+export const HOUSING_AREAS = ['Urbana', 'Rural'];
+export const HOUSING_TYPES = [
+  'Casa con jardín / patio',
+  'Casa cerrada (sin patio)',
+  'Apartamento',
+  'Finca / Parcela / Hacienda',
+  'Albergue / Refugio',
   'Otro',
 ];
 
@@ -124,12 +137,15 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
   // Lista dinámica de "Otros factores de riesgo" (Imagen media_1791475770113.png)
   const [otherRiskFactorsList, setOtherRiskFactorsList] = useState([]);
   const [newRiskFactorInput, setNewRiskFactorInput] = useState('');
+  const [customCohabitingSpeciesInput, setCustomCohabitingSpeciesInput] = useState('');
 
   // Todos los campos inician vacíos (sin valores predefinidos engañosos), solo con ejemplos en placeholder
   const [formData, setFormData] = useState({
     // ETAPA 1: REGISTRO DEL TUTOR / PROPIETARIO
     ownerFirstName: '',
     ownerLastName: '',
+    ownerDocumentType: 'C.C.',
+    ownerDocumentNumber: '',
     ownerPhone: '',
     ownerEmergencyPhone: '',
     ownerEmail: '',
@@ -153,10 +169,15 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
 
     // ETAPA 3: FACTORES DE RIESGO
     habitat: '', // Interiores | Exterior | Mixto (sin preselección)
+    housingArea: '', // Urbana | Rural
+    housingType: '', // Casa con jardín/patio, etc.
+    otherHousingType: '',
     contactOutside: false,
     contactOutsideType: '',
     livesWithOtherAnimals: false,
+    cohabitingSpecies: [], // Especies con las que convive
     recentTravel: false,
+    recentTravelDetails: '', // Departamento o lugar del último viaje
     ruralAccess: false,
     parasiteExposure: false,
     outdoorWater: false,
@@ -177,6 +198,10 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
     dewormingStatus: '', // Al día, Incompleto, Desconocido
     lastDewormingDate: '',
     preventionNotes: '',
+    hasMicrochip: null, // null: sin preselección (Sí | No)
+    microchipNumber: '',
+    hasTraveledAbroad: null, // null: sin preselección (Sí | No)
+    lastCountryVisited: '',
 
     // ETAPA 6: DATOS DE INGRESO
     weight: '',
@@ -251,6 +276,37 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
     setOtherRiskFactorsList((prev) => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
+  const handleToggleCohabitingSpecies = (speciesName) => {
+    setFormData((prev) => {
+      const exists = prev.cohabitingSpecies.includes(speciesName);
+      return {
+        ...prev,
+        cohabitingSpecies: exists
+          ? prev.cohabitingSpecies.filter((sp) => sp !== speciesName)
+          : [...prev.cohabitingSpecies, speciesName],
+      };
+    });
+  };
+
+  const handleAddCustomCohabitingSpecies = () => {
+    if (!customCohabitingSpeciesInput.trim()) return;
+    const val = customCohabitingSpeciesInput.trim();
+    if (!formData.cohabitingSpecies.includes(val)) {
+      setFormData((prev) => ({
+        ...prev,
+        cohabitingSpecies: [...prev.cohabitingSpecies, val],
+      }));
+    }
+    setCustomCohabitingSpeciesInput('');
+  };
+
+  const handleRemoveCohabitingSpecies = (spToRemove) => {
+    setFormData((prev) => ({
+      ...prev,
+      cohabitingSpecies: prev.cohabitingSpecies.filter((sp) => sp !== spToRemove),
+    }));
+  };
+
   const toggleSymptom = (symptom) => {
     setFormData((prev) => {
       const exists = prev.selectedSymptoms.includes(symptom);
@@ -268,6 +324,14 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
     if (currentStep === 1) {
       if (!formData.ownerFirstName.trim() || !formData.ownerLastName.trim() || !formData.ownerPhone.trim()) {
         alert('Por favor complete nombres, apellidos y teléfono principal del tutor.');
+        return;
+      }
+      if (!formData.ownerDocumentType) {
+        alert('Por favor seleccione el tipo de documento del tutor.');
+        return;
+      }
+      if (!formData.ownerDocumentNumber.trim()) {
+        alert('Por favor ingrese el número de documento del tutor.');
         return;
       }
       if (!formData.ownerStratum) {
@@ -324,8 +388,28 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
         alert('Por favor seleccione el hábitat habitual del paciente (Interiores, Exterior o Mixto).');
         return;
       }
+      if (!formData.housingArea) {
+        alert('Por favor seleccione si el entorno de vivienda es Urbano o Rural.');
+        return;
+      }
+      if (!formData.housingType) {
+        alert('Por favor seleccione el tipo de vivienda.');
+        return;
+      }
+      if (formData.housingType === 'Otro' && !formData.otherHousingType.trim()) {
+        alert('Por favor especifique el tipo de vivienda.');
+        return;
+      }
       if (formData.contactOutside && !formData.contactOutsideType.trim()) {
         alert('Por favor describa el tipo de contacto que tiene con otros animales fuera del hogar.');
+        return;
+      }
+      if (formData.livesWithOtherAnimals && formData.cohabitingSpecies.length === 0) {
+        alert('Por favor seleccione o agregue al menos una especie con la que convive el paciente.');
+        return;
+      }
+      if (formData.recentTravel && !formData.recentTravelDetails.trim()) {
+        alert('Por favor indique el departamento o lugar al que viajó más recientemente.');
         return;
       }
       if (formData.coastalRescue && !formData.coastalRescueLocation?.trim()) {
@@ -335,10 +419,27 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
     }
 
     if (currentStep === 4) {
-      // Síntomas clínicos NO obligatorios (aplica para consulta general y preventivos)
+      // Síntomas y signos clínicos NO obligatorios (aplica para consulta general y preventivos)
     }
 
     if (currentStep === 5) {
+      if (formData.hasMicrochip === null) {
+        alert('Por favor indique si el paciente cuenta con microchip de identificación.');
+        return;
+      }
+      if (formData.hasMicrochip && !formData.microchipNumber.trim()) {
+        alert('Por favor ingrese el número del microchip.');
+        return;
+      }
+      if (formData.hasTraveledAbroad === null) {
+        alert('Por favor indique si el paciente ha salido del país.');
+        return;
+      }
+      if (formData.hasTraveledAbroad && !formData.lastCountryVisited.trim()) {
+        alert('Por favor registre el último país que visitó el paciente.');
+        return;
+      }
+
       if (!formData.vaccinationStatus) {
         alert('Por favor seleccione el estado del esquema de vacunación.');
         return;
@@ -419,6 +520,9 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
         // Tutor
         ownerFirstName: formData.ownerFirstName.trim(),
         ownerLastName: formData.ownerLastName.trim(),
+        ownerDocumentType: formData.ownerDocumentType,
+        ownerDocumentNumber: formData.ownerDocumentNumber.trim(),
+        ownerDocument: `${formData.ownerDocumentType} ${formData.ownerDocumentNumber.trim()}`.trim(),
         ownerName: `${formData.ownerFirstName.trim()} ${formData.ownerLastName.trim()}`.trim(),
         ownerPhone: formData.ownerPhone.trim(),
         ownerEmergencyPhone: formData.ownerEmergencyPhone.trim(),
@@ -432,12 +536,16 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
 
         // Factores de riesgo
         habitat: formData.habitat,
+        housingArea: formData.housingArea,
+        housingType: formData.housingType === 'Otro' ? (formData.otherHousingType.trim() ? `Otro: ${formData.otherHousingType.trim()}` : 'Otro') : formData.housingType,
         contactOutside: {
           hasContact: formData.contactOutside,
           contactType: formData.contactOutside ? formData.contactOutsideType.trim() : '',
         },
         livesWithOtherAnimals: formData.livesWithOtherAnimals,
+        cohabitingSpecies: formData.livesWithOtherAnimals ? formData.cohabitingSpecies : [],
         recentTravel: formData.recentTravel,
+        recentTravelDetails: formData.recentTravel ? formData.recentTravelDetails.trim() : '',
         ruralAccess: formData.ruralAccess,
         parasiteExposure: formData.parasiteExposure,
         outdoorWater: formData.outdoorWater,
@@ -459,6 +567,10 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
         dewormingStatus: formData.dewormingStatus,
         lastDewormingDate: formData.dewormingStatus === 'Desconocido' ? '' : formData.lastDewormingDate,
         preventionNotes: formData.preventionNotes.trim(),
+        hasMicrochip: formData.hasMicrochip,
+        microchipNumber: formData.hasMicrochip ? formData.microchipNumber.trim() : '',
+        hasTraveledAbroad: formData.hasTraveledAbroad,
+        lastCountryVisited: formData.hasTraveledAbroad ? formData.lastCountryVisited.trim() : '',
 
         // Datos de ingreso
         weight: formData.weight.trim() ? (formData.weight.trim().toLowerCase().includes('kg') ? formData.weight.trim() : `${formData.weight.trim()} kg`) : '',
@@ -614,6 +726,32 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                 </div>
 
                 <div>
+                  <label className="block font-bold text-slate-700 mb-1">Tipo de Documento *</label>
+                  <select
+                    name="ownerDocumentType"
+                    value={formData.ownerDocumentType}
+                    onChange={handleChange}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white cursor-pointer"
+                  >
+                    {DOCUMENT_TYPES.map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Número de Documento *</label>
+                  <input
+                    type="text"
+                    name="ownerDocumentNumber"
+                    value={formData.ownerDocumentNumber}
+                    onChange={handleChange}
+                    placeholder="Ej. 1020304050"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:outline-none font-semibold text-slate-800"
+                  />
+                </div>
+
+                <div>
                   <label className="block font-bold text-slate-700 mb-1">Teléfono Principal *</label>
                   <input
                     type="tel"
@@ -650,7 +788,7 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Estrato Socioeconómico *</label>
+                  <label className="block font-bold text-slate-700 mb-1">Estrato *</label>
                   <select
                     name="ownerStratum"
                     value={formData.ownerStratum}
@@ -658,12 +796,12 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white cursor-pointer"
                   >
                     <option value="">Seleccione estrato socioeconómico...</option>
-                    <option value="Estrato 1">Estrato 1 (Bajo-bajo)</option>
-                    <option value="Estrato 2">Estrato 2 (Bajo)</option>
-                    <option value="Estrato 3">Estrato 3 (Medio-bajo)</option>
-                    <option value="Estrato 4">Estrato 4 (Medio)</option>
-                    <option value="Estrato 5">Estrato 5 (Medio-alto)</option>
-                    <option value="Estrato 6">Estrato 6 (Alto)</option>
+                    <option value="Estrato 1">Estrato 1</option>
+                    <option value="Estrato 2">Estrato 2</option>
+                    <option value="Estrato 3">Estrato 3 </option>
+                    <option value="Estrato 4">Estrato 4</option>
+                    <option value="Estrato 5">Estrato 5 </option>
+                    <option value="Estrato 6">Estrato 6</option>
                   </select>
                 </div>
 
@@ -1016,6 +1154,83 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                 </p>
               </div>
 
+              {/* Apartado para Tipo y Entorno de Vivienda (Rural / Urbana + Tipo de vivienda) */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-slate-900 text-xs block">
+                    Entorno y Tipo de Vivienda *
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    Caracterización epidemiológica del domicilio
+                  </span>
+                </div>
+
+                {/* 1. Discriminación Rural o Urbana */}
+                <div>
+                  <label className="block font-bold text-slate-700 text-xs mb-1.5">
+                    1. Entorno de la vivienda * {!formData.housingArea && <span className="text-amber-600 font-normal">(Seleccione una opción)</span>}
+                  </label>
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    {HOUSING_AREAS.map((area) => (
+                      <button
+                        key={area}
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, housingArea: area }))}
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                          formData.housingArea === area
+                            ? 'border-[#6F2BCC] bg-sky-50/80 ring-2 ring-sky-300 font-bold text-slate-900'
+                            : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>{area === 'Urbana' ? '🏙️' : '🌾'}</span>
+                          <span>{area}</span>
+                        </div>
+                        {formData.housingArea === area && (
+                          <span className="text-[#6F2BCC] font-black">✓</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. Tipo de vivienda */}
+                <div>
+                  <label className="block font-bold text-slate-700 text-xs mb-1.5">
+                    2. Tipo de vivienda * {!formData.housingType && <span className="text-amber-600 font-normal">(Seleccione el tipo)</span>}
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                    {HOUSING_TYPES.map((hType) => (
+                      <button
+                        key={hType}
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, housingType: hType }))}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer text-xs ${
+                          formData.housingType === hType
+                            ? 'border-[#6F2BCC] bg-sky-50/90 ring-2 ring-sky-300 font-bold text-slate-900'
+                            : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium'
+                        }`}
+                      >
+                        {hType}
+                      </button>
+                    ))}
+                  </div>
+
+                  {formData.housingType === 'Otro' && (
+                    <div className="mt-2.5 animate-in fade-in duration-150">
+                      <input
+                        type="text"
+                        name="otherHousingType"
+                        value={formData.otherHousingType}
+                        onChange={handleChange}
+                        placeholder="Especifique el tipo de vivienda..."
+                        className="w-full px-3.5 py-2 bg-white border border-sky-300 rounded-xl text-xs font-semibold text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Hábitat sin valor preseleccionado engañoso */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
                 <label className="block font-bold text-slate-800 text-xs mb-2">
@@ -1097,45 +1312,145 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                   </div>
 
                   {/* Pregunta 2: Convive con otros animales */}
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                    <span className="font-semibold text-slate-800">2. ¿Convive con otros animales en el hogar?</span>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setFormData((prev) => ({ ...prev, livesWithOtherAnimals: false }))}
-                        className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer ${!formData.livesWithOtherAnimals ? 'bg-slate-700 text-white' : 'bg-white border border-slate-200 text-slate-600'}`}
-                      >
-                        No
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setFormData((prev) => ({ ...prev, livesWithOtherAnimals: true }))}
-                        className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer ${formData.livesWithOtherAnimals ? 'bg-[#6F2BCC] text-white' : 'bg-white border border-slate-200 text-slate-600'}`}
-                      >
-                        Sí
-                      </button>
+                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-slate-800">
+                        2. ¿Convive con otros animales en el hogar?
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, livesWithOtherAnimals: false, cohabitingSpecies: [] }))}
+                          className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer ${!formData.livesWithOtherAnimals ? 'bg-slate-700 text-white' : 'bg-white border border-slate-200 text-slate-600'}`}
+                        >
+                          No
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, livesWithOtherAnimals: true }))}
+                          className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer ${formData.livesWithOtherAnimals ? 'bg-[#6F2BCC] text-white' : 'bg-white border border-slate-200 text-slate-600'}`}
+                        >
+                          Sí
+                        </button>
+                      </div>
                     </div>
+
+                    {formData.livesWithOtherAnimals && (
+                      <div className="pt-2 border-t border-slate-200 space-y-2.5 animate-in fade-in duration-150">
+                        <label className="block text-[11px] font-bold text-slate-700">
+                          Seleccione o agregue las especies con las que convive: <span className="text-rose-500">*</span>
+                        </label>
+
+                        {/* Opciones preestablecidas */}
+                        <div className="flex flex-wrap gap-1.5">
+                          {PREDEFINED_COHABITING_SPECIES.map((sp) => {
+                            const isSelected = formData.cohabitingSpecies.includes(sp);
+                            return (
+                              <button
+                                key={sp}
+                                type="button"
+                                onClick={() => handleToggleCohabitingSpecies(sp)}
+                                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
+                                  isSelected
+                                    ? 'bg-[#6F2BCC] text-white border-[#6F2BCC] shadow-2xs'
+                                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                                }`}
+                              >
+                                {isSelected ? '✓ ' : '+ '}
+                                {sp}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Campo de texto para escribir y agregar otras especies personalizadas */}
+                        <div className="flex items-center gap-2 pt-1">
+                          <input
+                            type="text"
+                            value={customCohabitingSpeciesInput}
+                            onChange={(e) => setCustomCohabitingSpeciesInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddCustomCohabitingSpecies();
+                              }
+                            }}
+                            placeholder="Escriba otra especie (ej. Conejos, Hurones, Aves exóticas) y presione Agregar"
+                            className="flex-1 px-3 py-2 bg-white border border-sky-300 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAddCustomCohabitingSpecies}
+                            className="px-4 py-2 bg-[#6F2BCC] hover:bg-[#581ea3] text-white rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0"
+                          >
+                            + Agregar
+                          </button>
+                        </div>
+
+                        {/* Chips de todas las especies seleccionadas / agregadas */}
+                        {formData.cohabitingSpecies.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {formData.cohabitingSpecies.map((sp) => (
+                              <span
+                                key={sp}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-sky-100 text-sky-900 border border-sky-200"
+                              >
+                                <span>🐾 {sp}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveCohabitingSpecies(sp)}
+                                  className="text-sky-600 hover:text-rose-600 font-bold ml-1 cursor-pointer"
+                                  title="Quitar especie"
+                                >
+                                  ✕
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Pregunta 3: Viajes recientes */}
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                    <span className="font-semibold text-slate-800">3. ¿Viajes recientes fuera del departamento?</span>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setFormData((prev) => ({ ...prev, recentTravel: false }))}
-                        className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer ${!formData.recentTravel ? 'bg-slate-700 text-white' : 'bg-white border border-slate-200 text-slate-600'}`}
-                      >
-                        No
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setFormData((prev) => ({ ...prev, recentTravel: true }))}
-                        className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer ${formData.recentTravel ? 'bg-[#6F2BCC] text-white' : 'bg-white border border-slate-200 text-slate-600'}`}
-                      >
-                        Sí
-                      </button>
+                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-slate-800">
+                        3. ¿Viajes recientes fuera del departamento?
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, recentTravel: false, recentTravelDetails: '' }))}
+                          className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer ${!formData.recentTravel ? 'bg-slate-700 text-white' : 'bg-white border border-slate-200 text-slate-600'}`}
+                        >
+                          No
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, recentTravel: true }))}
+                          className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer ${formData.recentTravel ? 'bg-[#6F2BCC] text-white' : 'bg-white border border-slate-200 text-slate-600'}`}
+                        >
+                          Sí
+                        </button>
+                      </div>
                     </div>
+
+                    {formData.recentTravel && (
+                      <div className="pt-2 border-t border-slate-200 animate-in fade-in duration-150">
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Indique el departamento o lugar al que viajó más recientemente: <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="recentTravelDetails"
+                          value={formData.recentTravelDetails}
+                          onChange={handleChange}
+                          placeholder="Ej. Último viaje: Barranquilla, zona de alto impacto por filarias"
+                          className="w-full px-3.5 py-2 bg-white border border-sky-300 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-2xs"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Pregunta 4: Acceso a zonas rurales */}
@@ -1316,10 +1631,10 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
-                      Seleccione los Síntomas Clínicos Observados (Opcional):
+                      Seleccione los Síntomas Clínicos y Signos Observados (Opcional):
                     </span>
                     <span className="text-[11px] text-slate-500">
-                      Dejar en blanco si el paciente acude por consulta preventiva o control general.
+                      Dejar en blanco si el paciente acude por consulta preventiva o control general sin signos ni síntomas patológicos.
                     </span>
                   </div>
                   <span className="text-[11px] font-bold text-sky-800 bg-sky-100 px-2.5 py-0.5 rounded-full border border-sky-200">
@@ -1351,7 +1666,7 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                 {formData.selectedSymptoms.includes('Otro') && (
                   <div className="pt-2 animate-in fade-in duration-150">
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Especifique otros síntomas observados
+                      Especifique otros síntomas y signos observados
                     </label>
                     <input
                       type="text"
@@ -1537,6 +1852,122 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     <div className="p-2.5 bg-slate-100 rounded-xl text-slate-500 text-[11px] italic flex items-center gap-1.5 animate-in fade-in duration-150">
                       <span>ℹ️</span>
                       <span>Tratamiento desconocido: No se requiere registro de fecha.</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Identificación con Microchip */}
+                <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🏷️</span>
+                    <div>
+                      <h5 className="font-extrabold text-slate-900 text-sm">Microchip de Identificación</h5>
+                      <span className="text-[11px] text-slate-500">Transpondedor subcutáneo ISO 11784/11785</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1.5">
+                      ¿Cuenta con microchip implantado? * {formData.hasMicrochip === null && <span className="text-amber-600 font-normal">(Seleccione Sí o No)</span>}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, hasMicrochip: false, microchipNumber: '' }))}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          formData.hasMicrochip === false
+                            ? 'bg-slate-700 text-white shadow-2xs'
+                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        No
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, hasMicrochip: true }))}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          formData.hasMicrochip === true
+                            ? 'bg-[#6F2BCC] text-white shadow-2xs'
+                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        Sí
+                      </button>
+                    </div>
+                  </div>
+
+                  {formData.hasMicrochip === true && (
+                    <div className="animate-in fade-in duration-150 pt-1">
+                      <label className="block font-bold text-slate-700 mb-1 text-[11px]">
+                        Número de Microchip *
+                      </label>
+                      <input
+                        type="text"
+                        name="microchipNumber"
+                        value={formData.microchipNumber}
+                        onChange={handleChange}
+                        placeholder="Ej. 900215001234567 (15 dígitos)"
+                        className="w-full px-3.5 py-2.5 bg-white border border-sky-300 rounded-xl font-mono text-xs font-bold text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-sky-500"
+                        autoFocus
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Salida del País / Viajes Internacionales */}
+                <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">✈️</span>
+                    <div>
+                      <h5 className="font-extrabold text-slate-900 text-sm">Historial Internacional</h5>
+                      <span className="text-[11px] text-slate-500">Tránsito fronterizo y viajes al exterior</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1.5">
+                      ¿El paciente ha salido del país? * {formData.hasTraveledAbroad === null && <span className="text-amber-600 font-normal">(Seleccione Sí o No)</span>}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, hasTraveledAbroad: false, lastCountryVisited: '' }))}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          formData.hasTraveledAbroad === false
+                            ? 'bg-slate-700 text-white shadow-2xs'
+                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        No
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, hasTraveledAbroad: true }))}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          formData.hasTraveledAbroad === true
+                            ? 'bg-[#6F2BCC] text-white shadow-2xs'
+                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        Sí
+                      </button>
+                    </div>
+                  </div>
+
+                  {formData.hasTraveledAbroad === true && (
+                    <div className="animate-in fade-in duration-150 pt-1">
+                      <label className="block font-bold text-slate-700 mb-1 text-[11px]">
+                        Último país que visitó *
+                      </label>
+                      <input
+                        type="text"
+                        name="lastCountryVisited"
+                        value={formData.lastCountryVisited}
+                        onChange={handleChange}
+                        placeholder="Ej. Estados Unidos, México, España, Brasil, Panamá..."
+                        className="w-full px-3.5 py-2.5 bg-white border border-sky-300 rounded-xl text-xs font-semibold text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-sky-500"
+                        autoFocus
+                      />
                     </div>
                   )}
                 </div>
@@ -1774,6 +2205,10 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                       <span className="text-slate-900 font-bold">{formData.ownerFirstName} {formData.ownerLastName}</span>
                     </div>
                     <div className="flex items-center justify-between sm:justify-start gap-4">
+                      <span className="text-slate-500 w-32 shrink-0">Documento tutor</span>
+                      <span className="text-slate-900 font-bold">{formData.ownerDocumentType} {formData.ownerDocumentNumber || '—'}</span>
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-start gap-4">
                       <span className="text-slate-500 w-32 shrink-0">Teléfono principal</span>
                       <span className="text-slate-800 font-medium">{formData.ownerPhone || '—'}</span>
                     </div>
@@ -1890,6 +2325,16 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                   </div>
                   <div className="p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-3.5 text-xs">
                     <div className="flex items-center justify-between sm:justify-start gap-4">
+                      <span className="text-slate-500 w-36 shrink-0">Entorno vivienda</span>
+                      <span className="text-slate-800 font-medium">{formData.housingArea || '—'}</span>
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-start gap-4">
+                      <span className="text-slate-500 w-36 shrink-0">Tipo de vivienda</span>
+                      <span className="text-slate-800 font-medium">
+                        {formData.housingType === 'Otro' ? (formData.otherHousingType || 'Otro') : (formData.housingType || '—')}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-start gap-4">
                       <span className="text-slate-500 w-36 shrink-0">Hábitat</span>
                       <span className="text-slate-800 font-medium">{formData.habitat || '—'}</span>
                     </div>
@@ -1901,26 +2346,32 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     </div>
                     <div className="flex items-center justify-between sm:justify-start gap-4">
                       <span className="text-slate-500 w-36 shrink-0">Convive animales</span>
-                      <span className="text-slate-800 font-medium">{formData.livesWithOtherAnimals ? 'Sí' : 'No'}</span>
+                      <span className="text-slate-800 font-medium">
+                        {formData.livesWithOtherAnimals
+                          ? `Sí (${formData.cohabitingSpecies.length > 0 ? formData.cohabitingSpecies.join(', ') : 'Especies registradas'})`
+                          : 'No'}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between sm:justify-start gap-4">
-                      <span className="text-slate-500 w-36 shrink-0">Viajes recientes (6 meses)</span>
-                      <span className="text-slate-800 font-medium">{formData.recentTravel ? 'Sí' : 'No'}</span>
+                      <span className="text-slate-500 w-36 shrink-0">Viaje departamental</span>
+                      <span className="text-slate-800 font-medium">
+                        {formData.recentTravel ? `Sí (${formData.recentTravelDetails || 'Reportado'})` : 'No'}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between sm:justify-start gap-4">
                       <span className="text-slate-500 w-36 shrink-0">Zonas rurales/boscosas</span>
                       <span className="text-slate-800 font-medium">{formData.ruralAccess ? 'Sí' : 'No'}</span>
                     </div>
                     <div className="flex items-center justify-between sm:justify-start gap-4">
-                      <span className="text-slate-500 w-36 shrink-0">Historial parásitos/garrapatas</span>
+                      <span className="text-slate-500 w-36 shrink-0">Historial parásitos</span>
                       <span className="text-slate-800 font-medium">{formData.parasiteExposure ? 'Sí' : 'No'}</span>
                     </div>
                     <div className="flex items-center justify-between sm:justify-start gap-4">
-                      <span className="text-slate-500 w-36 shrink-0">Aguas estancadas/ríos</span>
+                      <span className="text-slate-500 w-36 shrink-0">Aguas estancadas</span>
                       <span className="text-slate-800 font-medium">{formData.outdoorWater ? 'Sí' : 'No'}</span>
                     </div>
-                    <div className="flex items-center justify-between sm:justify-start gap-4">
-                      <span className="text-slate-500 w-36 shrink-0">Rescate costero/cálido</span>
+                    <div className="flex items-center justify-between sm:justify-start gap-4 sm:col-span-2">
+                      <span className="text-slate-500 w-36 shrink-0">Rescate costero</span>
                       <span className="text-slate-800 font-medium">
                         {formData.coastalRescue ? `Sí${formData.coastalRescueLocation ? ` (${formData.coastalRescueLocation})` : ''}` : 'No'}
                       </span>
@@ -1961,7 +2412,7 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                       <span className="text-slate-800 font-medium">{formData.consultationType || '—'}</span>
                     </div>
                     <div className="flex items-start justify-between sm:justify-start gap-4 sm:col-span-3 pt-1 border-t border-slate-100">
-                      <span className="text-slate-500 w-36 shrink-0">Signos observados</span>
+                      <span className="text-slate-500 w-36 shrink-0">Síntomas y signos</span>
                       <span className="text-slate-800 font-medium">
                         {formData.selectedSymptoms.length > 0
                           ? [...formData.selectedSymptoms, ...(formData.otherSymptomText?.trim() ? [formData.otherSymptomText.trim()] : [])].join(', ')
@@ -1996,7 +2447,7 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                   </div>
                   <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3.5 text-xs">
                     <div className="flex items-center justify-between sm:justify-start gap-4">
-                      <span className="text-slate-500 w-36 shrink-0">Esquema de vacunación</span>
+                      <span className="text-slate-500 w-36 shrink-0">Esquema vacunación</span>
                       <span className="text-slate-800 font-medium">
                         {formData.vaccinationStatus || '—'}
                       </span>
@@ -2017,6 +2468,18 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                       <span className="text-slate-500 w-36 shrink-0">Fecha desparasitación</span>
                       <span className="text-slate-800 font-medium">
                         {formData.dewormingStatus === 'Desconocido' ? 'No requerida (Desconocido)' : (formData.lastDewormingDate || 'No registrada')}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-start gap-4">
+                      <span className="text-slate-500 w-36 shrink-0">Microchip</span>
+                      <span className="text-slate-800 font-medium">
+                        {formData.hasMicrochip ? `Sí (N°: ${formData.microchipNumber || 'Registrado'})` : 'No'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-start gap-4">
+                      <span className="text-slate-500 w-36 shrink-0">Salida del país</span>
+                      <span className="text-slate-800 font-medium">
+                        {formData.hasTraveledAbroad ? `Sí (Último país: ${formData.lastCountryVisited || 'Registrado'})` : 'No'}
                       </span>
                     </div>
                     {formData.preventionNotes && (
@@ -2118,16 +2581,6 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                 className="text-xs text-slate-500 hover:text-slate-800 font-semibold cursor-pointer mr-1"
               >
                 Cancelar edición
-              </button>
-            )}
-
-            {!isEditingFromSummary && currentStep < 7 && currentStep > 2 && (
-              <button
-                type="button"
-                onClick={() => setCurrentStep(7)}
-                className="text-xs text-sky-700 hover:text-sky-900 underline font-semibold cursor-pointer hidden sm:inline-block"
-              >
-                Ir directamente al Resumen 📋
               </button>
             )}
 

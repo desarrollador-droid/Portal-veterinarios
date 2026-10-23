@@ -95,6 +95,26 @@ export default function ResultadosView({
         </button>
       </div>
 
+      {/* Nota aclaratoria médica obligatoria sobre razonamiento clínico y diagnósticos diferenciales */}
+      <div className="bg-gradient-to-r from-sky-50 via-white to-sky-50/70 border border-sky-200/90 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 shadow-2xs">
+        <div className="w-10 h-10 rounded-xl bg-sky-100 text-[#6F2BCC] flex items-center justify-center text-lg shrink-0 border border-sky-200 shadow-2xs">
+          🩺
+        </div>
+        <div className="space-y-1 text-xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h4 className="font-extrabold text-slate-900 text-sm">
+              Nota Aclaratoria de Razonamiento Clínico y Abordaje Diagnóstico
+            </h4>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-100 text-[#6F2BCC] border border-sky-200">
+              Criterio Médico
+            </span>
+          </div>
+          <p className="text-slate-700 leading-relaxed font-medium">
+            Cuando el paciente haya sido evaluado mediante un proceso adecuado de razonamiento clínico y se hayan seleccionado las matrices biológicas pertinentes, se deben considerar otras alternativas diagnósticas diferentes a las enfermedades infecciosas hemotrópicas.
+          </p>
+        </div>
+      </div>
+
       {/* Barra de Filtros */}
       <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-2 w-full sm:w-80">
@@ -269,6 +289,14 @@ export default function ResultadosView({
                       </div>
                     ))}
                   </div>
+                </div>
+
+                {/* Nota aclaratoria de interpretación diagnóstica */}
+                <div className="p-3 bg-slate-50 border border-slate-200/90 rounded-2xl text-[11px] text-slate-600 leading-snug flex items-start gap-2">
+                  <span className="text-xs text-sky-600 mt-0.5 shrink-0">💡</span>
+                  <span>
+                    <strong className="text-slate-800">Criterio diagnóstico diferencial:</strong> Cuando el paciente haya sido evaluado mediante un proceso adecuado de razonamiento clínico y se hayan seleccionado las matrices biológicas pertinentes, se deben considerar otras alternativas diagnósticas diferentes a las enfermedades infecciosas hemotrópicas.
+                  </span>
                 </div>
 
                 {/* Barra de Acciones del Examen (Control de Seguimiento para Positivos) */}

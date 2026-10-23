@@ -367,6 +367,14 @@ export default function CatalogView() {
                         <span className="text-[11px]">{profile.sampleSummary}</span>
                       </div>
                     </div>
+
+                    {/* Nota aclaratoria sobre matrices biológicas */}
+                    <div className="flex items-start gap-2 text-[11px] text-slate-600 bg-sky-50/70 p-2.5 rounded-xl border border-sky-100 leading-snug">
+                      <span className="text-sky-600 text-xs shrink-0 mt-0.5">ℹ️</span>
+                      <span>
+                        <strong className="text-slate-800">Nota sobre matrices biológicas:</strong> Posibilidad de utilizar diferentes tipos de matrices biológicas (sangre EDTA, hisopados, aspirados de médula, orina estéril, líquido cavitario/LCR o biopsias) según las características y necesidades de cada caso clínico.
+                      </span>
+                    </div>
                   </div>
 
                   {/* Pie de tarjeta con precio e información de entrega */}

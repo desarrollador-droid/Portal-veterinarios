@@ -71,18 +71,39 @@ export const SYNDROMES_LIST = [
     ],
   },
   {
-    id: 'Ictérico/Hepático',
-    name: 'Ictericia / Hemólisis',
-    desc: 'Anemia hemolítica, ictericia, esplenomegalia',
+    id: 'Digestivo-Hepático',
+    name: 'Síndrome Digestivo-Hepático',
+    desc: 'Ictericia, hepatomegalia, anemia hemolítica, vómito, disfunción gastrointestinal y hepática',
     icon: '🟡',
     symptoms: [
-      'Anemia hemolítica',
       'Ictericia',
+      'Anemia hemolítica',
+      'Hepatomegalia',
       'Esplenomegalia',
+      'Vómito',
+      'Diarrea',
       'Palidez de mucosas',
       'Fiebre intermitente',
       'Decaimiento',
       'Anorexia',
+    ],
+  },
+  {
+    id: 'Nefrológico',
+    name: 'Síndrome Nefrológico / Renal',
+    desc: 'Glomerulonefritis mediada por inmunocomplejos, proteinuria, azotemia, hematuria, nefropatía infecciosa',
+    icon: '🫘',
+    symptoms: [
+      'Proteinuria',
+      'Azotemia / Uremia',
+      'Hematuria',
+      'Glomerulonefritis',
+      'Poliuria / Polidipsia',
+      'Oliguria / Anuria',
+      'Dolor a la palpación renal',
+      'Hipertensión renal',
+      'Edema periférico / Ascitis',
+      'Letargia urémica',
     ],
   },
   {
@@ -1512,101 +1533,7 @@ export default function RequestExamModal({
                 </>
               )}
 
-              {/* TARJETA 4: SEGUIMIENTO DE LA ORDEN (LÍNEA DE TIEMPO DELIVERY DE 8 ETAPAS) */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-5">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                  SEGUIMIENTO DE LA ORDEN
-                </span>
-
-                <div className="relative pt-2 pb-1 overflow-x-auto">
-                  {/* Línea horizontal continua que conecta los círculos */}
-                  <div className="absolute top-[26px] left-8 right-8 h-0.5 bg-sky-100 z-0 hidden sm:block" />
-
-                  <div className="grid grid-cols-4 sm:grid-cols-8 gap-3 sm:gap-1 relative z-10 min-w-[580px]">
-                    {/* 1. Orden creada */}
-                    <div className="flex flex-col items-center text-center space-y-2">
-                      <div className="w-9 h-9 rounded-full bg-[#6F2BCC] text-white flex items-center justify-center font-bold text-sm shadow-xs ring-4 ring-white">
-                        ✓
-                      </div>
-                      <span className="text-[11px] font-bold text-[#6F2BCC] leading-tight">
-                        Orden creada
-                      </span>
-                    </div>
-
-                    {/* 2. Asignando repartidor */}
-                    <div className="flex flex-col items-center text-center space-y-2">
-                      <div className="w-9 h-9 rounded-full bg-[#f0f9ff] border border-sky-200 text-sky-700 flex items-center justify-center text-sm ring-4 ring-white">
-                        🔍
-                      </div>
-                      <span className="text-[10px] font-medium text-slate-500 leading-tight">
-                        Asignando repartidor
-                      </span>
-                    </div>
-
-                    {/* 3. Repartidor en camino */}
-                    <div className="flex flex-col items-center text-center space-y-2">
-                      <div className="w-9 h-9 rounded-full bg-[#f0f9ff] border border-sky-200 text-sky-700 flex items-center justify-center text-sm ring-4 ring-white">
-                        🚗
-                      </div>
-                      <span className="text-[10px] font-medium text-slate-500 leading-tight">
-                        Repartidor en camino
-                      </span>
-                    </div>
-
-                    {/* 4. Muestra recolectada */}
-                    <div className="flex flex-col items-center text-center space-y-2">
-                      <div className="w-9 h-9 rounded-full bg-[#f0f9ff] border border-sky-200 text-sky-700 flex items-center justify-center text-sm ring-4 ring-white">
-                        🧪
-                      </div>
-                      <span className="text-[10px] font-medium text-slate-500 leading-tight">
-                        Muestra recolectada
-                      </span>
-                    </div>
-
-                    {/* 5. Camino al laboratorio */}
-                    <div className="flex flex-col items-center text-center space-y-2">
-                      <div className="w-9 h-9 rounded-full bg-[#f0f9ff] border border-sky-200 text-sky-700 flex items-center justify-center text-sm ring-4 ring-white">
-                        🚚
-                      </div>
-                      <span className="text-[10px] font-medium text-slate-500 leading-tight">
-                        Camino al laboratorio
-                      </span>
-                    </div>
-
-                    {/* 6. Recibida en lab. */}
-                    <div className="flex flex-col items-center text-center space-y-2">
-                      <div className="w-9 h-9 rounded-full bg-[#f0f9ff] border border-sky-200 text-sky-700 flex items-center justify-center text-sm ring-4 ring-white">
-                        🏥
-                      </div>
-                      <span className="text-[10px] font-medium text-slate-500 leading-tight">
-                        Recibida en lab.
-                      </span>
-                    </div>
-
-                    {/* 7. Procesando */}
-                    <div className="flex flex-col items-center text-center space-y-2">
-                      <div className="w-9 h-9 rounded-full bg-[#f0f9ff] border border-sky-200 text-sky-700 flex items-center justify-center text-sm ring-4 ring-white">
-                        🔬
-                      </div>
-                      <span className="text-[10px] font-medium text-slate-500 leading-tight">
-                        Procesando
-                      </span>
-                    </div>
-
-                    {/* 8. Resultado enviado */}
-                    <div className="flex flex-col items-center text-center space-y-2">
-                      <div className="w-9 h-9 rounded-lg bg-[#ecfdf5] border border-emerald-300 text-emerald-600 flex items-center justify-center text-sm ring-4 ring-white">
-                        ☑️
-                      </div>
-                      <span className="text-[10px] font-medium text-slate-500 leading-tight">
-                        Resultado enviado
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* BOTONES DE RETORNO Y SEGUIMIENTO */}
+              {/* BOTONES DE RETORNO Y SEGUIMIENTO (DIRECTO TRAS EL RESUMEN) */}
               <div className="pt-4 flex flex-wrap items-center justify-center gap-3 pb-2">
                 <button
                   type="button"
@@ -2144,6 +2071,14 @@ export default function RequestExamModal({
                           />
                         </div>
                       )}
+
+                      {/* Nota aclaratoria de matrices biológicas */}
+                      <div className="mt-2.5 px-3 py-2 bg-slate-50 border border-slate-200/90 rounded-xl flex items-start gap-2 text-[11px] text-slate-600 leading-snug">
+                        <span className="text-xs text-[#6F2BCC] mt-0.5 shrink-0">ℹ️</span>
+                        <span>
+                          <strong className="text-slate-800">Nota sobre matrices biológicas:</strong> Posibilidad de utilizar diferentes tipos de matrices biológicas según las características y necesidades de cada caso clínico.
+                        </span>
+                      </div>
                     </div>
 
                     {/* Asintomático */}
@@ -2521,6 +2456,14 @@ export default function RequestExamModal({
                         )
                       )}
 
+                      {/* Nota aclaratoria sobre tipos de matrices biológicas según las necesidades del caso clínico */}
+                      <div className="my-2.5 px-3 py-2 bg-sky-50/70 border border-sky-200/90 rounded-xl flex items-start gap-2 text-[11px] text-slate-700 leading-snug">
+                        <span className="text-xs text-[#6F2BCC] mt-0.5 shrink-0">ℹ️</span>
+                        <span>
+                          <strong className="text-slate-900">Nota sobre matrices biológicas:</strong> Existe la posibilidad de utilizar diferentes tipos de matrices biológicas (sangre total con EDTA, hisopados mucosos/conjuntivales, aspirados de médula ósea, líquido cavitario/LCR o biopsias) según las características y necesidades específicas de cada caso clínico.
+                        </span>
+                      </div>
+
                       {/* Pie de la tarjeta: Precio, Muestra y Botón */}
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
                         <div className="flex items-center gap-4">
@@ -2796,6 +2739,14 @@ export default function RequestExamModal({
                           )}
                         </div>
                       )}
+
+                      {/* Nota aclaratoria de matrices biológicas */}
+                      <div className="mt-2.5 px-3 py-2 bg-slate-50 border border-slate-200/90 rounded-xl flex items-start gap-2 text-[11px] text-slate-600 leading-snug">
+                        <span className="text-xs text-[#6F2BCC] mt-0.5 shrink-0">ℹ️</span>
+                        <span>
+                          <strong className="text-slate-800">Nota sobre matrices biológicas:</strong> Posibilidad de utilizar diferentes tipos de matrices biológicas según las características y necesidades de cada caso clínico.
+                        </span>
+                      </div>
                     </div>
 
                     {/* REQUERIMIENTO DEL USUARIO:

@@ -18,7 +18,17 @@ function normalizeText(text) {
 function matchSyndromeTokens(sNorm, psNorm) {
   if (!sNorm || !psNorm) return false;
   if (sNorm.includes(psNorm) || psNorm.includes(sNorm)) return true;
-  const roots = ['derm', 'cutan', 'piel', 'cardio', 'oftalm', 'ocul', 'neuro', 'hemotrop', 'icter', 'respirat', 'filar', 'infecc'];
+  // Soporte bidireccional digestivo-hepático e ictérico
+  if ((sNorm.includes('digestiv') || sNorm.includes('hepatic') || sNorm.includes('icter')) &&
+      (psNorm.includes('digestiv') || psNorm.includes('hepatic') || psNorm.includes('icter'))) {
+    return true;
+  }
+  // Soporte para nefrológico y renal
+  if ((sNorm.includes('nefro') || sNorm.includes('renal')) &&
+      (psNorm.includes('nefro') || psNorm.includes('renal'))) {
+    return true;
+  }
+  const roots = ['derm', 'cutan', 'piel', 'cardio', 'oftalm', 'ocul', 'neuro', 'hemotrop', 'icter', 'digest', 'hepat', 'nefro', 'renal', 'respirat', 'filar', 'infecc'];
   for (const root of roots) {
     if (sNorm.includes(root) && psNorm.includes(root)) return true;
   }

@@ -755,6 +755,17 @@ export default function PatientFichaModal({
                     )}
                   </div>
 
+                  {/* Nota aclaratoria médica de razonamiento clínico y diagnósticos diferenciales */}
+                  <div className="bg-sky-50/80 border border-sky-200/90 rounded-2xl p-4 flex items-start gap-3 shadow-2xs">
+                    <span className="text-lg text-[#6F2BCC] mt-0.5 shrink-0">🩺</span>
+                    <div className="text-xs space-y-0.5">
+                      <strong className="text-slate-900 block font-bold">Nota Aclaratoria de Criterio Clínico:</strong>
+                      <p className="text-slate-700 leading-relaxed font-medium">
+                        Cuando el paciente haya sido evaluado mediante un proceso adecuado de razonamiento clínico y se hayan seleccionado las matrices biológicas pertinentes, se deben considerar otras alternativas diagnósticas diferentes a las enfermedades infecciosas hemotrópicas.
+                      </p>
+                    </div>
+                  </div>
+
                   {patient.qpcrExams && patient.qpcrExams.length > 0 ? (
                     <div className="space-y-4">
                       {patient.qpcrExams.map((exam) => {

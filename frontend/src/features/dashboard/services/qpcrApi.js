@@ -332,7 +332,7 @@ export const LOCAL_QPCR_PROFILES_MASTER = [
     samples: [
       { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado (4°C)' }
     ],
-    syndromes: ['Hemotrópico/Sistémico', 'Infeccioso viral', 'Neurológico', 'Dermatológico / Cutáneo (Piel)'],
+    syndromes: ['Hemotrópico/Sistémico', 'Infeccioso viral', 'Neurológico', 'Nefrológico', 'Dermatológico / Cutáneo (Piel)'],
     agentIds: [
       'ehrlichia-canis',
       'anaplasma-platys',
@@ -365,7 +365,7 @@ export const LOCAL_QPCR_PROFILES_MASTER = [
     samples: [
       { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado (4°C)' }
     ],
-    syndromes: ['Hemotrópico/Sistémico', 'Ictérico/Hepático', 'Ocular', 'Infeccioso viral', 'Dermatológico / Cutáneo (Piel)'],
+    syndromes: ['Hemotrópico/Sistémico', 'Digestivo-Hepático', 'Ocular', 'Infeccioso viral', 'Dermatológico / Cutáneo (Piel)'],
     agentIds: [
       'mycoplasma-haemofelis',
       'bartonella-felina',
@@ -379,6 +379,34 @@ export const LOCAL_QPCR_PROFILES_MASTER = [
       'Anaplasma phagocytophilum'
     ],
     description: 'Panel qPCR felino enfocado en hemoplasmas causantes de anemia hemolítica, bartonelosis y rickettsiosis de la tabla clínica.'
+  },
+  {
+    id: 'panel-nefrologico-infeccioso',
+    title: 'Panel Nefrológico & Glomerulonefritis Infecciosa',
+    species: 'Canino',
+    type: 'Específico',
+    basePrice: 165000,
+    price: 165000,
+    discount: false,
+    sampleSummary: 'Sangre total con EDTA (2 ml) / Orina por cistocentesis',
+    samples: [
+      { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado (4°C)' },
+      { name: 'Orina estéril por cistocentesis (5 ml)', desc: 'Tubo estéril sin aditivos refrigerado' }
+    ],
+    syndromes: ['Nefrológico', 'Hemotrópico/Sistémico'],
+    agentIds: [
+      'ehrlichia-canis',
+      'anaplasma-phagocytophilum',
+      'bartonella-canina',
+      'hepatozoon-canis'
+    ],
+    agents: [
+      'Ehrlichia canis',
+      'Anaplasma phagocytophilum',
+      'Bartonella spp. (canina)',
+      'Hepatozoon canis'
+    ],
+    description: 'Abordaje molecular de glomerulonefritis membranoproliferativa mediada por inmunocomplejos, vasculitis renal, proteinuria y azotemia según tabla clínica.'
   },
   {
     id: 'panel-musculoesqueletico-canino',
@@ -501,7 +529,17 @@ function norm(s) {
 function matchSyndromeTokens(sNorm, psNorm) {
   if (!sNorm || !psNorm) return false;
   if (sNorm.includes(psNorm) || psNorm.includes(sNorm)) return true;
-  const roots = ['derm', 'cutan', 'piel', 'cardio', 'oftalm', 'ocul', 'neuro', 'hemotrop', 'icter', 'respirat', 'filar', 'infecc'];
+  // Soporte bidireccional digestivo-hepático e ictérico
+  if ((sNorm.includes('digestiv') || sNorm.includes('hepatic') || sNorm.includes('icter')) &&
+      (psNorm.includes('digestiv') || psNorm.includes('hepatic') || psNorm.includes('icter'))) {
+    return true;
+  }
+  // Soporte para nefrológico y renal
+  if ((sNorm.includes('nefro') || sNorm.includes('renal')) &&
+      (psNorm.includes('nefro') || psNorm.includes('renal'))) {
+    return true;
+  }
+  const roots = ['derm', 'cutan', 'piel', 'cardio', 'oftalm', 'ocul', 'neuro', 'hemotrop', 'icter', 'digest', 'hepat', 'nefro', 'renal', 'respirat', 'filar', 'infecc'];
   for (const root of roots) {
     if (sNorm.includes(root) && psNorm.includes(root)) return true;
   }
