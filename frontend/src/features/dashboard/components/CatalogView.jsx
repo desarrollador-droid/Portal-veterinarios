@@ -3,19 +3,25 @@ import { LOCAL_INFECTIOUS_AGENTS_DB, LOCAL_QPCR_PROFILES_MASTER } from '../servi
 
 /**
  * Catálogo Oficial de Perfiles qPCR y Agentes Infecciosos - VetLab
- * Permite filtrar perfiles por:
- * 1. Todos
- * 2. Canino
- * 3. Felino
- * 4. Solo ambas especies
- * Muestra todos los agentes a simple vista en cada perfil.
- * Sin botones redundantes de "nuevo examen".
+ * Basado en la Base de Datos Biomédica y Epidemiológica (Excel).
+ * Grupos: HEPATOZOON, RICKETTSIALES, HAEMOPLASMAS, APICOMPLEXOS, NEMÁTODOS, LEPTOSPIRA
  */
 export default function CatalogView() {
   const [activeTab, setActiveTab] = useState('perfiles'); // 'perfiles' | 'agentes'
   const [speciesFilter, setSpeciesFilter] = useState('all'); // 'all' | 'canino' | 'felino' | 'ambas'
+  const [groupFilter, setGroupFilter] = useState('all'); // 'all' | 'HEPATOZOON' | 'RICKETTSIALES' ...
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedProfileDetails, setExpandedProfileDetails] = useState({});
+
+  const agentGroups = [
+    { id: 'all', label: 'Todos los Grupos' },
+    { id: 'HEPATOZOON', label: 'Hepatozoon' },
+    { id: 'RICKETTSIALES', label: 'Rickettsiales' },
+    { id: 'HAEMOPLASMAS', label: 'Haemoplasmas' },
+    { id: 'APICOMPLEXOS', label: 'Apicomplexos' },
+    { id: 'NEMÁTODOS', label: 'Nemátodos' },
+    { id: 'LEPTOSPIRA', label: 'Leptospira' },
+  ];
 
   // Conteo de perfiles por especie
   const profileCounts = useMemo(() => {
@@ -47,8 +53,6 @@ export default function CatalogView() {
         matchesSpecies = specNorm === 'felino';
       } else if (speciesFilter === 'ambas') {
         matchesSpecies = specNorm === 'ambos' || specNorm.includes('amb');
-      } else {
-        matchesSpecies = true; // 'all'
       }
 
       // 2. Filtro de búsqueda textual
@@ -78,16 +82,24 @@ export default function CatalogView() {
         matchesSpecies = agentSpeciesLower.includes('canino') && agentSpeciesLower.includes('felino');
       }
 
+      // Filtro de Grupo
+      const matchesGroup = groupFilter === 'all' || agent.group === groupFilter;
+
+      // Filtro de Búsqueda
       const q = searchTerm.trim().toLowerCase();
       const matchesSearch =
         !q ||
         agent.name.toLowerCase().includes(q) ||
-        agent.symptomsDescription.toLowerCase().includes(q) ||
-        agent.labDescription.toLowerCase().includes(q);
+        (agent.group && agent.group.toLowerCase().includes(q)) ||
+        (agent.transmission && agent.transmission.toLowerCase().includes(q)) ||
+        (agent.targetOrgans && agent.targetOrgans.toLowerCase().includes(q)) ||
+        (agent.symptomsDescription && agent.symptomsDescription.toLowerCase().includes(q)) ||
+        (agent.labDescription && agent.labDescription.toLowerCase().includes(q)) ||
+        (agent.countries && agent.countries.toLowerCase().includes(q));
 
-      return matchesSpecies && matchesSearch;
+      return matchesSpecies && matchesGroup && matchesSearch;
     });
-  }, [speciesFilter, searchTerm]);
+  }, [speciesFilter, groupFilter, searchTerm]);
 
   const toggleProfileDetails = (id) => {
     setExpandedProfileDetails((prev) => ({
@@ -106,14 +118,14 @@ export default function CatalogView() {
               Catálogo Clínico Molecular
             </span>
             <span className="text-xs text-slate-400 font-medium">
-              · Termociclación en Tiempo Real qPCR
+              · Base de Datos Biomédica qPCR
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2B017C] tracking-tight">
-            Catálogo de Perfiles qPCR
+            Catálogo de Perfiles y Agentes qPCR
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Consulta los paneles moleculares diagnósticos validados, patógenos detectados y requerimientos de muestra.
+            Paneles validados, patógenos clasificados por familias, patogenia, signos clínicos, hallazgos de laboratorio y matrices biológicas pertinentes.
           </p>
         </div>
 
@@ -137,7 +149,7 @@ export default function CatalogView() {
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            🧬 12 Agentes Oficiales
+            🧬 Base de Patógenos ({LOCAL_INFECTIOUS_AGENTS_DB.length})
           </button>
         </div>
       </div>
@@ -153,8 +165,8 @@ export default function CatalogView() {
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder={
               activeTab === 'perfiles'
-                ? 'Buscar perfil por nombre, agente o síntoma...'
-                : 'Buscar agente por nombre, síntoma o hallazgo...'
+                ? 'Buscar perfil por nombre, agente o síndrome...'
+                : 'Buscar agente por nombre, órgano, vector o signo clínico...'
             }
             className="w-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none font-medium bg-transparent"
           />
@@ -168,11 +180,10 @@ export default function CatalogView() {
           )}
         </div>
 
-        {/* 4 Filtros de Especie: Todos, Canino, Felino, Solo ambas especies */}
+        {/* 4 Filtros de Especie */}
         <div className="flex items-center gap-2 flex-wrap shrink-0">
-          <span className="text-xs font-bold text-[#2B017C] mr-1">Filtrar por:</span>
+          <span className="text-xs font-bold text-[#2B017C] mr-1">Especie:</span>
           <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-bold gap-1">
-            {/* 1. Todos */}
             <button
               onClick={() => setSpeciesFilter('all')}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
@@ -184,7 +195,6 @@ export default function CatalogView() {
               Todos ({profileCounts.all})
             </button>
 
-            {/* 2. Canino */}
             <button
               onClick={() => setSpeciesFilter('canino')}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
@@ -197,7 +207,6 @@ export default function CatalogView() {
               <span>Canino ({profileCounts.canino})</span>
             </button>
 
-            {/* 3. Felino */}
             <button
               onClick={() => setSpeciesFilter('felino')}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
@@ -210,7 +219,6 @@ export default function CatalogView() {
               <span>Felino ({profileCounts.felino})</span>
             </button>
 
-            {/* 4. Solo ambas especies */}
             <button
               onClick={() => setSpeciesFilter('ambas')}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
@@ -220,151 +228,139 @@ export default function CatalogView() {
               }`}
             >
               <span>🐾</span>
-              <span>Solo ambas especies ({profileCounts.ambas})</span>
+              <span>Ambas ({profileCounts.ambas})</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* 3. VISTA 1: CATÁLOGO DE PERFILES qPCR */}
+      {/* Sub-barra de Grupos para la pestaña de Agentes */}
+      {activeTab === 'agentes' && (
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5">
+          <span className="text-xs font-bold text-slate-500 shrink-0 mr-1">Grupo:</span>
+          {agentGroups.map((g) => {
+            const isSel = groupFilter === g.id;
+            return (
+              <button
+                key={g.id}
+                onClick={() => setGroupFilter(g.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                  isSel
+                    ? 'bg-[#2B017C] text-white shadow-2xs'
+                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                {g.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* 3. VISTA 1: LISTADO DE PERFILES qPCR */}
       {activeTab === 'perfiles' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between text-xs text-slate-500 px-1">
             <span>
-              Mostrando <strong className="text-[#2B017C]">{filteredProfiles.length}</strong> perfiles moleculares
-              {speciesFilter !== 'all' && (
-                <span>
-                  {' '}
-                  para{' '}
-                  <strong className="text-[#6F2BCC]">
-                    {speciesFilter === 'canino'
-                      ? 'Canino'
-                      : speciesFilter === 'felino'
-                      ? 'Felino'
-                      : 'Solo ambas especies'}
-                  </strong>
-                </span>
-              )}
+              Mostrando <strong className="text-[#2B017C]">{filteredProfiles.length}</strong> perfiles validados
             </span>
-            {speciesFilter !== 'all' && (
-              <button
-                onClick={() => setSpeciesFilter('all')}
-                className="text-[#6F2BCC] font-bold hover:underline cursor-pointer"
-              >
-                Ver todos los perfiles
-              </button>
-            )}
+            <span className="text-slate-400">
+              {speciesFilter === 'canino' && 'Filtro activo: Solo Caninos'}
+              {speciesFilter === 'felino' && 'Filtro activo: Solo Felinos'}
+              {speciesFilter === 'ambas' && 'Filtro activo: Solo Ambas Especies'}
+              {speciesFilter === 'all' && 'Mostrando todas las especies'}
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {filteredProfiles.map((profile) => {
-              const isAmbos =
-                (profile.species || '').toLowerCase() === 'ambos' ||
-                (profile.species || '').toLowerCase().includes('amb');
-              const isCanino = (profile.species || '').toLowerCase() === 'canino';
-              const isFelino = (profile.species || '').toLowerCase() === 'felino';
+              const isExpanded = expandedProfileDetails[profile.id];
 
               return (
                 <div
                   key={profile.id}
-                  className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4 relative overflow-hidden"
+                  className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-sm hover:border-[#6F2BCC]/40 transition-all flex flex-col justify-between space-y-4"
                 >
-                  <div className="space-y-4">
-                    {/* Encabezado de la tarjeta: Título y Badges */}
+                  <div className="space-y-3.5">
+                    {/* Encabezado del Perfil */}
                     <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
-                      <div className="space-y-1.5 flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {/* Badge de Especie */}
-                          {isAmbos ? (
-                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#01FADA]/20 text-[#007a6a] border border-[#01FADA]/60 flex items-center gap-1">
-                              <span>🐾</span>
-                              <span>Canino y Felino (Ambas especies)</span>
-                            </span>
-                          ) : isCanino ? (
-                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
-                              <span>🐶</span>
-                              <span>Canino</span>
-                            </span>
-                          ) : isFelino ? (
-                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 text-[#6F2BCC] border border-purple-200 flex items-center gap-1">
-                              <span>🐱</span>
-                              <span>Felino</span>
-                            </span>
-                          ) : (
-                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700">
-                              {profile.species}
-                            </span>
-                          )}
-
-                          {/* Badge de Tipo */}
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600">
-                            {profile.type || 'Panel Molecular'}
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span
+                            className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${
+                              profile.species.toLowerCase() === 'canino'
+                                ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                                : profile.species.toLowerCase() === 'felino'
+                                ? 'bg-pink-100 text-pink-900 border border-pink-200'
+                                : 'bg-[#c7f2e5] text-[#0f766e] border border-[#99f6e4]'
+                            }`}
+                          >
+                            {profile.species === 'Canino' && '🐶 '}
+                            {profile.species === 'Felino' && '🐱 '}
+                            {profile.species.includes('Amb') && '🐾 '}
+                            {profile.species}
+                          </span>
+                          <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-purple-50 text-[#6F2BCC] border border-purple-200">
+                            {profile.type}
                           </span>
                         </div>
-
-                        <h3 className="text-base sm:text-lg font-extrabold text-[#2B017C] leading-snug">
+                        <h3 className="text-base font-extrabold text-slate-900 leading-snug">
                           {profile.title}
                         </h3>
                       </div>
-
-                      <span className="w-10 h-10 rounded-2xl bg-purple-50 border border-purple-100 text-[#6F2BCC] flex items-center justify-center text-lg shrink-0">
-                        🧬
+                      <span className="w-9 h-9 rounded-2xl bg-purple-50 text-[#6F2BCC] flex items-center justify-center text-lg shrink-0">
+                        🔬
                       </span>
                     </div>
 
-                    {/* Descripción clínica */}
-                    <p className="text-xs text-slate-600 leading-relaxed">
+                    {/* Descripción Clínica */}
+                    <p className="text-xs text-slate-600 leading-relaxed font-normal">
                       {profile.description}
                     </p>
 
-                    {/* TODOS LOS AGENTES A SIMPLE VISTA */}
-                    <div className="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-200/80 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#2B017C] flex items-center gap-1.5">
-                          <span>🔬</span>
-                          <span>Agentes detectados a simple vista ({profile.agents.length}):</span>
+                    {/* Síndromes Asociados */}
+                    {profile.syndromes && profile.syndromes.length > 0 && (
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Síndromes:
                         </span>
-                        <span className="text-[10px] font-mono text-slate-400 font-bold">qPCR Dúplex/Múltiplex</span>
+                        {profile.syndromes.map((syn, sIdx) => (
+                          <span
+                            key={sIdx}
+                            className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700"
+                          >
+                            {syn}
+                          </span>
+                        ))}
                       </div>
+                    )}
 
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {profile.agents.map((agentName, idx) => (
+                    {/* Agentes Incluidos - Visibles a simple vista */}
+                    <div className="space-y-1.5 pt-1">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                        Patógenos Diana ({profile.agentIds ? profile.agentIds.length : (profile.agents || []).length}):
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(profile.agents || []).map((agName, idx) => (
                           <span
                             key={idx}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold italic bg-white text-slate-800 border border-slate-200 shadow-2xs"
+                            className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-sky-50 text-[#2B017C] border border-sky-100 flex items-center gap-1"
                           >
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#01FADA]" />
-                            <span>{agentName}</span>
+                            <span>🧬</span>
+                            <span className="italic">{agName}</span>
                           </span>
                         ))}
                       </div>
                     </div>
 
-                    {/* Síndromes clínicos vinculados */}
-                    {profile.syndromes && profile.syndromes.length > 0 && (
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                          Síndromes clínicos asociados:
-                        </span>
-                        <div className="flex flex-wrap gap-1">
-                          {profile.syndromes.map((syn, idx) => (
-                            <span
-                              key={idx}
-                              className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-purple-50 text-[#6F2BCC] border border-purple-100"
-                            >
-                              {syn}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Muestra requerida */}
-                    <div className="flex items-start gap-2 text-xs text-slate-600 bg-amber-50/60 p-2.5 rounded-xl border border-amber-100">
-                      <span className="text-amber-600 text-sm">🩸</span>
-                      <div>
-                        <span className="font-bold text-slate-800 block">Muestra requerida:</span>
-                        <span className="text-[11px]">{profile.sampleSummary}</span>
+                    {/* Muestras Biológicas Requeridas */}
+                    <div className="pt-1">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">
+                        Muestra Requerida
+                      </span>
+                      <div className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                        <span>🧪</span>
+                        <span>{profile.sampleSummary}</span>
                       </div>
                     </div>
 
@@ -420,12 +416,12 @@ export default function CatalogView() {
         </div>
       )}
 
-      {/* 4. VISTA 2: DIRECTORIO DE LOS 12 AGENTES INFECCIOSOS OFICIALES */}
+      {/* 4. VISTA 2: BASE COMPLETA DE AGENTES INFECCIOSOS OFICIALES (EXCEL) */}
       {activeTab === 'agentes' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between text-xs text-slate-500 px-1">
             <span>
-              Mostrando <strong className="text-[#2B017C]">{filteredAgents.length}</strong> de los 12 agentes oficiales
+              Mostrando <strong className="text-[#2B017C]">{filteredAgents.length}</strong> agentes en la base de datos oficial
             </span>
           </div>
 
@@ -435,35 +431,77 @@ export default function CatalogView() {
                 key={agent.id}
                 className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-sm space-y-4 hover:border-purple-300 transition-all flex flex-col justify-between"
               >
-                <div className="space-y-3">
+                <div className="space-y-3.5">
+                  {/* Encabezado del Agente */}
                   <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
                     <div>
-                      <h3 className="text-base font-black italic text-[#2B017C]">
-                        {agent.name}
-                      </h3>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-purple-100 text-[#2B017C] border border-purple-200">
+                          {agent.group}
+                        </span>
                         {agent.species.map((sp, i) => (
                           <span
                             key={i}
-                            className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-[#6F2BCC] border border-purple-200"
+                            className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700"
                           >
                             {sp}
                           </span>
                         ))}
-                        <span className="text-[10px] text-slate-400 font-mono">
-                          qPCR Cuantitativo
-                        </span>
                       </div>
+                      <h3 className="text-base font-black italic text-[#2B017C]">
+                        {agent.name}
+                      </h3>
+                      {agent.countries && (
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          📍 {agent.countries}
+                        </p>
+                      )}
                     </div>
                     <span className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 flex items-center justify-center text-sm shrink-0">
                       🧬
                     </span>
                   </div>
 
-                  {/* Síntomas Clínicos */}
+                  {/* Transmisión y Vectores */}
+                  {agent.transmission && (
+                    <div className="p-2.5 bg-amber-50/60 rounded-xl border border-amber-200/70 text-xs text-amber-950">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 block mb-0.5">
+                        Transmisión & Vectores Comprobados
+                      </span>
+                      <p className="text-[11px] leading-snug">
+                        {agent.transmission}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Órganos Blanco */}
+                  {agent.targetOrgans && (
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-0.5">
+                        Órganos y Tejidos Blanco
+                      </span>
+                      <p className="text-xs text-slate-800 font-medium">
+                        {agent.targetOrgans}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Interacción Hospedero-Parásito / Patogenia */}
+                  {agent.pathogenesis && (
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-0.5">
+                        Patogenia & Respuesta Inmune
+                      </span>
+                      <p className="text-xs text-slate-600 leading-relaxed">
+                        {agent.pathogenesis}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Síntomas y Signos Clínicos */}
                   <div>
                     <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-0.5">
-                      Cuadro Clínico Principal
+                      Signos Clínicos Principales
                     </span>
                     <p className="text-xs text-slate-700 leading-relaxed font-normal">
                       {agent.symptomsDescription}
@@ -473,18 +511,39 @@ export default function CatalogView() {
                   {/* Hallazgos de Laboratorio */}
                   <div>
                     <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-0.5">
-                      Hallazgos Laboratoriales / Hemograma
+                      Hallazgos de Laboratorio Clínico / Hemograma
                     </span>
                     <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                       {agent.labDescription}
                     </p>
                   </div>
+
+                  {/* Diagnóstico Molecular */}
+                  {agent.diagnosticMethods && (
+                    <div className="text-[11px] text-sky-950 bg-sky-50/60 p-2.5 rounded-xl border border-sky-100">
+                      <strong className="block text-[10px] uppercase font-bold text-sky-800 mb-0.5">
+                        Diagnóstico & Matriz Recomendada
+                      </strong>
+                      <span>{agent.diagnosticMethods}</span>
+                    </div>
+                  )}
+
+                  {/* Observaciones relevantes */}
+                  {agent.relevantNotes && (
+                    <div className="text-[11px] text-slate-500 italic">
+                      * {agent.relevantNotes}
+                    </div>
+                  )}
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-[11px] text-[#6F2BCC] font-bold">
-                    Panel Diagnóstico VetLab qPCR
-                  </span>
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                  {agent.doi ? (
+                    <span className="font-mono text-purple-700 font-semibold text-[10px]">
+                      DOI: {agent.doi}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400 text-[10px]">VetLab Biomédica</span>
+                  )}
                   <span className="text-[10px] text-slate-400 font-mono">
                     ID: {agent.id}
                   </span>

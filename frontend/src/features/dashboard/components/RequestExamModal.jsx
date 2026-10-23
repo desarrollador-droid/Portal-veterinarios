@@ -163,22 +163,9 @@ export const SYNDROMES_LIST = [
 export const QPCR_CATALOG = LOCAL_QPCR_PROFILES_MASTER;
 
 // ============================================================================
-// 3. BANCO DE SUGERENCIAS RÁPIDAS PARA AGENTES ALTERNATIVOS (12 AGENTES OFICIALES)
+// 3. BANCO DE SUGERENCIAS RÁPIDAS PARA AGENTES ALTERNATIVOS (DERIVADO DE LA BD OFICIAL)
 // ============================================================================
-export const AVAILABLE_ALTERNATIVE_AGENTS = [
-  'Hepatozoon canis',
-  'Hepatozoon americanum',
-  'Ehrlichia canis',
-  'Anaplasma platys',
-  'Anaplasma phagocytophilum',
-  'Rickettsia rickettsii',
-  'Rickettsia felis',
-  'Wolbachia pipientis',
-  'Mycoplasma haemocanis',
-  'Mycoplasma haemofelis',
-  'Bartonella spp. (felina)',
-  'Bartonella spp. (canina)',
-];
+export const AVAILABLE_ALTERNATIVE_AGENTS = LOCAL_INFECTIOUS_AGENTS_DB.map((a) => a.name);
 
 // ============================================================================
 // 4. HELPER: EXTRACCIÓN DE AGENTES Y VERIFICACIÓN DE CONTROL PREVIO (PLAZO MÁXIMO 6 MESES)
@@ -742,13 +729,19 @@ export default function RequestExamModal({
     const fetchFilteredProfiles = async () => {
       setLoadingProfiles(true);
       try {
-        const patientSymptoms = activePatient?.clinicalSymptoms || activePatient?.symptoms || [];
+        const patientSymptoms = [
+          ...(Array.isArray(activePatient?.clinicalSymptoms) ? activePatient.clinicalSymptoms : []),
+          ...(Array.isArray(activePatient?.symptoms) ? activePatient.symptoms : []),
+          ...(Array.isArray(activePatient?.medicalAdmission?.symptoms) ? activePatient.medicalAdmission.symptoms : []),
+        ];
         const results = await qpcrApi.filterProfiles({
           syndromes: selectedSyndromes,
           findings: selectedFindings,
-          symptoms: Array.isArray(patientSymptoms) ? patientSymptoms : [patientSymptoms].filter(Boolean),
+          symptoms: Array.from(new Set(patientSymptoms)).filter(Boolean),
           species: activePatient?.species || 'Canino',
           isAsymptomatic: Boolean(isAsymptomatic),
+          riskFactors: activePatient?.riskFactors || {},
+          patient: activePatient,
         });
         if (active && Array.isArray(results) && results.length > 0) {
           setBackendProfiles(results);
@@ -764,7 +757,7 @@ export default function RequestExamModal({
     return () => {
       active = false;
     };
-  }, [selectedSyndromes, selectedFindings, activePatient?.species, isAsymptomatic]);
+  }, [selectedSyndromes, selectedFindings, activePatient?.id, activePatient?.species, isAsymptomatic]);
 
   // Perfiles recomendados con cálculo de coincidencia (%) enriquecidos por backend
   const recommendedProfiles = useMemo(() => {
@@ -2540,6 +2533,16 @@ export default function RequestExamModal({
                             <span>{profile.clinicalRationale}</span>
                           </div>
                         )
+                      )}
+
+                      {/* Alerta de Factor de Riesgo Epidemiológico */}
+                      {profile.epidemiologicalAlert && (
+                        <div className="my-2 px-3 py-2 bg-purple-50/80 border border-purple-200/90 rounded-xl flex items-start gap-2 text-[11px] text-[#2B017C] leading-snug">
+                          <span className="text-xs text-[#6F2BCC] mt-0.5 shrink-0">🧭</span>
+                          <span>
+                            <strong className="text-slate-900">Correlación Epidemiológica:</strong> {profile.epidemiologicalAlert}
+                          </span>
+                        </div>
                       )}
 
                       {/* Nota aclaratoria sobre tipos de matrices biológicas según las necesidades del caso clínico */}

@@ -1,7 +1,7 @@
 /**
  * Servicio de Filtrado Inteligente y Causalidad de Perfiles qPCR - VetLab
- * Cruza la sintomatología, hallazgos de laboratorio clínico y síndromes
- * EXCLUSIVAMENTE con la información de los 12 agentes de la tabla.
+ * Cruza la sintomatología, hallazgos de laboratorio clínico, especie (gato o perro),
+ * síndromes y factores de riesgo epidemiológicos según la Base de Datos Oficial en Excel.
  */
 
 import { INFECTIOUS_AGENTS_DB, QPCR_PROFILES_MASTER } from '../models/qpcrKnowledgeBase.js';
@@ -18,17 +18,29 @@ function normalizeText(text) {
 function matchSyndromeTokens(sNorm, psNorm) {
   if (!sNorm || !psNorm) return false;
   if (sNorm.includes(psNorm) || psNorm.includes(sNorm)) return true;
+
   // Soporte bidireccional digestivo-hepático e ictérico
-  if ((sNorm.includes('digestiv') || sNorm.includes('hepatic') || sNorm.includes('icter')) &&
-      (psNorm.includes('digestiv') || psNorm.includes('hepatic') || psNorm.includes('icter'))) {
+  if (
+    (sNorm.includes('digestiv') || sNorm.includes('hepatic') || sNorm.includes('icter')) &&
+    (psNorm.includes('digestiv') || psNorm.includes('hepatic') || psNorm.includes('icter'))
+  ) {
     return true;
   }
+
   // Soporte para nefrológico y renal
-  if ((sNorm.includes('nefro') || sNorm.includes('renal')) &&
-      (psNorm.includes('nefro') || psNorm.includes('renal'))) {
+  if (
+    (sNorm.includes('nefro') || sNorm.includes('renal')) &&
+    (psNorm.includes('nefro') || psNorm.includes('renal'))
+  ) {
     return true;
   }
-  const roots = ['derm', 'cutan', 'piel', 'cardio', 'oftalm', 'ocul', 'neuro', 'hemotrop', 'icter', 'digest', 'hepat', 'nefro', 'renal', 'respirat', 'filar', 'infecc'];
+
+  const roots = [
+    'derm', 'cutan', 'piel', 'cardio', 'oftalm', 'ocul', 'neuro',
+    'hemotrop', 'icter', 'digest', 'hepat', 'nefro', 'renal', 'respirat',
+    'filar', 'infecc', 'muscul', 'articul'
+  ];
+
   for (const root of roots) {
     if (sNorm.includes(root) && psNorm.includes(root)) return true;
   }
@@ -63,15 +75,71 @@ export const qpcrService = {
 
   /**
    * Filtra perfiles y genera la atribución causal: "¿A qué se deben los síntomas del paciente?"
+   * Tomando en cuenta todos los parámetros de la base de datos:
+   * - Especie (Canino vs Felino)
+   * - Síndromes clínicos seleccionados
+   * - Síntomas y signos observados
+   * - Hallazgos de laboratorio clínico
+   * - Factores de riesgo epidemiológicos (vectores, hábitat, viajes, aguas, convivencia)
    */
-  filterProfiles({ syndromes = [], findings = [], symptoms = [], species = 'Canino', isAsymptomatic = false }) {
+  filterProfiles({
+    syndromes = [],
+    findings = [],
+    symptoms = [],
+    species = 'Canino',
+    isAsymptomatic = false,
+    riskFactors = {},
+    patient = null,
+  }) {
     const rawTokens = [...(findings || []), ...(symptoms || [])].filter(Boolean);
     const uniqueRawTokens = Array.from(new Set(rawTokens));
     const selectedSyndromesNorm = (syndromes || []).map(normalizeText);
     const speciesNorm = normalizeText(species);
 
+    // Factores de riesgo consolidados (de los argumentos o de la ficha del paciente)
+    const effectiveRiskFactors = {
+      ...(patient?.riskFactors || {}),
+      ...(riskFactors || {}),
+    };
+
+    const hasTicksRisk = Boolean(
+      effectiveRiskFactors.parasiteExposure ||
+      (effectiveRiskFactors.otherRiskFactors && normalizeText(effectiveRiskFactors.otherRiskFactors).includes('garrapata'))
+    );
+
+    const hasFleasRisk = Boolean(
+      effectiveRiskFactors.parasiteExposure ||
+      (effectiveRiskFactors.otherRiskFactors && normalizeText(effectiveRiskFactors.otherRiskFactors).includes('pulga'))
+    );
+
+    const hasWaterOrRuralRisk = Boolean(
+      effectiveRiskFactors.outdoorWater ||
+      effectiveRiskFactors.ruralAccess ||
+      (effectiveRiskFactors.housingArea && normalizeText(effectiveRiskFactors.housingArea).includes('rural')) ||
+      (effectiveRiskFactors.housingType && normalizeText(effectiveRiskFactors.housingType).includes('finca'))
+    );
+
+    const travelDetailsNorm = normalizeText(effectiveRiskFactors.recentTravelDetails || '');
+    const hasTravelToMosquitoZone = Boolean(
+      effectiveRiskFactors.recentTravel &&
+      (travelDetailsNorm.includes('barranquilla') ||
+       travelDetailsNorm.includes('costa') ||
+       travelDetailsNorm.includes('llanos') ||
+       travelDetailsNorm.includes('uraba') ||
+       travelDetailsNorm.includes('caribe') ||
+       travelDetailsNorm.includes('filaria') ||
+       travelDetailsNorm.includes('cali') ||
+       travelDetailsNorm.includes('monteria'))
+    );
+
+    const hasCatCohabitation = Boolean(
+      effectiveRiskFactors.livesWithOtherAnimals &&
+      ((effectiveRiskFactors.cohabitingSpecies && effectiveRiskFactors.cohabitingSpecies.some((s) => normalizeText(s).includes('felin') || normalizeText(s).includes('gato'))) ||
+       (effectiveRiskFactors.otherRiskFactors && normalizeText(effectiveRiskFactors.otherRiskFactors).includes('gato')))
+    );
+
     const scoredProfiles = QPCR_PROFILES_MASTER.map((profile) => {
-      // 1. Compatibilidad estricta de especie
+      // 1. COMPATIBILIDAD ESTRICTA DE ESPECIE (Canino vs Felino)
       const profileSpeciesNorm = normalizeText(profile.species);
       const isSpeciesMatch =
         profileSpeciesNorm === 'ambos' ||
@@ -83,13 +151,13 @@ export const qpcrService = {
         return null;
       }
 
-      // 2. Coincidencia de Síndromes
+      // 2. COINCIDENCIA DE SÍNDROMES CLÍNICOS
       const profileSyndromesNorm = profile.syndromes.map(normalizeText);
       const matchedSyndromes = selectedSyndromesNorm.filter((s) =>
         profileSyndromesNorm.some((ps) => matchSyndromeTokens(s, ps))
       );
 
-      // 3. Resolución de agentes específicos de este perfil
+      // 3. RESOLUCIÓN DE AGENTES ESPECÍFICOS DE ESTE PERFIL
       const resolvedAgents = (profile.agentIds || [])
         .map((agentId) => INFECTIOUS_AGENTS_DB.find((a) => a.id === agentId))
         .filter(Boolean);
@@ -97,7 +165,6 @@ export const qpcrService = {
       const agentNames = resolvedAgents.map((a) => a.name);
 
       // 4. ATRIBUCIÓN CAUSAL: ¿A qué se deben estos síntomas en el paciente?
-      // Analizamos cada síntoma reportado contra los agentes de este perfil
       const symptomAttribution = [];
       const matchedAgentNames = new Set();
       const coveredSymptomsCount = new Set();
@@ -107,9 +174,9 @@ export const qpcrService = {
         const explainingAgents = [];
 
         resolvedAgents.forEach((agent) => {
-          // Revisamos si el síntoma coincide con las explicaciones específicas o keywords
           let matchedExplanation = null;
 
+          // Búsqueda en explicaciones directas
           if (agent.symptomExplanations) {
             for (const [key, explanation] of Object.entries(agent.symptomExplanations)) {
               const normKey = normalizeText(key);
@@ -120,7 +187,7 @@ export const qpcrService = {
             }
           }
 
-          // Si no tiene explicación directa en el mapa pero está en sus keywords
+          // Búsqueda en palabras clave del agente si no hubo coincidencia directa
           if (!matchedExplanation) {
             const hasKeyword = agent.keywords.some((kw) => {
               const normKw = normalizeText(kw);
@@ -128,7 +195,7 @@ export const qpcrService = {
             });
 
             if (hasKeyword) {
-              matchedExplanation = `Asociado al cuadro clínico reportado en ${agent.name} (${agent.symptomsDescription.slice(0, 90)}...).`;
+              matchedExplanation = `Asociado al cuadro clínico de ${agent.name} (${agent.symptomsDescription.slice(0, 110)}...).`;
             }
           }
 
@@ -136,8 +203,10 @@ export const qpcrService = {
             explainingAgents.push({
               agentId: agent.id,
               agentName: agent.name,
+              group: agent.group,
               explanation: matchedExplanation,
               labDetail: agent.labDescription,
+              targetOrgans: agent.targetOrgans,
             });
             matchedAgentNames.add(agent.name);
             coveredSymptomsCount.add(normToken);
@@ -152,43 +221,79 @@ export const qpcrService = {
         }
       });
 
-      // 5. Cálculo del Porcentaje de Coincidencia (Match Score)
-      let finalPercentage = 50;
+      // 5. CÁLCULO DEL SCORE DE COINCIDENCIA (%)
+      let finalPercentage = 45;
 
-      // Bono por síndrome clínico
+      // Ponderación por síndromes clínicos seleccionados
       if (matchedSyndromes.length > 0) {
-        finalPercentage += 30;
+        finalPercentage += 32;
       }
 
-      // Bono por síntomas explicados o modo asintomático
+      // Ponderación por síntomas clínicos cubiertos
       if (isAsymptomatic) {
-        finalPercentage = profile.type === 'Amplio' ? 96 : 90;
+        finalPercentage = profile.type === 'Amplio' ? 95 : 88;
       } else if (uniqueRawTokens.length > 0) {
         const coverageRatio = coveredSymptomsCount.size / uniqueRawTokens.length;
         finalPercentage += Math.round(coverageRatio * 18);
-      } else {
-        // En consulta general (sin síntomas ingresados aún)
-        if (matchedSyndromes.length > 0) {
-          finalPercentage = profile.type === 'Amplio' ? 95 : 88;
+      } else if (matchedSyndromes.length > 0) {
+        finalPercentage = profile.type === 'Amplio' ? 94 : 87;
+      }
+
+      // 6. BONIFICACIONES POR FACTORES DE RIESGO EPIDEMIOLÓGICOS DEL EXCEL
+      let epidemiologicalAlert = null;
+
+      // Riesgo de Leptospira (agua estancada, lodo, roedores, rural)
+      const hasLeptospiraInProfile = resolvedAgents.some((a) => a.group === 'LEPTOSPIRA');
+      if (hasLeptospiraInProfile && hasWaterOrRuralRisk) {
+        finalPercentage += 5;
+        epidemiologicalAlert = 'Paciente con exposición a aguas/lodo o entorno rural; alta correlación epidemiológica con Leptospira spp.';
+      }
+
+      // Riesgo de Filarias / Dirofilaria (viajes a la costa, mosquitos)
+      const hasDirofilariaInProfile = resolvedAgents.some((a) => a.group === 'NEMÁTODOS' || a.id.includes('wolbachia'));
+      if (hasDirofilariaInProfile && hasTravelToMosquitoZone) {
+        finalPercentage += 5;
+        epidemiologicalAlert = 'Paciente con historial de viaje a zona de impacto filarial/costera; alta correlación con Dirofilaria immitis y Wolbachia.';
+      }
+
+      // Riesgo de garrapatas (Rickettsiales, Babesia, Hepatozoon)
+      const hasTickAgents = resolvedAgents.some((a) => a.vectors.includes('garrapata'));
+      if (hasTickAgents && hasTicksRisk) {
+        finalPercentage += 3;
+        if (!epidemiologicalAlert) {
+          epidemiologicalAlert = 'Paciente con exposición reportada a garrapatas (Rhipicephalus/Amblyomma); indicado para patógenos vectoriales.';
         }
       }
 
-      // Ponderación por profundidad de patógenos diana
-      if (matchedAgentNames.size >= 2) {
-        finalPercentage = Math.min(99, finalPercentage + 2);
+      // Riesgo de pulgas (Bartonella, Rickettsia felis, Mycoplasma felino)
+      const hasFleaAgents = resolvedAgents.some((a) => a.vectors.includes('pulga'));
+      if (hasFleaAgents && hasFleasRisk) {
+        finalPercentage += 3;
       }
 
+      // Toxoplasma con convivencia felina
+      const hasToxoplasmaInProfile = resolvedAgents.some((a) => a.id === 'toxoplasma-gondii');
+      if (hasToxoplasmaInProfile && (hasCatCohabitation || speciesNorm.includes('felin'))) {
+        finalPercentage += 2;
+      }
+
+      // Bono por profundidad diagnóstica de patógenos diana coincidentes
+      if (matchedAgentNames.size >= 2) {
+        finalPercentage += 2;
+      }
+
+      // Limitar el porcentaje en rango 50% - 99%
       finalPercentage = Math.min(99, Math.max(50, finalPercentage));
 
-      // 6. Generación del Rationale Clínico explicativo
+      // 7. RATIONALE CLÍNICO
       let clinicalRationale = '';
       if (isAsymptomatic) {
-        clinicalRationale = `Tamizaje molecular preventivo para paciente asintomático (Panel ${profile.type}).`;
+        clinicalRationale = `Tamizaje molecular preventivo para paciente asintomático (${species}) enfocado en patógenos de la base de datos clínica.`;
       } else if (symptomAttribution.length > 0) {
         const agentHighlights = Array.from(matchedAgentNames).slice(0, 3).join(', ');
-        clinicalRationale = `Explica ${symptomAttribution.length} de los síntomas reportados a través de ${agentHighlights} según la tabla clínica.`;
+        clinicalRationale = `Explica ${symptomAttribution.length} de los signos clínicos reportados a través de ${agentHighlights} según la base de datos oficial.`;
       } else if (matchedSyndromes.length > 0) {
-        clinicalRationale = `Panel indicado para el síndrome clínico ${profile.syndromes.join(' / ')}.`;
+        clinicalRationale = `Panel indicado para el síndrome clínico ${profile.syndromes.join(' / ')} en ${species}.`;
       } else {
         clinicalRationale = `Panel especializado de diagnóstico molecular por qPCR.`;
       }
@@ -205,6 +310,13 @@ export const qpcrService = {
         samples: profile.samples,
         syndromes: profile.syndromes,
         agents: agentNames,
+        resolvedAgentsData: resolvedAgents.map((a) => ({
+          id: a.id,
+          name: a.name,
+          group: a.group,
+          targetOrgans: a.targetOrgans,
+          diagnosticMethods: a.diagnosticMethods,
+        })),
         description: profile.description,
         matchPercentage: `${finalPercentage}%`,
         rawScore: finalPercentage,
@@ -214,6 +326,7 @@ export const qpcrService = {
         coveredSymptomsCount: coveredSymptomsCount.size,
         matchedAgents: Array.from(matchedAgentNames),
         clinicalRationale,
+        epidemiologicalAlert,
       };
     }).filter(Boolean);
 

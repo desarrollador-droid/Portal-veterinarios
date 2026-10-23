@@ -2,13 +2,15 @@ import qpcrService from '../services/qpcrService.js';
 
 export const filterProfiles = async (req, res) => {
   try {
-    const { syndromes, findings, symptoms, species, isAsymptomatic } = req.body || {};
+    const { syndromes, findings, symptoms, species, isAsymptomatic, riskFactors, patient } = req.body || {};
     const filtered = qpcrService.filterProfiles({
       syndromes: syndromes || [],
       findings: findings || [],
       symptoms: symptoms || [],
       species: species || 'Canino',
       isAsymptomatic: Boolean(isAsymptomatic),
+      riskFactors: riskFactors || {},
+      patient: patient || null,
     });
 
     return res.status(200).json({
