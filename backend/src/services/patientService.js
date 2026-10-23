@@ -420,27 +420,8 @@ export const patientService = {
         },
       ],
       qpcrExams: [],
-      activeExamOrder: data.requestExam
-        ? {
-            id: `ORD-2026-${Math.floor(100 + Math.random() * 900)}`,
-            testName: data.initialExamName || 'qPCR Panel Diagnóstico',
-            category: 'Biología Molecular Cuantitativa (qPCR)',
-            sampleType: 'Hisopado / Muestra biológica',
-            priority: 'Normal (24-48h)',
-            requestedBy: 'Dr. Alejandro Morales',
-            laboratory: 'VetLab Central - Unidad de Genómica',
-            targets: 'Detección cuantitativa de patógenos diana',
-            requestedAt: `${new Date().toLocaleDateString('es-ES')} - ${new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`,
-            currentStep: 0,
-            steps: [
-              { label: 'Solicitud creada', desc: 'Orden médica generada en clínica', date: 'Hoy', completed: true },
-              { label: 'Muestra recibida', desc: 'Recepción y código de barras en laboratorio', date: 'Pendiente', completed: false },
-              { label: 'En análisis qPCR', desc: 'Extracción de ácidos nucleicos y amplificación en termociclador', date: 'Pendiente', completed: false },
-              { label: 'Validación médica', desc: 'Curvas de amplificación verificadas por patólogo molecular', date: 'Pendiente', completed: false },
-              { label: 'Resultado enviado', desc: 'Informe emitido y disponible para descarga', date: 'Pendiente', completed: false },
-            ],
-          }
-        : null,
+      // Si el usuario marcó solicitar qPCR, pasará al flujo interactivo de diagnóstico para crear la orden real
+      activeExamOrder: null,
       createdAt: new Date().toISOString(),
     };
 

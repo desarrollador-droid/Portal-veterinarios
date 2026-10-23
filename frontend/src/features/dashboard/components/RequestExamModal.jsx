@@ -496,9 +496,9 @@ export default function RequestExamModal({
     return initialPatient?.owner?.vetPlusCode || '';
   });
 
-  // Estado Clínico del paciente: Asintomático vs Sintomático (definido en la solicitud de examen)
+  // Estado Clínico del paciente: Asintomático vs Sintomático (definido en la solicitud de examen o heredado del ingreso)
   const [isAsymptomatic, setIsAsymptomatic] = useState(() => {
-    return Boolean(initialPatient?.isAsymptomatic);
+    return Boolean(initialPatient?.isAsymptomatic ?? initialPatient?.medicalAdmission?.isAsymptomatic);
   });
 
   // Sincronización reactiva si initialPatient o initialExamType cambian en modo módulo
@@ -507,7 +507,31 @@ export default function RequestExamModal({
       setSelectedPatientId(initialPatient.id);
       setHasVetPlusInsurance(Boolean(initialPatient.owner?.hasVetPlus));
       setVetPlusCode(initialPatient.owner?.vetPlusCode || '');
-      setIsAsymptomatic(Boolean(initialPatient.isAsymptomatic));
+      const patientIsAsymp = Boolean(
+        initialPatient.isAsymptomatic ?? initialPatient.medicalAdmission?.isAsymptomatic
+      );
+      setIsAsymptomatic(patientIsAsymp);
+
+      // Precargar síntomas y signos del ingreso clínico si el paciente no es asintomático
+      if (!patientIsAsymp) {
+        const admissionSymptoms = [
+          ...(Array.isArray(initialPatient.symptoms) ? initialPatient.symptoms : []),
+          ...(Array.isArray(initialPatient.medicalAdmission?.symptoms) ? initialPatient.medicalAdmission.symptoms : []),
+          ...(Array.isArray(initialPatient.clinicalSymptoms) ? initialPatient.clinicalSymptoms : []),
+        ].filter(Boolean);
+
+        const uniqueSymptoms = Array.from(new Set(admissionSymptoms));
+        if (uniqueSymptoms.length > 0) {
+          setSelectedFindings((prev) => Array.from(new Set([...prev, ...uniqueSymptoms])));
+        }
+
+        const customSym = initialPatient.otherSymptoms || initialPatient.medicalAdmission?.otherSymptoms;
+        if (customSym && typeof customSym === 'string' && customSym.trim()) {
+          const trimmed = customSym.trim();
+          setCustomFindings((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]));
+          setSelectedFindings((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]));
+        }
+      }
 
       if (initialExamType === 'control') {
         const info = getPatientExamHistoryInfo(initialPatient);
@@ -1904,7 +1928,7 @@ export default function RequestExamModal({
                             {isSelected && (
                               <div className="flex items-center gap-2">
                                 <span className="text-xs font-bold text-[#6F2BCC] bg-sky-100 px-2.5 py-1 rounded-lg flex items-center gap-1">
-                                  <span>✓</span> Seleccionado
+                                  <span>✓</span> Seleccionado {initialPatient && initialPatient.id === p.id ? '(Dato preguardado)' : ''}
                                 </span>
                                 <span className="text-[11px] text-slate-400 hidden sm:inline">
                                   (Clic para deseleccionar)
@@ -2000,18 +2024,24 @@ export default function RequestExamModal({
           {!isOrderSuccess && !isControlReviewOpen && currentStep === 2 && (
             <div className="space-y-5 animate-in fade-in duration-150">
 
-              {/* Ficha contextual del paciente con configuración directa de Aseguramiento VetPlus y Estado Asintomático */}
+              {/* Ficha contextual del paciente (Dato quemado / preguardado) con configuración de Aseguramiento VetPlus y Asintomático */}
               {activePatient && (
                 <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{activePatient.avatar || (activePatient.species?.toLowerCase().includes('felin') ? '🐱' : '🐶')}</span>
                       <div>
-                        <div className="text-xs font-bold text-slate-900">
-                          {activePatient.name} {activePatient.lastName || ''}
+                        <div className="text-xs font-bold text-slate-900 flex items-center gap-2 flex-wrap">
+                          <span>{activePatient.name} {activePatient.lastName || ''}</span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-50 text-[#6F2BCC] border border-purple-200">
+                            {activePatient.id}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 flex items-center gap-1">
+                            <span>🔒</span> Dato preguardado
+                          </span>
                         </div>
-                        <div className="text-[11px] text-slate-500">
-                          {activePatient.species} · {activePatient.breed} · {getPatientAgeDisplay(activePatient)} · {activePatient.owner?.name || 'Tutor registrado'}
+                        <div className="text-[11px] text-slate-500 mt-0.5">
+                          {activePatient.species} · {activePatient.breed} · {getPatientAgeDisplay(activePatient)} · Tutor: {activePatient.owner?.name || 'Tutor registrado'} {activePatient.owner?.document ? `(${activePatient.owner.document})` : ''}
                         </div>
                       </div>
                     </div>
@@ -2215,6 +2245,34 @@ export default function RequestExamModal({
                 </p>
               </div>
 
+              {/* Ficha contextual del paciente (Dato quemado / preguardado) */}
+              {activePatient && (
+                <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-2xs flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{activePatient.avatar || (activePatient.species?.toLowerCase().includes('felin') ? '🐱' : '🐶')}</span>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900 flex items-center gap-2 flex-wrap">
+                        <span>{activePatient.name} {activePatient.lastName || ''}</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-50 text-[#6F2BCC] border border-purple-200">
+                          {activePatient.id}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 flex items-center gap-1">
+                          <span>🔒</span> Dato preguardado
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">
+                        {activePatient.species} · {activePatient.breed} · {getPatientAgeDisplay(activePatient)} · Tutor: {activePatient.owner?.name || 'Tutor registrado'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#c7f2e5]/80 text-[#0f766e] border border-[#99f6e4]">
+                      {examType === 'control' ? 'Seguimiento / control' : 'Examen nuevo'}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {isAsymptomatic && (
                 <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-emerald-900 animate-in fade-in duration-150 shadow-2xs">
                   <div className="flex items-center gap-2.5">
@@ -2324,6 +2382,34 @@ export default function RequestExamModal({
                     : 'Los perfiles están ordenados por coincidencia con los hallazgos clínicos'}
                 </p>
               </div>
+
+              {/* Ficha contextual del paciente (Dato quemado / preguardado) */}
+              {activePatient && (
+                <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-2xs flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{activePatient.avatar || (activePatient.species?.toLowerCase().includes('felin') ? '🐱' : '🐶')}</span>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900 flex items-center gap-2 flex-wrap">
+                        <span>{activePatient.name} {activePatient.lastName || ''}</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-50 text-[#6F2BCC] border border-purple-200">
+                          {activePatient.id}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 flex items-center gap-1">
+                          <span>🔒</span> Dato preguardado
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">
+                        {activePatient.species} · {activePatient.breed} · {getPatientAgeDisplay(activePatient)} · Tutor: {activePatient.owner?.name || 'Tutor registrado'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#c7f2e5]/80 text-[#0f766e] border border-[#99f6e4]">
+                      {examType === 'control' ? 'Seguimiento / control' : 'Examen nuevo'}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Lista de perfiles qPCR recomendados */}
               <div className="space-y-4">
@@ -2540,11 +2626,19 @@ export default function RequestExamModal({
                   <div className="flex items-center gap-3.5">
                     <span className="text-3xl">{activePatient?.avatar || (activePatient?.species?.toLowerCase().includes('felin') ? '🐱' : '🐶')}</span>
                     <div>
-                      <h4 className="text-sm font-extrabold text-slate-900">
-                        {activePatient?.name} {activePatient?.lastName || ''}
+                      <h4 className="text-sm font-extrabold text-slate-900 flex items-center gap-2 flex-wrap">
+                        <span>{activePatient?.name} {activePatient?.lastName || ''}</span>
+                        {activePatient?.id && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-50 text-[#6F2BCC] border border-purple-200">
+                            {activePatient.id}
+                          </span>
+                        )}
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 flex items-center gap-1">
+                          <span>🔒</span> Dato preguardado
+                        </span>
                       </h4>
                       <p className="text-xs text-slate-500 mt-0.5">
-                        {activePatient?.species} · {activePatient?.breed} · {getPatientAgeDisplay(activePatient)} · {activePatient?.owner?.name}
+                        {activePatient?.species} · {activePatient?.breed} · {getPatientAgeDisplay(activePatient)} · Tutor: {activePatient?.owner?.name} {activePatient?.owner?.document ? `(${activePatient.owner.document})` : ''}
                       </p>
                     </div>
                   </div>

@@ -98,10 +98,18 @@ export default function VeterinariansPortal() {
   const handleCreatePatient = async (patientData) => {
     try {
       const created = await patientApi.createPatient(patientData);
-      showToast(`¡Paciente ${created.name} (${created.id}) registrado con éxito!`);
       await loadPatients();
       await loadInitialStats();
-      setSelectedPatient(created);
+
+      if (patientData.requestExam) {
+        showToast(`¡Paciente ${created.name} (${created.id}) registrado con éxito! Redirigiendo a solicitud de examen qPCR...`);
+        setShowNewPatientWizard(false);
+        handleOpenExamModule(created, 'nuevo');
+      } else {
+        showToast(`¡Paciente ${created.name} (${created.id}) registrado con éxito!`);
+        setShowNewPatientWizard(false);
+        setSelectedPatient(created);
+      }
     } catch (err) {
       alert(err.message || 'Error registrando paciente');
     }

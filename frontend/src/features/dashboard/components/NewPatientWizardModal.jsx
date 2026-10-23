@@ -2107,53 +2107,58 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                 </div>
               </div>
 
-              {/* Solicitud opcional de examen molecular qPCR */}
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-                <div className="flex items-center justify-between">
+              {/* Solicitud qPCR (Redirección al proceso diagnóstico completo) */}
+              <div className="p-4 bg-purple-50/60 border border-purple-200/90 rounded-2xl space-y-3 shadow-2xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <span className="font-extrabold text-slate-900 text-xs block flex items-center gap-1.5">
-                      <span>🔬</span> ¿Desea ordenar un examen qPCR de inmediato?
+                    <span className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                      <span>🔬</span> Solicitar qPCR
                     </span>
-                    <span className="text-[11px] text-slate-500">
-                      Activará la línea de tiempo de delivery en el expediente digital del paciente.
+                    <span className="text-xs text-slate-600 mt-0.5 block">
+                      ¿Desea iniciar la orden de examen molecular qPCR para este paciente?
                     </span>
                   </div>
-                  <input
-                    type="checkbox"
-                    name="requestExam"
-                    checked={formData.requestExam}
-                    onChange={handleChange}
-                    className="w-5 h-5 text-sky-600 rounded cursor-pointer"
-                  />
+
+                  {/* Selector interactivo Sí / No */}
+                  <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-purple-200 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, requestExam: true }))}
+                      className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        formData.requestExam
+                          ? 'bg-[#6F2BCC] text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span>✓</span> Sí, solicitar qPCR
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, requestExam: false }))}
+                      className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        !formData.requestExam
+                          ? 'bg-slate-700 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      }`}
+                    >
+                      No
+                    </button>
+                  </div>
                 </div>
 
                 {formData.requestExam && (
-                  <div className="pt-2 border-t border-slate-200 animate-in fade-in duration-150">
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Panel Molecular Diagnóstico (qPCR)
-                    </label>
-                    <select
-                      name="initialExamName"
-                      value={formData.initialExamName}
-                      onChange={handleChange}
-                      className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-sky-950"
-                    >
-                      <option value="qPCR Panel Microbiota & Disbiosis Intestinal">
-                        qPCR Panel Microbiota & Disbiosis Intestinal
-                      </option>
-                      <option value="Panel Hemotrópicos Caninos (qPCR)">
-                        Panel Hemotrópicos Caninos (qPCR)
-                      </option>
-                      <option value="Panel Diarrea Canina Completo (qPCR)">
-                        Panel Diarrea Canina Completo (qPCR)
-                      </option>
-                      <option value="Panel Respiratorio Felino Completo (qPCR)">
-                        Panel Respiratorio Felino Completo (qPCR)
-                      </option>
-                      <option value="Panel Zoonosis & Vectoriales (qPCR)">
-                        Panel Zoonosis & Vectoriales (qPCR)
-                      </option>
-                    </select>
+                  <div className="pt-3 border-t border-purple-200/80 animate-in fade-in duration-150">
+                    <div className="p-3 bg-white/95 border border-purple-200 rounded-xl flex items-start gap-2.5 text-xs text-purple-950">
+                      <span className="text-base shrink-0">🧬</span>
+                      <div className="space-y-1">
+                        <p className="font-bold text-slate-900">
+                          Redirección inmediata al proceso diagnóstico completo:
+                        </p>
+                        <p className="text-[11px] text-slate-600 leading-relaxed">
+                          Al registrar al paciente, será redirigido inmediatamente al módulo de <strong>Solicitar examen</strong>. Los datos del paciente quedarán <strong>preguardados como dato quemado</strong>, y pasará por todo el proceso diagnóstico interactivo (selección de síndromes clínicos, hallazgos, perfiles qPCR recomendados y confirmación de la orden).
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -2538,9 +2543,9 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                       <span className="text-slate-800 font-medium">{formData.vitalSignsMucosa || 'No registrado'}</span>
                     </div>
                     <div className="flex items-center justify-between sm:justify-start gap-4">
-                      <span className="text-slate-500 w-36 shrink-0">Solicitud qPCR inicial</span>
-                      <span className="text-slate-800 font-medium">
-                        {formData.requestExam ? `Sí (${formData.initialExamName})` : 'No'}
+                      <span className="text-slate-500 w-36 shrink-0">Solicitar qPCR</span>
+                      <span className={`font-semibold ${formData.requestExam ? 'text-[#6F2BCC]' : 'text-slate-800'}`}>
+                        {formData.requestExam ? 'Sí (Redirección al proceso diagnóstico qPCR)' : 'No'}
                       </span>
                     </div>
                     {formData.medicalBackground && (
