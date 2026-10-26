@@ -169,6 +169,7 @@ export const patientService = {
         temperature: data.vitalSigns?.temperature || data.vitalSignsTemp || 'No registrada',
         respiratoryRate: data.vitalSigns?.respiratoryRate || data.vitalSignsResp || 'No registrada',
         mucosa: data.vitalSigns?.mucosa || data.vitalSignsMucosa || 'No registrada',
+        capillaryRefillTime: data.vitalSigns?.capillaryRefillTime || data.vitalSignsCapillaryRefillTime || 'No registrado',
       },
       reason: data.reason || '',
       medication: data.medication || '',
@@ -406,9 +407,11 @@ export const patientService = {
           temperature: data.vitalSigns?.temperature || data.vitalSignsTemp || 'No registrada',
           respiratoryRate: data.vitalSigns?.respiratoryRate || data.vitalSignsResp || 'No registrada',
           mucosa: data.vitalSigns?.mucosa || data.vitalSignsMucosa || 'No registrada',
+          capillaryRefillTime: data.vitalSigns?.capillaryRefillTime || data.vitalSignsCapillaryRefillTime || 'No registrado',
         },
         lastDiagnosticScore: 'Sin registros previos',
       },
+      cuadroHematico: data.cuadroHematico || null,
       consultations: [
         {
           id: `CON-${Date.now().toString().slice(-4)}`,

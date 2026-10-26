@@ -148,7 +148,22 @@ export const qpcrApi = {
     }
 
     // Fallback local garantizado con algoritmo de atribución idéntico
-    const rawTokens = [...(findings || []), ...(symptoms || [])].filter(Boolean);
+    const cuadroHem = patient?.cuadroHematico || {};
+    const autoFindingsFromCuadro = [];
+    if (cuadroHem.hematocrito && parseFloat(cuadroHem.hematocrito) < (norm(species).includes('felin') ? 25 : 37)) {
+      autoFindingsFromCuadro.push('Anemia');
+    }
+    if (cuadroHem.plaquetas && parseInt(cuadroHem.plaquetas, 10) < 180000) {
+      autoFindingsFromCuadro.push('Trombocitopenia');
+    }
+    if (cuadroHem.leucocitos && parseInt(cuadroHem.leucocitos, 10) > 17000) {
+      autoFindingsFromCuadro.push('Leucocitosis');
+    }
+    if (cuadroHem.observaciones) {
+      autoFindingsFromCuadro.push(cuadroHem.observaciones);
+    }
+
+    const rawTokens = [...(findings || []), ...(symptoms || []), ...autoFindingsFromCuadro].filter(Boolean);
     const uniqueRawTokens = Array.from(new Set(rawTokens));
     const syndsNorm = (syndromes || []).map(norm);
     const specNorm = norm(species);

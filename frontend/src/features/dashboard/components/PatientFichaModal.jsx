@@ -515,7 +515,7 @@ export default function PatientFichaModal({
                       <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                         <span>💓</span> Signos Vitales de Último Control
                       </h4>
-                      <div className="grid grid-cols-2 gap-2.5 text-xs">
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs">
                         <div className="bg-white p-2.5 rounded-xl border border-slate-200">
                           <span className="text-slate-400 block text-[10px] font-semibold">Frec. Cardíaca</span>
                           <span className="font-extrabold text-slate-800">{patient.healthMetrics?.vitalSigns?.heartRate || '130 bpm'}</span>
@@ -532,9 +532,68 @@ export default function PatientFichaModal({
                           <span className="text-slate-400 block text-[10px] font-semibold">Mucosas</span>
                           <span className="font-extrabold text-slate-800">{patient.healthMetrics?.vitalSigns?.mucosa || 'Rosadas'}</span>
                         </div>
+                        <div className="bg-white p-2.5 rounded-xl border border-slate-200 col-span-2 sm:col-span-1">
+                          <span className="text-slate-400 block text-[10px] font-semibold">TLLC (Llenado Capilar)</span>
+                          <span className="font-extrabold text-slate-800">
+                            {patient.healthMetrics?.vitalSigns?.capillaryRefillTime
+                              ? (patient.healthMetrics.vitalSigns.capillaryRefillTime.includes('min')
+                                  ? patient.healthMetrics.vitalSigns.capillaryRefillTime
+                                  : `${patient.healthMetrics.vitalSigns.capillaryRefillTime} min`)
+                              : 'Normal (1-2 min)'}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
+
+                  {/* Cuadro Hemático Registrado si existe */}
+                  {patient.cuadroHematico && (patient.cuadroHematico.hasCuadroHematico || patient.cuadroHematico.fileName || patient.cuadroHematico.hematocrito) && (
+                    <div className="p-4 bg-purple-50/50 rounded-2xl border border-purple-200/80 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#2B017C] uppercase tracking-wider flex items-center gap-1.5">
+                          <span>🩸</span> Cuadro Hemático / Hemograma
+                        </span>
+                        {patient.cuadroHematico.fileName && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            ✓ {patient.cuadroHematico.fileName}
+                          </span>
+                        )}
+                      </div>
+                      {(patient.cuadroHematico.hematocrito || patient.cuadroHematico.leucocitos || patient.cuadroHematico.plaquetas) && (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                          {patient.cuadroHematico.hematocrito && (
+                            <div className="bg-white p-2 rounded-xl border border-purple-100">
+                              <span className="text-slate-400 text-[10px] block font-semibold">Hematocrito</span>
+                              <span className="font-bold text-slate-800">{patient.cuadroHematico.hematocrito}%</span>
+                            </div>
+                          )}
+                          {patient.cuadroHematico.hemoglobina && (
+                            <div className="bg-white p-2 rounded-xl border border-purple-100">
+                              <span className="text-slate-400 text-[10px] block font-semibold">Hemoglobina</span>
+                              <span className="font-bold text-slate-800">{patient.cuadroHematico.hemoglobina} g/dL</span>
+                            </div>
+                          )}
+                          {patient.cuadroHematico.leucocitos && (
+                            <div className="bg-white p-2 rounded-xl border border-purple-100">
+                              <span className="text-slate-400 text-[10px] block font-semibold">Leucocitos</span>
+                              <span className="font-bold text-slate-800">{patient.cuadroHematico.leucocitos} /µL</span>
+                            </div>
+                          )}
+                          {patient.cuadroHematico.plaquetas && (
+                            <div className="bg-white p-2 rounded-xl border border-purple-100">
+                              <span className="text-slate-400 text-[10px] block font-semibold">Plaquetas</span>
+                              <span className="font-bold text-slate-800">{patient.cuadroHematico.plaquetas} /µL</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {patient.cuadroHematico.observaciones && (
+                        <p className="text-[11px] text-slate-600 italic bg-white p-2 rounded-xl border border-purple-100">
+                          * {patient.cuadroHematico.observaciones}
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   {patient.qpcrExams && patient.qpcrExams.length > 0 && (() => {
                     const latestExam = patient.qpcrExams[0];

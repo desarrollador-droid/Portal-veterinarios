@@ -191,6 +191,16 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
     physicalFindings: '',
     consultationType: '',
     generalCondition: '',
+    // Carga de Cuadro Hemático / Hemograma
+    hasCuadroHematico: false,
+    cuadroHematicoFile: null,
+    cuadroHematicoFileName: '',
+    cuadroHematicoFileSize: '',
+    cuadroHematicoHematocrito: '',
+    cuadroHematicoHemoglobina: '',
+    cuadroHematicoLeucocitos: '',
+    cuadroHematicoPlaquetas: '',
+    cuadroHematicoObservaciones: '',
 
     // ETAPA 5: ESTADO DE VACUNACIÓN Y PREVENCIÓN
     vaccinationStatus: '', // Al día, Incompleto, Desconocido
@@ -210,6 +220,7 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
     vitalSignsTemp: '',
     vitalSignsResp: '',
     vitalSignsMucosa: '',
+    vitalSignsCapillaryRefillTime: '', // Tiempo de llenado capilar en minutos
     requestExam: false,
     initialExamName: 'qPCR Panel Microbiota & Disbiosis Intestinal',
   });
@@ -317,6 +328,40 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
           : [...prev.selectedSymptoms, symptom],
       };
     });
+  };
+
+  const handleCuadroHematicoFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const sizeKb = Math.round(file.size / 1024);
+    const sizeStr = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${sizeKb} KB`;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFormData((prev) => ({
+        ...prev,
+        hasCuadroHematico: true,
+        cuadroHematicoFile: reader.result,
+        cuadroHematicoFileName: file.name,
+        cuadroHematicoFileSize: sizeStr,
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveCuadroHematico = () => {
+    setFormData((prev) => ({
+      ...prev,
+      hasCuadroHematico: false,
+      cuadroHematicoFile: null,
+      cuadroHematicoFileName: '',
+      cuadroHematicoFileSize: '',
+      cuadroHematicoHematocrito: '',
+      cuadroHematicoHemoglobina: '',
+      cuadroHematicoLeucocitos: '',
+      cuadroHematicoPlaquetas: '',
+      cuadroHematicoObservaciones: '',
+    }));
   };
 
   const handleNext = () => {
@@ -560,6 +605,18 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
         physicalFindings: formData.physicalFindings.trim(),
         consultationType: formData.consultationType || 'Consulta General',
         generalCondition: formData.generalCondition || 'Bueno',
+        // Cuadro Hemático cargado en admisión
+        cuadroHematico: {
+          hasCuadroHematico: formData.hasCuadroHematico,
+          file: formData.cuadroHematicoFile,
+          fileName: formData.cuadroHematicoFileName,
+          fileSize: formData.cuadroHematicoFileSize,
+          hematocrito: formData.cuadroHematicoHematocrito,
+          hemoglobina: formData.cuadroHematicoHemoglobina,
+          leucocitos: formData.cuadroHematicoLeucocitos,
+          plaquetas: formData.cuadroHematicoPlaquetas,
+          observaciones: formData.cuadroHematicoObservaciones.trim(),
+        },
 
         // Vacunación y prevención
         vaccinationStatus: formData.vaccinationStatus,
@@ -580,6 +637,11 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
           temperature: formData.vitalSignsTemp.trim() ? (formData.vitalSignsTemp.trim().includes('°') ? formData.vitalSignsTemp.trim() : `${formData.vitalSignsTemp.trim()} °C`) : 'No registrada',
           respiratoryRate: formData.vitalSignsResp.trim() ? (formData.vitalSignsResp.trim().toLowerCase().includes('rpm') ? formData.vitalSignsResp.trim() : `${formData.vitalSignsResp.trim()} rpm`) : 'No registrada',
           mucosa: formData.vitalSignsMucosa.trim() || 'No registrada',
+          capillaryRefillTime: formData.vitalSignsCapillaryRefillTime.trim()
+            ? (formData.vitalSignsCapillaryRefillTime.trim().toLowerCase().includes('min')
+                ? formData.vitalSignsCapillaryRefillTime.trim()
+                : `${formData.vitalSignsCapillaryRefillTime.trim()} min`)
+            : 'No registrado',
         },
 
         status: formData.generalCondition === 'Crítico' ? 'critico' : 'activo',
@@ -1728,6 +1790,171 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                   />
                 </div>
               </div>
+
+              {/* CARGAR CUADRO HEMÁTICO / HEMOGRAMA */}
+              <div className="p-5 bg-white border border-slate-200/90 rounded-2xl shadow-2xs space-y-4 animate-in fade-in duration-150">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                  <div>
+                    <h5 className="text-xs font-extrabold text-[#2B017C] uppercase tracking-wider flex items-center gap-1.5">
+                      <span>🩸</span> Cuadro Hemático / Hemograma del Paciente (Opcional)
+                    </h5>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Cargue el reporte laboratorial (PDF o imagen) y/o registre los parámetros hematológicos observados.
+                    </p>
+                  </div>
+                  {formData.cuadroHematicoFileName ? (
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 self-start sm:self-auto">
+                      <span>✓</span> Reporte adjunto
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-slate-400 font-medium">
+                      Opcional para correlación clínica
+                    </span>
+                  )}
+                </div>
+
+                {/* Zona de Carga de Archivo */}
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <label className="flex-1 w-full flex flex-col items-center justify-center p-4 border-2 border-dashed border-purple-200 hover:border-[#6F2BCC] bg-purple-50/30 hover:bg-purple-50/60 rounded-xl cursor-pointer transition-all text-center">
+                    <span className="text-2xl mb-1">📄</span>
+                    <span className="text-xs font-bold text-[#6F2BCC]">
+                      {formData.cuadroHematicoFileName ? 'Cambiar archivo de cuadro hemático' : 'Seleccionar o arrastrar Cuadro Hemático'}
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">
+                      PDF, JPG, PNG, DOCX (Hasta 15MB)
+                    </span>
+                    <input
+                      type="file"
+                      accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                      onChange={handleCuadroHematicoFileUpload}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {formData.cuadroHematicoFileName && (
+                    <div className="w-full sm:w-auto p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between sm:justify-start gap-3">
+                      <div>
+                        <span className="text-xs font-bold text-slate-800 block truncate max-w-[200px]">
+                          {formData.cuadroHematicoFileName}
+                        </span>
+                        <span className="text-[10px] text-slate-500">
+                          {formData.cuadroHematicoFileSize || 'Archivo cargado'}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveCuadroHematico}
+                        className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                        title="Eliminar archivo"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Parámetros Hematológicos Numéricos Opcionales */}
+                <div className="pt-2 border-t border-slate-100">
+                  <span className="text-[11px] font-bold text-slate-700 block mb-2">
+                    Valores clave del hemograma (opcional para correlación diagnóstica):
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Hematocrito (Hto)
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          name="cuadroHematicoHematocrito"
+                          value={formData.cuadroHematicoHematocrito}
+                          onChange={handleNumericChange('cuadroHematicoHematocrito', true)}
+                          placeholder="37.5"
+                          className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                        />
+                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 font-bold select-none">
+                          %
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Hemoglobina (Hb)
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          name="cuadroHematicoHemoglobina"
+                          value={formData.cuadroHematicoHemoglobina}
+                          onChange={handleNumericChange('cuadroHematicoHemoglobina', true)}
+                          placeholder="12.0"
+                          className="w-full pl-3 pr-11 py-2 border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                        />
+                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold select-none">
+                          g/dL
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Leucocitos Totales
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          name="cuadroHematicoLeucocitos"
+                          value={formData.cuadroHematicoLeucocitos}
+                          onChange={handleNumericChange('cuadroHematicoLeucocitos', false)}
+                          placeholder="12500"
+                          className="w-full pl-3 pr-9 py-2 border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                        />
+                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold select-none">
+                          /µL
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Plaquetas
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          name="cuadroHematicoPlaquetas"
+                          value={formData.cuadroHematicoPlaquetas}
+                          onChange={handleNumericChange('cuadroHematicoPlaquetas', false)}
+                          placeholder="195000"
+                          className="w-full pl-3 pr-9 py-2 border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                        />
+                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold select-none">
+                          /µL
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="col-span-2 sm:col-span-4">
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Observaciones de Frotis Sanguíneo / Morfología Celular
+                      </label>
+                      <input
+                        type="text"
+                        name="cuadroHematicoObservaciones"
+                        value={formData.cuadroHematicoObservaciones}
+                        onChange={handleChange}
+                        placeholder="Ej. Anisocitosis moderada, presencia de inclusiones celulares o sospecha de hemoparásitos..."
+                        className="w-full px-3 py-2 border border-slate-200 rounded-xl font-medium text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-purple-400"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -2080,7 +2307,7 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                   </div>
                 </div>
 
-                <div className="sm:col-span-2">
+                <div>
                   <label className="block font-bold text-slate-700 mb-1">Estado de Mucosas</label>
                   <input
                     type="text"
@@ -2090,6 +2317,29 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     placeholder="Ej. Rosadas y húmedas, Pálidas, Ictéricas..."
                     className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl font-medium text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-sky-500"
                   />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    Tiempo de Llenado Capilar (TLLC)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      name="vitalSignsCapillaryRefillTime"
+                      value={formData.vitalSignsCapillaryRefillTime}
+                      onChange={handleNumericChange('vitalSignsCapillaryRefillTime', true)}
+                      placeholder="1"
+                      className="w-full pl-3.5 pr-20 py-2.5 border border-slate-200 rounded-xl font-medium text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-sky-500"
+                    />
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 font-bold text-xs text-slate-400 pointer-events-none select-none">
+                      minutos
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 mt-0.5 block">
+                    Tiempo de retorno capilar medido en minutos.
+                  </span>
                 </div>
 
                 <div className="sm:col-span-2">
@@ -2430,6 +2680,31 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                         <span className="text-slate-800 font-medium">{formData.physicalFindings}</span>
                       </div>
                     )}
+                    {formData.hasCuadroHematico && (
+                      <div className="flex items-start justify-between sm:justify-start gap-4 sm:col-span-3 pt-1 border-t border-slate-100">
+                        <span className="text-slate-500 w-36 shrink-0">Cuadro hemático</span>
+                        <div className="space-y-1">
+                          <span className="inline-flex items-center gap-1.5 text-emerald-800 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200">
+                            <span>📄</span>
+                            <span>{formData.cuadroHematicoFileName || 'Reporte adjunto'}</span>
+                            {formData.cuadroHematicoFileSize && <span className="text-[10px] text-emerald-600 font-normal">({formData.cuadroHematicoFileSize})</span>}
+                          </span>
+                          {(formData.cuadroHematicoHematocrito || formData.cuadroHematicoHemoglobina || formData.cuadroHematicoLeucocitos || formData.cuadroHematicoPlaquetas) && (
+                            <div className="text-[11px] text-slate-700 flex items-center gap-2.5 flex-wrap font-medium">
+                              {formData.cuadroHematicoHematocrito && <span>Hto: <strong>{formData.cuadroHematicoHematocrito}%</strong></span>}
+                              {formData.cuadroHematicoHemoglobina && <span>Hb: <strong>{formData.cuadroHematicoHemoglobina} g/dL</strong></span>}
+                              {formData.cuadroHematicoLeucocitos && <span>Leucocitos: <strong>{formData.cuadroHematicoLeucocitos} /µL</strong></span>}
+                              {formData.cuadroHematicoPlaquetas && <span>Plaquetas: <strong>{formData.cuadroHematicoPlaquetas} /µL</strong></span>}
+                            </div>
+                          )}
+                          {formData.cuadroHematicoObservaciones && (
+                            <p className="text-[11px] text-slate-600 italic">
+                              * Observaciones: {formData.cuadroHematicoObservaciones}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -2541,6 +2816,16 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     <div className="flex items-center justify-between sm:justify-start gap-4">
                       <span className="text-slate-500 w-36 shrink-0">Estado de mucosas</span>
                       <span className="text-slate-800 font-medium">{formData.vitalSignsMucosa || 'No registrado'}</span>
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-start gap-4">
+                      <span className="text-slate-500 w-36 shrink-0">Llenado capilar (TLLC)</span>
+                      <span className="text-slate-800 font-medium">
+                        {formData.vitalSignsCapillaryRefillTime
+                          ? (formData.vitalSignsCapillaryRefillTime.includes('min')
+                              ? formData.vitalSignsCapillaryRefillTime
+                              : `${formData.vitalSignsCapillaryRefillTime} minutos`)
+                          : 'No registrado'}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between sm:justify-start gap-4">
                       <span className="text-slate-500 w-36 shrink-0">Solicitar qPCR</span>

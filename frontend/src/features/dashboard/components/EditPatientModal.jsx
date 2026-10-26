@@ -44,6 +44,7 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
     vitalSignsTemp: patient.healthMetrics?.vitalSigns?.temperature || '38.5 °C',
     vitalSignsResp: patient.healthMetrics?.vitalSigns?.respiratoryRate || '22 rpm',
     vitalSignsMucosa: patient.healthMetrics?.vitalSigns?.mucosa || 'Rosadas y húmedas',
+    vitalSignsCapillaryRefillTime: patient.healthMetrics?.vitalSigns?.capillaryRefillTime || '1 min',
 
     // Tutor
     ownerName: patient.owner?.name || '',
@@ -135,6 +136,7 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
           temperature: formData.vitalSignsTemp,
           respiratoryRate: formData.vitalSignsResp,
           mucosa: formData.vitalSignsMucosa,
+          capillaryRefillTime: formData.vitalSignsCapillaryRefillTime,
         },
       });
       onClose();
@@ -428,7 +430,7 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
               <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
                 Signos Vitales de Control
               </h4>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-600 mb-1">Frec. Cardíaca</label>
                   <input
@@ -466,6 +468,17 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
                     name="vitalSignsMucosa"
                     value={formData.vitalSignsMucosa}
                     onChange={handleChange}
+                    className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg font-medium"
+                  />
+                </div>
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">TLLC (minutos)</label>
+                  <input
+                    type="text"
+                    name="vitalSignsCapillaryRefillTime"
+                    value={formData.vitalSignsCapillaryRefillTime}
+                    onChange={handleChange}
+                    placeholder="1 min"
                     className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg font-medium"
                   />
                 </div>
