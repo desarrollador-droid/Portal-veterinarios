@@ -1,5 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { qpcrApi, LOCAL_QPCR_PROFILES_MASTER, LOCAL_INFECTIOUS_AGENTS_DB } from '../services/qpcrApi.js';
+import {
+  qpcrApi,
+  LOCAL_QPCR_PROFILES_MASTER,
+  LOCAL_INFECTIOUS_AGENTS_DB,
+  CLINICAL_SYNDROMES_LIST,
+  matchSyndromeTokens,
+} from '../services/qpcrApi.js';
 
 // ============================================================================
 // 1. CATÁLOGO DE SÍNDROMES CLÍNICOS VINCULADOS A LA TABLA OFICIAL (12 AGENTES)
@@ -551,6 +557,8 @@ export default function RequestExamModal({
 
   // Paso 4: Perfiles qPCR seleccionados (TOTALMENTE EN BLANCO: [])
   const [selectedProfileIds, setSelectedProfileIds] = useState([]);
+  // Paso 4: Filtro interactivo por síndrome clínico
+  const [step4SyndromeFilter, setStep4SyndromeFilter] = useState('all');
 
   // Estado para desplegar/recoger la explicación: "¿A qué se deben los síntomas del paciente?"
   const [expandedAttributionProfiles, setExpandedAttributionProfiles] = useState({});
@@ -797,6 +805,34 @@ export default function RequestExamModal({
       };
     }).sort((a, b) => b.matchPercentage - a.matchPercentage);
   }, [backendProfiles, activePatient, selectedSyndromes, isAsymptomatic]);
+
+  // Síndromes disponibles en los perfiles recomendados para este paciente
+  const availableStep4Syndromes = useMemo(() => {
+    const synMap = new Map();
+    recommendedProfiles.forEach((p) => {
+      (p.syndromes || []).forEach((syn) => {
+        const found = CLINICAL_SYNDROMES_LIST.find((cs) => matchSyndromeTokens(cs.id, syn));
+        const canonicalId = found ? found.id : syn;
+        const icon = found ? found.icon : '🩺';
+        const label = found ? found.label : syn;
+        if (!synMap.has(canonicalId)) {
+          synMap.set(canonicalId, { id: canonicalId, label, icon, count: 0 });
+        }
+        synMap.get(canonicalId).count += 1;
+      });
+    });
+    return Array.from(synMap.values());
+  }, [recommendedProfiles]);
+
+  // Perfiles recomendados filtrados por el síndrome clínico seleccionado en el Paso 4
+  const displayedRecommendedProfiles = useMemo(() => {
+    if (step4SyndromeFilter === 'all') {
+      return recommendedProfiles;
+    }
+    return recommendedProfiles.filter((p) => {
+      return (p.syndromes || []).some((s) => matchSyndromeTokens(s, step4SyndromeFilter));
+    });
+  }, [recommendedProfiles, step4SyndromeFilter]);
 
   // Perfiles actualmente añadidos a la orden
   const selectedProfiles = useMemo(() => {
@@ -2404,9 +2440,95 @@ export default function RequestExamModal({
                 </div>
               )}
 
+              {/* Barra de Filtro Interactivo por Síndrome Clínico en Paso 4 */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-2xs space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-extrabold text-[#2B017C] flex items-center gap-1.5">
+                      <span>🩺</span>
+                      <span>Filtrar perfiles por síndrome clínico:</span>
+                    </span>
+                    <span className="text-[11px] text-slate-500 font-medium">
+                      ({displayedRecommendedProfiles.length} perfiles)
+                    </span>
+                  </div>
+                  {step4SyndromeFilter !== 'all' && (
+                    <button
+                      type="button"
+                      onClick={() => setStep4SyndromeFilter('all')}
+                      className="text-[11px] font-bold text-[#6F2BCC] hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <span>Mostrar todos</span>
+                      <span>({recommendedProfiles.length})</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 scrollbar-thin">
+                  <button
+                    type="button"
+                    onClick={() => setStep4SyndromeFilter('all')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                      step4SyndromeFilter === 'all'
+                        ? 'bg-[#2B017C] text-white shadow-xs font-extrabold ring-2 ring-[#6F2BCC]/30'
+                        : 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span>✨</span>
+                    <span>Todos</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
+                        step4SyndromeFilter === 'all'
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-slate-200 text-slate-600'
+                      }`}
+                    >
+                      {recommendedProfiles.length}
+                    </span>
+                  </button>
+
+                  {availableStep4Syndromes.map((syn) => {
+                    const isSel = step4SyndromeFilter === syn.id;
+                    const isPatientClinicalSuspect = selectedSyndromes.some((s) =>
+                      matchSyndromeTokens(s, syn.id)
+                    );
+
+                    return (
+                      <button
+                        key={syn.id}
+                        type="button"
+                        onClick={() => setStep4SyndromeFilter(syn.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                          isSel
+                            ? 'bg-[#2B017C] text-white shadow-xs ring-2 ring-[#6F2BCC]/30 font-extrabold'
+                            : isPatientClinicalSuspect
+                            ? 'bg-purple-50 border border-purple-300 text-[#2B017C] hover:bg-purple-100'
+                            : 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-purple-50/60'
+                        }`}
+                      >
+                        <span>{syn.icon}</span>
+                        <span>{syn.label}</span>
+                        {isPatientClinicalSuspect && !isSel && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#6F2BCC]" title="Síndrome sospechado en triage" />
+                        )}
+                        <span
+                          className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
+                            isSel
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-slate-200 text-slate-600'
+                          }`}
+                        >
+                          {syn.count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Lista de perfiles qPCR recomendados */}
               <div className="space-y-4">
-                {recommendedProfiles.map((profile) => {
+                {displayedRecommendedProfiles.map((profile) => {
                   const isAdded = selectedProfileIds.includes(profile.id);
                   return (
                     <div
@@ -2455,6 +2577,43 @@ export default function RequestExamModal({
                           ))}
                         </div>
                       </div>
+
+                      {/* Síndromes Clínicos Asociados - Clickeables para filtrar */}
+                      {profile.syndromes && profile.syndromes.length > 0 && (
+                        <div className="flex items-center gap-1.5 flex-wrap pb-2">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            Síndromes:
+                          </span>
+                          {profile.syndromes.map((syn, sIdx) => {
+                            const isCurrentSyn =
+                              step4SyndromeFilter !== 'all' && matchSyndromeTokens(syn, step4SyndromeFilter);
+                            const isPatientSuspect = selectedSyndromes.some((s) =>
+                              matchSyndromeTokens(s, syn)
+                            );
+                            return (
+                              <button
+                                key={sIdx}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setStep4SyndromeFilter(syn);
+                                }}
+                                title={`Filtrar perfiles por síndrome: ${syn}`}
+                                className={`px-2 py-0.5 rounded-md text-[10px] font-semibold transition-all cursor-pointer ${
+                                  isCurrentSyn
+                                    ? 'bg-[#2B017C] text-white shadow-2xs ring-2 ring-purple-300 font-bold'
+                                    : isPatientSuspect
+                                    ? 'bg-purple-100 text-[#2B017C] font-bold border border-purple-200 hover:bg-purple-200'
+                                    : 'bg-slate-100 text-slate-700 hover:bg-purple-100 hover:text-[#6F2BCC]'
+                                }`}
+                              >
+                                {isPatientSuspect && <span className="mr-1">🎯</span>}
+                                {syn}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
 
                       {/* ATRIBUCIÓN CAUSAL: ¿A qué se deben estos síntomas en el paciente? (DESPLEGABLE INTERACTIVO) */}
                       {profile.symptomAttribution && profile.symptomAttribution.length > 0 ? (
@@ -2579,6 +2738,25 @@ export default function RequestExamModal({
                     </div>
                   );
                 })}
+
+                {displayedRecommendedProfiles.length === 0 && (
+                  <div className="bg-white rounded-2xl p-8 text-center border border-slate-200 space-y-2">
+                    <span className="text-3xl block">🩺</span>
+                    <h4 className="text-sm font-bold text-slate-800">
+                      No hay perfiles qPCR para el síndrome "{step4SyndromeFilter}"
+                    </h4>
+                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                      Intenta seleccionar otro síndrome o pulsa "Mostrar todos" para ver todos los perfiles recomendados para {activePatient?.name || 'el paciente'}.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setStep4SyndromeFilter('all')}
+                      className="px-4 py-2 rounded-xl bg-[#6F2BCC] text-white text-xs font-bold cursor-pointer hover:bg-[#581ea3] transition-all"
+                    >
+                      Mostrar todos los perfiles recomendados
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Barra de Resumen Inferior en el Paso 4 (Figma Imagen 4) */}

@@ -57,9 +57,10 @@ export const qpcrService = {
 
   /**
    * Obtiene todos los perfiles qPCR enriquecidos con sus agentes completos
+   * Soporta filtrado opcional por síndrome clínico, especie y búsqueda textual
    */
-  getAllProfiles() {
-    return QPCR_PROFILES_MASTER.map((profile) => {
+  getAllProfiles({ syndrome, species, search } = {}) {
+    let profiles = QPCR_PROFILES_MASTER.map((profile) => {
       const resolvedAgents = (profile.agentIds || []).map((agentId) => {
         const found = INFECTIOUS_AGENTS_DB.find((a) => a.id === agentId);
         return found ? found.name : agentId;
@@ -71,6 +72,38 @@ export const qpcrService = {
         price: profile.basePrice,
       };
     });
+
+    if (species && species !== 'all') {
+      const specNorm = normalizeText(species);
+      profiles = profiles.filter((p) => {
+        const pSpec = normalizeText(p.species || '');
+        if (specNorm.includes('canin')) return pSpec.includes('canin') || pSpec.includes('amb');
+        if (specNorm.includes('felin')) return pSpec.includes('felin') || pSpec.includes('amb');
+        if (specNorm.includes('amb')) return pSpec.includes('amb');
+        return true;
+      });
+    }
+
+    if (syndrome && syndrome !== 'all') {
+      const synNorm = normalizeText(syndrome);
+      profiles = profiles.filter((p) => {
+        return (p.syndromes || []).some((s) => matchSyndromeTokens(normalizeText(s), synNorm));
+      });
+    }
+
+    if (search && search.trim()) {
+      const q = normalizeText(search);
+      profiles = profiles.filter((p) => {
+        return (
+          normalizeText(p.title).includes(q) ||
+          normalizeText(p.description).includes(q) ||
+          (p.agents || []).some((ag) => normalizeText(ag).includes(q)) ||
+          (p.syndromes || []).some((syn) => normalizeText(syn).includes(q))
+        );
+      });
+    }
+
+    return profiles;
   },
 
   /**

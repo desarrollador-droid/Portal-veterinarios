@@ -1,5 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { LOCAL_INFECTIOUS_AGENTS_DB, LOCAL_QPCR_PROFILES_MASTER } from '../services/qpcrApi.js';
+import {
+  LOCAL_INFECTIOUS_AGENTS_DB,
+  LOCAL_QPCR_PROFILES_MASTER,
+  CLINICAL_SYNDROMES_LIST,
+  matchSyndromeTokens,
+} from '../services/qpcrApi.js';
 
 /**
  * Catálogo Oficial de Perfiles qPCR y Agentes Infecciosos - VetLab
@@ -9,6 +14,7 @@ import { LOCAL_INFECTIOUS_AGENTS_DB, LOCAL_QPCR_PROFILES_MASTER } from '../servi
 export default function CatalogView() {
   const [activeTab, setActiveTab] = useState('perfiles'); // 'perfiles' | 'agentes'
   const [speciesFilter, setSpeciesFilter] = useState('all'); // 'all' | 'canino' | 'felino' | 'ambas'
+  const [syndromeFilter, setSyndromeFilter] = useState('all'); // 'all' | 'Hemotrópico/Sistémico' | ...
   const [groupFilter, setGroupFilter] = useState('all'); // 'all' | 'HEPATOZOON' | 'RICKETTSIALES' ...
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedProfileDetails, setExpandedProfileDetails] = useState({});
@@ -27,10 +33,10 @@ export default function CatalogView() {
   const profileCounts = useMemo(() => {
     const all = LOCAL_QPCR_PROFILES_MASTER.length;
     const canino = LOCAL_QPCR_PROFILES_MASTER.filter(
-      (p) => (p.species || '').toLowerCase() === 'canino'
+      (p) => (p.species || '').toLowerCase() === 'canino' || (p.species || '').toLowerCase() === 'ambos'
     ).length;
     const felino = LOCAL_QPCR_PROFILES_MASTER.filter(
-      (p) => (p.species || '').toLowerCase() === 'felino'
+      (p) => (p.species || '').toLowerCase() === 'felino' || (p.species || '').toLowerCase() === 'ambos'
     ).length;
     const ambas = LOCAL_QPCR_PROFILES_MASTER.filter((p) => {
       const s = (p.species || '').toLowerCase();
@@ -40,7 +46,28 @@ export default function CatalogView() {
     return { all, canino, felino, ambas };
   }, []);
 
-  // Perfiles filtrados
+  // Conteo dinámico de perfiles por síndrome (respetando el filtro de especie seleccionado)
+  const syndromeCounts = useMemo(() => {
+    const baseProfiles = LOCAL_QPCR_PROFILES_MASTER.filter((profile) => {
+      const specNorm = (profile.species || '').toLowerCase();
+      if (speciesFilter === 'canino') return specNorm === 'canino' || specNorm === 'ambos';
+      if (speciesFilter === 'felino') return specNorm === 'felino' || specNorm === 'ambos';
+      if (speciesFilter === 'ambas') return specNorm === 'ambos' || specNorm.includes('amb');
+      return true;
+    });
+
+    const counts = { all: baseProfiles.length };
+    CLINICAL_SYNDROMES_LIST.forEach((syn) => {
+      if (syn.id === 'all') return;
+      counts[syn.id] = baseProfiles.filter((p) =>
+        (p.syndromes || []).some((s) => matchSyndromeTokens(s, syn.id))
+      ).length;
+    });
+
+    return counts;
+  }, [speciesFilter]);
+
+  // Perfiles filtrados por especie, síndrome clínico y texto
   const filteredProfiles = useMemo(() => {
     return LOCAL_QPCR_PROFILES_MASTER.filter((profile) => {
       // 1. Filtro de especie estricto
@@ -48,14 +75,22 @@ export default function CatalogView() {
       const specNorm = (profile.species || '').toLowerCase();
 
       if (speciesFilter === 'canino') {
-        matchesSpecies = specNorm === 'canino';
+        matchesSpecies = specNorm === 'canino' || specNorm === 'ambos';
       } else if (speciesFilter === 'felino') {
-        matchesSpecies = specNorm === 'felino';
+        matchesSpecies = specNorm === 'felino' || specNorm === 'ambos';
       } else if (speciesFilter === 'ambas') {
         matchesSpecies = specNorm === 'ambos' || specNorm.includes('amb');
       }
 
-      // 2. Filtro de búsqueda textual
+      // 2. Filtro de síndrome clínico
+      let matchesSyndrome = true;
+      if (syndromeFilter !== 'all') {
+        matchesSyndrome = (profile.syndromes || []).some((s) =>
+          matchSyndromeTokens(s, syndromeFilter)
+        );
+      }
+
+      // 3. Filtro de búsqueda textual
       const q = searchTerm.trim().toLowerCase();
       const matchesSearch =
         !q ||
@@ -64,9 +99,9 @@ export default function CatalogView() {
         (profile.agents && profile.agents.some((ag) => ag.toLowerCase().includes(q))) ||
         (profile.syndromes && profile.syndromes.some((syn) => syn.toLowerCase().includes(q)));
 
-      return matchesSpecies && matchesSearch;
+      return matchesSpecies && matchesSyndrome && matchesSearch;
     });
-  }, [speciesFilter, searchTerm]);
+  }, [speciesFilter, syndromeFilter, searchTerm]);
 
   // Agentes filtrados para la pestaña de patógenos individuales
   const filteredAgents = useMemo(() => {
@@ -234,6 +269,57 @@ export default function CatalogView() {
         </div>
       </div>
 
+      {/* Sub-barra de Síndromes para la pestaña de Perfiles */}
+      {activeTab === 'perfiles' && (
+        <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-2xs space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[#2B017C] flex items-center gap-1.5">
+              <span>🩺</span>
+              <span>Filtrar por Síndrome Clínico:</span>
+            </span>
+            {syndromeFilter !== 'all' && (
+              <button
+                onClick={() => setSyndromeFilter('all')}
+                className="text-[11px] font-bold text-[#6F2BCC] hover:underline cursor-pointer flex items-center gap-1"
+              >
+                <span>Mostrar todos los síndromes</span>
+                <span>({syndromeCounts.all || LOCAL_QPCR_PROFILES_MASTER.length})</span>
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 scrollbar-thin">
+            {CLINICAL_SYNDROMES_LIST.map((syn) => {
+              const isSel = syndromeFilter === syn.id;
+              const count = syndromeCounts[syn.id] ?? 0;
+              return (
+                <button
+                  key={syn.id}
+                  onClick={() => setSyndromeFilter(syn.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                    isSel
+                      ? 'bg-[#2B017C] text-white shadow-xs ring-2 ring-[#6F2BCC]/30 font-extrabold'
+                      : 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-purple-50/70 hover:text-[#2B017C] hover:border-purple-200'
+                  }`}
+                >
+                  <span>{syn.icon}</span>
+                  <span>{syn.label}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+                      isSel
+                        ? 'bg-purple-500/80 text-white'
+                        : 'bg-slate-200 text-slate-600'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Sub-barra de Grupos para la pestaña de Agentes */}
       {activeTab === 'agentes' && (
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5">
@@ -260,10 +346,24 @@ export default function CatalogView() {
       {/* 3. VISTA 1: LISTADO DE PERFILES qPCR */}
       {activeTab === 'perfiles' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between text-xs text-slate-500 px-1">
-            <span>
-              Mostrando <strong className="text-[#2B017C]">{filteredProfiles.length}</strong> perfiles validados
-            </span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-500 px-1 gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span>
+                Mostrando <strong className="text-[#2B017C]">{filteredProfiles.length}</strong> perfiles validados
+              </span>
+              {syndromeFilter !== 'all' && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-[#2B017C] border border-purple-200">
+                  <span>Síndrome: {syndromeFilter}</span>
+                  <button
+                    onClick={() => setSyndromeFilter('all')}
+                    className="hover:text-red-600 cursor-pointer text-xs font-black ml-1"
+                    title="Quitar filtro de síndrome"
+                  >
+                    ✕
+                  </button>
+                </span>
+              )}
+            </div>
             <span className="text-slate-400">
               {speciesFilter === 'canino' && 'Filtro activo: Solo Caninos'}
               {speciesFilter === 'felino' && 'Filtro activo: Solo Felinos'}
@@ -318,20 +418,33 @@ export default function CatalogView() {
                       {profile.description}
                     </p>
 
-                    {/* Síndromes Asociados */}
+                    {/* Síndromes Asociados - Clickeables para filtrar */}
                     {profile.syndromes && profile.syndromes.length > 0 && (
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                           Síndromes:
                         </span>
-                        {profile.syndromes.map((syn, sIdx) => (
-                          <span
-                            key={sIdx}
-                            className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700"
-                          >
-                            {syn}
-                          </span>
-                        ))}
+                        {profile.syndromes.map((syn, sIdx) => {
+                          const isCurrentActive =
+                            syndromeFilter !== 'all' && matchSyndromeTokens(syn, syndromeFilter);
+                          return (
+                            <button
+                              key={sIdx}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSyndromeFilter(syn);
+                              }}
+                              title={`Filtrar catálogo por síndrome: ${syn}`}
+                              className={`px-2 py-0.5 rounded-md text-[10px] font-semibold transition-all cursor-pointer ${
+                                isCurrentActive
+                                  ? 'bg-[#2B017C] text-white shadow-2xs ring-2 ring-purple-300 font-bold'
+                                  : 'bg-slate-100 text-slate-700 hover:bg-purple-100 hover:text-[#6F2BCC]'
+                              }`}
+                            >
+                              {syn}
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
 
@@ -400,16 +513,19 @@ export default function CatalogView() {
                 No se encontraron perfiles qPCR para los criterios seleccionados
               </h3>
               <p className="text-xs text-slate-500 max-w-md mx-auto">
-                Prueba cambiando el filtro de especie a "Todos" o ajustando los términos de búsqueda.
+                {syndromeFilter !== 'all'
+                  ? `No hay perfiles para el síndrome "${syndromeFilter}" con la especie y búsqueda actual.`
+                  : 'Prueba cambiando el filtro de especie a "Todos" o ajustando los términos de búsqueda.'}
               </p>
               <button
                 onClick={() => {
                   setSpeciesFilter('all');
+                  setSyndromeFilter('all');
                   setSearchTerm('');
                 }}
-                className="px-4 py-2 rounded-xl bg-[#6F2BCC] text-white text-xs font-bold cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[#6F2BCC] text-white text-xs font-bold cursor-pointer hover:bg-[#581ea3] transition-all"
               >
-                Restablecer filtros
+                Restablecer todos los filtros
               </button>
             </div>
           )}

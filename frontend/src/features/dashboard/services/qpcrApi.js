@@ -5,7 +5,7 @@ const API_BASE_URL = 'http://localhost:5000/api/qpcr';
 /**
  * Normalización de cadenas de texto para búsqueda y emparejamiento clínico
  */
-function norm(text) {
+export function norm(text) {
   if (!text) return '';
   return text
     .toLowerCase()
@@ -14,20 +14,22 @@ function norm(text) {
     .trim();
 }
 
-function matchSyndromeTokens(sNorm, psNorm) {
+export function matchSyndromeTokens(sNorm, psNorm) {
   if (!sNorm || !psNorm) return false;
-  if (sNorm.includes(psNorm) || psNorm.includes(sNorm)) return true;
+  const s = norm(sNorm);
+  const ps = norm(psNorm);
+  if (s === ps || s.includes(ps) || ps.includes(s)) return true;
 
   if (
-    (sNorm.includes('digestiv') || sNorm.includes('hepatic') || sNorm.includes('icter')) &&
-    (psNorm.includes('digestiv') || psNorm.includes('hepatic') || psNorm.includes('icter'))
+    (s.includes('digestiv') || s.includes('hepatic') || s.includes('icter')) &&
+    (ps.includes('digestiv') || ps.includes('hepatic') || ps.includes('icter'))
   ) {
     return true;
   }
 
   if (
-    (sNorm.includes('nefro') || sNorm.includes('renal')) &&
-    (psNorm.includes('nefro') || psNorm.includes('renal'))
+    (s.includes('nefro') || s.includes('renal')) &&
+    (ps.includes('nefro') || ps.includes('renal'))
   ) {
     return true;
   }
@@ -39,10 +41,23 @@ function matchSyndromeTokens(sNorm, psNorm) {
   ];
 
   for (const root of roots) {
-    if (sNorm.includes(root) && psNorm.includes(root)) return true;
+    if (s.includes(root) && ps.includes(root)) return true;
   }
   return false;
 }
+
+export const CLINICAL_SYNDROMES_LIST = [
+  { id: 'all', label: 'Todos los Síndromes', icon: '✨' },
+  { id: 'Hemotrópico/Sistémico', label: 'Hemotrópico / Sistémico', icon: '🩸' },
+  { id: 'Digestivo-Hepático', label: 'Digestivo-Hepático', icon: '🩺' },
+  { id: 'Nefrológico', label: 'Nefrológico / Renal', icon: '💧' },
+  { id: 'Cardíaco', label: 'Cardíaco', icon: '🫀' },
+  { id: 'Respiratorio', label: 'Respiratorio / Filarial', icon: '🫁' },
+  { id: 'Neurológico', label: 'Neurológico / SNC', icon: '🧠' },
+  { id: 'Ocular', label: 'Ocular / Oftálmico', icon: '👁️' },
+  { id: 'Dermatológico / Cutáneo (Piel)', label: 'Dermatológico / Cutáneo', icon: '🩹' },
+  { id: 'Infeccioso viral', label: 'Infeccioso Viral', icon: '🦠' },
+];
 
 // Re-exportamos la base de datos de agentes y perfiles desde la estructura canónica
 export { INFECTIOUS_AGENTS_DB as LOCAL_INFECTIOUS_AGENTS_DB, QPCR_PROFILES_MASTER as LOCAL_QPCR_PROFILES_MASTER } from '../../../../../backend/src/models/qpcrKnowledgeBase.js';
@@ -51,16 +66,17 @@ import { INFECTIOUS_AGENTS_DB as LOCAL_AGENTS, QPCR_PROFILES_MASTER as LOCAL_PRO
 export const qpcrApi = {
   /**
    * Obtiene todos los perfiles qPCR con sus nombres de agentes resueltos
+   * Soporta filtrado opcional por síndrome clínico, especie y búsqueda textual
    */
-  async getProfiles() {
+  async getProfiles(params = {}) {
     try {
-      const response = await axios.get(`${API_BASE_URL}/profiles`, { timeout: 3000 });
+      const response = await axios.get(`${API_BASE_URL}/profiles`, { params, timeout: 3000 });
       if (response.data?.success && Array.isArray(response.data?.data)) {
         return response.data.data;
       }
     } catch (_) {}
 
-    return LOCAL_PROFILES.map((p) => ({
+    let list = LOCAL_PROFILES.map((p) => ({
       ...p,
       price: p.basePrice,
       agents: (p.agentIds || []).map((id) => {
@@ -68,6 +84,37 @@ export const qpcrApi = {
         return ag ? ag.name : id;
       }),
     }));
+
+    if (params.species && params.species !== 'all') {
+      const sp = norm(params.species);
+      list = list.filter((p) => {
+        const pSp = norm(p.species || '');
+        if (sp.includes('canin')) return pSp.includes('canin') || pSp.includes('amb');
+        if (sp.includes('felin')) return pSp.includes('felin') || pSp.includes('amb');
+        if (sp.includes('amb')) return pSp.includes('amb');
+        return true;
+      });
+    }
+
+    if (params.syndrome && params.syndrome !== 'all') {
+      list = list.filter((p) =>
+        (p.syndromes || []).some((s) => matchSyndromeTokens(s, params.syndrome))
+      );
+    }
+
+    if (params.search && params.search.trim()) {
+      const q = norm(params.search);
+      list = list.filter((p) => {
+        return (
+          norm(p.title).includes(q) ||
+          norm(p.description).includes(q) ||
+          (p.agents || []).some((ag) => norm(ag).includes(q)) ||
+          (p.syndromes || []).some((syn) => norm(syn).includes(q))
+        );
+      });
+    }
+
+    return list;
   },
 
   /**

@@ -30,7 +30,8 @@ export const filterProfiles = async (req, res) => {
 
 export const getProfiles = async (req, res) => {
   try {
-    const profiles = qpcrService.getAllProfiles();
+    const { syndrome, species, search } = req.query || {};
+    const profiles = qpcrService.getAllProfiles({ syndrome, species, search });
     return res.status(200).json({
       success: true,
       total: profiles.length,
