@@ -44,7 +44,7 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
     vitalSignsTemp: patient.healthMetrics?.vitalSigns?.temperature || '38.5 °C',
     vitalSignsResp: patient.healthMetrics?.vitalSigns?.respiratoryRate || '22 rpm',
     vitalSignsMucosa: patient.healthMetrics?.vitalSigns?.mucosa || 'Rosadas y húmedas',
-    vitalSignsCapillaryRefillTime: patient.healthMetrics?.vitalSigns?.capillaryRefillTime || '1 min',
+    vitalSignsCapillaryRefillTime: patient.healthMetrics?.vitalSigns?.capillaryRefillTime?.replace('min', 'seg') || '1-2 seg',
 
     // Tutor
     ownerName: patient.owner?.name || '',
@@ -472,13 +472,13 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">TLLC (minutos)</label>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">TLLC (segundos)</label>
                   <input
                     type="text"
                     name="vitalSignsCapillaryRefillTime"
                     value={formData.vitalSignsCapillaryRefillTime}
                     onChange={handleChange}
-                    placeholder="1 min"
+                    placeholder="1-2 seg"
                     className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg font-medium"
                   />
                 </div>

@@ -220,7 +220,7 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
     vitalSignsTemp: '',
     vitalSignsResp: '',
     vitalSignsMucosa: '',
-    vitalSignsCapillaryRefillTime: '', // Tiempo de llenado capilar en minutos
+    vitalSignsCapillaryRefillTime: '', // Tiempo de llenado capilar en segundos
     requestExam: false,
     initialExamName: 'qPCR Panel Microbiota & Disbiosis Intestinal',
   });
@@ -638,9 +638,9 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
           respiratoryRate: formData.vitalSignsResp.trim() ? (formData.vitalSignsResp.trim().toLowerCase().includes('rpm') ? formData.vitalSignsResp.trim() : `${formData.vitalSignsResp.trim()} rpm`) : 'No registrada',
           mucosa: formData.vitalSignsMucosa.trim() || 'No registrada',
           capillaryRefillTime: formData.vitalSignsCapillaryRefillTime.trim()
-            ? (formData.vitalSignsCapillaryRefillTime.trim().toLowerCase().includes('min')
+            ? (formData.vitalSignsCapillaryRefillTime.trim().toLowerCase().includes('seg')
                 ? formData.vitalSignsCapillaryRefillTime.trim()
-                : `${formData.vitalSignsCapillaryRefillTime.trim()} min`)
+                : `${formData.vitalSignsCapillaryRefillTime.trim()} seg`)
             : 'No registrado',
         },
 
@@ -2330,15 +2330,15 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                       name="vitalSignsCapillaryRefillTime"
                       value={formData.vitalSignsCapillaryRefillTime}
                       onChange={handleNumericChange('vitalSignsCapillaryRefillTime', true)}
-                      placeholder="1"
-                      className="w-full pl-3.5 pr-20 py-2.5 border border-slate-200 rounded-xl font-medium text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-sky-500"
+                      placeholder="1-2"
+                      className="w-full pl-3.5 pr-24 py-2.5 border border-slate-200 rounded-xl font-medium text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-sky-500"
                     />
                     <span className="absolute right-3.5 top-1/2 -translate-y-1/2 font-bold text-xs text-slate-400 pointer-events-none select-none">
-                      minutos
+                      segundos
                     </span>
                   </div>
                   <span className="text-[10px] text-slate-400 mt-0.5 block">
-                    Tiempo de retorno capilar medido en minutos.
+                    Tiempo de retorno capilar medido en segundos (normal: &lt; 2 seg).
                   </span>
                 </div>
 
@@ -2821,9 +2821,9 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                       <span className="text-slate-500 w-36 shrink-0">Llenado capilar (TLLC)</span>
                       <span className="text-slate-800 font-medium">
                         {formData.vitalSignsCapillaryRefillTime
-                          ? (formData.vitalSignsCapillaryRefillTime.includes('min')
+                          ? (formData.vitalSignsCapillaryRefillTime.includes('seg')
                               ? formData.vitalSignsCapillaryRefillTime
-                              : `${formData.vitalSignsCapillaryRefillTime} minutos`)
+                              : `${formData.vitalSignsCapillaryRefillTime} segundos`)
                           : 'No registrado'}
                       </span>
                     </div>

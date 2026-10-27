@@ -448,22 +448,87 @@ export default function CatalogView() {
                       </div>
                     )}
 
-                    {/* Agentes Incluidos - Visibles a simple vista */}
-                    <div className="space-y-1.5 pt-1">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                        Patógenos Diana ({profile.agentIds ? profile.agentIds.length : (profile.agents || []).length}):
-                      </span>
+                    {/* Agentes Incluidos - Alcance Molecular Completo */}
+                    <div className="space-y-2 pt-2 border-t border-slate-100">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                          <span>🧬</span>
+                          <span>Alcance Molecular: {profile.agents?.length || (profile.agentIds || []).length} Patógenos Diana</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => toggleProfileDetails(profile.id)}
+                          className="text-[11px] font-bold text-[#6F2BCC] hover:text-[#581ea3] transition-colors cursor-pointer flex items-center gap-1"
+                        >
+                          <span>{isExpanded ? 'Ocultar desglose clínico' : 'Ver alcance clínico detallado'}</span>
+                          <span>{isExpanded ? '▲' : '▼'}</span>
+                        </button>
+                      </div>
+
+                      {/* Pills de todos los agentes con sus nombres científicos y familias */}
                       <div className="flex flex-wrap gap-1.5">
-                        {(profile.agents || []).map((agName, idx) => (
+                        {(profile.agentObjects || (profile.agents || []).map(name => ({ name }))).map((ag, idx) => (
                           <span
-                            key={idx}
-                            className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-sky-50 text-[#2B017C] border border-sky-100 flex items-center gap-1"
+                            key={ag.id || idx}
+                            className="px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-sky-50 text-[#2B017C] border border-sky-100 flex items-center gap-1.5 shadow-2xs hover:bg-sky-100/70 transition-colors"
                           >
-                            <span>🧬</span>
-                            <span className="italic">{agName}</span>
+                            <span className="text-xs">🧬</span>
+                            <span className="italic">{ag.name}</span>
+                            {ag.group && (
+                              <span className="text-[9px] px-1.5 py-0.2 rounded-full font-bold bg-purple-100 text-[#6F2BCC] border border-purple-200 uppercase">
+                                {ag.group}
+                              </span>
+                            )}
                           </span>
                         ))}
                       </div>
+
+                      {/* Vista expandida con ficha técnica de cada patógeno diana */}
+                      {isExpanded && (
+                        <div className="mt-3 p-3 bg-purple-50/50 rounded-2xl border border-purple-100 space-y-2.5 animate-in fade-in duration-200">
+                          <div className="text-[11px] font-extrabold text-[#2B017C] uppercase tracking-wider flex items-center gap-1">
+                            <span>📋</span>
+                            <span>Desglose Clínico de Patógenos Incluidos en este Panel</span>
+                          </div>
+                          <div className="space-y-2">
+                            {(profile.agentObjects || []).map((ag, idx) => (
+                              <div
+                                key={ag.id || idx}
+                                className="bg-white p-3 rounded-xl border border-purple-100/80 shadow-2xs space-y-1.5 text-xs"
+                              >
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                  <span className="font-extrabold text-[#2B017C] italic text-xs">
+                                    {ag.name}
+                                  </span>
+                                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-100 text-[#6F2BCC]">
+                                    {ag.group || 'Infeccioso'}
+                                  </span>
+                                </div>
+                                {ag.targetOrgans && (
+                                  <div className="text-[11px] text-slate-600">
+                                    <strong className="text-slate-700">Órganos blanco / tropismo:</strong> {ag.targetOrgans}
+                                  </div>
+                                )}
+                                {ag.transmission && (
+                                  <div className="text-[11px] text-slate-600">
+                                    <strong className="text-slate-700">Vector / transmisión:</strong> {ag.transmission}
+                                  </div>
+                                )}
+                                {ag.symptomsDescription && (
+                                  <div className="text-[11px] text-slate-600">
+                                    <strong className="text-slate-700">Cuadro clínico:</strong> {ag.symptomsDescription}
+                                  </div>
+                                )}
+                                {ag.labDescription && (
+                                  <div className="text-[11px] text-slate-600">
+                                    <strong className="text-slate-700">Hallazgos de lab:</strong> {ag.labDescription}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Muestras Biológicas Requeridas */}
@@ -482,6 +547,14 @@ export default function CatalogView() {
                       <span className="text-sky-600 text-xs shrink-0 mt-0.5">ℹ️</span>
                       <span>
                         <strong className="text-slate-800">Nota sobre matrices biológicas:</strong> Posibilidad de utilizar diferentes tipos de matrices biológicas (sangre EDTA, hisopados, aspirados de médula, orina estéril, líquido cavitario/LCR o biopsias) según las características y necesidades de cada caso clínico.
+                      </span>
+                    </div>
+
+                    {/* Nota aclaratoria sobre alternativas diagnósticas diferentes a hemotrópicas */}
+                    <div className="flex items-start gap-2 text-[11px] text-amber-800 bg-amber-50/70 p-2.5 rounded-xl border border-amber-200 leading-snug">
+                      <span className="text-amber-600 text-xs shrink-0 mt-0.5">⚠️</span>
+                      <span>
+                        <strong className="text-amber-900">Razonamiento clínico y alternativas:</strong> Cuando el paciente haya sido evaluado mediante un proceso adecuado de razonamiento clínico y se hayan seleccionado las matrices biológicas pertinentes, se deben considerar otras alternativas diagnósticas diferentes a las enfermedades infecciosas hemotrópicas.
                       </span>
                     </div>
                   </div>

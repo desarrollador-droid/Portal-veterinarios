@@ -1347,6 +1347,27 @@ export const QPCR_PROFILES_MASTER = [
   }
 ];
 
+// Enriquecer canónicamente cada perfil con sus agentes diana resueltos y objetos de patógenos
+QPCR_PROFILES_MASTER.forEach((profile) => {
+  const resolvedAgentObjects = (profile.agentIds || []).map((id) => {
+    return (
+      INFECTIOUS_AGENTS_DB.find((a) => a.id === id) || {
+        id,
+        name: id,
+        group: 'General',
+        targetOrgans: 'Sistémico',
+        transmission: 'Vectorial / Contacto',
+        symptomsDescription: '',
+        labDescription: '',
+      }
+    );
+  });
+  profile.agents = resolvedAgentObjects.map((a) => a.name);
+  profile.agentObjects = resolvedAgentObjects;
+  profile.agentCount = profile.agents.length;
+  if (!profile.price) profile.price = profile.basePrice;
+});
+
 export default {
   INFECTIOUS_AGENTS_DB,
   QPCR_PROFILES_MASTER

@@ -50,7 +50,7 @@ export const CLINICAL_SYNDROMES_LIST = [
   { id: 'all', label: 'Todos los Síndromes', icon: '✨' },
   { id: 'Hemotrópico/Sistémico', label: 'Hemotrópico / Sistémico', icon: '🩸' },
   { id: 'Digestivo-Hepático', label: 'Digestivo-Hepático', icon: '🩺' },
-  { id: 'Nefrológico', label: 'Nefrológico / Renal', icon: '💧' },
+  { id: 'Nefrológico', label: 'Síndrome Nefrológico', icon: '💧' },
   { id: 'Cardíaco', label: 'Cardíaco', icon: '🫀' },
   { id: 'Respiratorio', label: 'Respiratorio / Filarial', icon: '🫁' },
   { id: 'Neurológico', label: 'Neurológico / SNC', icon: '🧠' },

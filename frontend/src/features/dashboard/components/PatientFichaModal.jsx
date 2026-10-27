@@ -536,10 +536,12 @@ export default function PatientFichaModal({
                           <span className="text-slate-400 block text-[10px] font-semibold">TLLC (Llenado Capilar)</span>
                           <span className="font-extrabold text-slate-800">
                             {patient.healthMetrics?.vitalSigns?.capillaryRefillTime
-                              ? (patient.healthMetrics.vitalSigns.capillaryRefillTime.includes('min')
+                              ? (patient.healthMetrics.vitalSigns.capillaryRefillTime.includes('seg')
                                   ? patient.healthMetrics.vitalSigns.capillaryRefillTime
-                                  : `${patient.healthMetrics.vitalSigns.capillaryRefillTime} min`)
-                              : 'Normal (1-2 min)'}
+                                  : patient.healthMetrics.vitalSigns.capillaryRefillTime.includes('min')
+                                  ? patient.healthMetrics.vitalSigns.capillaryRefillTime.replace('min', 'seg')
+                                  : `${patient.healthMetrics.vitalSigns.capillaryRefillTime} seg`)
+                              : 'Normal (< 2 seg)'}
                           </span>
                         </div>
                       </div>

@@ -96,7 +96,7 @@ export const SYNDROMES_LIST = [
   },
   {
     id: 'Nefrológico',
-    name: 'Síndrome Nefrológico / Renal',
+    name: 'Síndrome Nefrológico',
     desc: 'Glomerulonefritis mediada por inmunocomplejos, proteinuria, azotemia, hematuria, nefropatía infecciosa',
     icon: '🫘',
     symptoms: [
@@ -2563,10 +2563,10 @@ export default function RequestExamModal({
                       {/* Agentes incluidos - TODOS a simple vista */}
                       <div className="py-3">
                         <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1.5">
-                          Agentes microbiológicos diana ({profile.agents.length}):
+                          Agentes microbiológicos diana ({(profile.agents || []).length}):
                         </span>
                         <div className="flex flex-wrap gap-1.5">
-                          {profile.agents.map((ag) => (
+                          {(profile.agents || []).map((ag) => (
                             <span
                               key={ag}
                               className="px-2.5 py-1 bg-sky-50/70 border border-sky-100 rounded-lg text-[11px] text-slate-800 font-semibold flex items-center gap-1.5 shadow-2xs"
