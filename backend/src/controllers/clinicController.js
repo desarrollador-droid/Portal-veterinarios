@@ -123,4 +123,126 @@ export const clinicController = {
       });
     }
   },
+
+  // --- GESTIÓN DE SEDES ---
+  addSede(req, res) {
+    try {
+      const { id } = req.params;
+      const updated = clinicService.addSede(id, req.body);
+      res.status(201).json({
+        success: true,
+        message: 'Sede agregada exitosamente',
+        data: updated,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  },
+
+  updateSede(req, res) {
+    try {
+      const { id, sedeId } = req.params;
+      const updated = clinicService.updateSede(id, sedeId, req.body);
+      res.json({
+        success: true,
+        message: 'Sede actualizada exitosamente',
+        data: updated,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  },
+
+  deleteSede(req, res) {
+    try {
+      const { id, sedeId } = req.params;
+      const updated = clinicService.deleteSede(id, sedeId);
+      res.json({
+        success: true,
+        message: 'Sede eliminada exitosamente',
+        data: updated,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  },
+
+  // --- GESTIÓN DE VETERINARIOS ASOCIADOS ---
+  addVeterinarian(req, res) {
+    try {
+      const { id } = req.params;
+      const updated = clinicService.addVeterinarian(id, req.body);
+      res.status(201).json({
+        success: true,
+        message: 'Veterinario asociado agregado exitosamente',
+        data: updated,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  },
+
+  updateVeterinarian(req, res) {
+    try {
+      const { id, vetId } = req.params;
+      const updated = clinicService.updateVeterinarian(id, vetId, req.body);
+      res.json({
+        success: true,
+        message: 'Veterinario asociado actualizado exitosamente',
+        data: updated,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  },
+
+  toggleVeterinarianStatus(req, res) {
+    try {
+      const { id, vetId } = req.params;
+      const result = clinicService.toggleVeterinarianStatus(id, vetId);
+      res.json({
+        success: true,
+        message: `Usuario de ${result.vet.nombre} ${result.vet.estado === 'activo' ? 'activado' : 'desactivado'} exitosamente`,
+        data: result.clinic,
+        vet: result.vet,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  },
+
+  deleteVeterinarian(req, res) {
+    try {
+      const { id, vetId } = req.params;
+      const updated = clinicService.deleteVeterinarian(id, vetId);
+      res.json({
+        success: true,
+        message: 'Veterinario asociado desvinculado exitosamente',
+        data: updated,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  },
 };

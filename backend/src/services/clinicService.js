@@ -35,7 +35,9 @@ export const clinicService = {
           (c.recoleccion?.direccionFisica && c.recoleccion.direccionFisica.toLowerCase().includes(q)) ||
           (c.directorMedico?.nombre && c.directorMedico.nombre.toLowerCase().includes(q)) ||
           (c.correos?.facturacion && c.correos.facturacion.toLowerCase().includes(q)) ||
-          (c.correos?.resultados && c.correos.resultados.toLowerCase().includes(q))
+          (c.correos?.resultados && c.correos.resultados.toLowerCase().includes(q)) ||
+          (c.sedes && c.sedes.some((s) => s.nombreSede.toLowerCase().includes(q) || s.direccionFisica.toLowerCase().includes(q))) ||
+          (c.veterinariosAsociados && c.veterinariosAsociados.some((v) => v.nombre.toLowerCase().includes(q) || v.tarjetaProfesional.toLowerCase().includes(q)))
         );
       });
     }
@@ -133,11 +135,47 @@ export const clinicService = {
     const id = `${type}-${Date.now().toString().slice(-6)}`;
     const now = new Date().toISOString();
 
+    // Sede principal inicial derivada de la dirección principal
+    const initialSedes = Array.isArray(data.sedes) && data.sedes.length > 0 ? data.sedes : [
+      {
+        id: `sede-${Date.now().toString().slice(-4)}`,
+        nombreSede: data.nombreVeterinaria ? `${data.nombreVeterinaria} - Sede Principal` : 'Consultorio Principal',
+        esPrincipal: true,
+        ciudad: data.recoleccion.ciudad.trim(),
+        direccionFisica: data.recoleccion.direccionFisica.trim(),
+        detallesAdicionales: data.recoleccion.detallesAdicionales?.trim() || '',
+        telefonoContacto: type === 'veterinaria' ? data.directorMedico?.telefono || '' : data.administrativa?.telefonoPagos || '',
+        responsableSede: type === 'veterinaria' ? data.directorMedico?.nombre || '' : data.nombreMedico || '',
+        indicacionesRuta: data.recoleccion.indicacionesRuta?.trim() || 'Donde el repartidor recogerá las muestras',
+        correoResultadosSede: data.correos.resultados?.trim() || '',
+      },
+    ];
+
+    // Veterinarios asociados iniciales
+    const initialVets = Array.isArray(data.veterinariosAsociados) && data.veterinariosAsociados.length > 0
+      ? data.veterinariosAsociados
+      : [
+          {
+            id: `vet-${Date.now().toString().slice(-4)}`,
+            nombre: type === 'veterinaria' ? data.directorMedico?.nombre || 'Director Médico' : data.nombreMedico || 'Médico Veterinario',
+            especialidad: type === 'veterinaria' ? 'Director Médico / Medicina General' : 'Medicina General',
+            tarjetaProfesional: type === 'veterinaria' ? 'COMVEZCOL-REG' : data.tarjetaProfesional || '',
+            email: data.correos.resultados || '',
+            telefono: type === 'veterinaria' ? data.directorMedico?.telefono || '' : data.administrativa?.telefonoPagos || '',
+            sedeId: initialSedes[0]?.id || '',
+            sedeNombre: initialSedes[0]?.nombreSede || '',
+            estado: 'activo',
+            esDirector: true,
+            fechaVinculacion: now.slice(0, 10),
+          },
+        ];
+
     const newClinic = {
       id,
       type,
       nit: type === 'veterinaria' ? cleanNumber(data.nit) : '',
       nombreVeterinaria: type === 'veterinaria' ? data.nombreVeterinaria.trim() : '',
+      tieneMultiplesSedes: Boolean(data.tieneMultiplesSedes ?? (initialSedes.length > 1)),
       directorMedico: {
         nombre: type === 'veterinaria' ? (data.directorMedico?.nombre || '').trim() : '',
         telefono: type === 'veterinaria' ? (data.directorMedico?.telefono || '').trim() : '',
@@ -155,6 +193,8 @@ export const clinicService = {
         detallesAdicionales: data.recoleccion.detallesAdicionales?.trim() || '',
         indicacionesRuta: data.recoleccion.indicacionesRuta?.trim() || 'Donde el repartidor recogerá las muestras',
       },
+      sedes: initialSedes,
+      veterinariosAsociados: initialVets,
       correos: {
         facturacion: data.correos.facturacion.trim().toLowerCase(),
         resultados: data.correos.resultados.trim().toLowerCase(),
@@ -199,6 +239,7 @@ export const clinicService = {
       type,
       nit: type === 'veterinaria' ? cleanNumber(updates.nit ?? current.nit) : '',
       nombreVeterinaria: type === 'veterinaria' ? (updates.nombreVeterinaria ?? current.nombreVeterinaria) : '',
+      tieneMultiplesSedes: updates.tieneMultiplesSedes !== undefined ? updates.tieneMultiplesSedes : current.tieneMultiplesSedes,
       directorMedico: {
         nombre: type === 'veterinaria' ? (updates.directorMedico?.nombre ?? current.directorMedico?.nombre ?? '') : '',
         telefono: type === 'veterinaria' ? (updates.directorMedico?.telefono ?? current.directorMedico?.telefono ?? '') : '',
@@ -216,6 +257,8 @@ export const clinicService = {
         detallesAdicionales: updates.recoleccion?.detallesAdicionales ?? current.recoleccion?.detallesAdicionales ?? '',
         indicacionesRuta: updates.recoleccion?.indicacionesRuta ?? current.recoleccion?.indicacionesRuta ?? 'Donde el repartidor recogerá las muestras',
       },
+      sedes: updates.sedes || current.sedes || [],
+      veterinariosAsociados: updates.veterinariosAsociados || current.veterinariosAsociados || [],
       correos: {
         facturacion: (updates.correos?.facturacion ?? current.correos?.facturacion ?? '').toLowerCase(),
         resultados: (updates.correos?.resultados ?? current.correos?.resultados ?? '').toLowerCase(),
@@ -236,6 +279,163 @@ export const clinicService = {
 
     clinics[idx] = updated;
     return updated;
+  },
+
+  /**
+   * Agrega una nueva sede a la clínica
+   */
+  addSede(clinicId, sedeData) {
+    const clinic = this.getById(clinicId);
+    if (!clinic) throw new Error('Veterinaria no encontrada');
+
+    if (!sedeData.nombreSede?.trim()) throw new Error('El nombre de la sede es obligatorio');
+    if (!sedeData.direccionFisica?.trim()) throw new Error('La dirección física de la sede es obligatoria');
+    if (!sedeData.ciudad?.trim()) throw new Error('La ciudad de la sede es obligatoria');
+
+    const newSede = {
+      id: `sede-${Date.now().toString().slice(-6)}`,
+      nombreSede: sedeData.nombreSede.trim(),
+      esPrincipal: Boolean(sedeData.esPrincipal),
+      ciudad: sedeData.ciudad.trim(),
+      direccionFisica: sedeData.direccionFisica.trim(),
+      detallesAdicionales: sedeData.detallesAdicionales?.trim() || '',
+      telefonoContacto: sedeData.telefonoContacto?.trim() || '',
+      responsableSede: sedeData.responsableSede?.trim() || '',
+      indicacionesRuta: sedeData.indicacionesRuta?.trim() || 'Donde el repartidor recogerá las muestras',
+      correoResultadosSede: sedeData.correoResultadosSede?.trim() || clinic.correos?.resultados || '',
+    };
+
+    if (!clinic.sedes) clinic.sedes = [];
+
+    if (newSede.esPrincipal) {
+      clinic.sedes.forEach((s) => (s.esPrincipal = false));
+      clinic.recoleccion.ciudad = newSede.ciudad;
+      clinic.recoleccion.direccionFisica = newSede.direccionFisica;
+    }
+
+    clinic.sedes.push(newSede);
+    clinic.tieneMultiplesSedes = clinic.sedes.length > 1;
+    clinic.updatedAt = new Date().toISOString();
+
+    return clinic;
+  },
+
+  /**
+   * Actualiza una sede existente
+   */
+  updateSede(clinicId, sedeId, sedeData) {
+    const clinic = this.getById(clinicId);
+    if (!clinic) throw new Error('Veterinaria no encontrada');
+
+    const idx = (clinic.sedes || []).findIndex((s) => s.id === sedeId);
+    if (idx === -1) throw new Error('Sede no encontrada');
+
+    const updatedSede = {
+      ...clinic.sedes[idx],
+      ...sedeData,
+    };
+
+    if (updatedSede.esPrincipal) {
+      clinic.sedes.forEach((s) => (s.esPrincipal = false));
+      clinic.recoleccion.ciudad = updatedSede.ciudad;
+      clinic.recoleccion.direccionFisica = updatedSede.direccionFisica;
+    }
+
+    clinic.sedes[idx] = updatedSede;
+    clinic.updatedAt = new Date().toISOString();
+    return clinic;
+  },
+
+  /**
+   * Elimina una sede
+   */
+  deleteSede(clinicId, sedeId) {
+    const clinic = this.getById(clinicId);
+    if (!clinic) throw new Error('Veterinaria no encontrada');
+
+    clinic.sedes = (clinic.sedes || []).filter((s) => s.id !== sedeId);
+    if (clinic.sedes.length > 0 && !clinic.sedes.some((s) => s.esPrincipal)) {
+      clinic.sedes[0].esPrincipal = true;
+    }
+    clinic.tieneMultiplesSedes = clinic.sedes.length > 1;
+    clinic.updatedAt = new Date().toISOString();
+    return clinic;
+  },
+
+  /**
+   * Añade un nuevo veterinario asociado
+   */
+  addVeterinarian(clinicId, vetData) {
+    const clinic = this.getById(clinicId);
+    if (!clinic) throw new Error('Veterinaria no encontrada');
+
+    if (!vetData.nombre?.trim()) throw new Error('El nombre completo del veterinario es obligatorio');
+    if (!vetData.tarjetaProfesional?.trim()) throw new Error('El número de tarjeta profesional es obligatorio');
+
+    const newVet = {
+      id: `vet-${Date.now().toString().slice(-6)}`,
+      nombre: vetData.nombre.trim(),
+      especialidad: vetData.especialidad?.trim() || 'Medicina General',
+      tarjetaProfesional: vetData.tarjetaProfesional.trim(),
+      email: vetData.email?.trim() || '',
+      telefono: vetData.telefono?.trim() || '',
+      sedeId: vetData.sedeId || (clinic.sedes?.[0]?.id || ''),
+      sedeNombre: vetData.sedeNombre || (clinic.sedes?.[0]?.nombreSede || 'Sede Principal'),
+      estado: vetData.estado || 'activo', // 'activo' | 'inactivo'
+      esDirector: Boolean(vetData.esDirector),
+      fechaVinculacion: new Date().toISOString().slice(0, 10),
+    };
+
+    if (!clinic.veterinariosAsociados) clinic.veterinariosAsociados = [];
+    clinic.veterinariosAsociados.push(newVet);
+    clinic.updatedAt = new Date().toISOString();
+
+    return clinic;
+  },
+
+  /**
+   * Actualiza datos de un veterinario asociado
+   */
+  updateVeterinarian(clinicId, vetId, updates) {
+    const clinic = this.getById(clinicId);
+    if (!clinic) throw new Error('Veterinaria no encontrada');
+
+    const idx = (clinic.veterinariosAsociados || []).findIndex((v) => v.id === vetId);
+    if (idx === -1) throw new Error('Veterinario asociado no encontrado');
+
+    clinic.veterinariosAsociados[idx] = {
+      ...clinic.veterinariosAsociados[idx],
+      ...updates,
+    };
+    clinic.updatedAt = new Date().toISOString();
+    return clinic;
+  },
+
+  /**
+   * Activa o desactiva el usuario de un veterinario asociado
+   */
+  toggleVeterinarianStatus(clinicId, vetId) {
+    const clinic = this.getById(clinicId);
+    if (!clinic) throw new Error('Veterinaria no encontrada');
+
+    const vet = (clinic.veterinariosAsociados || []).find((v) => v.id === vetId);
+    if (!vet) throw new Error('Veterinario asociado no encontrado');
+
+    vet.estado = vet.estado === 'activo' ? 'inactivo' : 'activo';
+    clinic.updatedAt = new Date().toISOString();
+    return { clinic, vet };
+  },
+
+  /**
+   * Elimina un veterinario asociado
+   */
+  deleteVeterinarian(clinicId, vetId) {
+    const clinic = this.getById(clinicId);
+    if (!clinic) throw new Error('Veterinaria no encontrada');
+
+    clinic.veterinariosAsociados = (clinic.veterinariosAsociados || []).filter((v) => v.id !== vetId);
+    clinic.updatedAt = new Date().toISOString();
+    return clinic;
   },
 
   /**
