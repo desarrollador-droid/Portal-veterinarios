@@ -88,6 +88,19 @@ function SupportIcon({ className = "w-5 h-5 text-[#6F2BCC]" }) {
   );
 }
 
+// 8. Perfil de Veterinaria / Médico - Azul Menta (#009e8a / #01FADA)
+function ClinicProfileIcon({ className = "w-5 h-5 text-[#009e8a]" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4" />
+      <path d="M9 9v.01M9 13v.01M9 17v.01" />
+      <circle cx="9" cy="9" r="1" fill="#01FADA" />
+      <circle cx="9" cy="13" r="1" fill="#01FADA" />
+      <circle cx="9" cy="17" r="1" fill="#01FADA" />
+    </svg>
+  );
+}
+
 /**
  * Panel Lateral Administrativo (AdminSidebar)
  * - Fondo: Gris institucional (#eceff4 / #f1f3f7)
@@ -101,6 +114,7 @@ export default function AdminSidebar({
   onOpenNewExam,
   isCollapsed = false,
   onToggleCollapse,
+  activeClinic = null,
 }) {
   const menuItems = [
     {
@@ -144,6 +158,13 @@ export default function AdminSidebar({
       iconColor: 'text-[#009e8a]',
       iconBg: 'bg-[#01FADA]/25 border border-[#01FADA]/60',
       renderIcon: () => <TimelineChartIcon className="w-5 h-5 text-[#009e8a]" />,
+    },
+    {
+      id: 'perfil-veterinaria',
+      label: 'Perfil Veterinaria',
+      iconColor: 'text-[#009e8a]',
+      iconBg: 'bg-[#01FADA]/25 border border-[#01FADA]/60',
+      renderIcon: () => <ClinicProfileIcon className="w-5 h-5 text-[#009e8a]" />,
     },
     {
       id: 'soporte',
@@ -285,21 +306,29 @@ export default function AdminSidebar({
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div
+          onClick={() => onSelectModule('perfil-veterinaria')}
+          title="Ver y configurar perfil de la veterinaria"
+          className="flex items-center gap-3 p-1.5 -mx-1.5 rounded-xl hover:bg-white/70 transition-all cursor-pointer group"
+        >
           <div className="relative shrink-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#6F2BCC] to-[#01FADA] text-white font-black text-xs flex items-center justify-center shadow-sm border border-white">
-              AM
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#6F2BCC] to-[#01FADA] text-white font-black text-xs flex items-center justify-center shadow-sm border border-white group-hover:scale-105 transition-transform">
+              {activeClinic?.type === 'independiente' ? '🩺' : '🏥'}
             </div>
             <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#01FADA] ring-2 ring-white" />
           </div>
 
           {!isCollapsed && (
             <div className="min-w-0 flex-1">
-              <span className="text-xs font-bold text-[#2B017C] block truncate leading-tight">
-                Dr. Alejandro Morales
+              <span className="text-xs font-bold text-[#2B017C] block truncate leading-tight group-hover:text-[#6F2BCC] transition-colors">
+                {activeClinic?.type === 'independiente'
+                  ? (activeClinic.nombreMedico || 'Dr. Alejandro Morales')
+                  : (activeClinic?.nombreVeterinaria || 'Clínica Animal Health')}
               </span>
               <span className="text-[10px] text-[#6F2BCC] font-semibold block truncate leading-none mt-0.5">
-                Médico Director / Admin
+                {activeClinic?.type === 'independiente'
+                  ? 'Médico Independiente'
+                  : (activeClinic?.directorMedico?.nombre || 'Director Médico / Admin')}
               </span>
             </div>
           )}

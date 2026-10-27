@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import patientRoutes from './routes/patientRoutes.js';
 import qpcrRoutes from './routes/qpcrRoutes.js';
+import clinicRoutes from './routes/clinicRoutes.js';
 
 dotenv.config();
 
@@ -25,6 +26,9 @@ app.use('/api/patients', patientRoutes);
 
 // Rutas de Biología Molecular qPCR y Base de Datos de Patógenos
 app.use('/api/qpcr', qpcrRoutes);
+
+// Rutas de Perfiles de Veterinarias y Médicos Independientes
+app.use('/api/clinics', clinicRoutes);
 
 app.listen(PORT, () => {
   console.log(`🚀 VetLab Backend corriendo en http://localhost:${PORT}`);

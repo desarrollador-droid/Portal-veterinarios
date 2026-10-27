@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { patientApi } from '../services/patientApi.js';
+import { clinicApi } from '../services/clinicApi.js';
 import AdminSidebar from '../components/AdminSidebar.jsx';
 import MiniDashboards from '../components/MiniDashboards.jsx';
 import PatientTable from '../components/PatientTable.jsx';
@@ -12,6 +13,7 @@ import ResultadosView from '../components/ResultadosView.jsx';
 import CatalogView from '../components/CatalogView.jsx';
 import TemporalEvolutionView from '../components/TemporalEvolutionView.jsx';
 import SupportView from '../components/SupportView.jsx';
+import ClinicProfileView from '../components/ClinicProfileView.jsx';
 import ThemeToggle from '../components/ThemeToggle.jsx';
 
 export default function VeterinariansPortal() {
@@ -25,8 +27,9 @@ export default function VeterinariansPortal() {
     sampleStatus: 'all',
   });
 
-  // Módulo activo en el panel administrativo: 'pacientes' | 'nuevo-examen' | 'seguimiento' | 'resultados' | 'catalogo' | 'evolucion-temporal'
+  // Módulo activo en el panel administrativo: 'pacientes' | 'nuevo-examen' | 'seguimiento' | 'resultados' | 'catalogo' | 'evolucion-temporal' | 'perfil-veterinaria' | 'soporte'
   const [activeModule, setActiveModule] = useState('pacientes');
+  const [activeClinic, setActiveClinic] = useState(null);
   const [examModulePatient, setExamModulePatient] = useState(null);
   const [examModuleType, setExamModuleType] = useState('nuevo');
   const [temporalEvolutionPatient, setTemporalEvolutionPatient] = useState(null);
@@ -51,12 +54,14 @@ export default function VeterinariansPortal() {
   }, []);
 
   const loadInitialStats = async () => {
-    const [s, f] = await Promise.all([
+    const [s, f, clinic] = await Promise.all([
       patientApi.getStats(),
       patientApi.getFilters(),
+      clinicApi.getActiveClinic(),
     ]);
     setStats(s);
     setFilterOptions(f);
+    setActiveClinic(clinic);
   };
 
   const loadPatients = async () => {
@@ -156,6 +161,8 @@ export default function VeterinariansPortal() {
         return { section: 'Base de Datos', title: 'Catálogo de Perfiles qPCR', icon: '📖' };
       case 'evolucion-temporal':
         return { section: 'Analíticas', title: 'Evolución Temporal & Analíticas Longitudinales', icon: '📈' };
+      case 'perfil-veterinaria':
+        return { section: 'Administración', title: 'Perfil de Veterinaria & Médicos', icon: '🏥' };
       case 'soporte':
         return { section: 'Atención & Ayuda', title: 'Centro de Ayuda y Soporte', icon: '🎧' };
       case 'pacientes':
@@ -179,6 +186,7 @@ export default function VeterinariansPortal() {
       {/* 1. PANEL LATERAL ADMINISTRATIVO A LA IZQUIERDA */}
       <AdminSidebar
         activeModule={activeModule}
+        activeClinic={activeClinic}
         onSelectModule={(mod) => {
           if (mod === 'nuevo-examen') {
             handleOpenExamModule(null);
@@ -216,9 +224,20 @@ export default function VeterinariansPortal() {
 
           {/* Información de Clínica, Notificaciones y Perfil */}
           <div className="flex items-center gap-4 sm:gap-6">
-            <div className="hidden md:flex items-center gap-2 text-xs text-slate-500">
+            <div
+              onClick={() => setActiveModule('perfil-veterinaria')}
+              className="hidden md:flex items-center gap-2 text-xs text-slate-500 hover:text-[#6F2BCC] cursor-pointer transition-colors"
+              title="Ver perfil de la veterinaria activa"
+            >
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="font-medium">VetLab Sede Central · Bogotá</span>
+              <span className="font-semibold text-slate-700">
+                {activeClinic?.type === 'independiente'
+                  ? (activeClinic.nombreMedico || 'Dr. Alejandro Morales')
+                  : (activeClinic?.nombreVeterinaria || 'VetLab Sede Central')}
+              </span>
+              <span className="text-[10px] text-slate-400">
+                · {activeClinic?.recoleccion?.ciudad || 'Bogotá D.C.'}
+              </span>
             </div>
 
             {/* Alternador de Modo Claro / Oscuro */}
@@ -355,6 +374,13 @@ export default function VeterinariansPortal() {
           {/* MÓDULO 7: AYUDA Y SOPORTE (FIGMA) */}
           {activeModule === 'soporte' && (
             <SupportView />
+          )}
+
+          {/* MÓDULO 8: PERFIL DE VETERINARIA & MÉDICOS */}
+          {activeModule === 'perfil-veterinaria' && (
+            <ClinicProfileView
+              onClinicUpdated={(c) => setActiveClinic(c)}
+            />
           )}
         </main>
       </div>
