@@ -1,4 +1,4 @@
-import { INITIAL_CLINICS } from '../models/clinicModel.js';
+import { INITIAL_CLINICS, ROLE_PRESETS } from '../models/clinicModel.js';
 
 let clinics = [...INITIAL_CLINICS];
 
@@ -139,8 +139,14 @@ export const clinicService = {
     const initialSedes = Array.isArray(data.sedes) && data.sedes.length > 0 ? data.sedes : [
       {
         id: `sede-${Date.now().toString().slice(-4)}`,
-        nombreSede: data.nombreVeterinaria ? `${data.nombreVeterinaria} - Sede Principal` : 'Consultorio Principal',
+        nombreSede: type === 'veterinaria'
+          ? (data.nombreVeterinaria ? `${data.nombreVeterinaria} - Sede Principal` : 'Sede Principal')
+          : 'Consultorio Particular',
         esPrincipal: true,
+        consecutivoNit: type === 'veterinaria' ? 1 : null,
+        codigoSedeNit: type === 'veterinaria' ? '#nit-1' : '',
+        tipoPunto: type === 'veterinaria' ? 'sede_principal' : 'consultorio_independiente',
+        departamento: data.recoleccion.departamento?.trim() || 'Bogotá',
         ciudad: data.recoleccion.ciudad.trim(),
         direccionFisica: data.recoleccion.direccionFisica.trim(),
         detallesAdicionales: data.recoleccion.detallesAdicionales?.trim() || '',
@@ -151,28 +157,36 @@ export const clinicService = {
       },
     ];
 
-    // Veterinarios asociados iniciales
-    const initialVets = Array.isArray(data.veterinariosAsociados) && data.veterinariosAsociados.length > 0
-      ? data.veterinariosAsociados
-      : [
-          {
-            id: `vet-${Date.now().toString().slice(-4)}`,
-            nombre: type === 'veterinaria' ? data.directorMedico?.nombre || 'Director Médico' : data.nombreMedico || 'Médico Veterinario',
-            especialidad: type === 'veterinaria' ? 'Director Médico / Medicina General' : 'Medicina General',
-            tarjetaProfesional: type === 'veterinaria' ? 'COMVEZCOL-REG' : data.tarjetaProfesional || '',
-            email: data.correos.resultados || '',
-            telefono: type === 'veterinaria' ? data.directorMedico?.telefono || '' : data.administrativa?.telefonoPagos || '',
-            sedeId: initialSedes[0]?.id || '',
-            sedeNombre: initialSedes[0]?.nombreSede || '',
-            estado: 'activo',
-            esDirector: true,
-            fechaVinculacion: now.slice(0, 10),
-          },
-        ];
+    // Veterinarios asociados iniciales:
+    // Si es veterinaria, registra su equipo médico inicial.
+    // Si es independiente, opera de forma autónoma sin veterinarios asociados a cargo.
+    const initialVets = type === 'veterinaria'
+      ? (Array.isArray(data.veterinariosAsociados) && data.veterinariosAsociados.length > 0
+          ? data.veterinariosAsociados
+          : [
+              {
+                id: `vet-${Date.now().toString().slice(-4)}`,
+                nombre: data.directorMedico?.nombre || 'Director Médico',
+                especialidad: 'Director Médico / Medicina General',
+                tarjetaProfesional: 'COMVEZCOL-REG',
+                email: data.correos.resultados || '',
+                telefono: data.directorMedico?.telefono || '',
+                sedeId: initialSedes[0]?.id || '',
+                sedeNombre: initialSedes[0]?.nombreSede || '',
+                estado: 'activo',
+                esDirector: true,
+                fechaVinculacion: now.slice(0, 10),
+              },
+            ])
+      : [];
 
     const newClinic = {
       id,
       type,
+      esIndependiente: type === 'independiente',
+      asociadoVeterinaria: null, // Profesional independiente: no se encuentra asociado a ninguna veterinaria
+      asociacionClinica: type === 'independiente' ? 'Sin asociación a clínica (Profesional Autónomo)' : null,
+      especialidad: type === 'independiente' ? (data.especialidad || 'Medicina General') : '',
       nit: type === 'veterinaria' ? cleanNumber(data.nit) : '',
       nombreVeterinaria: type === 'veterinaria' ? data.nombreVeterinaria.trim() : '',
       tieneMultiplesSedes: Boolean(data.tieneMultiplesSedes ?? (initialSedes.length > 1)),
@@ -188,6 +202,7 @@ export const clinicService = {
         telefonoPagos: data.administrativa.telefonoPagos.trim(),
       },
       recoleccion: {
+        departamento: data.recoleccion.departamento?.trim() || 'Bogotá',
         ciudad: data.recoleccion.ciudad.trim(),
         direccionFisica: data.recoleccion.direccionFisica.trim(),
         detallesAdicionales: data.recoleccion.detallesAdicionales?.trim() || '',
@@ -292,10 +307,26 @@ export const clinicService = {
     if (!sedeData.direccionFisica?.trim()) throw new Error('La dirección física de la sede es obligatoria');
     if (!sedeData.ciudad?.trim()) throw new Error('La ciudad de la sede es obligatoria');
 
+    // Consecutivo de NIT: si la clínica es veterinaria, las sedes comparten el mismo NIT con consecutivo #nit-1, #nit-2, #nit-3...
+    let consecutivo = null;
+    let codigoSedeNit = '';
+    if (clinic.type === 'veterinaria') {
+      const maxConsecutivo = (clinic.sedes || []).reduce((max, s) => {
+        const n = Number(s.consecutivoNit) || 0;
+        return n > max ? n : max;
+      }, 0);
+      consecutivo = Number(sedeData.consecutivoNit) || (maxConsecutivo + 1);
+      codigoSedeNit = `#nit-${consecutivo}`;
+    }
+
     const newSede = {
       id: `sede-${Date.now().toString().slice(-6)}`,
       nombreSede: sedeData.nombreSede.trim(),
       esPrincipal: Boolean(sedeData.esPrincipal),
+      consecutivoNit: consecutivo,
+      codigoSedeNit: codigoSedeNit,
+      tipoPunto: clinic.type === 'independiente' ? 'consultorio_independiente' : 'sede_sucursal',
+      departamento: sedeData.departamento?.trim() || clinic.recoleccion?.departamento || 'Bogotá',
       ciudad: sedeData.ciudad.trim(),
       direccionFisica: sedeData.direccionFisica.trim(),
       detallesAdicionales: sedeData.detallesAdicionales?.trim() || '',
@@ -309,6 +340,7 @@ export const clinicService = {
 
     if (newSede.esPrincipal) {
       clinic.sedes.forEach((s) => (s.esPrincipal = false));
+      clinic.recoleccion.departamento = newSede.departamento;
       clinic.recoleccion.ciudad = newSede.ciudad;
       clinic.recoleccion.direccionFisica = newSede.direccionFisica;
     }
@@ -330,13 +362,31 @@ export const clinicService = {
     const idx = (clinic.sedes || []).findIndex((s) => s.id === sedeId);
     if (idx === -1) throw new Error('Sede no encontrada');
 
+    const prevSede = clinic.sedes[idx];
+    let consecutivo = prevSede.consecutivoNit;
+    let codigoSedeNit = prevSede.codigoSedeNit;
+
+    if (clinic.type === 'veterinaria') {
+      if (sedeData.consecutivoNit !== undefined && sedeData.consecutivoNit !== null && sedeData.consecutivoNit !== '') {
+        consecutivo = Number(sedeData.consecutivoNit);
+        codigoSedeNit = `#nit-${consecutivo}`;
+      } else if (!consecutivo) {
+        consecutivo = idx + 1;
+        codigoSedeNit = `#nit-${consecutivo}`;
+      }
+    }
+
     const updatedSede = {
-      ...clinic.sedes[idx],
+      ...prevSede,
       ...sedeData,
+      departamento: sedeData.departamento !== undefined ? sedeData.departamento.trim() : (prevSede.departamento || clinic.recoleccion?.departamento || 'Bogotá'),
+      consecutivoNit: consecutivo,
+      codigoSedeNit: codigoSedeNit,
     };
 
     if (updatedSede.esPrincipal) {
       clinic.sedes.forEach((s) => (s.esPrincipal = false));
+      clinic.recoleccion.departamento = updatedSede.departamento;
       clinic.recoleccion.ciudad = updatedSede.ciudad;
       clinic.recoleccion.direccionFisica = updatedSede.direccionFisica;
     }
@@ -422,6 +472,117 @@ export const clinicService = {
     if (!vet) throw new Error('Veterinario asociado no encontrado');
 
     vet.estado = vet.estado === 'activo' ? 'inactivo' : 'activo';
+    clinic.updatedAt = new Date().toISOString();
+    return { clinic, vet };
+  },
+
+  /**
+   * Bloquea el acceso a un veterinario específico por parte del Admin Principal
+   */
+  blockVeterinarian(clinicId, vetId, { motivoBloqueo, bloqueadoPor } = {}) {
+    const clinic = this.getById(clinicId);
+    if (!clinic) throw new Error('Veterinaria no encontrada');
+
+    const vet = (clinic.veterinariosAsociados || []).find((v) => v.id === vetId);
+    if (!vet) throw new Error('Veterinario asociado no encontrado');
+
+    if (vet.esDirector) {
+      throw new Error('No es posible bloquear al Director Médico / Administrador Principal');
+    }
+
+    vet.estado = 'bloqueado';
+    vet.bloqueadoPorAdmin = true;
+    vet.motivoBloqueo = motivoBloqueo?.trim() || 'Acceso suspendido temporalmente por el Administrador Principal de la Clínica';
+    vet.fechaBloqueo = new Date().toISOString();
+    vet.bloqueadoPor = bloqueadoPor?.trim() || 'Dr. Alejandro Morales Restrepo (Admin Principal)';
+    vet.permisosPrevios = { ...(vet.permisos || {}) };
+    vet.permisos = Object.keys(vet.permisos || {}).reduce((acc, k) => ({ ...acc, [k]: false }), {});
+
+    clinic.updatedAt = new Date().toISOString();
+    return { clinic, vet };
+  },
+
+  /**
+   * Desbloquea y restablece el acceso a un veterinario
+   */
+  unblockVeterinarian(clinicId, vetId) {
+    const clinic = this.getById(clinicId);
+    if (!clinic) throw new Error('Veterinaria no encontrada');
+
+    const vet = (clinic.veterinariosAsociados || []).find((v) => v.id === vetId);
+    if (!vet) throw new Error('Veterinario asociado no encontrado');
+
+    vet.estado = 'activo';
+    vet.bloqueadoPorAdmin = false;
+    vet.motivoBloqueo = null;
+    vet.fechaBloqueo = null;
+    vet.bloqueadoPor = null;
+    vet.permisos = vet.permisosPrevios || (ROLE_PRESETS[vet.rol]?.permisos) || {
+      crearPacientes: true,
+      solicitarExamenes: true,
+      verResultados: true,
+      descargarInformes: true,
+      accesoTodasLasSedes: false,
+      editarHistorias: true,
+      gestionarSedes: false,
+      anularOrdenes: false,
+    };
+
+    clinic.updatedAt = new Date().toISOString();
+    return { clinic, vet };
+  },
+
+  /**
+   * Actualiza la matriz granular de permisos y el rol de un veterinario
+   */
+  updateVeterinarianPermissions(clinicId, vetId, { permisos, rol } = {}) {
+    const clinic = this.getById(clinicId);
+    if (!clinic) throw new Error('Veterinaria no encontrada');
+
+    const vet = (clinic.veterinariosAsociados || []).find((v) => v.id === vetId);
+    if (!vet) throw new Error('Veterinario asociado no encontrado');
+
+    if (rol) {
+      vet.rol = rol;
+      if (ROLE_PRESETS[rol]?.nombre) {
+        vet.rolNombre = ROLE_PRESETS[rol].nombre;
+      }
+    }
+
+    if (permisos && typeof permisos === 'object') {
+      vet.permisos = {
+        ...(vet.permisos || {}),
+        ...permisos,
+      };
+    }
+
+    clinic.updatedAt = new Date().toISOString();
+    return { clinic, vet };
+  },
+
+  /**
+   * Asigna sedes (fija, rotativa o todas las sedes) a un veterinario
+   */
+  assignVeterinarianSedes(clinicId, vetId, { tipoAsignacion, sedeId, sedeNombre, sedesRotativas, sedesRotativasNombres, diasRotacion } = {}) {
+    const clinic = this.getById(clinicId);
+    if (!clinic) throw new Error('Veterinaria no encontrada');
+
+    const vet = (clinic.veterinariosAsociados || []).find((v) => v.id === vetId);
+    if (!vet) throw new Error('Veterinario asociado no encontrado');
+
+    if (tipoAsignacion) vet.tipoAsignacion = tipoAsignacion;
+    if (sedeId) vet.sedeId = sedeId;
+    if (sedeNombre) vet.sedeNombre = sedeNombre;
+    if (Array.isArray(sedesRotativas)) vet.sedesRotativas = sedesRotativas;
+    if (Array.isArray(sedesRotativasNombres)) vet.sedesRotativasNombres = sedesRotativasNombres;
+    if (diasRotacion !== undefined) vet.diasRotacion = diasRotacion;
+
+    // Si la asignación es 'todas_las_sedes', habilitamos el permiso de multi-sede
+    if (tipoAsignacion === 'todas_las_sedes') {
+      if (!vet.permisos) vet.permisos = {};
+      vet.permisos.accesoTodasLasSedes = true;
+    }
+
     clinic.updatedAt = new Date().toISOString();
     return { clinic, vet };
   },

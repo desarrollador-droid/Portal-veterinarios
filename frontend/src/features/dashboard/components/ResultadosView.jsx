@@ -117,13 +117,13 @@ export default function ResultadosView({
 
       {/* Barra de Filtros */}
       <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="flex items-center gap-2 w-full sm:w-80">
+        <div className="flex items-center gap-2 w-full sm:w-96">
           <span className="text-slate-400 text-sm">🔍</span>
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por código, paciente o perfil..."
+            placeholder="Buscar por código de orden, nombre del paciente o perfil qPCR..."
             className="w-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none font-medium"
           />
         </div>
@@ -163,20 +163,39 @@ export default function ResultadosView({
                 key={item.id}
                 className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-sm space-y-4 hover:border-slate-300 transition-all"
               >
-                {/* Cabecera del Examen */}
+                {/* Cabecera del Examen con Alta Trazabilidad del Paciente */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center text-xl shrink-0">
-                      🧬
+                  <div className="flex items-center gap-3.5">
+                    {/* Avatar de la Mascota con Distintivo Molecular */}
+                    <div className="relative shrink-0">
+                      <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-2xl shadow-2xs">
+                        {item.patient.avatar || (item.patient.species?.toLowerCase().includes('felin') ? '🐱' : '🐶')}
+                      </div>
+                      <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#6F2BCC] text-white rounded-full flex items-center justify-center text-[10px] shadow-xs">
+                        🧬
+                      </span>
                     </div>
+
                     <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="text-base font-extrabold text-slate-900">
-                          {item.testName}
-                        </h3>
-                        <span className="font-mono text-xs font-bold text-sky-800 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">
-                          {item.id}
+                      {/* Píldoras de Trazabilidad: Código + Nombre del Paciente */}
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="font-mono text-xs font-bold text-sky-900 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200 flex items-center gap-1">
+                          <span>📋</span>
+                          <span>Código: {item.id}</span>
                         </span>
+
+                        <span className="text-xs font-black bg-purple-100 text-[#2B017C] px-3 py-0.5 rounded-full border border-purple-300/80 flex items-center gap-1.5 shadow-2xs">
+                          <span>🐾</span>
+                          <span>Paciente: <strong className="underline decoration-purple-400">{item.patient.name} {item.patient.lastName || ''}</strong></span>
+                        </span>
+
+                        {item.patient.sedeNombre && (
+                          <span className="text-xs font-bold bg-slate-100 text-[#2B017C] px-2.5 py-0.5 rounded-full border border-slate-200 flex items-center gap-1">
+                            <span>📍</span>
+                            <span>{item.patient.sedeNombre} {item.patient.codigoSedeNit ? `(${item.patient.codigoSedeNit})` : ''}</span>
+                          </span>
+                        )}
+
                         {positiveAgents.length > 0 ? (
                           <span className="text-xs font-bold bg-rose-50 text-rose-700 px-2.5 py-0.5 rounded-full border border-rose-200 flex items-center gap-1">
                             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
@@ -188,18 +207,26 @@ export default function ResultadosView({
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        Paciente: <strong>{item.patient.name} {item.patient.lastName || ''}</strong> ({item.patient.species} · {item.patient.breed}) · Tutor: {item.patient.owner?.name || 'No registrado'}
+
+                      <h3 className="text-base font-extrabold text-slate-900 leading-snug">
+                        {item.testName}
+                      </h3>
+
+                      <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                        <span>Mascota: <strong className="text-slate-800 font-bold">{item.patient.name} {item.patient.lastName || ''}</strong> ({item.patient.species} · {item.patient.breed}{item.patient.age ? ` · ${item.patient.age}` : ''})</span>
+                        <span>·</span>
+                        <span>Tutor: <strong className="text-slate-700">{item.patient.owner?.name || `${item.patient.owner?.firstName || ''} ${item.patient.owner?.lastName || ''}`.trim() || 'No registrado'}</strong></span>
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 self-start sm:self-auto">
+                  <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
                     <button
                       onClick={() => onSelectPatient(item.patient)}
-                      className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs cursor-pointer transition-all"
+                      className="px-3.5 py-1.5 rounded-xl border border-slate-200 hover:border-purple-300 hover:bg-purple-50/50 text-slate-700 hover:text-[#6F2BCC] font-bold text-xs cursor-pointer transition-all flex items-center gap-1"
                     >
-                      Ver Ficha →
+                      <span>Ver Ficha</span>
+                      <span>→</span>
                     </button>
                     <button
                       onClick={() => downloadClinicalHistoryDocument(item.patient)}
@@ -210,8 +237,19 @@ export default function ResultadosView({
                   </div>
                 </div>
 
-                {/* Métricas de Fechas y Horas (Requerimiento previo del usuario) */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-2xl text-xs border border-slate-100">
+                {/* Métricas de Fechas, Horas y Paciente (Trazabilidad 5 columnas) */}
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 bg-slate-50 p-3.5 rounded-2xl text-xs border border-slate-100">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                      Paciente Asignado
+                    </span>
+                    <span className="font-extrabold text-[#2B017C] truncate block text-xs">
+                      🐾 {item.patient.name} {item.patient.lastName || ''}
+                    </span>
+                    <span className="text-[10px] text-slate-500 block truncate">
+                      {item.patient.id || 'PAC'} · {item.patient.species}
+                    </span>
+                  </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
                       Solicitud Enviada
@@ -321,7 +359,7 @@ export default function ResultadosView({
                       onClick={() => onSelectPatient?.(item.patient)}
                       className="px-3.5 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-colors cursor-pointer flex items-center gap-1.5"
                     >
-                      <span>📄</span> Ver Ficha
+                      <span>📄</span> Ver Ficha de {item.patient.name}
                     </button>
 
                     {item.positiveCount > 0 && (

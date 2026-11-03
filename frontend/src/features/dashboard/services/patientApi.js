@@ -29,6 +29,9 @@ const FALLBACK_PATIENTS = [
     birthDate: '2023-05-12',
     age: '3 años, 4 meses',
     weight: '4.2 kg',
+    sedeId: 'sede-principal-80',
+    sedeNombre: 'Sede Principal - Calle 80',
+    codigoSedeNit: '#nit-1',
     isSterilized: true,
     hasAllergies: false,
     allergies: '',
@@ -156,6 +159,9 @@ const FALLBACK_PATIENTS = [
     birthDate: '2021-08-20',
     age: '5 años',
     weight: '31.5 kg',
+    sedeId: 'sede-norte-127',
+    sedeNombre: 'Sede Norte - Santa Bárbara',
+    codigoSedeNit: '#nit-2',
     isSterilized: true,
     hasAllergies: true,
     allergies: 'Sensibilidad severa a cefalexina',
@@ -265,6 +271,9 @@ const FALLBACK_PATIENTS = [
     birthDate: '2024-07-15',
     age: '2 años, 1 mes',
     weight: '12.8 kg',
+    sedeId: 'sede-principal-80',
+    sedeNombre: 'Sede Principal - Calle 80',
+    codigoSedeNit: '#nit-1',
     isSterilized: false,
     hasAllergies: true,
     allergies: 'Pollo y derivados de ave',
@@ -369,6 +378,9 @@ const FALLBACK_PATIENTS = [
     birthDate: '2015-02-10',
     age: '11 años',
     weight: '42.0 kg',
+    sedeId: 'sede-sabana-chia',
+    sedeNombre: 'Sede Sabana - Chía',
+    codigoSedeNit: '#nit-3',
     isSterilized: false,
     hasAllergies: false,
     allergies: '',
@@ -381,8 +393,8 @@ const FALLBACK_PATIENTS = [
       phone: '+57 311 000 9988',
       emergencyPhone: '',
       email: 'andres.s@email.com',
-      department: 'Bogotá D.C.',
-      city: 'Bogotá',
+      department: 'Cundinamarca',
+      city: 'Chía',
       address: 'Carrera 9 # 72-10',
       stratum: 'Estrato 5',
       hasVetPlus: false,
@@ -419,20 +431,324 @@ const FALLBACK_PATIENTS = [
     consultations: [],
     qpcrExams: [],
   },
+  {
+    id: 'PAC-005',
+    name: 'Simba',
+    lastName: 'Morales',
+    avatar: '🐱',
+    species: 'Felino',
+    breed: 'Persa',
+    sex: 'Macho',
+    birthDate: '2022-04-18',
+    age: '4 años, 5 meses',
+    weight: '4.8 kg',
+    sedeId: 'sede-sabana-chia',
+    sedeNombre: 'Sede Sabana - Chía',
+    codigoSedeNit: '#nit-3',
+    isSterilized: true,
+    hasAllergies: false,
+    allergies: '',
+    medicalBackground: 'Sin antecedentes respiratorios previos.',
+    owner: {
+      firstName: 'Valentina',
+      lastName: 'Morales',
+      name: 'Valentina Morales',
+      document: '1.019.876.543',
+      phone: '+57 320 654 9871',
+      emergencyPhone: '+57 311 234 5678',
+      email: 'valentina.morales@gmail.com',
+      department: 'Cundinamarca',
+      city: 'Chía',
+      address: 'Km 2 Vía Chía-Cajicá, Condominio El Roble Casa 12',
+      stratum: 'Estrato 5',
+      hasVetPlus: true,
+      vetPlusCode: 'VP-91024-COL',
+    },
+    riskFactors: {
+      habitat: 'Interiores',
+      contactOutside: { hasContact: false, contactType: '' },
+      livesWithOtherAnimals: true,
+      recentTravel: false,
+      ruralAccess: false,
+      parasiteExposure: false,
+      outdoorWater: false,
+      coastalRescue: false,
+      otherRiskFactors: 'Ninguno',
+    },
+    medicalAdmission: {
+      isAsymptomatic: false,
+      symptoms: ['Secreción ocular', 'Estornudos frecuentes'],
+      otherSymptoms: 'Blefarospasmo unilateral leve',
+      physicalFindings: 'Secreción serosa bilateral, conjuntivitis leve.',
+      consultationType: 'Consulta especializada',
+      generalCondition: 'Bueno',
+      vaccinationStatus: 'Al día',
+      lastVaccinationDate: '10/02/2026',
+      dewormingStatus: 'Al día',
+      lastDewormingDate: '10/08/2026',
+    },
+    status: 'activo',
+    lastVisit: '02/10/2026',
+    attendingVet: 'Dr. Alejandro Morales',
+    notes: 'Sospecha de complejo respiratorio felino (Herpesvirus vs Calicivirus).',
+    activeExamOrder: {
+      id: 'ORD-2026-905',
+      testName: 'qPCR Panel Respiratorio Felino Completo',
+      category: 'Biología Molecular Cuantitativa (qPCR)',
+      sampleType: 'Hisopado conjuntival y orofaríngeo',
+      priority: 'Normal (24-48h)',
+      requestedBy: 'Dr. Alejandro Morales',
+      laboratory: 'VetLab Central - Unidad de Genómica',
+      targets: 'FHV-1, FCV, Chlamydia felis, Mycoplasma felis, Bordetella bronchiseptica',
+      requestedAt: '02/10/2026 - 11:20 AM',
+      currentStep: 2,
+      steps: [
+        { label: 'Solicitud creada', desc: 'Orden médica generada en clínica', date: '02/10/2026 11:20 AM', completed: true },
+        { label: 'Muestra recibida', desc: 'Recepción y código de barras en laboratorio', date: '02/10/2026 02:40 PM', completed: true },
+        { label: 'En análisis qPCR', desc: 'Extracción de ácidos nucleicos y amplificación en termociclador', date: '02/10/2026 05:15 PM', completed: true },
+        { label: 'Validación médica', desc: 'Curvas de amplificación verificadas por patólogo molecular', date: '', completed: false },
+        { label: 'Resultado enviado', desc: 'Informe emitido y disponible para descarga', date: '', completed: false },
+      ],
+    },
+    healthMetrics: {
+      weightHistory: [
+        { date: '10/02/2026', weight: '4.6 kg', note: 'Control de vacunación' },
+        { date: '02/10/2026', weight: '4.8 kg', note: 'Consulta por estornudos' },
+      ],
+      vitalSigns: {
+        heartRate: '150 bpm',
+        temperature: '38.6 °C',
+        respiratoryRate: '26 rpm',
+        mucosa: 'Rosadas',
+      },
+    },
+    consultations: [],
+    qpcrExams: [],
+  },
+  {
+    id: 'PAC-006',
+    name: 'Bella',
+    lastName: 'Cárdenas',
+    avatar: '🐶',
+    species: 'Canino',
+    breed: 'Bulldog Francés',
+    sex: 'Hembra',
+    birthDate: '2023-09-05',
+    age: '3 años',
+    weight: '11.2 kg',
+    sedeId: 'sede-norte-127',
+    sedeNombre: 'Sede Norte - Santa Bárbara',
+    codigoSedeNit: '#nit-2',
+    isSterilized: true,
+    hasAllergies: true,
+    allergies: 'Alergia a proteínas de pollo y ácaros del polvo',
+    medicalBackground: 'Atopia canina diagnosticada en 2024.',
+    owner: {
+      firstName: 'Felipe',
+      lastName: 'Cárdenas',
+      name: 'Felipe Cárdenas',
+      document: '80.765.432',
+      phone: '+57 316 432 1098',
+      emergencyPhone: '+57 310 987 6543',
+      email: 'felipe.cardenas@empresa.com',
+      department: 'Bogotá D.C.',
+      city: 'Bogotá',
+      address: 'Calle 122 # 15-45, Apto 501',
+      stratum: 'Estrato 5',
+      hasVetPlus: true,
+      vetPlusCode: 'VP-94301-COL',
+    },
+    riskFactors: {
+      habitat: 'Interiores',
+      contactOutside: { hasContact: true, contactType: 'Parque canino' },
+      livesWithOtherAnimals: false,
+      recentTravel: false,
+      ruralAccess: false,
+      parasiteExposure: true,
+      outdoorWater: false,
+      coastalRescue: false,
+      otherRiskFactors: 'Dermatitis atópica estacional',
+    },
+    medicalAdmission: {
+      isAsymptomatic: false,
+      symptoms: ['Prurito podal', 'Eritema interdigital'],
+      otherSymptoms: 'Lesiones alopécicas focales',
+      physicalFindings: 'Eritema intenso en pliegues faciales y zonas interdigitales.',
+      consultationType: 'Dermatología',
+      generalCondition: 'Bueno',
+      vaccinationStatus: 'Al día',
+      lastVaccinationDate: '05/01/2026',
+      dewormingStatus: 'Al día',
+      lastDewormingDate: '01/09/2026',
+    },
+    status: 'activo',
+    lastVisit: '04/10/2026',
+    attendingVet: 'Dra. Camila Torres',
+    notes: 'Toma de raspado cutáneo e hisopado para qPCR dermatológico.',
+    activeExamOrder: {
+      id: 'ORD-2026-906',
+      testName: 'qPCR Panel Dermatofitos & Levaduras Patógenas',
+      category: 'Biología Molecular Cuantitativa (qPCR)',
+      sampleType: 'Raspado cutáneo y pelo',
+      priority: 'Normal (24-48h)',
+      requestedBy: 'Dra. Camila Torres',
+      laboratory: 'VetLab Central - Unidad de Genómica',
+      targets: 'Microsporum canis, Trichophyton mentagrophytes, Malassezia pachydermatis',
+      requestedAt: '04/10/2026 - 09:40 AM',
+      currentStep: 4,
+      steps: [
+        { label: 'Solicitud creada', desc: 'Orden médica generada en clínica', date: '04/10/2026 09:40 AM', completed: true },
+        { label: 'Muestra recibida', desc: 'Recepción y código de barras en laboratorio', date: '04/10/2026 11:30 AM', completed: true },
+        { label: 'En análisis qPCR', desc: 'Extracción de ácidos nucleicos y termociclaje', date: '04/10/2026 03:00 PM', completed: true },
+        { label: 'Validación médica', desc: 'Curvas validadas por patólogo molecular', date: '04/10/2026 05:20 PM', completed: true },
+        { label: 'Resultado enviado', desc: 'Informe emitido y disponible para descarga', date: '04/10/2026 06:00 PM', completed: true },
+      ],
+    },
+    healthMetrics: {
+      weightHistory: [
+        { date: '05/01/2026', weight: '10.8 kg', note: 'Vacunación' },
+        { date: '04/10/2026', weight: '11.2 kg', note: 'Consulta dermatología' },
+      ],
+      vitalSigns: {
+        heartRate: '128 bpm',
+        temperature: '38.5 °C',
+        respiratoryRate: '22 rpm',
+        mucosa: 'Rosadas',
+      },
+    },
+    consultations: [],
+    qpcrExams: [
+      {
+        id: 'QPCR-2026-906',
+        testName: 'qPCR Panel Dermatofitos & Levaduras Patógenas',
+        date: '04/10/2026',
+        requestedAt: '04/10/2026, 09:40 AM',
+        receivedAt: '04/10/2026, 06:00 PM',
+        status: 'Emitido',
+        sampleType: 'Raspado cutáneo y pelo',
+        resultSummary: 'Malassezia pachydermatis POSITIVA (+). Negativo para Microsporum canis y Trichophyton.',
+        methodology: 'qPCR tiempo real con sondas de hidrólisis TaqMan',
+        reportUrl: '#',
+        agents: [
+          { name: 'Malassezia pachydermatis', isPositive: true, result: 'POSITIVO (+)', ct: '21.4', load: 'Carga alta' },
+          { name: 'Microsporum canis', isPositive: false, result: 'Negativo (-)', ct: 'N/D', load: 'No detectado' },
+          { name: 'Trichophyton mentagrophytes', isPositive: false, result: 'Negativo (-)', ct: 'N/D', load: 'No detectado' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'PAC-007',
+    name: 'Zeus',
+    lastName: 'Ospina',
+    avatar: '🐶',
+    species: 'Canino',
+    breed: 'Pastor Alemán',
+    sex: 'Macho',
+    birthDate: '2021-12-10',
+    age: '4 años, 10 meses',
+    weight: '36.0 kg',
+    sedeId: 'sede-principal-80',
+    sedeNombre: 'Sede Principal - Calle 80',
+    codigoSedeNit: '#nit-1',
+    isSterilized: false,
+    hasAllergies: false,
+    allergies: '',
+    medicalBackground: 'Sin cirugías previas.',
+    owner: {
+      firstName: 'Diana',
+      lastName: 'Ospina',
+      name: 'Diana Ospina',
+      document: '52.987.654',
+      phone: '+57 315 876 5432',
+      emergencyPhone: '+57 311 987 1234',
+      email: 'diana.ospina@gmail.com',
+      department: 'Bogotá D.C.',
+      city: 'Bogotá',
+      address: 'Carrera 70 # 100-30',
+      stratum: 'Estrato 4',
+      hasVetPlus: true,
+      vetPlusCode: 'VP-97812-COL',
+    },
+    riskFactors: {
+      habitat: 'Mixto',
+      contactOutside: { hasContact: true, contactType: 'Paseos en fincas y senderos' },
+      livesWithOtherAnimals: false,
+      recentTravel: true,
+      ruralAccess: true,
+      parasiteExposure: true,
+      outdoorWater: true,
+      coastalRescue: false,
+      otherRiskFactors: 'Exposición a garrapatas en zona rural de Cundinamarca',
+    },
+    medicalAdmission: {
+      isAsymptomatic: false,
+      symptoms: ['Fiebre', 'Anorexia', 'Debilidad en tren posterior'],
+      otherSymptoms: 'Trombocitopenia en hemograma inicial',
+      physicalFindings: 'Linfadenopatía reactiva preescapular, esplenomegalia palpable.',
+      consultationType: 'Urgencia médica',
+      generalCondition: 'Regular',
+      vaccinationStatus: 'Al día',
+      lastVaccinationDate: '12/12/2025',
+      dewormingStatus: 'Al día',
+      lastDewormingDate: '15/07/2026',
+    },
+    status: 'en tratamiento',
+    lastVisit: '06/10/2026',
+    attendingVet: 'Dr. Alejandro Morales',
+    notes: 'Sospecha alta de hemotrópicos (Ehrlichia / Anaplasma). Muestra tomada en EDTA.',
+    activeExamOrder: {
+      id: 'ORD-2026-907',
+      testName: 'qPCR Panel Vector Borne & Hemotrópicos Caninos',
+      category: 'Biología Molecular Cuantitativa (qPCR)',
+      sampleType: 'Sangre total con EDTA',
+      priority: 'Urgente (< 12h)',
+      requestedBy: 'Dr. Alejandro Morales',
+      laboratory: 'VetLab Central - Unidad de Genómica',
+      targets: 'Ehrlichia canis, Anaplasma platys, Babesia vogeli, Hepatozoon canis',
+      requestedAt: '06/10/2026 - 08:15 AM',
+      currentStep: 1,
+      steps: [
+        { label: 'Solicitud creada', desc: 'Orden médica generada en clínica', date: '06/10/2026 08:15 AM', completed: true },
+        { label: 'Muestra recibida', desc: 'Recepción y código de barras en laboratorio', date: '06/10/2026 09:30 AM', completed: true },
+        { label: 'En análisis qPCR', desc: 'Extracción de ácidos nucleicos y amplificación en termociclador', date: '', completed: false },
+        { label: 'Validación médica', desc: 'Curvas de amplificación verificadas por patólogo molecular', date: '', completed: false },
+        { label: 'Resultado enviado', desc: 'Informe emitido y disponible para descarga', date: '', completed: false },
+      ],
+    },
+    healthMetrics: {
+      weightHistory: [
+        { date: '12/12/2025', weight: '37.5 kg', note: 'Control anual' },
+        { date: '06/10/2026', weight: '36.0 kg', note: 'Urgencia por decaimiento (-1.5 kg)' },
+      ],
+      vitalSigns: {
+        heartRate: '110 bpm',
+        temperature: '39.6 °C',
+        respiratoryRate: '32 rpm',
+        mucosa: 'Levemente pálidas',
+      },
+    },
+    consultations: [],
+    qpcrExams: [],
+  },
 ];
 
 let localPatientsStore = [...FALLBACK_PATIENTS];
 
 export const patientApi = {
-  async getStats() {
+  async getStats(params = {}) {
     try {
-      const response = await axios.get(`${API_BASE_URL}/stats`, { timeout: 2000 });
+      const response = await axios.get(`${API_BASE_URL}/stats`, { params, timeout: 2000 });
       return response.data.data;
     } catch {
-      const active = localPatientsStore.filter((p) => p.status === 'activo').length;
-      const inProgress = localPatientsStore.filter((p) => p.activeExamOrder && p.activeExamOrder.currentStep < 4).length;
-      const ready = localPatientsStore.filter((p) => p.activeExamOrder && p.activeExamOrder.currentStep === 4).length;
-      const hosp = localPatientsStore.filter((p) => p.status === 'internado').length;
+      let list = [...localPatientsStore];
+      if (params.sedeId && params.sedeId !== 'all' && params.sedeId !== 'Todas') {
+        list = list.filter((p) => p.sedeId === params.sedeId);
+      }
+      const active = list.filter((p) => p.status === 'activo').length;
+      const inProgress = list.filter((p) => p.activeExamOrder && p.activeExamOrder.currentStep < 4).length;
+      const ready = list.filter((p) => p.activeExamOrder && p.activeExamOrder.currentStep === 4).length;
+      const hosp = list.filter((p) => p.status === 'internado').length;
       return { activePatients: active, ordersInProgress: inProgress, resultsReady: ready, hospitalized: hosp };
     }
   },
@@ -443,6 +759,9 @@ export const patientApi = {
       return response.data.data;
     } catch {
       let list = [...localPatientsStore];
+      if (filters.sedeId && filters.sedeId !== 'all' && filters.sedeId !== 'Todas') {
+        list = list.filter((p) => p.sedeId === filters.sedeId);
+      }
       if (filters.search && filters.search.trim()) {
         const t = filters.search.toLowerCase().trim();
         list = list.filter(
@@ -561,6 +880,8 @@ export const patientApi = {
         totalPrice: examData.totalPrice || '$145.000',
         examType: examData.examType || 'nuevo',
         previousExamCode: examData.previousExamCode || null,
+        cuadroHematico: examData.cuadroHematico || null,
+        historiaClinica: examData.historiaClinica || null,
         requestedAt: formattedDate,
         currentStep: 0,
         steps: [
@@ -571,6 +892,30 @@ export const patientApi = {
           { label: 'Resultado enviado', desc: 'Informe emitido a clínica', date: 'Pendiente', completed: false },
         ],
       };
+
+      if (examData.isSterilized !== undefined && examData.isSterilized !== null) {
+        patient.isSterilized = Boolean(examData.isSterilized);
+      }
+      if (examData.allergies !== undefined) {
+        patient.allergies = examData.allergies;
+        patient.hasAllergies = Boolean(examData.allergies && examData.allergies.trim().length > 0);
+      }
+      if (examData.riskFactors) {
+        patient.riskFactors = {
+          ...(patient.riskFactors || {}),
+          ...examData.riskFactors,
+        };
+      }
+      if (examData.cuadroHematico) {
+        patient.cuadroHematico = examData.cuadroHematico;
+        if (!patient.medicalAdmission) patient.medicalAdmission = {};
+        patient.medicalAdmission.cuadroHematico = examData.cuadroHematico;
+      }
+      if (examData.historiaClinica) {
+        patient.historiaClinica = examData.historiaClinica;
+        if (!patient.medicalAdmission) patient.medicalAdmission = {};
+        patient.medicalAdmission.historiaClinica = examData.historiaClinica;
+      }
 
       let examAgents = [];
       if (examData.profiles && Array.isArray(examData.profiles)) {
@@ -711,6 +1056,9 @@ export const patientApi = {
         birthDate: patientData.birthDate,
         age: patientData.age || '1 año',
         weight: patientData.weight,
+        sedeId: patientData.sedeId || 'sede-principal-80',
+        sedeNombre: patientData.sedeNombre || 'Sede Principal - Calle 80',
+        codigoSedeNit: patientData.codigoSedeNit || '#nit-1',
         isSterilized: Boolean(patientData.isSterilized),
         hasAllergies: Boolean(patientData.hasAllergies),
         allergies: patientData.hasAllergies ? (patientData.allergies || 'Alergia reportada') : '',

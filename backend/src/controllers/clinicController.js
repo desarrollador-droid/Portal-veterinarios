@@ -245,4 +245,78 @@ export const clinicController = {
       });
     }
   },
+
+  blockVeterinarian(req, res) {
+    try {
+      const { id, vetId } = req.params;
+      const { motivoBloqueo, bloqueadoPor } = req.body;
+      const result = clinicService.blockVeterinarian(id, vetId, { motivoBloqueo, bloqueadoPor });
+      res.json({
+        success: true,
+        message: `Acceso de ${result.vet.nombre} bloqueado exitosamente`,
+        data: result.clinic,
+        vet: result.vet,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  },
+
+  unblockVeterinarian(req, res) {
+    try {
+      const { id, vetId } = req.params;
+      const result = clinicService.unblockVeterinarian(id, vetId);
+      res.json({
+        success: true,
+        message: `Acceso de ${result.vet.nombre} restablecido exitosamente`,
+        data: result.clinic,
+        vet: result.vet,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  },
+
+  updateVeterinarianPermissions(req, res) {
+    try {
+      const { id, vetId } = req.params;
+      const { permisos, rol } = req.body;
+      const result = clinicService.updateVeterinarianPermissions(id, vetId, { permisos, rol });
+      res.json({
+        success: true,
+        message: `Permisos de ${result.vet.nombre} actualizados exitosamente`,
+        data: result.clinic,
+        vet: result.vet,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  },
+
+  assignVeterinarianSedes(req, res) {
+    try {
+      const { id, vetId } = req.params;
+      const result = clinicService.assignVeterinarianSedes(id, vetId, req.body);
+      res.json({
+        success: true,
+        message: `Asignación de sedes de ${result.vet.nombre} actualizada exitosamente`,
+        data: result.clinic,
+        vet: result.vet,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  },
 };

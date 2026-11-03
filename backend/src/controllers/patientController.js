@@ -2,7 +2,8 @@ import { patientService } from '../services/patientService.js';
 
 export const getDashboardStats = (req, res) => {
   try {
-    const stats = patientService.getDashboardStats();
+    const { sedeId } = req.query;
+    const stats = patientService.getDashboardStats({ sedeId });
     return res.json({ success: true, data: stats });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -11,8 +12,8 @@ export const getDashboardStats = (req, res) => {
 
 export const getPatients = (req, res) => {
   try {
-    const { search, species, breed, sampleStatus } = req.query;
-    const patients = patientService.getPatients({ search, species, breed, sampleStatus });
+    const { search, species, breed, sampleStatus, sedeId } = req.query;
+    const patients = patientService.getPatients({ search, species, breed, sampleStatus, sedeId });
     return res.json({ success: true, data: patients, total: patients.length });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

@@ -20,6 +20,10 @@ router.delete('/:id/sedes/:sedeId', clinicController.deleteSede);
 router.post('/:id/veterinarians', clinicController.addVeterinarian);
 router.put('/:id/veterinarians/:vetId', clinicController.updateVeterinarian);
 router.patch('/:id/veterinarians/:vetId/toggle-status', clinicController.toggleVeterinarianStatus);
+router.patch('/:id/veterinarians/:vetId/block', clinicController.blockVeterinarian);
+router.patch('/:id/veterinarians/:vetId/unblock', clinicController.unblockVeterinarian);
+router.put('/:id/veterinarians/:vetId/permissions', clinicController.updateVeterinarianPermissions);
+router.put('/:id/veterinarians/:vetId/sedes', clinicController.assignVeterinarianSedes);
 router.delete('/:id/veterinarians/:vetId', clinicController.deleteVeterinarian);
 
 export default router;

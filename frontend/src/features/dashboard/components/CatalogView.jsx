@@ -269,53 +269,55 @@ export default function CatalogView() {
         </div>
       </div>
 
-      {/* Sub-barra de Síndromes para la pestaña de Perfiles */}
+      {/* Sub-barra de Síndromes (Lista Desplegable) para la pestaña de Perfiles */}
       {activeTab === 'perfiles' && (
-        <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-2xs space-y-2.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#2B017C] flex items-center gap-1.5">
-              <span>🩺</span>
-              <span>Filtrar por Síndrome Clínico:</span>
+        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="w-9 h-9 rounded-xl bg-purple-50 text-[#6F2BCC] flex items-center justify-center text-lg font-bold border border-purple-100 shrink-0">
+              🩺
             </span>
-            {syndromeFilter !== 'all' && (
-              <button
-                onClick={() => setSyndromeFilter('all')}
-                className="text-[11px] font-bold text-[#6F2BCC] hover:underline cursor-pointer flex items-center gap-1"
-              >
-                <span>Mostrar todos los síndromes</span>
-                <span>({syndromeCounts.all || LOCAL_QPCR_PROFILES_MASTER.length})</span>
-              </button>
-            )}
+            <div>
+              <label htmlFor="syndrome-filter-select" className="text-xs font-extrabold text-[#2B017C] block">
+                Filtrar por Síndrome Clínico:
+              </label>
+              <span className="text-[11px] text-slate-500">
+                Seleccione un síndrome de la lista desplegable ({filteredProfiles.length} perfiles encontrados)
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 scrollbar-thin">
-            {CLINICAL_SYNDROMES_LIST.map((syn) => {
-              const isSel = syndromeFilter === syn.id;
-              const count = syndromeCounts[syn.id] ?? 0;
-              return (
-                <button
-                  key={syn.id}
-                  onClick={() => setSyndromeFilter(syn.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
-                    isSel
-                      ? 'bg-[#2B017C] text-white shadow-xs ring-2 ring-[#6F2BCC]/30 font-extrabold'
-                      : 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-purple-50/70 hover:text-[#2B017C] hover:border-purple-200'
-                  }`}
-                >
-                  <span>{syn.icon}</span>
-                  <span>{syn.label}</span>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
-                      isSel
-                        ? 'bg-purple-500/80 text-white'
-                        : 'bg-slate-200 text-slate-600'
-                    }`}
-                  >
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-80">
+              <select
+                id="syndrome-filter-select"
+                value={CLINICAL_SYNDROMES_LIST.find((cs) => matchSyndromeTokens(cs.id, syndromeFilter))?.id || syndromeFilter}
+                onChange={(e) => setSyndromeFilter(e.target.value)}
+                className="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 hover:bg-slate-100/90 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none cursor-pointer appearance-none transition-all shadow-2xs"
+              >
+                {CLINICAL_SYNDROMES_LIST.map((syn) => {
+                  const count = syndromeCounts[syn.id] ?? 0;
+                  return (
+                    <option key={syn.id} value={syn.id} className="py-1">
+                      {syn.icon} {syn.label} ({count} {count === 1 ? 'perfil' : 'perfiles'})
+                    </option>
+                  );
+                })}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                <span className="text-xs">▼</span>
+              </div>
+            </div>
+
+            {syndromeFilter !== 'all' && (
+              <button
+                type="button"
+                onClick={() => setSyndromeFilter('all')}
+                title="Mostrar todos los perfiles"
+                className="px-3.5 py-2.5 bg-slate-100 hover:bg-purple-100 text-slate-700 hover:text-[#6F2BCC] border border-slate-200 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0"
+              >
+                ✕ Limpiar
+              </button>
+            )}
           </div>
         </div>
       )}

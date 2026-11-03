@@ -1,31 +1,40 @@
 import { patientsStore, PATIENT_STATUSES, calculateAgeFromBirthDate } from '../models/patientModel.js';
 
 export const patientService = {
-  getDashboardStats() {
-    const activePatients = patientsStore.filter((p) => p.status === 'activo').length;
-    const ordersInProgress = patientsStore.filter(
+  getDashboardStats({ sedeId } = {}) {
+    let list = patientsStore;
+    if (sedeId && sedeId !== 'all' && sedeId !== 'Todas') {
+      list = list.filter((p) => p.sedeId === sedeId);
+    }
+
+    const activePatients = list.filter((p) => p.status === 'activo').length;
+    const ordersInProgress = list.filter(
       (p) => p.activeExamOrder && p.activeExamOrder.currentStep < 4
     ).length;
-    const resultsReady = patientsStore.filter(
+    const resultsReady = list.filter(
       (p) => p.activeExamOrder && p.activeExamOrder.currentStep === 4
     ).length;
-    const hospitalized = patientsStore.filter((p) => p.status === 'internado').length;
+    const hospitalized = list.filter((p) => p.status === 'internado').length;
 
     return {
-      activePatients: activePatients || 5,
-      ordersInProgress: ordersInProgress || 6,
-      resultsReady: resultsReady || 1,
-      hospitalized: hospitalized || 1,
+      activePatients,
+      ordersInProgress,
+      resultsReady,
+      hospitalized,
     };
   },
 
   getPatients(filters = {}) {
-    const { search, species, breed, sampleStatus } = filters;
+    const { search, species, breed, sampleStatus, sedeId } = filters;
 
     let result = patientsStore.map((p) => ({
       ...p,
       age: calculateAgeFromBirthDate(p.birthDate),
     }));
+
+    if (sedeId && sedeId !== 'all' && sedeId !== 'Todas') {
+      result = result.filter((p) => p.sedeId === sedeId);
+    }
 
     if (search && search.trim() !== '') {
       const term = search.toLowerCase().trim();
@@ -238,6 +247,8 @@ export const patientService = {
       previousExamCode: examData.previousExamCode || null,
       replacementCount: examData.replacementCount || 0,
       additionalCost: examData.additionalCost || 0,
+      cuadroHematico: examData.cuadroHematico || null,
+      historiaClinica: examData.historiaClinica || null,
       requestedAt: formattedDate,
       currentStep: 0,
       steps: [
@@ -248,6 +259,37 @@ export const patientService = {
         { label: 'Resultado enviado', desc: 'Informe emitido y disponible para descarga', date: 'Pendiente', completed: false },
       ],
     };
+
+    // Actualizar estado de esterilización en la ficha del paciente si fue respondido
+    if (examData.isSterilized !== undefined && examData.isSterilized !== null) {
+      patient.isSterilized = Boolean(examData.isSterilized);
+    }
+
+    // Actualizar o agregar nuevas alergias en la ficha del paciente
+    if (examData.allergies !== undefined) {
+      patient.allergies = examData.allergies;
+      patient.hasAllergies = Boolean(examData.allergies && examData.allergies.trim().length > 0);
+    }
+
+    // Actualizar factores de riesgo en el paciente
+    if (examData.riskFactors) {
+      patient.riskFactors = {
+        ...(patient.riskFactors || {}),
+        ...examData.riskFactors,
+      };
+    }
+
+    // Almacenar cuadro hemático e historia clínica en el paciente
+    if (examData.cuadroHematico) {
+      patient.cuadroHematico = examData.cuadroHematico;
+      if (!patient.medicalAdmission) patient.medicalAdmission = {};
+      patient.medicalAdmission.cuadroHematico = examData.cuadroHematico;
+    }
+    if (examData.historiaClinica) {
+      patient.historiaClinica = examData.historiaClinica;
+      if (!patient.medicalAdmission) patient.medicalAdmission = {};
+      patient.medicalAdmission.historiaClinica = examData.historiaClinica;
+    }
 
     patient.activeExamOrder = newOrder;
 
@@ -336,6 +378,9 @@ export const patientService = {
       sex: data.sex || 'Hembra',
       birthDate: birthDate,
       weight: data.weight || '4.0 kg',
+      sedeId: data.sedeId || 'sede-principal-80',
+      sedeNombre: data.sedeNombre || 'Sede Principal - Calle 80',
+      codigoSedeNit: data.codigoSedeNit || '#nit-1',
       owner: {
         firstName: ownerFirstName,
         lastName: ownerLastName,

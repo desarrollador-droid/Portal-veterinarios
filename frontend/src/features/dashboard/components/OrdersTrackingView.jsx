@@ -132,6 +132,12 @@ export default function OrdersTrackingView({
                       <span className="text-xs font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100">
                         {patient.id}
                       </span>
+                      {patient.sedeNombre && (
+                        <span className="text-[10px] font-bold text-[#6F2BCC] bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200 flex items-center gap-1">
+                          <span>📍</span>
+                          <span>{patient.sedeNombre} {patient.codigoSedeNit ? `(${patient.codigoSedeNit})` : ''}</span>
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-slate-500">
                       {patient.species} · {patient.breed} · Tutor: {patient.owner?.name || 'No registrado'}

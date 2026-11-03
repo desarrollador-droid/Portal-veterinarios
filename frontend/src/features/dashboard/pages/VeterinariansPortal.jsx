@@ -11,9 +11,11 @@ import NewExamModule from '../components/NewExamModule.jsx';
 import OrdersTrackingView from '../components/OrdersTrackingView.jsx';
 import ResultadosView from '../components/ResultadosView.jsx';
 import CatalogView from '../components/CatalogView.jsx';
+import ClinicalCatalogView from '../components/ClinicalCatalogView.jsx';
 import TemporalEvolutionView from '../components/TemporalEvolutionView.jsx';
 import SupportView from '../components/SupportView.jsx';
 import ClinicProfileView from '../components/ClinicProfileView.jsx';
+import TeamPermissionsView from '../components/TeamPermissionsView.jsx';
 import ThemeToggle from '../components/ThemeToggle.jsx';
 
 export default function VeterinariansPortal() {
@@ -25,6 +27,7 @@ export default function VeterinariansPortal() {
     species: 'all',
     breed: 'all',
     sampleStatus: 'all',
+    sedeId: 'all',
   });
 
   // Módulo activo en el panel administrativo: 'pacientes' | 'nuevo-examen' | 'seguimiento' | 'resultados' | 'catalogo' | 'evolucion-temporal' | 'perfil-veterinaria' | 'soporte'
@@ -47,6 +50,7 @@ export default function VeterinariansPortal() {
 
   useEffect(() => {
     loadPatients();
+    loadStats(filters.sedeId);
   }, [filters]);
 
   useEffect(() => {
@@ -54,14 +58,25 @@ export default function VeterinariansPortal() {
   }, []);
 
   const loadInitialStats = async () => {
-    const [s, f, clinic] = await Promise.all([
-      patientApi.getStats(),
-      patientApi.getFilters(),
-      clinicApi.getActiveClinic(),
-    ]);
-    setStats(s);
-    setFilterOptions(f);
-    setActiveClinic(clinic);
+    try {
+      const [s, f, clinic] = await Promise.all([
+        patientApi.getStats({ sedeId: filters.sedeId }),
+        patientApi.getFilters(),
+        clinicApi.getActiveClinic(),
+      ]);
+      setStats(s);
+      setFilterOptions(f);
+      setActiveClinic(clinic);
+    } catch (err) {
+      console.error('Error cargando datos iniciales:', err);
+    }
+  };
+
+  const loadStats = async (sedeId) => {
+    try {
+      const s = await patientApi.getStats({ sedeId });
+      setStats(s);
+    } catch (_) {}
   };
 
   const loadPatients = async () => {
@@ -159,10 +174,14 @@ export default function VeterinariansPortal() {
         return { section: 'Laboratorio', title: 'Resultados Diagnósticos qPCR', icon: '🔬' };
       case 'catalogo':
         return { section: 'Base de Datos', title: 'Catálogo de Perfiles qPCR', icon: '📖' };
+      case 'catalogo-clinicas':
+        return { section: 'Portafolio Clínico', title: 'Catálogo de Clínicas & Pruebas Diagnósticas', icon: '🏥' };
       case 'evolucion-temporal':
         return { section: 'Analíticas', title: 'Evolución Temporal & Analíticas Longitudinales', icon: '📈' };
       case 'perfil-veterinaria':
         return { section: 'Administración', title: 'Perfil de Veterinaria & Médicos', icon: '🏥' };
+      case 'equipo-permisos':
+        return { section: 'Administración', title: 'Gestión de Equipo & Permisos Médicos', icon: '🛡️' };
       case 'soporte':
         return { section: 'Atención & Ayuda', title: 'Centro de Ayuda y Soporte', icon: '🎧' };
       case 'pacientes':
@@ -206,74 +225,6 @@ export default function VeterinariansPortal() {
 
       {/* 2. CONTENEDOR PRINCIPAL DERECHO */}
       <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
-        {/* BARRA SUPERIOR ADMINISTRATIVA (Sin selector de módulos arriba) */}
-        <header className="bg-white/95 backdrop-blur-xs border-b border-slate-200/90 sticky top-0 z-30 px-6 sm:px-8 py-3.5 flex items-center justify-between shadow-2xs">
-          {/* Breadcrumb del Módulo Activo */}
-          <div className="flex items-center gap-2.5">
-            <span className="text-lg">{breadcrumb.icon}</span>
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
-                {breadcrumb.section}
-              </span>
-              <span className="text-slate-300">/</span>
-              <span className="text-slate-900 font-extrabold tracking-tight text-xs sm:text-sm">
-                {breadcrumb.title}
-              </span>
-            </div>
-          </div>
-
-          {/* Información de Clínica, Notificaciones y Perfil */}
-          <div className="flex items-center gap-4 sm:gap-6">
-            <div
-              onClick={() => setActiveModule('perfil-veterinaria')}
-              className="hidden md:flex items-center gap-2 text-xs text-slate-500 hover:text-[#6F2BCC] cursor-pointer transition-colors"
-              title="Ver perfil de la veterinaria activa"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="font-semibold text-slate-700">
-                {activeClinic?.type === 'independiente'
-                  ? (activeClinic.nombreMedico || 'Dr. Alejandro Morales')
-                  : (activeClinic?.nombreVeterinaria || 'VetLab Sede Central')}
-              </span>
-              <span className="text-[10px] text-slate-400">
-                · {activeClinic?.recoleccion?.ciudad || 'Bogotá D.C.'}
-              </span>
-            </div>
-
-            {/* Alternador de Modo Claro / Oscuro */}
-            <ThemeToggle variant="compact" />
-
-            {/* Campana de Notificaciones con Badge 3 */}
-            <div
-              onClick={() => setActiveModule('resultados')}
-              title="3 Notificaciones de laboratorio pendientes"
-              className="relative cursor-pointer p-1.5 text-slate-600 hover:text-slate-900 transition-colors"
-            >
-              <svg className="w-6 h-6 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z" />
-              </svg>
-              <span className="absolute top-0 right-0 bg-[#e11d48] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-white">
-                3
-              </span>
-            </div>
-
-            {/* Avatar Usuario AM */}
-            <div className="flex items-center gap-2.5 pl-2 border-l border-slate-200">
-              <div className="w-9 h-9 rounded-xl bg-[#2B017C] text-white font-black text-xs flex items-center justify-center cursor-pointer shadow-xs border border-[#01FADA]/40">
-                AM
-              </div>
-              <div className="hidden lg:block text-left">
-                <span className="text-xs font-bold text-[#2B017C] block leading-tight">
-                  Dr. Alejandro Morales
-                </span>
-                <span className="text-[10px] text-[#6F2BCC] font-bold block leading-tight">
-                  Administrador
-                </span>
-              </div>
-            </div>
-          </div>
-        </header>
-
         {/* CONTENIDO DEL MÓDULO SELECCIONADO DESDE EL PANEL IZQUIERDO */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
           {/* MÓDULO 1: PACIENTES */}
@@ -282,15 +233,37 @@ export default function VeterinariansPortal() {
               {/* Encabezado: Título y Botones de Acción */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2B017C] tracking-tight">
-                    Pacientes
-                  </h1>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2B017C] tracking-tight">
+                      Pacientes
+                    </h1>
+                    {activeClinic?.sedes && activeClinic.sedes.length > 0 && (
+                      <div className="flex items-center gap-1.5 bg-white border border-[#6F2BCC]/30 rounded-xl px-3 py-1.5 shadow-2xs">
+                        <span className="text-xs">🏢</span>
+                        <span className="text-[10px] font-black uppercase tracking-wider text-[#6F2BCC]">
+                          Sede:
+                        </span>
+                        <select
+                          value={filters.sedeId || 'all'}
+                          onChange={(e) => handleFilterChange('sedeId', e.target.value)}
+                          className="bg-transparent text-xs font-bold text-[#2B017C] focus:outline-none cursor-pointer"
+                        >
+                          <option value="all">Todas las Sedes (Consolidado)</option>
+                          {activeClinic.sedes.map((s) => (
+                            <option key={s.id} value={s.id}>
+                              📍 {s.nombreSede} ({s.codigoSedeNit || ''})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
                   <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
                     miércoles, 7 de octubre de 2026
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   {/* Botón: + Registrar nuevo paciente (Wizard) */}
                   <button
                     onClick={() => setShowNewPatientWizard(true)}
@@ -317,6 +290,7 @@ export default function VeterinariansPortal() {
                 patients={patients}
                 filters={filters}
                 filterOptions={filterOptions}
+                sedesList={activeClinic?.sedes || []}
                 onFilterChange={handleFilterChange}
                 onSelectPatient={(p) => setSelectedPatient(p)}
                 onRequestExam={(p) => handleOpenExamModule(p)}
@@ -361,6 +335,11 @@ export default function VeterinariansPortal() {
             <CatalogView />
           )}
 
+          {/* MÓDULO 5B: CATÁLOGO CLÍNICAS (Portafolio Diagnóstico Clínico 2026) */}
+          {activeModule === 'catalogo-clinicas' && (
+            <ClinicalCatalogView />
+          )}
+
           {/* MÓDULO 6: EVOLUCIÓN TEMPORAL & ANALÍTICAS LONGITUDINALES */}
           {activeModule === 'evolucion-temporal' && (
             <TemporalEvolutionView
@@ -380,6 +359,14 @@ export default function VeterinariansPortal() {
           {activeModule === 'perfil-veterinaria' && (
             <ClinicProfileView
               onClinicUpdated={(c) => setActiveClinic(c)}
+              onNavigateToTeamPermissions={() => setActiveModule('equipo-permisos')}
+            />
+          )}
+
+          {/* MÓDULO 9: EQUIPO & PERMISOS (ADMIN PRINCIPAL MULTI-SEDE) */}
+          {activeModule === 'equipo-permisos' && (
+            <TeamPermissionsView
+              onNotify={showToast}
             />
           )}
         </main>

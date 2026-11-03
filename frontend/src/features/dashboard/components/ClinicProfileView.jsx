@@ -4,8 +4,9 @@ import {
   COLOMBIAN_CITIES,
   VETERINARY_SPECIALTIES,
 } from '../services/clinicApi.js';
+import { colombiaGeoApi } from '../services/colombiaGeoApi.js';
 
-export default function ClinicProfileView({ onClinicUpdated }) {
+export default function ClinicProfileView({ onClinicUpdated, onNavigateToTeamPermissions }) {
   // Pestañas principales del perfil:
   // 'datos' (Info básica, NIT, contactos, correos)
   // 'sedes' (Gestión de múltiples sedes de recolección)
@@ -43,6 +44,7 @@ export default function ClinicProfileView({ onClinicUpdated }) {
     tarjetaProfesional: '',
     administrativaNombre: '',
     administrativaTelefono: '',
+    recoleccionDepartamento: 'Bogotá',
     recoleccionCiudad: 'Bogotá D.C.',
     recoleccionDireccion: '',
     recoleccionDetalles: '',
@@ -55,9 +57,10 @@ export default function ClinicProfileView({ onClinicUpdated }) {
     terminosAceptados: true,
   });
 
-  // Formulario para Sede
+  // Formulario para Sede (consecutivo de NIT #nit-1, #nit-2...)
   const [sedeForm, setSedeForm] = useState({
     nombreSede: '',
+    departamento: 'Bogotá',
     ciudad: 'Bogotá D.C.',
     direccionFisica: '',
     detallesAdicionales: '',
@@ -66,6 +69,34 @@ export default function ClinicProfileView({ onClinicUpdated }) {
     indicacionesRuta: 'Donde el repartidor recogerá las muestras',
     correoResultadosSede: '',
     esPrincipal: false,
+    consecutivoNit: 1,
+    codigoSedeNit: '#nit-1',
+  });
+
+  // Formulario para Registro de Nueva Clínica o Médico Independiente
+  const [newEntityForm, setNewEntityForm] = useState({
+    type: 'veterinaria',
+    nit: '',
+    nombreVeterinaria: '',
+    directorMedicoNombre: '',
+    directorMedicoTelefono: '',
+    cedula: '',
+    nombreMedico: '',
+    tarjetaProfesional: '',
+    especialidad: 'Medicina General',
+    administrativaNombre: '',
+    administrativaTelefono: '',
+    recoleccionDepartamento: 'Bogotá',
+    recoleccionCiudad: 'Bogotá D.C.',
+    recoleccionDireccion: '',
+    recoleccionDetalles: '',
+    recoleccionIndicaciones: 'Donde el repartidor recogerá las muestras',
+    correoFacturacion: '',
+    correoResultados: '',
+    rutNumero: '',
+    rutArchivoNombre: 'RUT_Nuevo.pdf',
+    tarjetaProfesionalArchivoNombre: 'TP_COMVEZCOL.pdf',
+    terminosAceptados: true,
   });
 
   // Formulario para Veterinario Asociado
@@ -108,6 +139,7 @@ export default function ClinicProfileView({ onClinicUpdated }) {
 
   const populateFormFromClinic = (clinic) => {
     if (!clinic) return;
+    const defaultDept = clinic.recoleccion?.departamento || colombiaGeoApi.findDepartmentByCity(clinic.recoleccion?.ciudad)?.name || 'Bogotá';
     setFormData({
       type: clinic.type || 'veterinaria',
       nit: clinic.nit || '',
@@ -120,6 +152,7 @@ export default function ClinicProfileView({ onClinicUpdated }) {
       tarjetaProfesional: clinic.tarjetaProfesional || '',
       administrativaNombre: clinic.administrativa?.nombreResponsable || '',
       administrativaTelefono: clinic.administrativa?.telefonoPagos || '',
+      recoleccionDepartamento: defaultDept,
       recoleccionCiudad: clinic.recoleccion?.ciudad || 'Bogotá D.C.',
       recoleccionDireccion: clinic.recoleccion?.direccionFisica || '',
       recoleccionDetalles: clinic.recoleccion?.detallesAdicionales || '',
@@ -177,7 +210,8 @@ export default function ClinicProfileView({ onClinicUpdated }) {
 
     if (!formData.administrativaNombre.trim()) return showNotification('El nombre del responsable administrativo es obligatorio.', 'error');
     if (!formData.administrativaTelefono.trim()) return showNotification('El teléfono del responsable de pagos es obligatorio.', 'error');
-    if (!formData.recoleccionCiudad.trim()) return showNotification('Debes seleccionar una ciudad para recolección.', 'error');
+    if (!formData.recoleccionDepartamento?.trim()) return showNotification('Debes seleccionar un departamento para recolección.', 'error');
+    if (!formData.recoleccionCiudad?.trim()) return showNotification('Debes seleccionar una ciudad para recolección.', 'error');
     if (!formData.recoleccionDireccion.trim()) return showNotification('La dirección física de recolección es obligatoria.', 'error');
     if (!formData.correoFacturacion.trim()) return showNotification('El correo de facturación es obligatorio.', 'error');
     if (!formData.correoResultados.trim()) return showNotification('El correo de reporte de resultados es obligatorio.', 'error');
@@ -202,6 +236,7 @@ export default function ClinicProfileView({ onClinicUpdated }) {
         telefonoPagos: formData.administrativaTelefono.trim(),
       },
       recoleccion: {
+        departamento: formData.recoleccionDepartamento.trim(),
         ciudad: formData.recoleccionCiudad.trim(),
         direccionFisica: formData.recoleccionDireccion.trim(),
         detallesAdicionales: formData.recoleccionDetalles.trim(),
@@ -235,12 +270,14 @@ export default function ClinicProfileView({ onClinicUpdated }) {
     }
   };
 
-  // --- SEDES: Agregar o Editar ---
+  // --- SEDES: Agregar o Editar (consecutivo #nit-1, #nit-2...) ---
   const handleOpenAddSedeModal = (sedeToEdit = null) => {
     if (sedeToEdit) {
       setEditingSede(sedeToEdit);
+      const sedeDept = sedeToEdit.departamento || colombiaGeoApi.findDepartmentByCity(sedeToEdit.ciudad)?.name || activeClinic?.recoleccion?.departamento || 'Bogotá';
       setSedeForm({
         nombreSede: sedeToEdit.nombreSede || '',
+        departamento: sedeDept,
         ciudad: sedeToEdit.ciudad || activeClinic?.recoleccion?.ciudad || 'Bogotá D.C.',
         direccionFisica: sedeToEdit.direccionFisica || '',
         detallesAdicionales: sedeToEdit.detallesAdicionales || '',
@@ -249,12 +286,23 @@ export default function ClinicProfileView({ onClinicUpdated }) {
         indicacionesRuta: sedeToEdit.indicacionesRuta || 'Donde el repartidor recogerá las muestras',
         correoResultadosSede: sedeToEdit.correoResultadosSede || activeClinic?.correos?.resultados || '',
         esPrincipal: Boolean(sedeToEdit.esPrincipal),
+        consecutivoNit: sedeToEdit.consecutivoNit || 1,
+        codigoSedeNit: sedeToEdit.codigoSedeNit || `#nit-${sedeToEdit.consecutivoNit || 1}`,
       });
     } else {
+      const maxConsecutivo = (activeClinic?.sedes || []).reduce((max, s) => {
+        const n = Number(s.consecutivoNit) || 0;
+        return n > max ? n : max;
+      }, 0);
+      const nextConsecutivo = maxConsecutivo + 1;
+      const clinicDept = activeClinic?.recoleccion?.departamento || 'Bogotá';
+      const clinicCity = activeClinic?.recoleccion?.ciudad || 'Bogotá D.C.';
+
       setEditingSede(null);
       setSedeForm({
         nombreSede: '',
-        ciudad: activeClinic?.recoleccion?.ciudad || 'Bogotá D.C.',
+        departamento: clinicDept,
+        ciudad: clinicCity,
         direccionFisica: '',
         detallesAdicionales: '',
         telefonoContacto: activeClinic?.directorMedico?.telefono || '',
@@ -262,6 +310,8 @@ export default function ClinicProfileView({ onClinicUpdated }) {
         indicacionesRuta: 'Donde el repartidor recogerá las muestras',
         correoResultadosSede: activeClinic?.correos?.resultados || '',
         esPrincipal: false,
+        consecutivoNit: nextConsecutivo,
+        codigoSedeNit: `#nit-${nextConsecutivo}`,
       });
     }
     setShowAddSedeModal(true);
@@ -270,8 +320,9 @@ export default function ClinicProfileView({ onClinicUpdated }) {
   const handleSaveSede = async (e) => {
     e.preventDefault();
     if (!sedeForm.nombreSede.trim()) return showNotification('El nombre de la sede es obligatorio.', 'error');
+    if (!sedeForm.departamento?.trim()) return showNotification('El departamento de la sede es obligatorio.', 'error');
+    if (!sedeForm.ciudad?.trim()) return showNotification('La ciudad de la sede es obligatoria.', 'error');
     if (!sedeForm.direccionFisica.trim()) return showNotification('La dirección física de la sede es obligatoria.', 'error');
-    if (!sedeForm.ciudad.trim()) return showNotification('La ciudad de la sede es obligatoria.', 'error');
 
     setSaving(true);
     try {
@@ -281,7 +332,11 @@ export default function ClinicProfileView({ onClinicUpdated }) {
         showNotification(`Sede "${sedeForm.nombreSede}" actualizada correctamente`);
       } else {
         updated = await clinicApi.addSede(activeClinic.id, sedeForm);
-        showNotification(`Nueva sede "${sedeForm.nombreSede}" añadida con éxito`);
+        showNotification(
+          activeClinic.type === 'veterinaria'
+            ? `Nueva sede "${sedeForm.nombreSede}" añadida con éxito (#nit-${sedeForm.consecutivoNit || (activeClinic.sedes?.length || 0) + 1})`
+            : `Consultorio "${sedeForm.nombreSede}" registrado exitosamente`
+        );
       }
       setActiveClinic(updated);
       populateFormFromClinic(updated);
@@ -307,6 +362,117 @@ export default function ClinicProfileView({ onClinicUpdated }) {
       if (onClinicUpdated) onClinicUpdated(updated);
     } catch (err) {
       showNotification(err.message || 'Error eliminando sede', 'error');
+    }
+  };
+
+  // --- REGISTRO DE NUEVA CLÍNICA O MÉDICO INDEPENDIENTE ---
+  const handleOpenRegisterModal = () => {
+    setNewEntityForm({
+      type: 'veterinaria',
+      nit: '',
+      nombreVeterinaria: '',
+      directorMedicoNombre: '',
+      directorMedicoTelefono: '',
+      cedula: '',
+      nombreMedico: '',
+      tarjetaProfesional: '',
+      especialidad: 'Medicina General',
+      administrativaNombre: '',
+      administrativaTelefono: '',
+      recoleccionDepartamento: 'Bogotá',
+      recoleccionCiudad: 'Bogotá D.C.',
+      recoleccionDireccion: '',
+      recoleccionDetalles: '',
+      recoleccionIndicaciones: 'Donde el repartidor recogerá las muestras',
+      correoFacturacion: '',
+      correoResultados: '',
+      rutNumero: '',
+      rutArchivoNombre: 'RUT_Nuevo.pdf',
+      tarjetaProfesionalArchivoNombre: 'TP_COMVEZCOL.pdf',
+      terminosAceptados: true,
+    });
+    setShowRegisterNewClinicModal(true);
+  };
+
+  const handleSaveNewEntity = async (e) => {
+    e.preventDefault();
+    const isVet = newEntityForm.type === 'veterinaria';
+
+    if (isVet) {
+      if (!newEntityForm.nombreVeterinaria.trim()) return showNotification('El nombre de la veterinaria es obligatorio.', 'error');
+      if (!newEntityForm.nit.trim()) return showNotification('El NIT de la empresa es obligatorio.', 'error');
+      if (!newEntityForm.directorMedicoNombre.trim()) return showNotification('El nombre del director médico es obligatorio.', 'error');
+      if (!newEntityForm.directorMedicoTelefono.trim()) return showNotification('El teléfono del director médico es obligatorio.', 'error');
+    } else {
+      if (!newEntityForm.nombreMedico.trim()) return showNotification('El nombre completo del médico es obligatorio.', 'error');
+      if (!newEntityForm.cedula.trim()) return showNotification('La cédula del médico es obligatoria.', 'error');
+      if (!newEntityForm.tarjetaProfesional.trim()) return showNotification('La tarjeta profesional es obligatoria.', 'error');
+    }
+
+    if (!newEntityForm.recoleccionDepartamento?.trim()) return showNotification('El departamento de recolección es obligatorio.', 'error');
+    if (!newEntityForm.recoleccionCiudad?.trim()) return showNotification('La ciudad de recolección es obligatoria.', 'error');
+    if (!newEntityForm.recoleccionDireccion.trim()) return showNotification('La dirección física de recolección es obligatoria.', 'error');
+    if (!newEntityForm.correoFacturacion.trim()) return showNotification('El correo para facturación es obligatorio.', 'error');
+    if (!newEntityForm.correoResultados.trim()) return showNotification('El correo para reporte de resultados es obligatorio.', 'error');
+    if (!newEntityForm.rutNumero.trim()) return showNotification('El número de RUT es obligatorio.', 'error');
+
+    setSaving(true);
+    try {
+      const payload = {
+        type: newEntityForm.type,
+        esIndependiente: !isVet,
+        asociadoVeterinaria: null,
+        asociacionClinica: !isVet ? 'Sin asociación a clínica (Profesional Autónomo)' : null,
+        especialidad: !isVet ? newEntityForm.especialidad : '',
+        nit: isVet ? newEntityForm.nit.replace(/[^0-9]/g, '') : '',
+        nombreVeterinaria: isVet ? newEntityForm.nombreVeterinaria.trim() : '',
+        directorMedico: {
+          nombre: isVet ? newEntityForm.directorMedicoNombre.trim() : '',
+          telefono: isVet ? newEntityForm.directorMedicoTelefono.trim() : '',
+        },
+        cedula: !isVet ? newEntityForm.cedula.replace(/[^0-9]/g, '') : '',
+        nombreMedico: !isVet ? newEntityForm.nombreMedico.trim() : '',
+        tarjetaProfesional: !isVet ? newEntityForm.tarjetaProfesional.trim() : '',
+        administrativa: {
+          nombreResponsable: newEntityForm.administrativaNombre.trim() || (isVet ? newEntityForm.directorMedicoNombre.trim() : newEntityForm.nombreMedico.trim()),
+          telefonoPagos: newEntityForm.administrativaTelefono.trim() || (isVet ? newEntityForm.directorMedicoTelefono.trim() : '3001234567'),
+        },
+        recoleccion: {
+          departamento: newEntityForm.recoleccionDepartamento.trim(),
+          ciudad: newEntityForm.recoleccionCiudad.trim(),
+          direccionFisica: newEntityForm.recoleccionDireccion.trim(),
+          detallesAdicionales: newEntityForm.recoleccionDetalles.trim(),
+          indicacionesRuta: newEntityForm.recoleccionIndicaciones.trim() || 'Donde el repartidor recogerá las muestras',
+        },
+        correos: {
+          facturacion: newEntityForm.correoFacturacion.trim().toLowerCase(),
+          resultados: newEntityForm.correoResultados.trim().toLowerCase(),
+        },
+        documentos: {
+          rutNumero: newEntityForm.rutNumero.replace(/[^0-9]/g, ''),
+          rutArchivo: newEntityForm.rutArchivoNombre,
+          tarjetaProfesionalArchivo: !isVet ? newEntityForm.tarjetaProfesionalArchivoNombre : null,
+        },
+        terminosAceptados: newEntityForm.terminosAceptados,
+        esClinicaActiva: true,
+      };
+
+      const created = await clinicApi.createClinic(payload);
+      setActiveClinic(created);
+      populateFormFromClinic(created);
+      const list = await clinicApi.getClinics();
+      setClinicsList(list);
+      setShowRegisterNewClinicModal(false);
+      showNotification(
+        isVet
+          ? `¡Clínica "${created.nombreVeterinaria}" registrada con Sede Principal (#nit-1)!`
+          : `¡Médico independiente "${created.nombreMedico}" registrado con éxito (autónomo sin clínica)!`
+      );
+      if (onClinicUpdated) onClinicUpdated(created);
+    } catch (err) {
+      showNotification(err.message || 'Error registrando entidad', 'error');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -441,36 +607,51 @@ export default function ClinicProfileView({ onClinicUpdated }) {
       {/* 1. ENCABEZADO Y TÍTULO INSTITUCIONAL */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-100 text-[#6F2BCC] border border-purple-200/60">
               Panel Administrativo
             </span>
             <span className="text-xs text-slate-400 font-medium">
-              · Configuración Institucional, Sedes y Cuerpo Médico
+              {activeClinic?.type === 'independiente'
+                ? '· Profesional Autónomo · Registro COMVEZCOL'
+                : '· Configuración Corporativa, Sedes y Cuerpo Médico'}
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2B017C] tracking-tight">
-            Perfil de la Veterinaria
+            {activeClinic?.type === 'independiente'
+              ? 'Perfil del Médico Veterinario Independiente'
+              : 'Perfil de la Veterinaria & Sedes Corporativas'}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Información legal, NIT, sedes de recolección de muestras, director médico y administración de veterinarios asociados.
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-3xl leading-relaxed">
+            {activeClinic?.type === 'independiente'
+              ? 'Ejerces como médico veterinario independiente sin asociación a ninguna clínica. Administra tu consultorio de recolección, tarjeta profesional y datos de facturación.'
+              : 'Información legal, NIT unificado para múltiples sedes con su consecutivo (#nit-1, #nit-2...), director médico y cuerpo de veterinarios asociados.'}
           </p>
         </div>
 
         {/* ACCIONES SUPERIORES */}
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          <button
+            type="button"
+            onClick={handleOpenRegisterModal}
+            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#6F2BCC] hover:bg-[#581ea3] text-white shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+          >
+            <span className="text-sm font-black">+</span>
+            <span>Registrar Nueva Entidad</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setActiveSubTab('directorio')}
             className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-2xs transition-all cursor-pointer flex items-center gap-1.5"
           >
             <span>📋</span>
-            <span>Directorio de Clínicas ({clinicsList.length})</span>
+            <span>Directorio ({clinicsList.length})</span>
           </button>
         </div>
       </div>
 
-      {/* 2. TARJETA DESTACADA: BANNER DE LA CLÍNICA ACTIVA */}
+      {/* 2. TARJETA DESTACADA: BANNER DE LA CLÍNICA O MÉDICO ACTIVO */}
       {activeClinic && (
         <div className="bg-gradient-to-r from-[#2B017C] via-[#3e04aa] to-[#6F2BCC] rounded-3xl p-6 sm:p-7 text-white shadow-md relative overflow-hidden">
           <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 bg-[#01FADA]/15 rounded-full blur-3xl pointer-events-none" />
@@ -488,12 +669,18 @@ export default function ClinicProfileView({ onClinicUpdated }) {
                       : 'Clínica Veterinaria (Empresa)'}
                   </span>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white border border-white/30">
-                    Sede Activa en Sesión
+                    Activa en Sesión
                   </span>
-                  {activeClinic.type === 'veterinaria' && sedesList.length > 1 && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-300 text-purple-950">
-                      {sedesList.length} Sedes Vinculadas
+                  {activeClinic.type === 'independiente' ? (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-200 text-sky-950">
+                      Sin Asociación a Clínica (Autónomo)
                     </span>
+                  ) : (
+                    sedesList.length > 0 && (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-300 text-purple-950">
+                        {sedesList.length} Sedes Vinculadas (Mismo NIT: #nit-1...)
+                      </span>
+                    )
                   )}
                 </div>
                 <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
@@ -502,22 +689,47 @@ export default function ClinicProfileView({ onClinicUpdated }) {
                     : activeClinic.nombreVeterinaria}
                 </h2>
                 <div className="flex items-center gap-3 text-xs text-purple-100 flex-wrap">
-                  <span>
-                    <strong>{activeClinic.type === 'independiente' ? 'Cédula:' : 'NIT:'}</strong>{' '}
-                    {activeClinic.type === 'independiente' ? activeClinic.cedula : activeClinic.nit}
-                  </span>
-                  <span>•</span>
-                  <span>
-                    <strong>RUT:</strong> {activeClinic.documentos?.rutNumero}
-                  </span>
-                  <span>•</span>
-                  <span>
-                    <strong>Ciudad Principal:</strong> {activeClinic.recoleccion?.ciudad}
-                  </span>
-                  <span>•</span>
-                  <span>
-                    <strong>Veterinarios:</strong> {activeVetsCount} activos
-                  </span>
+                  {activeClinic.type === 'independiente' ? (
+                    <>
+                      <span>
+                        <strong>Cédula:</strong> {activeClinic.cedula}
+                      </span>
+                      <span>•</span>
+                      <span>
+                        <strong>Tarjeta Profesional:</strong> {activeClinic.tarjetaProfesional}
+                      </span>
+                      <span>•</span>
+                      <span>
+                        <strong>RUT:</strong> {activeClinic.documentos?.rutNumero}
+                      </span>
+                      <span>•</span>
+                      <span>
+                        <strong>Consultorio:</strong> {activeClinic.recoleccion?.ciudad}{activeClinic.recoleccion?.departamento ? `, ${activeClinic.recoleccion.departamento}` : ''}
+                      </span>
+                      <span>•</span>
+                      <span className="text-[#01FADA] font-extrabold">
+                        ✓ Ejercicio Autónomo
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span>
+                        <strong>NIT Matriz:</strong> {activeClinic.nit}
+                      </span>
+                      <span>•</span>
+                      <span>
+                        <strong>RUT:</strong> {activeClinic.documentos?.rutNumero}
+                      </span>
+                      <span>•</span>
+                      <span>
+                        <strong>Ciudad Principal:</strong> {activeClinic.recoleccion?.ciudad}{activeClinic.recoleccion?.departamento ? `, ${activeClinic.recoleccion.departamento}` : ''}
+                      </span>
+                      <span>•</span>
+                      <span>
+                        <strong>Veterinarios:</strong> {activeVetsCount} activos
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -537,7 +749,7 @@ export default function ClinicProfileView({ onClinicUpdated }) {
                     : 'bg-[#01FADA] text-[#2B017C] hover:bg-[#00e3c5] font-black'
                 }`}
               >
-                <span>{isEditingMainData ? '✕ Cancelar Edición' : '✏️ Editar Datos Principales'}</span>
+                <span>{isEditingMainData ? '✕ Cancelar Edición' : activeClinic.type === 'independiente' ? '✏️ Editar Datos del Médico' : '✏️ Editar Datos de la Clínica'}</span>
               </button>
             </div>
           </div>
@@ -558,8 +770,12 @@ export default function ClinicProfileView({ onClinicUpdated }) {
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
-          <span>🏢</span>
-          <span>Información de la Clínica & Facturación</span>
+          <span>{activeClinic?.type === 'independiente' ? '📋' : '🏢'}</span>
+          <span>
+            {activeClinic?.type === 'independiente'
+              ? 'Datos Profesionales & Facturación'
+              : 'Información de la Clínica & Facturación'}
+          </span>
         </button>
 
         <button
@@ -572,7 +788,16 @@ export default function ClinicProfileView({ onClinicUpdated }) {
           }`}
         >
           <span>📍</span>
-          <span>Sedes de Recolección ({sedesList.length})</span>
+          <span>
+            {activeClinic?.type === 'independiente'
+              ? 'Consultorio / Punto de Recolección'
+              : `Sedes de Recolección (${sedesList.length})`}
+          </span>
+          {activeClinic?.type === 'veterinaria' && sedesList.length > 0 && (
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full font-mono font-black bg-purple-100 text-[#6F2BCC]">
+              NIT #{activeClinic.nit}-1...
+            </span>
+          )}
         </button>
 
         <button
@@ -585,10 +810,20 @@ export default function ClinicProfileView({ onClinicUpdated }) {
           }`}
         >
           <span>🩺</span>
-          <span>Veterinarios Asociados ({vetsList.length})</span>
-          <span className="text-[10px] px-1.5 py-0.2 rounded-full font-black bg-[#01FADA] text-[#2B017C]">
-            {activeVetsCount} activos
+          <span>
+            {activeClinic?.type === 'independiente'
+              ? 'Registro Profesional & Autonomía'
+              : `Veterinarios Asociados (${vetsList.length})`}
           </span>
+          {activeClinic?.type === 'veterinaria' ? (
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full font-black bg-[#01FADA] text-[#2B017C]">
+              {activeVetsCount} activos
+            </span>
+          ) : (
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full font-black bg-sky-100 text-sky-800">
+              Autónomo
+            </span>
+          )}
         </button>
 
         <button
@@ -601,7 +836,7 @@ export default function ClinicProfileView({ onClinicUpdated }) {
           }`}
         >
           <span>🌐</span>
-          <span>Cambiar Clínica Activa</span>
+          <span>Directorio & Registro ({clinicsList.length})</span>
         </button>
       </div>
 
@@ -685,10 +920,23 @@ export default function ClinicProfileView({ onClinicUpdated }) {
                       </div>
                       <div>
                         <span className="text-slate-400 block text-[10px] uppercase font-bold">
-                          Tarjeta Profesional
+                          Tarjeta Profesional (COMVEZCOL)
                         </span>
                         <span className="font-mono font-extrabold text-[#6F2BCC] bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200 inline-block mt-0.5">
                           {activeClinic.tarjetaProfesional}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                          Especialidad Principal
+                        </span>
+                        <span className="font-bold text-slate-800 block mt-0.5">
+                          {activeClinic.especialidad || 'Medicina General & Diagnóstico'}
+                        </span>
+                      </div>
+                      <div className="pt-2 border-t border-slate-100">
+                        <span className="text-[10px] font-bold text-sky-800 bg-sky-50 border border-sky-200 px-2.5 py-1.5 rounded-xl block leading-snug">
+                          🩺 Profesional Autónomo: No se encuentra asociado a ninguna clínica veterinaria ni emplea nómina de veterinarios subordinados.
                         </span>
                       </div>
                     </>
@@ -766,7 +1014,7 @@ export default function ClinicProfileView({ onClinicUpdated }) {
                     </span>
                     <span className="font-extrabold text-slate-800 text-sm flex items-center gap-1.5 mt-0.5">
                       <span>📍</span>
-                      <span>{activeClinic.recoleccion?.ciudad || 'No seleccionada'}</span>
+                      <span>{activeClinic.recoleccion?.ciudad || 'No seleccionada'}{activeClinic.recoleccion?.departamento ? `, ${activeClinic.recoleccion.departamento}` : ''}</span>
                     </span>
                   </div>
 
@@ -851,359 +1099,595 @@ export default function ClinicProfileView({ onClinicUpdated }) {
       {/* ========================================================================= */}
       {activeSubTab === 'sedes' && activeClinic && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg">📍</span>
-                <h3 className="text-base font-extrabold text-[#2B017C]">
-                  Sedes de Recolección de la Clínica
-                </h3>
+          {activeClinic.type === 'veterinaria' ? (
+            <>
+              {/* BANNER EXPLICATIVO DE CONSECUTIVOS DE NIT PARA CLÍNICA CON MÚLTIPLES SEDES */}
+              <div className="bg-purple-50/80 border border-purple-200/90 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 shadow-2xs">
+                <span className="text-2xl shrink-0">🏢</span>
+                <div className="space-y-1 text-xs">
+                  <span className="font-extrabold text-[#2B017C] text-sm block">
+                    Manejo de Sedes con Consecutivo de NIT (Misma Empresa)
+                  </span>
+                  <p className="text-slate-600 leading-relaxed">
+                    Generalmente las clínicas veterinarias con varias sedes utilizan el mismo NIT legal (<strong>{activeClinic.nit}</strong>). Al lado del NIT se les va agregando un número consecutivo (ej: <strong>#nit-1</strong> para la sede principal, <strong>#nit-2</strong>, <strong>#nit-3</strong> para las demás sedes). De esta manera el mensajero de VetqPCR recoge en la sede precisa y la facturación se mantiene unificada bajo el NIT corporativo.
+                  </p>
+                </div>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Si tu veterinaria cuenta con varias sedes o consultorios, regístralas aquí. El repartidor motorizado recogerá las muestras en la dirección exacta de cada una.
-              </p>
-            </div>
 
-            <button
-              type="button"
-              onClick={() => handleOpenAddSedeModal(null)}
-              className="px-4 py-2.5 bg-[#6F2BCC] hover:bg-[#581ea3] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0"
-            >
-              <span className="text-sm">+</span>
-              <span>Añadir Nueva Sede</span>
-            </button>
-          </div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">📍</span>
+                    <h3 className="text-base font-extrabold text-[#2B017C]">
+                      Sedes de Recolección de la Clínica ({sedesList.length})
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Todas las sedes comparten el NIT <strong>{activeClinic.nit}</strong> con su código consecutivo asignado (#nit-1, #nit-2...).
+                  </p>
+                </div>
 
-          {/* LISTADO DE SEDES EN TARJETAS COMPLETAS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {sedesList.map((sede) => (
-              <div
-                key={sede.id}
-                className={`bg-white rounded-3xl border p-5 sm:p-6 transition-all shadow-sm flex flex-col justify-between space-y-4 ${
-                  sede.esPrincipal
-                    ? 'border-[#6F2BCC] ring-2 ring-[#6F2BCC]/20'
-                    : 'border-slate-200 hover:border-slate-300'
-                }`}
-              >
-                <div className="space-y-3.5">
-                  <div className="flex items-start justify-between gap-2 pb-3 border-b border-slate-100">
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        {sede.esPrincipal ? (
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#01FADA] text-[#2B017C] border border-[#01FADA]">
-                            ★ Sede Principal
-                          </span>
-                        ) : (
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
-                            Sede Sucursal
-                          </span>
-                        )}
-                        <span className="text-xs text-slate-400 font-bold">
-                          📍 {sede.ciudad}
-                        </span>
+                <button
+                  type="button"
+                  onClick={() => handleOpenAddSedeModal(null)}
+                  className="px-4 py-2.5 bg-[#6F2BCC] hover:bg-[#581ea3] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0"
+                >
+                  <span className="text-sm font-black">+</span>
+                  <span>Añadir Nueva Sede (#nit-{sedesList.length + 1})</span>
+                </button>
+              </div>
+
+              {/* LISTADO DE SEDES EN TARJETAS COMPLETAS */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {sedesList.map((sede, idx) => {
+                  const consecutivo = sede.consecutivoNit || (idx + 1);
+                  const codigoNit = sede.codigoSedeNit || `#nit-${consecutivo}`;
+
+                  return (
+                    <div
+                      key={sede.id}
+                      className={`bg-white rounded-3xl border p-5 sm:p-6 transition-all shadow-sm flex flex-col justify-between space-y-4 ${
+                        sede.esPrincipal
+                          ? 'border-[#6F2BCC] ring-2 ring-[#6F2BCC]/20'
+                          : 'border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="space-y-3.5">
+                        <div className="flex items-start justify-between gap-2 pb-3 border-b border-slate-100">
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                              {sede.esPrincipal ? (
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#01FADA] text-[#2B017C] border border-[#01FADA]">
+                                  ★ Sede Principal
+                                </span>
+                              ) : (
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+                                  Sede Sucursal
+                                </span>
+                              )}
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black bg-purple-100 text-[#2B017C] border border-purple-200">
+                                NIT Sede: {activeClinic.nit} {codigoNit}
+                              </span>
+                              <span className="text-xs text-slate-400 font-bold">
+                                📍 {sede.ciudad}{sede.departamento ? `, ${sede.departamento}` : ''}
+                              </span>
+                            </div>
+                            <h4 className="text-base font-extrabold text-slate-900 leading-snug">
+                              {sede.nombreSede}
+                            </h4>
+                          </div>
+
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenAddSedeModal(sede)}
+                              className="p-1.5 text-slate-400 hover:text-[#6F2BCC] hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
+                              title="Editar sede"
+                            >
+                              ✏️
+                            </button>
+                            {!sede.esPrincipal && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteSede(sede.id, sede.nombreSede)}
+                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                title="Eliminar sede"
+                              >
+                                🗑️
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* DATOS DE LA SEDE: DIRECCIÓN DONDE EL REPARTIDOR RECOGE MUESTRAS */}
+                        <div className="space-y-2.5 text-xs">
+                          <div className="bg-sky-50/60 p-3 rounded-2xl border border-sky-100 space-y-1">
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-sky-900 flex items-center gap-1">
+                              <span>🛵</span>
+                              <span>Dirección de Recolección (Repartidor):</span>
+                            </span>
+                            <span className="font-extrabold text-slate-900 text-sm block">
+                              {sede.direccionFisica}
+                            </span>
+                            <span className="text-[11px] text-slate-600 block leading-tight">
+                              {sede.indicacionesRuta || 'Donde el repartidor recogerá las muestras'}
+                            </span>
+                            {sede.detallesAdicionales && (
+                              <span className="text-[10px] text-slate-500 italic block pt-0.5">
+                                Nota: {sede.detallesAdicionales}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 pt-1 text-[11px]">
+                            <div>
+                              <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                                Responsable de la Sede
+                              </span>
+                              <span className="font-bold text-slate-800">
+                                {sede.responsableSede || 'Director de sede'}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                                Teléfono de Contacto
+                              </span>
+                              <span className="font-bold text-slate-800">
+                                📞 {sede.telefonoContacto || 'No registrado'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {sede.correoResultadosSede && (
+                            <div className="text-[11px]">
+                              <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                                Correo para Reporte de Resultados
+                              </span>
+                              <span className="font-bold text-[#6F2BCC]">
+                                ✉️ {sede.correoResultadosSede}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <h4 className="text-base font-extrabold text-slate-900 leading-snug">
-                        {sede.nombreSede}
-                      </h4>
-                    </div>
 
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenAddSedeModal(sede)}
-                        className="p-1.5 text-slate-400 hover:text-[#6F2BCC] hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
-                        title="Editar sede"
-                      >
-                        ✏️
-                      </button>
-                      {!sede.esPrincipal && (
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteSede(sede.id, sede.nombreSede)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                          title="Eliminar sede"
-                        >
-                          🗑️
-                        </button>
-                      )}
+                      {/* PIE DE SEDE: VETERINARIOS ADSCRITOS */}
+                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                        <span>
+                          Veterinarios en esta sede:{' '}
+                          <strong>
+                            {vetsList.filter((v) => v.sedeId === sede.id).length}
+                          </strong>
+                        </span>
+                        {!sede.esPrincipal && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updatedSede = { ...sede, esPrincipal: true };
+                              clinicApi.updateSede(activeClinic.id, sede.id, updatedSede).then((c) => {
+                                setActiveClinic(c);
+                                showNotification(`"${sede.nombreSede}" es ahora la sede principal`);
+                              });
+                            }}
+                            className="text-[11px] text-[#6F2BCC] hover:underline font-bold cursor-pointer"
+                          >
+                            Hacer Principal
+                          </button>
+                        )}
+                      </div>
                     </div>
+                  );
+                })}
+              </div>
+
+              {sedesList.length === 0 && (
+                <div className="bg-white rounded-3xl p-10 text-center border border-slate-200 space-y-3">
+                  <span className="text-4xl block">📍</span>
+                  <h4 className="text-base font-bold text-slate-800">
+                    Aún no has registrado sedes adicionales
+                  </h4>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto">
+                    Si tu clínica veterinaria tiene más de una sede o consultorio de atención, agrégalas para coordinar rutas de mensajería independientes.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenAddSedeModal(null)}
+                    className="px-4 py-2 bg-[#6F2BCC] text-white rounded-xl text-xs font-bold hover:bg-[#581ea3] transition-all cursor-pointer"
+                  >
+                    + Registrar Primera Sede (#nit-1)
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            /* VISTA DE CONSULTORIO / PUNTO DE RECOLECCIÓN PARA MÉDICO INDEPENDIENTE */
+            <div className="space-y-6">
+              <div className="bg-sky-50/80 border border-sky-200/90 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 shadow-2xs">
+                <span className="text-2xl shrink-0">🩺</span>
+                <div className="space-y-1 text-xs">
+                  <span className="font-extrabold text-[#2B017C] text-sm block">
+                    Consultorio & Punto de Recolección Personal (Médico Independiente)
+                  </span>
+                  <p className="text-slate-600 leading-relaxed">
+                    Como médico veterinario independiente, <strong>no te encuentras asociado a ninguna clínica veterinaria</strong> y operas de forma individual bajo tu Cédula de Ciudadanía ({activeClinic.cedula}) y RUT personal ({activeClinic.documentos?.rutNumero}). No requieres sedes corporativas con consecutivo de NIT (#nit-2, #nit-3...) ya que tus muestras se recogen en tu consultorio personal o domicilio particular autorizado.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-7 shadow-sm space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-100 text-sky-900 border border-sky-200">
+                        Consultorio Particular
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        CC {activeClinic.cedula}
+                      </span>
+                      <span className="text-xs text-slate-400 font-bold">
+                        📍 {activeClinic.recoleccion?.ciudad}{activeClinic.recoleccion?.departamento ? `, ${activeClinic.recoleccion.departamento}` : ''}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-black text-slate-900">
+                      {sedesList[0]?.nombreSede || 'Consultorio Particular del Médico'}
+                    </h3>
                   </div>
 
-                  {/* DATOS DE LA SEDE: DIRECCIÓN DONDE EL REPARTIDOR RECOGE MUESTRAS */}
-                  <div className="space-y-2.5 text-xs">
-                    <div className="bg-sky-50/60 p-3 rounded-2xl border border-sky-100 space-y-1">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-sky-900 flex items-center gap-1">
-                        <span>🛵</span>
-                        <span>Dirección de Recolección (Repartidor):</span>
-                      </span>
-                      <span className="font-extrabold text-slate-900 text-sm block">
-                        {sede.direccionFisica}
-                      </span>
-                      <span className="text-[11px] text-slate-600 block leading-tight">
-                        {sede.indicacionesRuta || 'Donde el repartidor recogerá las muestras'}
-                      </span>
-                      {sede.detallesAdicionales && (
-                        <span className="text-[10px] text-slate-500 italic block pt-0.5">
-                          Nota: {sede.detallesAdicionales}
-                        </span>
-                      )}
-                    </div>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenAddSedeModal(sedesList[0] || null)}
+                    className="px-4 py-2 bg-[#6F2BCC] hover:bg-[#581ea3] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
+                  >
+                    <span>✏️</span>
+                    <span>Modificar Ubicación de Recolección</span>
+                  </button>
+                </div>
 
-                    <div className="grid grid-cols-2 gap-2 pt-1 text-[11px]">
-                      <div>
-                        <span className="text-slate-400 block text-[10px] uppercase font-bold">
-                          Responsable de la Sede
-                        </span>
-                        <span className="font-bold text-slate-800">
-                          {sede.responsableSede || 'Director de sede'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block text-[10px] uppercase font-bold">
-                          Teléfono de Contacto
-                        </span>
-                        <span className="font-bold text-slate-800">
-                          📞 {sede.telefonoContacto || 'No registrado'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {sede.correoResultadosSede && (
-                      <div className="text-[11px]">
-                        <span className="text-slate-400 block text-[10px] uppercase font-bold">
-                          Correo para Reporte de Resultados
-                        </span>
-                        <span className="font-bold text-[#6F2BCC]">
-                          ✉️ {sede.correoResultadosSede}
-                        </span>
-                      </div>
+                <div className="space-y-3 text-xs">
+                  <div className="bg-sky-50/60 p-4 rounded-2xl border border-sky-100 space-y-1.5">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-sky-900 flex items-center gap-1.5">
+                      <span>🛵</span>
+                      <span>Dirección donde el domiciliario motorizado recogerá tus muestras qPCR:</span>
+                    </span>
+                    <span className="font-extrabold text-slate-900 text-base block">
+                      {sedesList[0]?.direccionFisica || activeClinic.recoleccion?.direccionFisica}
+                    </span>
+                    <span className="text-xs text-slate-600 block leading-tight">
+                      {sedesList[0]?.indicacionesRuta || activeClinic.recoleccion?.indicacionesRuta || 'Donde el repartidor recogerá las muestras'}
+                    </span>
+                    {(sedesList[0]?.detallesAdicionales || activeClinic.recoleccion?.detallesAdicionales) && (
+                      <span className="text-[11px] text-slate-500 italic block pt-1 border-t border-sky-200/50 mt-1">
+                        Nota: {sedesList[0]?.detallesAdicionales || activeClinic.recoleccion?.detallesAdicionales}
+                      </span>
                     )}
                   </div>
-                </div>
 
-                {/* PIE DE SEDE: VETERINARIOS ADSCRITOS */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                  <span>
-                    Veterinarios en esta sede:{' '}
-                    <strong>
-                      {vetsList.filter((v) => v.sedeId === sede.id).length}
-                    </strong>
-                  </span>
-                  {!sede.esPrincipal && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const updatedSede = { ...sede, esPrincipal: true };
-                        clinicApi.updateSede(activeClinic.id, sede.id, updatedSede).then((c) => {
-                          setActiveClinic(c);
-                          showNotification(`"${sede.nombreSede}" es ahora la sede principal`);
-                        });
-                      }}
-                      className="text-[11px] text-[#6F2BCC] hover:underline font-bold cursor-pointer"
-                    >
-                      Hacer Principal
-                    </button>
-                  )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                        Médico Responsable
+                      </span>
+                      <span className="font-bold text-slate-800 text-sm">
+                        {activeClinic.nombreMedico}
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                        Teléfono de Contacto
+                      </span>
+                      <span className="font-bold text-slate-800 text-sm">
+                        📞 {activeClinic.administrativa?.telefonoPagos || sedesList[0]?.telefonoContacto || 'No registrado'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {sedesList.length === 0 && (
-            <div className="bg-white rounded-3xl p-10 text-center border border-slate-200 space-y-3">
-              <span className="text-4xl block">📍</span>
-              <h4 className="text-base font-bold text-slate-800">
-                Aún no has registrado sedes adicionales
-              </h4>
-              <p className="text-xs text-slate-500 max-w-md mx-auto">
-                Si tu clínica veterinaria tiene más de una sede o consultorio de atención, agrégalas para coordinar rutas de mensajería independientes.
-              </p>
-              <button
-                type="button"
-                onClick={() => handleOpenAddSedeModal(null)}
-                className="px-4 py-2 bg-[#6F2BCC] text-white rounded-xl text-xs font-bold hover:bg-[#581ea3] transition-all cursor-pointer"
-              >
-                + Registrar Primera Sede
-              </button>
             </div>
           )}
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* 6. CONTENIDO SUB-PESTAÑA 3: VETERINARIOS ASOCIADOS A ESTA VETERINARIA */}
+      {/* 6. CONTENIDO SUB-PESTAÑA 3: VETERINARIOS ASOCIADOS O AUTONOMÍA */}
       {/* ========================================================================= */}
       {activeSubTab === 'veterinarios' && activeClinic && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🩺</span>
-                <h3 className="text-base font-extrabold text-[#2B017C]">
-                  Equipo de Médicos Veterinarios Asociados
-                </h3>
+          {activeClinic.type === 'veterinaria' ? (
+            <>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🩺</span>
+                    <h3 className="text-base font-extrabold text-[#2B017C]">
+                      Equipo de Médicos Veterinarios Asociados
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Profesionales vinculados a <strong>{activeClinic.nombreVeterinaria}</strong> con nombre, especialidad, tarjeta profesional y gestión de estado de usuario (activar / desactivar).
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  {onNavigateToTeamPermissions && (
+                    <button
+                      type="button"
+                      onClick={onNavigateToTeamPermissions}
+                      className="px-4 py-2.5 bg-gradient-to-r from-[#2B017C] to-[#6F2BCC] hover:opacity-95 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0 border border-[#01FADA]/40"
+                    >
+                      <span>🛡️</span>
+                      <span>Matriz de Permisos & Sedes Rotativas</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenAddVetModal(null)}
+                    className="px-4 py-2.5 bg-[#6F2BCC] hover:bg-[#581ea3] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0"
+                  >
+                    <span className="text-sm">+</span>
+                    <span>Añadir Nuevo Veterinario Asociado</span>
+                  </button>
+                </div>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Profesionales vinculados a <strong>{activeClinic.nombreVeterinaria || activeClinic.nombreMedico}</strong> con nombre, especialidad, tarjeta profesional y gestión de estado de usuario (activar / desactivar).
-              </p>
-            </div>
 
-            <button
-              type="button"
-              onClick={() => handleOpenAddVetModal(null)}
-              className="px-4 py-2.5 bg-[#6F2BCC] hover:bg-[#581ea3] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0"
-            >
-              <span className="text-sm">+</span>
-              <span>Añadir Nuevo Veterinario Asociado</span>
-            </button>
-          </div>
+              {/* TABLA / DIRECTORIO DE VETERINARIOS */}
+              <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-2xs">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-extrabold uppercase text-[10px] tracking-wider">
+                        <th className="py-3.5 px-4 sm:px-6">Médico Veterinario</th>
+                        <th className="py-3.5 px-4">Especialidad</th>
+                        <th className="py-3.5 px-4">Tarjeta Profesional</th>
+                        <th className="py-3.5 px-4">Sede Asignada</th>
+                        <th className="py-3.5 px-4 text-center">Estado del Usuario</th>
+                        <th className="py-3.5 px-4 text-right">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                      {vetsList.map((vet) => {
+                        const isActivo = vet.estado === 'activo';
+                        const assignedSede = activeClinic.sedes?.find((s) => s.id === vet.sedeId);
 
-          {/* TABLA / DIRECTORIO DE VETERINARIOS */}
-          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-2xs">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-extrabold uppercase text-[10px] tracking-wider">
-                    <th className="py-3.5 px-4 sm:px-6">Médico Veterinario</th>
-                    <th className="py-3.5 px-4">Especialidad</th>
-                    <th className="py-3.5 px-4">Tarjeta Profesional</th>
-                    <th className="py-3.5 px-4">Sede Asignada</th>
-                    <th className="py-3.5 px-4 text-center">Estado del Usuario</th>
-                    <th className="py-3.5 px-4 text-right">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                  {vetsList.map((vet) => {
-                    const isActivo = vet.estado === 'activo';
+                        return (
+                          <tr
+                            key={vet.id}
+                            className={`hover:bg-purple-50/40 transition-colors ${
+                              !isActivo ? 'bg-slate-50/50 opacity-75' : ''
+                            }`}
+                          >
+                            {/* Nombre y Cargo */}
+                            <td className="py-3.5 px-4 sm:px-6">
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-purple-100 text-[#6F2BCC] flex items-center justify-center font-bold text-sm shrink-0">
+                                  👨‍⚕️
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-extrabold text-slate-900 text-sm">
+                                      {vet.nombre}
+                                    </span>
+                                    {vet.esDirector && (
+                                      <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-purple-100 text-[#6F2BCC]">
+                                        Director
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="text-[11px] text-slate-400 block">
+                                    {vet.email || vet.telefono || 'Sin correo directo'}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
 
-                    return (
-                      <tr
-                        key={vet.id}
-                        className={`hover:bg-purple-50/40 transition-colors ${
-                          !isActivo ? 'bg-slate-50/50 opacity-75' : ''
-                        }`}
-                      >
-                        {/* Nombre y Cargo */}
-                        <td className="py-3.5 px-4 sm:px-6">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-purple-100 text-[#6F2BCC] flex items-center justify-center font-bold text-sm shrink-0">
-                              👨‍⚕️
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-extrabold text-slate-900 text-sm">
-                                  {vet.nombre}
+                            {/* Especialidad */}
+                            <td className="py-3.5 px-4">
+                              <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-50 text-[#6F2BCC] border border-purple-200 inline-block">
+                                {vet.especialidad || 'Medicina General'}
+                              </span>
+                            </td>
+
+                            {/* Tarjeta Profesional */}
+                            <td className="py-3.5 px-4">
+                              <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                                {vet.tarjetaProfesional}
+                              </span>
+                            </td>
+
+                            {/* Sede Asignada con Consecutivo de NIT */}
+                            <td className="py-3.5 px-4">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span>📍</span>
+                                <span className="font-semibold text-slate-800">
+                                  {vet.sedeNombre || assignedSede?.nombreSede || 'Sede Principal'}
                                 </span>
-                                {vet.esDirector && (
-                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-purple-100 text-[#6F2BCC]">
-                                    Director
+                                {assignedSede?.codigoSedeNit && (
+                                  <span className="text-[10px] font-mono font-bold bg-purple-100 text-[#6F2BCC] px-1.5 py-0.2 rounded border border-purple-200">
+                                    {assignedSede.codigoSedeNit}
                                   </span>
                                 )}
                               </div>
-                              <span className="text-[11px] text-slate-400 block">
-                                {vet.email || vet.telefono || 'Sin correo directo'}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
+                            </td>
 
-                        {/* Especialidad */}
-                        <td className="py-3.5 px-4">
-                          <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-50 text-[#6F2BCC] border border-purple-200 inline-block">
-                            {vet.especialidad || 'Medicina General'}
-                          </span>
-                        </td>
-
-                        {/* Tarjeta Profesional */}
-                        <td className="py-3.5 px-4">
-                          <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                            {vet.tarjetaProfesional}
-                          </span>
-                        </td>
-
-                        {/* Sede Asignada */}
-                        <td className="py-3.5 px-4">
-                          <span className="font-semibold text-slate-800 flex items-center gap-1">
-                            <span>📍</span>
-                            <span>{vet.sedeNombre || 'Sede Principal'}</span>
-                          </span>
-                        </td>
-
-                        {/* Estado del Usuario: Activo / Inactivo */}
-                        <td className="py-3.5 px-4 text-center">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                              isActivo
-                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                                : 'bg-slate-200 text-slate-600 border border-slate-300'
-                            }`}
-                          >
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full ${
-                                isActivo ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
-                              }`}
-                            />
-                            <span>{isActivo ? 'Usuario Activo' : 'Usuario Inactivo'}</span>
-                          </span>
-                        </td>
-
-                        {/* Acciones: Activar/Desactivar y Editar */}
-                        <td className="py-3.5 px-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {/* Botón Switch Activar / Desactivar Usuario */}
-                            <button
-                              type="button"
-                              onClick={() => handleToggleVetStatus(vet.id, vet.nombre, vet.estado)}
-                              title={isActivo ? 'Desactivar acceso del usuario' : 'Activar acceso del usuario'}
-                              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                                isActivo
-                                  ? 'bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200'
-                                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200'
-                              }`}
-                            >
-                              <span>{isActivo ? '⏸ Desactivar' : '▶ Activar'}</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleOpenAddVetModal(vet)}
-                              className="p-1 text-slate-400 hover:text-[#6F2BCC] hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
-                              title="Editar veterinario"
-                            >
-                              ✏️
-                            </button>
-
-                            {!vet.esDirector && (
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteVet(vet.id, vet.nombre)}
-                                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                                title="Desvincular veterinario"
+                            {/* Estado del Usuario: Activo / Inactivo */}
+                            <td className="py-3.5 px-4 text-center">
+                              <span
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                  isActivo
+                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                    : 'bg-slate-200 text-slate-600 border border-slate-300'
+                                }`}
                               >
-                                ✕
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    isActivo ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
+                                  }`}
+                                />
+                                <span>{isActivo ? 'Usuario Activo' : 'Usuario Inactivo'}</span>
+                              </span>
+                            </td>
 
-            {vetsList.length === 0 && (
-              <div className="p-10 text-center space-y-2">
-                <span className="text-3xl block">👨‍⚕️</span>
-                <h4 className="text-sm font-bold text-slate-800">
-                  No hay veterinarios asociados registrados
-                </h4>
-                <p className="text-xs text-slate-500">
-                  Agrega a los médicos de la clínica para que puedan solicitar y recibir resultados qPCR.
+                            {/* Acciones: Activar/Desactivar y Editar */}
+                            <td className="py-3.5 px-4 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleVetStatus(vet.id, vet.nombre, vet.estado)}
+                                  title={isActivo ? 'Desactivar acceso del usuario' : 'Activar acceso del usuario'}
+                                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                                    isActivo
+                                      ? 'bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200'
+                                      : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200'
+                                  }`}
+                                >
+                                  <span>{isActivo ? '⏸ Desactivar' : '▶ Activar'}</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenAddVetModal(vet)}
+                                  className="p-1 text-slate-400 hover:text-[#6F2BCC] hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
+                                  title="Editar veterinario"
+                                >
+                                  ✏️
+                                </button>
+
+                                {!vet.esDirector && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteVet(vet.id, vet.nombre)}
+                                    className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                    title="Desvincular veterinario"
+                                  >
+                                    ✕
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {vetsList.length === 0 && (
+                  <div className="p-10 text-center space-y-2">
+                    <span className="text-3xl block">👨‍⚕️</span>
+                    <h4 className="text-sm font-bold text-slate-800">
+                      No hay veterinarios asociados registrados
+                    </h4>
+                    <p className="text-xs text-slate-500">
+                      Agrega a los médicos de la clínica para que puedan solicitar y recibir resultados qPCR.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            /* VISTA DE EJERCICIO PROFESIONAL AUTÓNOMO PARA MÉDICO INDEPENDIENTE */
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-2xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-sky-100 text-sky-800 flex items-center justify-center text-2xl font-black shrink-0">
+                    🩺
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-100 text-sky-900 border border-sky-200">
+                        Profesional Autónomo
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        ● Habilitado en VetLab qPCR
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-black text-[#2B017C]">
+                      {activeClinic.nombreMedico}
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Médico Veterinario Independiente · Sin asociación a ninguna clínica veterinaria
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveSubTab('datos');
+                    setIsEditingMainData(true);
+                  }}
+                  className="px-4 py-2.5 bg-[#6F2BCC] hover:bg-[#581ea3] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
+                >
+                  <span>✏️</span>
+                  <span>Editar Datos del Médico</span>
+                </button>
+              </div>
+
+              {/* BANNER DE AUTONOMÍA */}
+              <div className="bg-purple-50/70 border border-purple-200/90 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5">
+                <span className="text-xl shrink-0">ℹ️</span>
+                <div className="space-y-1 text-xs">
+                  <span className="font-extrabold text-[#2B017C] text-sm block">
+                    Estatus de Ejercicio Autónomo (Sin Clínica Asociada)
+                  </span>
+                  <p className="text-slate-600 leading-relaxed">
+                    Un médico veterinario independiente <strong>no se encuentra asociado a ninguna clínica veterinaria</strong> y opera de manera individual, por lo cual <strong>no cuenta con una lista de veterinarios subordinados a su cargo</strong>. Todas las órdenes de diagnóstico molecular qPCR, resultados clínicos y trazabilidad de pacientes se gestionan directamente con su Cédula de Ciudadanía y Tarjeta Profesional COMVEZCOL.
+                  </p>
+                </div>
+              </div>
+
+              {/* TARJETAS DE INFORMACIÓN DEL PROFESIONAL */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Nombre Completo</span>
+                  <span className="font-extrabold text-slate-900 text-sm block">{activeClinic.nombreMedico}</span>
+                  <span className="text-[11px] text-[#6F2BCC] font-bold block">{activeClinic.especialidad || 'Medicina General & Diagnóstico Molecular'}</span>
+                </div>
+
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Documentos de Identidad</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono font-bold text-slate-800 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200">
+                      CC {activeClinic.cedula}
+                    </span>
+                    <span className="font-mono font-black text-[#6F2BCC] bg-purple-100 px-2.5 py-0.5 rounded-lg border border-purple-200">
+                      {activeClinic.tarjetaProfesional}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-emerald-700 font-bold block pt-0.5">
+                    ✓ Tarjeta Profesional COMVEZCOL Verificada
+                  </span>
+                </div>
+
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Tributario & Facturación</span>
+                  <span className="font-mono font-bold text-slate-800 block text-xs">
+                    RUT: {activeClinic.documentos?.rutNumero}
+                  </span>
+                  <span className="text-[11px] text-slate-600 block truncate">
+                    ✉️ {activeClinic.correos?.facturacion}
+                  </span>
+                </div>
+
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-1.5 md:col-span-2 lg:col-span-3">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Punto Personal de Recolección de Muestras</span>
+                  <span className="font-bold text-slate-800 block text-sm">
+                    📍 {activeClinic.recoleccion?.ciudad}{activeClinic.recoleccion?.departamento ? `, ${activeClinic.recoleccion.departamento}` : ''} — {activeClinic.recoleccion?.direccionFisica}
+                  </span>
+                  <span className="text-[11px] text-slate-500 block">
+                    {activeClinic.recoleccion?.indicacionesRuta || 'Donde el repartidor recogerá las muestras'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-900 flex items-start gap-2.5">
+                <span className="text-lg">💡</span>
+                <p className="leading-snug">
+                  ¿Deseas constituir en el futuro una clínica veterinaria con equipo de veterinarios a cargo y múltiples sedes? Puedes dar de alta una nueva empresa en cualquier momento desde la pestaña <strong>Directorio de Clínicas</strong>.
                 </p>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1271,6 +1755,15 @@ export default function ClinicProfileView({ onClinicUpdated }) {
                   <span>Independientes ({clinicsList.filter((c) => c.type === 'independiente').length})</span>
                 </button>
               </div>
+
+              <button
+                type="button"
+                onClick={handleOpenRegisterModal}
+                className="px-4 py-2 bg-[#6F2BCC] hover:bg-[#581ea3] text-white rounded-xl text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0"
+              >
+                <span className="text-sm font-black leading-none">＋</span>
+                <span>Registrar Nueva Entidad</span>
+              </button>
             </div>
           </div>
 
@@ -1318,26 +1811,39 @@ export default function ClinicProfileView({ onClinicUpdated }) {
                     <div className="grid grid-cols-2 gap-3 text-xs">
                       <div>
                         <span className="text-[10px] font-bold text-slate-400 uppercase block">
-                          {clinic.type === 'independiente' ? 'Cédula' : 'NIT'}
+                          {clinic.type === 'independiente' ? 'Cédula de Ciudadanía' : 'NIT Corporativo'}
                         </span>
-                        <span className="font-mono font-bold text-slate-800">
-                          {clinic.type === 'independiente' ? clinic.cedula : clinic.nit}
-                        </span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-mono font-bold text-slate-800">
+                            {clinic.type === 'independiente' ? clinic.cedula : clinic.nit}
+                          </span>
+                          {clinic.type === 'veterinaria' && (clinic.sedes?.length || 1) > 1 && (
+                            <span className="px-1.5 py-0.5 rounded bg-purple-100 text-[#6F2BCC] font-mono text-[10px] font-extrabold">
+                              (#nit-1 a #nit-{clinic.sedes.length})
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div>
                         <span className="text-[10px] font-bold text-slate-400 uppercase block">
-                          Sedes Registradas
+                          {clinic.type === 'independiente' ? 'Asociación a Clínica' : 'Sedes Registradas'}
                         </span>
-                        <span className="font-bold text-slate-800">
-                          📍 {clinic.sedes?.length || 1} sede(s)
-                        </span>
+                        {clinic.type === 'independiente' ? (
+                          <span className="font-bold text-sky-800 text-[11px] block">
+                            Sin asociación (Autónomo)
+                          </span>
+                        ) : (
+                          <span className="font-bold text-slate-800">
+                            📍 {clinic.sedes?.length || 1} sede(s)
+                          </span>
+                        )}
                       </div>
                       <div className="col-span-2">
                         <span className="text-[10px] font-bold text-slate-400 uppercase block">
-                          Dirección de Recolección (Repartidor)
+                          {clinic.type === 'independiente' ? 'Consultorio Particular / Domicilio' : 'Dirección de Recolección (Repartidor)'}
                         </span>
                         <span className="font-semibold text-slate-800 block">
-                          {clinic.recoleccion?.ciudad} — {clinic.recoleccion?.direccionFisica}
+                          {clinic.recoleccion?.ciudad}{clinic.recoleccion?.departamento ? `, ${clinic.recoleccion.departamento}` : ''} — {clinic.recoleccion?.direccionFisica}
                         </span>
                       </div>
                     </div>
@@ -1345,7 +1851,11 @@ export default function ClinicProfileView({ onClinicUpdated }) {
 
                   <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                     <span className="text-xs text-slate-500">
-                      Veterinarios: <strong>{clinic.veterinariosAsociados?.length || 1}</strong>
+                      {clinic.type === 'independiente' ? (
+                        <span>TP: <strong className="font-mono">{clinic.tarjetaProfesional || 'COMVEZCOL'}</strong></span>
+                      ) : (
+                        <span>Veterinarios: <strong>{clinic.veterinariosAsociados?.length || 0}</strong></span>
+                      )}
                     </span>
 
                     {!isActive ? (
@@ -1397,6 +1907,29 @@ export default function ClinicProfileView({ onClinicUpdated }) {
             </div>
 
             <form onSubmit={handleSaveSede} className="space-y-4 text-xs">
+              {activeClinic?.type === 'veterinaria' && (
+                <div className="bg-purple-50/80 border border-purple-200/90 p-3.5 rounded-2xl space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#2B017C] flex items-center gap-1.5">
+                      <span>🏢</span>
+                      <span>Consecutivo de NIT Asignado</span>
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-lg font-mono font-black text-xs bg-[#6F2BCC] text-white shadow-2xs">
+                      {sedeForm.codigoSedeNit || `#nit-${sedeForm.consecutivoNit || 1}`}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 pt-0.5">
+                    <span className="text-xs font-bold text-slate-600">Identificador Sede:</span>
+                    <span className="font-mono font-black text-xs text-[#2B017C] bg-white px-2 py-0.5 rounded border border-purple-200">
+                      NIT {activeClinic.nit} {sedeForm.codigoSedeNit || `#nit-${sedeForm.consecutivoNit || 1}`}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 leading-snug">
+                    Todas las sedes comparten el mismo NIT ({activeClinic.nit}), agregando este identificador consecutivo (#nit-2, #nit-3...) para trazabilidad de recolección y resultados.
+                  </p>
+                </div>
+              )}
+
               <div>
                 <label className="block font-bold text-slate-700 mb-1">
                   Nombre de la Sede *
@@ -1411,21 +1944,49 @@ export default function ClinicProfileView({ onClinicUpdated }) {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">
-                    Ciudad de la Sede *
+                    Departamento *
+                  </label>
+                  <select
+                    value={sedeForm.departamento}
+                    onChange={(e) => {
+                      const newDept = e.target.value;
+                      const citiesInDept = colombiaGeoApi.getCitiesByDepartmentSync(newDept);
+                      setSedeForm({
+                        ...sedeForm,
+                        departamento: newDept,
+                        ciudad: citiesInDept[0]?.name || '',
+                      });
+                    }}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                  >
+                    {colombiaGeoApi.getDepartmentsSync().map((d) => (
+                      <option key={d.id} value={d.name}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    Ciudad / Municipio *
                   </label>
                   <select
                     value={sedeForm.ciudad}
                     onChange={(e) => setSedeForm({ ...sedeForm, ciudad: e.target.value })}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
                   >
-                    {COLOMBIAN_CITIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
+                    {colombiaGeoApi.getCitiesByDepartmentSync(sedeForm.departamento).map((c) => (
+                      <option key={c.id} value={c.name}>
+                        {c.name}
                       </option>
                     ))}
+                    {sedeForm.ciudad && !colombiaGeoApi.getCitiesByDepartmentSync(sedeForm.departamento).some(c => c.name.toLowerCase() === sedeForm.ciudad.toLowerCase()) && (
+                      <option value={sedeForm.ciudad}>{sedeForm.ciudad}</option>
+                    )}
                   </select>
                 </div>
 
@@ -1686,6 +2247,562 @@ export default function ClinicProfileView({ onClinicUpdated }) {
           </div>
         </div>
       )}
+
+      {/* ========================================================================= */}
+      {/* 10. MODAL: REGISTRAR NUEVA CLÍNICA O MÉDICO INDEPENDIENTE */}
+      {/* ========================================================================= */}
+      {showRegisterNewClinicModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-5 my-8 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 sticky top-0 bg-white z-10">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">
+                  {newEntityForm.type === 'veterinaria' ? '🏥' : '🩺'}
+                </span>
+                <div>
+                  <h3 className="text-base font-extrabold text-[#2B017C]">
+                    Registrar Nueva Entidad en VetqPCR Lab
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Da de alta una Clínica Veterinaria (con red de sedes y consecutivo de NIT) o un Médico Veterinario Independiente (autónomo).
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowRegisterNewClinicModal(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-sm cursor-pointer p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveNewEntity} className="space-y-5 text-xs">
+              {/* SELECTOR DE MODALIDAD */}
+              <div>
+                <label className="block font-extrabold uppercase text-[10px] tracking-wider text-slate-500 mb-2">
+                  Modalidad de la Nueva Cuenta *
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setNewEntityForm({ ...newEntityForm, type: 'veterinaria' })}
+                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-center gap-3 ${
+                      newEntityForm.type === 'veterinaria'
+                        ? 'bg-purple-50/80 border-[#6F2BCC] ring-2 ring-[#6F2BCC]/30 shadow-xs'
+                        : 'bg-white border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-purple-100 text-[#6F2BCC] flex items-center justify-center text-lg shrink-0">
+                      🏥
+                    </div>
+                    <div>
+                      <span className="block font-black text-xs text-[#2B017C]">
+                        Clínica Veterinaria (Empresa)
+                      </span>
+                      <span className="text-[10px] text-slate-500 block leading-tight">
+                        Con NIT legal corporativo, múltiples sedes (#nit-1, #nit-2...) y equipo médico.
+                      </span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setNewEntityForm({ ...newEntityForm, type: 'independiente' })}
+                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-center gap-3 ${
+                      newEntityForm.type === 'independiente'
+                        ? 'bg-sky-50/80 border-sky-500 ring-2 ring-sky-300 shadow-xs'
+                        : 'bg-white border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center text-lg shrink-0">
+                      🩺
+                    </div>
+                    <div>
+                      <span className="block font-black text-xs text-[#2B017C]">
+                        Médico Veterinario Independiente
+                      </span>
+                      <span className="text-[10px] text-slate-500 block leading-tight">
+                        Profesional autónomo sin asociación a clínica, con Cédula, TP y consultorio.
+                      </span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* CAMPOS SEGÚN MODALIDAD */}
+              {newEntityForm.type === 'veterinaria' ? (
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-3">
+                  <div className="flex items-center gap-2 pb-1 border-b border-slate-200/60">
+                    <span className="text-base">🏢</span>
+                    <h4 className="text-xs font-black uppercase tracking-wider text-[#2B017C]">
+                      Identificación Corporativa de la Veterinaria
+                    </h4>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">
+                        NIT de la Veterinaria *
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        required
+                        value={newEntityForm.nit}
+                        onChange={(e) =>
+                          setNewEntityForm({
+                            ...newEntityForm,
+                            nit: e.target.value.replace(/[^0-9]/g, ''),
+                          })
+                        }
+                        placeholder="Ej. 900123456"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                      />
+                      <span className="text-[10px] text-slate-400 block mt-0.5">
+                        Sin puntos ni guiones (sin dígito de verificación).
+                      </span>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">
+                        Nombre de la Veterinaria *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newEntityForm.nombreVeterinaria}
+                        onChange={(e) =>
+                          setNewEntityForm({ ...newEntityForm, nombreVeterinaria: e.target.value })
+                        }
+                        placeholder="Ej. Hospital Veterinario San Martín"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">
+                        Nombre del Director Médico *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newEntityForm.directorMedicoNombre}
+                        onChange={(e) =>
+                          setNewEntityForm({ ...newEntityForm, directorMedicoNombre: e.target.value })
+                        }
+                        placeholder="Ej. Dr. Alejandro Morales"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">
+                        Teléfono del Director Médico *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newEntityForm.directorMedicoTelefono}
+                        onChange={(e) =>
+                          setNewEntityForm({ ...newEntityForm, directorMedicoTelefono: e.target.value })
+                        }
+                        placeholder="Ej. 310 123 4567"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-purple-50/80 rounded-xl border border-purple-200/70 text-[11px] text-purple-900 flex items-start gap-2 mt-1">
+                    <span className="text-base">ℹ️</span>
+                    <div className="leading-snug">
+                      <strong>Consecutivo de NIT:</strong> La dirección que ingreses abajo se creará como <strong>Sede Principal (#nit-1)</strong>. Las siguientes sedes compartirán el mismo NIT {newEntityForm.nit || '900...'} asignándoles automáticamente <strong>#nit-2, #nit-3</strong>, etc.
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-sky-50/60 p-4 rounded-2xl border border-sky-200/80 space-y-3">
+                  <div className="flex items-center gap-2 pb-1 border-b border-sky-200/60">
+                    <span className="text-base">🩺</span>
+                    <h4 className="text-xs font-black uppercase tracking-wider text-[#2B017C]">
+                      Identificación del Médico Veterinario Autónomo
+                    </h4>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">
+                        Cédula del Médico Veterinario *
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        required
+                        value={newEntityForm.cedula}
+                        onChange={(e) =>
+                          setNewEntityForm({
+                            ...newEntityForm,
+                            cedula: e.target.value.replace(/[^0-9]/g, ''),
+                          })
+                        }
+                        placeholder="Ej. 1020123456"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                      />
+                      <span className="text-[10px] text-slate-400 block mt-0.5">
+                        Sin puntos ni guiones.
+                      </span>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">
+                        Nombre Completo del Médico *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newEntityForm.nombreMedico}
+                        onChange={(e) =>
+                          setNewEntityForm({ ...newEntityForm, nombreMedico: e.target.value })
+                        }
+                        placeholder="Ej. Dr. Carlos Valencia Ospina"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">
+                        Tarjeta Profesional (COMVEZCOL) *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newEntityForm.tarjetaProfesional}
+                        onChange={(e) =>
+                          setNewEntityForm({ ...newEntityForm, tarjetaProfesional: e.target.value })
+                        }
+                        placeholder="Ej. COMVEZCOL-28491"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">
+                        Especialidad Principal
+                      </label>
+                      <select
+                        value={newEntityForm.especialidad}
+                        onChange={(e) =>
+                          setNewEntityForm({ ...newEntityForm, especialidad: e.target.value })
+                        }
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                      >
+                        {VETERINARY_SPECIALTIES.map((esp) => (
+                          <option key={esp} value={esp}>
+                            {esp}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-sky-100/70 rounded-xl border border-sky-300/80 text-[11px] text-sky-950 flex items-start gap-2 mt-1">
+                    <span className="text-base">✓</span>
+                    <div className="leading-snug">
+                      <strong>Sin asociación a clínica:</strong> Este veterinario ejercerá de forma autónoma e individual (sin clínica vinculada ni subordinados). Las muestras se recolectarán directamente en su consultorio particular o domicilio indicado.
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ÁREA ADMINISTRATIVA */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-3">
+                <div className="flex items-center gap-2 pb-1 border-b border-slate-200/60">
+                  <span className="text-base">💼</span>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-[#2B017C]">
+                    Área Administrativa y Pagos
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">
+                      Nombre del Responsable Administrativo
+                    </label>
+                    <input
+                      type="text"
+                      value={newEntityForm.administrativaNombre}
+                      onChange={(e) =>
+                        setNewEntityForm({ ...newEntityForm, administrativaNombre: e.target.value })
+                      }
+                      placeholder={
+                        newEntityForm.type === 'veterinaria'
+                          ? 'Ej. Carlos Mendoza'
+                          : newEntityForm.nombreMedico || 'El mismo médico'
+                      }
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">
+                      Teléfono del Responsable de Pagos
+                    </label>
+                    <input
+                      type="text"
+                      value={newEntityForm.administrativaTelefono}
+                      onChange={(e) =>
+                        setNewEntityForm({ ...newEntityForm, administrativaTelefono: e.target.value })
+                      }
+                      placeholder="Ej. 300 987 6543"
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* UBICACIÓN DE RECOLECCIÓN */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-3">
+                <div className="flex items-center gap-2 pb-1 border-b border-slate-200/60">
+                  <span className="text-base">🛵</span>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-[#2B017C]">
+                    {newEntityForm.type === 'veterinaria'
+                      ? 'Ubicación de Recolección (Sede Principal #nit-1)'
+                      : 'Ubicación de Recolección (Consultorio Particular)'}
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">
+                      Departamento *
+                    </label>
+                    <select
+                      value={newEntityForm.recoleccionDepartamento}
+                      onChange={(e) => {
+                        const newDept = e.target.value;
+                        const citiesInDept = colombiaGeoApi.getCitiesByDepartmentSync(newDept);
+                        setNewEntityForm({
+                          ...newEntityForm,
+                          recoleccionDepartamento: newDept,
+                          recoleccionCiudad: citiesInDept[0]?.name || '',
+                        });
+                      }}
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                    >
+                      {colombiaGeoApi.getDepartmentsSync().map((d) => (
+                        <option key={d.id} value={d.name}>
+                          {d.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">
+                      Ciudad / Municipio *
+                    </label>
+                    <select
+                      value={newEntityForm.recoleccionCiudad}
+                      onChange={(e) =>
+                        setNewEntityForm({ ...newEntityForm, recoleccionCiudad: e.target.value })
+                      }
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                    >
+                      {colombiaGeoApi.getCitiesByDepartmentSync(newEntityForm.recoleccionDepartamento).map((c) => (
+                        <option key={c.id} value={c.name}>
+                          {c.name}
+                        </option>
+                      ))}
+                      {newEntityForm.recoleccionCiudad && !colombiaGeoApi.getCitiesByDepartmentSync(newEntityForm.recoleccionDepartamento).some(c => c.name.toLowerCase() === newEntityForm.recoleccionCiudad.toLowerCase()) && (
+                        <option value={newEntityForm.recoleccionCiudad}>{newEntityForm.recoleccionCiudad}</option>
+                      )}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">
+                      Dirección Física *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newEntityForm.recoleccionDireccion}
+                      onChange={(e) =>
+                        setNewEntityForm({ ...newEntityForm, recoleccionDireccion: e.target.value })
+                      }
+                      placeholder="Ej. Calle 80 # 15-32, Consultorio 204"
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                    />
+                    <span className="text-[10px] text-slate-400 block mt-0.5">
+                      Donde el repartidor recogerá las muestras.
+                    </span>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block font-bold text-slate-700 mb-1">
+                      Detalles u Horarios para el Repartidor (Opcional)
+                    </label>
+                    <input
+                      type="text"
+                      value={newEntityForm.recoleccionDetalles}
+                      onChange={(e) =>
+                        setNewEntityForm({ ...newEntityForm, recoleccionDetalles: e.target.value })
+                      }
+                      placeholder="Ej. Timbre 204, horario de recepción 8am a 6pm"
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* CORREOS ELECTRÓNICOS */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-3">
+                <div className="flex items-center gap-2 pb-1 border-b border-slate-200/60">
+                  <span className="text-base">📧</span>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-[#2B017C]">
+                    Correos Electrónicos
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">
+                      Correo para Facturación *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={newEntityForm.correoFacturacion}
+                      onChange={(e) =>
+                        setNewEntityForm({ ...newEntityForm, correoFacturacion: e.target.value })
+                      }
+                      placeholder="facturacion@veterinaria.com"
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">
+                      Correo para Reporte de Resultados *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={newEntityForm.correoResultados}
+                      onChange={(e) =>
+                        setNewEntityForm({ ...newEntityForm, correoResultados: e.target.value })
+                      }
+                      placeholder="resultados@veterinaria.com"
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* DOCUMENTOS */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-3">
+                <div className="flex items-center gap-2 pb-1 border-b border-slate-200/60">
+                  <span className="text-base">📑</span>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-[#2B017C]">
+                    Documentos y RUT
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">
+                      {newEntityForm.type === 'veterinaria' ? 'RUT de la Empresa *' : 'RUT de Persona Natural *'}
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      required
+                      value={newEntityForm.rutNumero}
+                      onChange={(e) =>
+                        setNewEntityForm({
+                          ...newEntityForm,
+                          rutNumero: e.target.value.replace(/[^0-9]/g, ''),
+                        })
+                      }
+                      placeholder="900123456"
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+                    />
+                    <span className="text-[10px] text-slate-400 block mt-0.5">
+                      Número de RUT sin puntos ni guiones.
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">
+                      Archivo de RUT Adjunto
+                    </label>
+                    <div className="flex items-center gap-2 bg-white px-3 py-2 border border-slate-200 rounded-xl text-slate-700 text-xs">
+                      <span>📎</span>
+                      <span className="truncate flex-1 font-mono text-[11px]">
+                        {newEntityForm.rutArchivoNombre}
+                      </span>
+                      <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">
+                        Válido
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* HABEAS DATA */}
+              <div className="bg-purple-50/70 p-3.5 rounded-2xl border border-purple-200/80 flex items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  id="terminosModalCheck"
+                  checked={newEntityForm.terminosAceptados}
+                  onChange={(e) =>
+                    setNewEntityForm({ ...newEntityForm, terminosAceptados: e.target.checked })
+                  }
+                  className="mt-0.5 w-4 h-4 text-[#6F2BCC] rounded border-slate-300"
+                />
+                <label
+                  htmlFor="terminosModalCheck"
+                  className="text-[11px] text-slate-700 leading-relaxed cursor-pointer select-none"
+                >
+                  Al registrarte, aceptas los <strong>Términos de Servicio</strong> y la <strong>Política de Privacidad</strong> de <strong>VetqPCR Lab</strong>. Tu información será tratada conforme a la <strong>Ley 1581 de 2012 (Habeas Data Colombia)</strong>.
+                </label>
+              </div>
+
+              {/* BOTONES ACCIÓN */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowRegisterNewClinicModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="px-5 py-2.5 bg-[#6F2BCC] hover:bg-[#581ea3] text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                >
+                  {saving ? (
+                    <>
+                      <span className="animate-spin text-sm">⏳</span>
+                      <span>Registrando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>✓</span>
+                      <span>
+                        {newEntityForm.type === 'veterinaria'
+                          ? 'Crear Clínica y Sede Principal (#nit-1)'
+                          : 'Registrar Médico Independiente'}
+                      </span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -1916,10 +3033,36 @@ export default function ClinicProfileView({ onClinicUpdated }) {
             </h4>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             <div>
               <label className="block font-bold text-slate-700 mb-1">
-                Ciudad *
+                Departamento *
+              </label>
+              <select
+                value={formData.recoleccionDepartamento}
+                onChange={(e) => {
+                  const newDept = e.target.value;
+                  const citiesInDept = colombiaGeoApi.getCitiesByDepartmentSync(newDept);
+                  setFormData((prev) => ({
+                    ...prev,
+                    recoleccionDepartamento: newDept,
+                    recoleccionCiudad: citiesInDept[0]?.name || '',
+                  }));
+                }}
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
+              >
+                <option value="">Selecciona departamento…</option>
+                {colombiaGeoApi.getDepartmentsSync().map((d) => (
+                  <option key={d.id} value={d.name}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">
+                Ciudad / Municipio *
               </label>
               <select
                 value={formData.recoleccionCiudad}
@@ -1927,11 +3070,14 @@ export default function ClinicProfileView({ onClinicUpdated }) {
                 className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 focus:ring-2 focus:ring-purple-400"
               >
                 <option value="">Selecciona tu ciudad…</option>
-                {COLOMBIAN_CITIES.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
+                {colombiaGeoApi.getCitiesByDepartmentSync(formData.recoleccionDepartamento).map((city) => (
+                  <option key={city.id} value={city.name}>
+                    {city.name}
                   </option>
                 ))}
+                {formData.recoleccionCiudad && !colombiaGeoApi.getCitiesByDepartmentSync(formData.recoleccionDepartamento).some(c => c.name.toLowerCase() === formData.recoleccionCiudad.toLowerCase()) && (
+                  <option value={formData.recoleccionCiudad}>{formData.recoleccionCiudad}</option>
+                )}
               </select>
             </div>
 

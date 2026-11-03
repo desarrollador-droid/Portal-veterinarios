@@ -63,6 +63,17 @@ function CatalogIcon({ className = "w-5 h-5 text-[#6F2BCC]" }) {
   );
 }
 
+// 5b. Catálogo Clínicas (Portafolio Diagnóstico 2026) - Azul Menta (#009e8a / #01FADA)
+function ClinicalPortfolioIcon({ className = "w-5 h-5 text-[#009e8a]" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor" />
+      <path d="M12 9v6M9 12h6" stroke="#009e8a" strokeWidth="2.5" />
+      <path d="M9 3h6" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  );
+}
+
 // 6. Evolución Temporal - Azul Menta (#009e8a / #01FADA)
 function TimelineChartIcon({ className = "w-5 h-5 text-[#009e8a]" }) {
   return (
@@ -97,6 +108,19 @@ function ClinicProfileIcon({ className = "w-5 h-5 text-[#009e8a]" }) {
       <circle cx="9" cy="9" r="1" fill="#01FADA" />
       <circle cx="9" cy="13" r="1" fill="#01FADA" />
       <circle cx="9" cy="17" r="1" fill="#01FADA" />
+    </svg>
+  );
+}
+
+// 8b. Equipo & Permisos (Gestión Admin Multi-sede) - Morado (#6F2BCC)
+function TeamPermissionsIcon({ className = "w-5 h-5 text-[#6F2BCC]" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      <path d="M12 11l2 2 4-4" stroke="#009e8a" strokeWidth="2.5" />
     </svg>
   );
 }
@@ -153,6 +177,13 @@ export default function AdminSidebar({
       renderIcon: () => <CatalogIcon className="w-5 h-5 text-[#6F2BCC]" />,
     },
     {
+      id: 'catalogo-clinicas',
+      label: 'Catálogo Clínicas',
+      iconColor: 'text-[#009e8a]',
+      iconBg: 'bg-[#01FADA]/25 border border-[#01FADA]/60',
+      renderIcon: () => <ClinicalPortfolioIcon className="w-5 h-5 text-[#009e8a]" />,
+    },
+    {
       id: 'evolucion-temporal',
       label: 'Evolución Temporal',
       iconColor: 'text-[#009e8a]',
@@ -165,6 +196,14 @@ export default function AdminSidebar({
       iconColor: 'text-[#009e8a]',
       iconBg: 'bg-[#01FADA]/25 border border-[#01FADA]/60',
       renderIcon: () => <ClinicProfileIcon className="w-5 h-5 text-[#009e8a]" />,
+    },
+    {
+      id: 'equipo-permisos',
+      label: 'Equipo & Permisos',
+      badge: 'Admin',
+      iconColor: 'text-[#6F2BCC]',
+      iconBg: 'bg-[#6F2BCC]/10 border border-[#6F2BCC]/20',
+      renderIcon: () => <TeamPermissionsIcon className="w-5 h-5 text-[#6F2BCC]" />,
     },
     {
       id: 'soporte',
@@ -255,9 +294,16 @@ export default function AdminSidebar({
                       {item.renderIcon()}
                     </span>
                     {!isCollapsed && (
-                      <span className={`text-sm block truncate ${isActive ? 'text-[#2B017C] font-extrabold' : 'text-[#6F2BCC]'}`}>
-                        {item.label}
-                      </span>
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className={`text-sm block truncate ${isActive ? 'text-[#2B017C] font-extrabold' : 'text-[#6F2BCC]'}`}>
+                          {item.label}
+                        </span>
+                        {item.badge && (
+                          <span className="text-[9px] bg-[#6F2BCC] text-white px-1.5 py-0.5 rounded font-black uppercase tracking-wider shadow-2xs">
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
                 </button>
@@ -320,16 +366,24 @@ export default function AdminSidebar({
 
           {!isCollapsed && (
             <div className="min-w-0 flex-1">
-              <span className="text-xs font-bold text-[#2B017C] block truncate leading-tight group-hover:text-[#6F2BCC] transition-colors">
-                {activeClinic?.type === 'independiente'
-                  ? (activeClinic.nombreMedico || 'Dr. Alejandro Morales')
-                  : (activeClinic?.nombreVeterinaria || 'Clínica Animal Health')}
-              </span>
-              <span className="text-[10px] text-[#6F2BCC] font-semibold block truncate leading-none mt-0.5">
-                {activeClinic?.type === 'independiente'
-                  ? 'Médico Independiente'
-                  : (activeClinic?.directorMedico?.nombre || 'Director Médico / Admin')}
-              </span>
+              <div className="flex items-center gap-1">
+                <span className="text-xs font-bold text-[#2B017C] block truncate leading-tight group-hover:text-[#6F2BCC] transition-colors">
+                  {activeClinic?.type === 'independiente'
+                    ? (activeClinic.nombreMedico || 'Dr. Alejandro Morales')
+                    : (activeClinic?.nombreVeterinaria || 'Clínica Animal Health')}
+                </span>
+                <span className="text-[10px]" title="Admin Principal">👑</span>
+              </div>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="text-[10px] text-[#6F2BCC] font-semibold block truncate leading-none">
+                  {activeClinic?.type === 'independiente'
+                    ? 'Médico Independiente'
+                    : (activeClinic?.directorMedico?.nombre || 'Dr. Alejandro Morales')}
+                </span>
+                <span className="text-[9px] bg-[#6F2BCC] text-white px-1 py-0.2 rounded font-black font-mono">
+                  Admin
+                </span>
+              </div>
             </div>
           )}
         </div>

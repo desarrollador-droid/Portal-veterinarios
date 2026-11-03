@@ -7,6 +7,7 @@ export default function PatientTable({
   onFilterChange,
   onSelectPatient,
   onRequestExam,
+  sedesList = [],
 }) {
   const getSampleBadge = (patient) => {
     let statusText = 'Pendiente de toma';
@@ -168,13 +169,33 @@ export default function PatientTable({
             <span className="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400 text-xs">▼</span>
           </div>
 
-          {(filters.search || filters.species !== 'all' || filters.breed !== 'all' || filters.sampleStatus !== 'all') && (
+          {/* Sede / Sucursal */}
+          {sedesList && sedesList.length > 0 && (
+            <div className="relative">
+              <select
+                value={filters.sedeId || 'all'}
+                onChange={(e) => onFilterChange('sedeId', e.target.value)}
+                className="appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-full px-3.5 py-1.5 pr-8 text-xs font-medium text-slate-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-sky-500"
+              >
+                <option value="all">Sede: Todas las Sedes (Consolidado)</option>
+                {sedesList.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.nombreSede} ({s.codigoSedeNit || ''})
+                  </option>
+                ))}
+              </select>
+              <span className="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400 text-xs">▼</span>
+            </div>
+          )}
+
+          {(filters.search || filters.species !== 'all' || filters.breed !== 'all' || filters.sampleStatus !== 'all' || (filters.sedeId && filters.sedeId !== 'all')) && (
             <button
               onClick={() => {
                 onFilterChange('search', '');
                 onFilterChange('species', 'all');
                 onFilterChange('breed', 'all');
                 onFilterChange('sampleStatus', 'all');
+                onFilterChange('sedeId', 'all');
               }}
               className="text-xs text-sky-600 hover:text-sky-800 underline ml-2 cursor-pointer font-medium"
             >
@@ -190,6 +211,7 @@ export default function PatientTable({
           <thead>
             <tr className="border-t border-b border-slate-100 bg-[#f8fbfe]/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
               <th className="py-3 px-6">PACIENTE</th>
+              <th className="py-3 px-6">SEDE / SUCURSAL</th>
               <th className="py-3 px-6">ESPECIE / RAZA</th>
               <th className="py-3 px-6">PROPIETARIO</th>
               <th className="py-3 px-6">ESTADO ADMIN.</th>
@@ -216,6 +238,19 @@ export default function PatientTable({
                         </span>
                       </div>
                     </div>
+                  </td>
+
+                  {/* Sede / Sucursal */}
+                  <td className="py-4 px-6 whitespace-nowrap">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-50 text-[#6F2BCC] border border-purple-200/80">
+                      <span>📍</span>
+                      <span className="truncate max-w-[150px]">{patient.sedeNombre || 'Sede Principal'}</span>
+                      {patient.codigoSedeNit && (
+                        <span className="text-[10px] bg-[#6F2BCC] text-white px-1.5 py-0.2 rounded font-mono font-bold">
+                          {patient.codigoSedeNit}
+                        </span>
+                      )}
+                    </span>
                   </td>
 
                   <td className="py-4 px-6 text-slate-600 whitespace-nowrap">

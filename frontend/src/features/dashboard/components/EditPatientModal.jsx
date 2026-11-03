@@ -1,24 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PATIENT_STATUSES } from '../services/patientApi.js';
+import { colombiaGeoApi } from '../services/colombiaGeoApi.js';
+import { clinicApi } from '../services/clinicApi.js';
 
-const COLOMBIA_DEPARTMENTS = [
-  'Bogotá D.C.',
-  'Antioquia',
-  'Cundinamarca',
-  'Valle del Cauca',
-  'Atlántico',
-  'Santander',
-  'Bolívar',
-  'Boyacá',
-  'Caldas',
-  'Meta',
-  'Tolima',
-  'Risaralda',
-  'Nariño',
-  'Huila',
-  'Norte de Santander',
-  'Otro Departamento',
-];
+const COLOMBIA_DEPARTMENTS = colombiaGeoApi.getDepartmentsSync().map((d) => d.name);
 
 export default function EditPatientModal({ patient, onClose, onSave }) {
   if (!patient) return null;
@@ -63,6 +48,11 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
     coastalRescue: Boolean(patient.riskFactors?.coastalRescue),
     coastalRescueLocation: patient.riskFactors?.coastalRescueLocation || '',
 
+    // Sede / Sucursal
+    sedeId: patient.sedeId || 'sede-principal-80',
+    sedeNombre: patient.sedeNombre || 'Sede Principal - Calle 80',
+    codigoSedeNit: patient.codigoSedeNit || '#nit-1',
+
     // Vacunación y desparasitación
     vaccinationStatus: patient.medicalAdmission?.vaccinationStatus || 'Al día',
     lastVaccinationDate: patient.medicalAdmission?.lastVaccinationDate || '',
@@ -70,11 +60,27 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
     lastDewormingDate: patient.medicalAdmission?.lastDewormingDate || '',
   });
 
+  const [activeClinic, setActiveClinic] = useState(null);
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  useEffect(() => {
+    clinicApi.getActiveClinic().then((c) => {
+      setActiveClinic(c);
+    }).catch(() => {});
+  }, []);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    if (name === 'ownerDepartment') {
+      const citiesInDept = colombiaGeoApi.getCitiesByDepartmentSync(value);
+      setFormData((prev) => ({
+        ...prev,
+        ownerDepartment: value,
+        ownerCity: citiesInDept[0]?.name || '',
+      }));
+      return;
+    }
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
@@ -101,6 +107,9 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
       await onSave({
         weight: formData.weight,
         status: formData.status,
+        sedeId: formData.sedeId,
+        sedeNombre: formData.sedeNombre,
+        codigoSedeNit: formData.codigoSedeNit,
         isSterilized: isAlreadySterilized ? true : formData.isSterilized,
         hasAllergies: formData.hasAllergies,
         allergies: formData.hasAllergies ? formData.allergies.trim() : '',
@@ -262,6 +271,33 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
                 Parámetros Clínicos Actualizables
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {activeClinic?.sedes && activeClinic.sedes.length > 0 && (
+                  <div className="sm:col-span-3 p-3 bg-purple-50/70 border border-purple-200/80 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-[#2B017C] flex items-center gap-1.5">
+                      <span>🏢</span> Sede / Sucursal Asignada:
+                    </span>
+                    <select
+                      name="sedeId"
+                      value={formData.sedeId}
+                      onChange={(e) => {
+                        const sel = activeClinic.sedes.find((s) => s.id === e.target.value);
+                        setFormData((prev) => ({
+                          ...prev,
+                          sedeId: e.target.value,
+                          sedeNombre: sel?.nombreSede || 'Sede Principal',
+                          codigoSedeNit: sel?.codigoSedeNit || '#nit-1',
+                        }));
+                      }}
+                      className="px-3 py-1.5 border border-purple-200 rounded-lg text-xs font-bold text-slate-900 bg-white focus:ring-2 focus:ring-[#6F2BCC] cursor-pointer"
+                    >
+                      {activeClinic.sedes.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.nombreSede} ({s.codigoSedeNit || ''}) - {s.ciudad}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Peso Actualizado *
@@ -582,13 +618,24 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
 
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Ciudad / Municipio</label>
-                  <input
-                    type="text"
+                  <select
                     name="ownerCity"
                     value={formData.ownerCity}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs"
-                  />
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium bg-white cursor-pointer"
+                  >
+                    <option value="">
+                      {formData.ownerDepartment ? 'Seleccione ciudad / municipio...' : 'Primero elija departamento'}
+                    </option>
+                    {colombiaGeoApi.getCitiesByDepartmentSync(formData.ownerDepartment).map((city) => (
+                      <option key={city.id} value={city.name}>
+                        {city.name}
+                      </option>
+                    ))}
+                    {formData.ownerCity && !colombiaGeoApi.getCitiesByDepartmentSync(formData.ownerDepartment).some(c => c.name.toLowerCase() === formData.ownerCity.toLowerCase()) && (
+                      <option value={formData.ownerCity}>{formData.ownerCity}</option>
+                    )}
+                  </select>
                 </div>
 
                 <div>
