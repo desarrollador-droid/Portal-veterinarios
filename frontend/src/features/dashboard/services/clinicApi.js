@@ -7,7 +7,7 @@ export { AVAILABLE_PERMISSIONS, ROLE_PRESETS };
 const API_BASE_URL = 'http://localhost:5000/api/clinics';
 
 // Almacén en memoria en el cliente sincronizado con localStorage para persistencia offline / Vercel
-const STORAGE_KEY = 'vetlab_clinics_data';
+const STORAGE_KEY = 'vetlab_clinics_data_v5';
 const ACTIVE_STORAGE_KEY = 'vetlab_active_clinic_id';
 
 function getStoredClinics() {
@@ -146,6 +146,10 @@ export const clinicApi = {
   /**
    * Obtiene todas las veterinarias y médicos registrados
    */
+  async getAll(params = {}) {
+    return this.getClinics(params);
+  },
+
   async getClinics(params = {}) {
     try {
       const res = await axios.get(API_BASE_URL, { params, timeout: 3000 });
