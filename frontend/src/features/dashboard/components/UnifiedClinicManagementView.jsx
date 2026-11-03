@@ -1,20 +1,51 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { clinicApi, COLOMBIAN_CITIES, VETERINARY_SPECIALTIES } from '../services/clinicApi.js';
+import { clinicApi, COLOMBIAN_CITIES, VETERINARY_SPECIALTIES, ROLE_PRESETS } from '../services/clinicApi.js';
 import { colombiaGeoApi } from '../services/colombiaGeoApi.js';
 
 // Lista oficial de permisos clínicos disponibles
-const AVAILABLE_PERMISSIONS = [
-  { id: 'solicitar_examenes', label: 'Solicitar Exámenes qPCR', desc: 'Crear nuevas órdenes moleculares y solicitar recolección', icon: '🧬', category: 'Diagnóstico Molecular' },
+export const AVAILABLE_PERMISSIONS = [
+  { id: 'solicitar_examenes', label: 'Solicitar Exámenes qPCR', desc: 'Crear nuevas órdenes moleculares qPCR y solicitar recolección', icon: '🧬', category: 'Diagnóstico Molecular' },
+  { id: 'solicitar_clinicas', label: 'Solicitar Catálogo Clínicas', desc: 'Acceso a las 223 pruebas diagnósticas del catálogo clínico', icon: '🏥', category: 'Diagnóstico Clínico' },
+  { id: 'solicitar_microbiota', label: 'Solicitar Microbiota', desc: 'Solicitud de Kits y Recolección de Microbiota Gastrointestinal', icon: '🦠', category: 'Microbiota' },
   { id: 'solicitar_control', label: 'Solicitar Exámenes de Control', desc: 'Generar seguimiento sobre agentes positivos previos', icon: '🔄', category: 'Diagnóstico Molecular' },
-  { id: 'ver_resultados', label: 'Ver Resultados qPCR', desc: 'Consultar informes, cargas virales y curvas de amplificación', icon: '📊', category: 'Resultados & Reportes' },
+  { id: 'ver_resultados', label: 'Ver Resultados de Laboratorio', desc: 'Consultar informes, cargas virales y curvas de amplificación', icon: '📊', category: 'Resultados & Reportes' },
   { id: 'descargar_reportes', label: 'Descargar Informes PDF', desc: 'Descarga de informes oficiales validados por patólogo', icon: '📥', category: 'Resultados & Reportes' },
   { id: 'crear_pacientes', label: 'Registrar Nuevos Pacientes', desc: 'Ingresar mascotas y tutores a la base de datos de la clínica', icon: '🐾', category: 'Gestión de Pacientes' },
-  { id: 'editar_pacientes', label: 'Editar Fichas de Pacientes', desc: 'Actualizar peso, constantes vitales y factores de riesgo', icon: '✏️', category: 'Gestión de Pacientes' },
+  { id: 'editar_pacientes', label: 'Editar Fichas de Pacientes', desc: 'Actualizar peso, constantes vitales, alergias y antecedentes', icon: '✏️', category: 'Gestión de Pacientes' },
   { id: 'registrar_consultas', label: 'Registrar Consultas Médicas', desc: 'Anotar evoluciones clínicas, diagnósticos presuntivos y recetas', icon: '🩺', category: 'Gestión de Pacientes' },
-  { id: 'ver_trazabilidad', label: 'Rastrear Muestras & Delivery', desc: 'Ver estado en tiempo real de recolección y análisis', icon: '🚚', category: 'Logística' },
-  { id: 'gestionar_equipo', label: 'Administrar Equipo Médico', desc: 'Crear usuarios, modificar sedes y asignar roles', icon: '👥', category: 'Administración' },
+  { id: 'acceso_todas_sedes', label: 'Acceso Multi-sede', desc: 'Ver pacientes y exámenes de todas las sedes de la clínica', icon: '🌐', category: 'Operaciones Multi-sede' },
+  { id: 'ver_trazabilidad', label: 'Rastrear Muestras & Delivery', desc: 'Ver estado en tiempo real de recolección y logística', icon: '🚚', category: 'Logística' },
+  { id: 'gestionar_equipo', label: 'Administrar Equipo Médico & Sedes', desc: 'Crear usuarios, modificar sedes y asignar roles', icon: '👥', category: 'Administración' },
   { id: 'bloquear_usuarios', label: 'Bloquear y Desactivar Accesos', desc: 'Suspender cuentas por rotación, despido o auditoría', icon: '🔒', category: 'Administración' },
 ];
+
+const PERMISSION_ALIASES = {
+  solicitar_examenes: ['solicitarExamenes', 'solicitar_examenes'],
+  solicitar_clinicas: ['solicitarClinicas', 'solicitar_clinicas'],
+  solicitar_microbiota: ['solicitarMicrobiota', 'solicitar_microbiota'],
+  solicitar_control: ['solicitarControl', 'solicitar_control'],
+  ver_resultados: ['verResultados', 'ver_resultados'],
+  descargar_reportes: ['descargarInformes', 'descargar_reportes', 'descargar_informes'],
+  crear_pacientes: ['crearPacientes', 'crear_pacientes'],
+  editar_pacientes: ['editarHistorias', 'editar_pacientes', 'editar_historias'],
+  registrar_consultas: ['registrarConsultas', 'registrar_consultas'],
+  acceso_todas_sedes: ['accesoTodasLasSedes', 'acceso_todas_sedes'],
+  ver_trazabilidad: ['verTrazabilidad', 'ver_trazabilidad'],
+  gestionar_equipo: ['gestionarSedes', 'gestionar_equipo', 'gestionar_sedes'],
+  bloquear_usuarios: ['anularOrdenes', 'bloquear_usuarios', 'bloquearUsuarios'],
+};
+
+export function checkVetPermission(vetPermisos, permId) {
+  if (!vetPermisos) return false;
+  const aliases = PERMISSION_ALIASES[permId] || [permId];
+  if (Array.isArray(vetPermisos)) {
+    return aliases.some((a) => vetPermisos.includes(a));
+  }
+  if (typeof vetPermisos === 'object') {
+    return aliases.some((a) => Boolean(vetPermisos[a]));
+  }
+  return false;
+}
 
 export default function UnifiedClinicManagementView({ onNotify }) {
   const [activeTab, setActiveTab] = useState('equipo'); // 'equipo' | 'sedes' | 'clinica'
@@ -49,6 +80,7 @@ export default function UnifiedClinicManagementView({ onNotify }) {
     bloqueadoPorAdmin: false,
     motivoBloqueo: '',
     newPassword: '',
+    permisos: {},
   });
 
   const [newVetForm, setNewVetForm] = useState({
@@ -158,6 +190,31 @@ export default function UnifiedClinicManagementView({ onNotify }) {
   // Abrir modal "Editar"
   const handleOpenEditModal = (vet) => {
     setEditingVet(vet);
+
+    // Inicializar permisos mapeando desde el veterinario o por defecto según rol
+    const initialPerms = {};
+    AVAILABLE_PERMISSIONS.forEach((p) => {
+      initialPerms[p.id] = checkVetPermission(vet.permisos, p.id);
+    });
+
+    const hasAnyPerm = Object.values(initialPerms).some(Boolean);
+    if (!hasAnyPerm) {
+      if (vet.esDirector || vet.rol === 'director_medico') {
+        AVAILABLE_PERMISSIONS.forEach((p) => {
+          initialPerms[p.id] = true;
+        });
+      } else {
+        const defaultRole = vet.rol || 'veterinario_planta';
+        AVAILABLE_PERMISSIONS.forEach((p) => {
+          if (defaultRole === 'asistente') {
+            initialPerms[p.id] = ['crear_pacientes', 'ver_resultados'].includes(p.id);
+          } else {
+            initialPerms[p.id] = !['gestionar_equipo', 'bloquear_usuarios'].includes(p.id);
+          }
+        });
+      }
+    }
+
     setEditVetForm({
       nombre: vet.nombre || '',
       cedula: vet.cedula || '',
@@ -174,7 +231,95 @@ export default function UnifiedClinicManagementView({ onNotify }) {
       bloqueadoPorAdmin: Boolean(vet.bloqueadoPorAdmin),
       motivoBloqueo: vet.motivoBloqueo || '',
       newPassword: '',
+      permisos: initialPerms,
     });
+  };
+
+  // Handlers para administración interactiva de permisos
+  const handleTogglePermission = (permId) => {
+    setEditVetForm((prev) => ({
+      ...prev,
+      permisos: {
+        ...prev.permisos,
+        [permId]: !prev.permisos?.[permId],
+      },
+    }));
+  };
+
+  const handleSelectAllPermissions = () => {
+    const allTrue = {};
+    AVAILABLE_PERMISSIONS.forEach((p) => {
+      allTrue[p.id] = true;
+    });
+    setEditVetForm((prev) => ({ ...prev, permisos: allTrue }));
+  };
+
+  const handleDeselectAllPermissions = () => {
+    const allFalse = {};
+    AVAILABLE_PERMISSIONS.forEach((p) => {
+      allFalse[p.id] = false;
+    });
+    setEditVetForm((prev) => ({ ...prev, permisos: allFalse }));
+  };
+
+  const handleResetPermissionsToRole = (targetRole) => {
+    const role = targetRole || editVetForm.rol || 'veterinario_planta';
+    const newPerms = {};
+    if (role === 'director_medico') {
+      AVAILABLE_PERMISSIONS.forEach((p) => {
+        newPerms[p.id] = true;
+      });
+    } else if (role === 'asistente') {
+      AVAILABLE_PERMISSIONS.forEach((p) => {
+        newPerms[p.id] = ['crear_pacientes', 'ver_resultados'].includes(p.id);
+      });
+    } else if (role === 'veterinario_rotativo') {
+      AVAILABLE_PERMISSIONS.forEach((p) => {
+        newPerms[p.id] = [
+          'solicitar_examenes',
+          'solicitar_clinicas',
+          'solicitar_microbiota',
+          'solicitar_control',
+          'ver_resultados',
+          'descargar_reportes',
+          'crear_pacientes',
+          'editar_pacientes',
+          'registrar_consultas',
+          'acceso_todas_sedes',
+          'ver_trazabilidad',
+        ].includes(p.id);
+      });
+    } else if (role === 'veterinario_especialista') {
+      AVAILABLE_PERMISSIONS.forEach((p) => {
+        newPerms[p.id] = [
+          'solicitar_examenes',
+          'solicitar_clinicas',
+          'solicitar_microbiota',
+          'solicitar_control',
+          'ver_resultados',
+          'descargar_reportes',
+          'crear_pacientes',
+          'editar_pacientes',
+          'registrar_consultas',
+          'ver_trazabilidad',
+        ].includes(p.id);
+      });
+    } else {
+      // veterinario_planta por defecto
+      AVAILABLE_PERMISSIONS.forEach((p) => {
+        newPerms[p.id] = [
+          'solicitar_examenes',
+          'solicitar_clinicas',
+          'solicitar_microbiota',
+          'solicitar_control',
+          'ver_resultados',
+          'descargar_reportes',
+          'crear_pacientes',
+          'registrar_consultas',
+        ].includes(p.id);
+      });
+    }
+    setEditVetForm((prev) => ({ ...prev, permisos: newPerms }));
   };
 
   // Guardar cambios en el modal Editar
@@ -192,8 +337,9 @@ export default function UnifiedClinicManagementView({ onNotify }) {
         ...editingVet,
         nombre: editVetForm.nombre.trim(),
         cedula: editVetForm.cedula.trim(),
-        tarjetaProfesional: editVetForm.tarjetaProfesional.trim(),
-        especialidad: editVetForm.especialidad,
+        // INMUTABILIDAD ESTRICTA: Tarjeta profesional COMVEZCOL y especialidad clínica no se pueden modificar
+        tarjetaProfesional: editingVet.tarjetaProfesional,
+        especialidad: editingVet.especialidad,
         email: editVetForm.email.trim(),
         telefono: editVetForm.telefono.trim(),
         rol: editVetForm.rol,
@@ -207,6 +353,7 @@ export default function UnifiedClinicManagementView({ onNotify }) {
         bloqueadoPorAdmin: isBlocked,
         motivoBloqueo: isBlocked ? (editVetForm.motivoBloqueo || 'Bloqueado por el Administrador') : '',
         fechaBloqueo: isBlocked ? (editingVet.fechaBloqueo || new Date().toISOString()) : null,
+        permisos: { ...editVetForm.permisos },
       };
 
       if (editVetForm.newPassword.trim()) {
@@ -215,8 +362,9 @@ export default function UnifiedClinicManagementView({ onNotify }) {
       }
 
       const res = await clinicApi.updateVeterinarian(activeClinic.id, editingVet.id, updatedVetPayload);
-      setActiveClinic(res.clinic);
-      handleNotify(`Ficha y accesos de ${updatedVetPayload.nombre} actualizados con éxito.`);
+      const updatedClinic = res?.clinic || res;
+      setActiveClinic(updatedClinic);
+      handleNotify(`Ficha y permisos de ${updatedVetPayload.nombre} actualizados con éxito.`);
       setEditingVet(null);
     } catch (err) {
       alert(err.message || 'Error al actualizar el profesional');
@@ -740,12 +888,17 @@ export default function UnifiedClinicManagementView({ onNotify }) {
 
               {/* Permisos asignados */}
               <div className="space-y-2">
-                <h5 className="text-xs font-black uppercase tracking-wider text-[#2B017C]">
-                  Permisos de Acceso y Funcionalidades Activas
-                </h5>
+                <div className="flex items-center justify-between">
+                  <h5 className="text-xs font-black uppercase tracking-wider text-[#2B017C]">
+                    Permisos de Acceso y Funcionalidades Activas
+                  </h5>
+                  <span className="text-[10px] text-slate-500 font-semibold">
+                    {AVAILABLE_PERMISSIONS.filter((perm) => checkVetPermission(viewingVet.permisos, perm.id) && !viewingVet.bloqueadoPorAdmin).length} de {AVAILABLE_PERMISSIONS.length} activos
+                  </span>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {AVAILABLE_PERMISSIONS.map((perm) => {
-                    const hasPerm = Boolean(viewingVet.permisos?.[perm.id]) && !viewingVet.bloqueadoPorAdmin;
+                    const hasPerm = checkVetPermission(viewingVet.permisos, perm.id) && !viewingVet.bloqueadoPorAdmin;
                     return (
                       <div
                         key={perm.id}
@@ -765,7 +918,18 @@ export default function UnifiedClinicManagementView({ onNotify }) {
               </div>
             </div>
 
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end shrink-0">
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  const target = viewingVet;
+                  setViewingVet(null);
+                  handleOpenEditModal(target);
+                }}
+                className="px-4 py-2 bg-[#6F2BCC] hover:bg-[#581ea3] text-white font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
+              >
+                <span>✏️</span> Editar Ficha & Permisos
+              </button>
               <button
                 onClick={() => setViewingVet(null)}
                 className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl cursor-pointer"
@@ -810,27 +974,39 @@ export default function UnifiedClinicManagementView({ onNotify }) {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Tarjeta Profesional COMVEZCOL *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block font-bold text-slate-700">Tarjeta Profesional COMVEZCOL</label>
+                    <span className="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-1">
+                      <span>🔒</span> No editable
+                    </span>
+                  </div>
                   <input
                     type="text"
-                    required
+                    readOnly
+                    disabled
                     value={editVetForm.tarjetaProfesional}
-                    onChange={(e) => setEditVetForm({ ...editVetForm, tarjetaProfesional: e.target.value })}
-                    className="w-full px-3.5 py-2 border border-slate-200 rounded-xl font-bold"
+                    title="La tarjeta profesional COMVEZCOL no se puede modificar"
+                    className="w-full px-3.5 py-2 border border-slate-200 rounded-xl font-bold bg-slate-100 text-slate-500 cursor-not-allowed select-none"
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">Identificador legal COMVEZCOL inmutable por normativa sanitaria.</p>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Especialidad Clínica</label>
-                  <select
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block font-bold text-slate-700">Especialidad Clínica</label>
+                    <span className="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-1">
+                      <span>🔒</span> No editable
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    readOnly
+                    disabled
                     value={editVetForm.especialidad}
-                    onChange={(e) => setEditVetForm({ ...editVetForm, especialidad: e.target.value })}
-                    className="w-full px-3.5 py-2 border border-slate-200 rounded-xl font-semibold bg-white cursor-pointer"
-                  >
-                    {VETERINARY_SPECIALTIES.map((sp) => (
-                      <option key={sp} value={sp}>{sp}</option>
-                    ))}
-                  </select>
+                    title="La especialidad clínica no se puede modificar"
+                    className="w-full px-3.5 py-2 border border-slate-200 rounded-xl font-semibold bg-slate-100 text-slate-500 cursor-not-allowed select-none"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">Especialidad médica registrada en la ficha del profesional.</p>
                 </div>
 
                 <div>
@@ -854,6 +1030,25 @@ export default function UnifiedClinicManagementView({ onNotify }) {
                 </div>
 
                 <div>
+                  <label className="block font-bold text-slate-700 mb-1">Rol / Perfil en la Clínica</label>
+                  <select
+                    value={editVetForm.rol}
+                    onChange={(e) => {
+                      const newRol = e.target.value;
+                      setEditVetForm((prev) => ({ ...prev, rol: newRol }));
+                      handleResetPermissionsToRole(newRol);
+                    }}
+                    className="w-full px-3.5 py-2 border border-slate-200 rounded-xl font-semibold bg-white cursor-pointer"
+                  >
+                    <option value="director_medico">👑 Director Médico / Admin Principal</option>
+                    <option value="veterinario_especialista">🩺 Veterinario Especialista</option>
+                    <option value="veterinario_planta">👨‍⚕️ Veterinario de Planta</option>
+                    <option value="veterinario_rotativo">🔄 Veterinario Rotativo Inter-sedes</option>
+                    <option value="asistente">📋 Asistente / Auxiliar Veterinario</option>
+                  </select>
+                </div>
+
+                <div>
                   <label className="block font-bold text-slate-700 mb-1">Sede Base Asignada</label>
                   <select
                     value={editVetForm.sedeId}
@@ -864,6 +1059,148 @@ export default function UnifiedClinicManagementView({ onNotify }) {
                       <option key={s.id} value={s.id}>{s.nombreSede} ({s.codigoSedeNit || ''})</option>
                     ))}
                   </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Tipo de Asignación de Sedes</label>
+                  <select
+                    value={editVetForm.tipoAsignacion}
+                    onChange={(e) => setEditVetForm({ ...editVetForm, tipoAsignacion: e.target.value })}
+                    className="w-full px-3.5 py-2 border border-slate-200 rounded-xl font-semibold bg-white cursor-pointer"
+                  >
+                    <option value="fija">📍 Sede Fija Exclusiva</option>
+                    <option value="rotativa">🔄 Sedes Rotativas / Multi-ubicación</option>
+                    <option value="todas_las_sedes">🌐 Todas las Sedes (Multi-sede)</option>
+                  </select>
+                </div>
+
+                {editVetForm.tipoAsignacion === 'rotativa' && (
+                  <div className="sm:col-span-2 p-3.5 bg-purple-50/50 border border-purple-200 rounded-2xl space-y-2">
+                    <label className="block font-bold text-[#2B017C] text-xs">
+                      Seleccionar Sedes Rotativas Asignadas:
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {(activeClinic?.sedes || []).map((s) => {
+                        const isSelected = editVetForm.sedesRotativas.includes(s.id);
+                        return (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => {
+                              const current = editVetForm.sedesRotativas;
+                              const updated = current.includes(s.id)
+                                ? current.filter((id) => id !== s.id)
+                                : [...current, s.id];
+                              setEditVetForm({ ...editVetForm, sedesRotativas: updated });
+                            }}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'bg-[#6F2BCC] text-white border-[#6F2BCC] shadow-xs'
+                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            {isSelected ? '✓ ' : '+ '} {s.nombreSede} ({s.codigoSedeNit || ''})
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-600 text-[11px] mb-1">Días u Horarios de Rotación:</label>
+                      <input
+                        type="text"
+                        placeholder="Ej: Lun/Mié en Sede Norte · Mar/Jue en Sede Principal"
+                        value={editVetForm.diasRotacion}
+                        onChange={(e) => setEditVetForm({ ...editVetForm, diasRotacion: e.target.value })}
+                        className="w-full px-3 py-1.5 border border-slate-200 rounded-xl bg-white text-xs"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* SECCIÓN INTERACTIVA DE EDICIÓN DE PERMISOS */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-50/40 via-white to-slate-50 border border-purple-200/80 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-purple-100 pb-2.5">
+                  <div>
+                    <label className="block font-black text-[#2B017C] uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                      <span>🛡️</span> Permisos Clínicos & Accesos de Laboratorio
+                    </label>
+                    <p className="text-[10px] text-slate-500 mt-0.5">
+                      Activa o desactiva las autorizaciones específicas de este profesional para solicitar exámenes, gestionar historias y consultar resultados.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={handleSelectAllPermissions}
+                      className="px-2.5 py-1 bg-purple-100 hover:bg-purple-200 text-[#6F2BCC] font-bold text-[10px] rounded-lg transition-colors cursor-pointer"
+                    >
+                      ✓ Marcar Todos
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeselectAllPermissions}
+                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-[10px] rounded-lg transition-colors cursor-pointer"
+                    >
+                      ✗ Ninguno
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleResetPermissionsToRole(editVetForm.rol)}
+                      className="px-2.5 py-1 bg-white border border-purple-300 hover:bg-purple-50 text-[#2B017C] font-bold text-[10px] rounded-lg transition-colors cursor-pointer"
+                      title="Restablece los permisos sugeridos para este rol"
+                    >
+                      ↺ Según Rol
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] text-slate-600 px-0.5">
+                  <span>
+                    Permisos activos: <strong className="text-[#6F2BCC] font-black">{Object.values(editVetForm.permisos || {}).filter(Boolean).length} de {AVAILABLE_PERMISSIONS.length}</strong>
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    (Haz clic en cada permiso para alternar su estado)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1">
+                  {AVAILABLE_PERMISSIONS.map((perm) => {
+                    const isChecked = Boolean(editVetForm.permisos?.[perm.id]);
+                    return (
+                      <button
+                        key={perm.id}
+                        type="button"
+                        onClick={() => handleTogglePermission(perm.id)}
+                        className={`p-2.5 rounded-xl border text-left transition-all flex items-start gap-2.5 cursor-pointer select-none ${
+                          isChecked
+                            ? 'bg-purple-50/70 border-purple-300 shadow-xs ring-1 ring-purple-400/20'
+                            : 'bg-white border-slate-200 hover:bg-slate-50/80 text-slate-400'
+                        }`}
+                      >
+                        <span className="text-base shrink-0">{perm.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className={`font-bold text-xs ${isChecked ? 'text-purple-950 font-black' : 'text-slate-600'}`}>
+                              {perm.label}
+                            </span>
+                            <span
+                              className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${
+                                isChecked
+                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                  : 'bg-slate-100 text-slate-400'
+                              }`}
+                            >
+                              {isChecked ? '✓ Activo' : 'Inactivo'}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-slate-500 leading-tight mt-0.5">
+                            {perm.desc}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
