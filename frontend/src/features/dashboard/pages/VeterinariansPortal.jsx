@@ -16,6 +16,7 @@ import TemporalEvolutionView from '../components/TemporalEvolutionView.jsx';
 import SupportView from '../components/SupportView.jsx';
 import ClinicProfileView from '../components/ClinicProfileView.jsx';
 import TeamPermissionsView from '../components/TeamPermissionsView.jsx';
+import UnifiedClinicManagementView from '../components/UnifiedClinicManagementView.jsx';
 import ThemeToggle from '../components/ThemeToggle.jsx';
 
 export default function VeterinariansPortal() {
@@ -333,17 +334,9 @@ export default function VeterinariansPortal() {
             <SupportView />
           )}
 
-          {/* MÓDULO 8: PERFIL DE VETERINARIA & MÉDICOS */}
-          {activeModule === 'perfil-veterinaria' && (
-            <ClinicProfileView
-              onClinicUpdated={(c) => setActiveClinic(c)}
-              onNavigateToTeamPermissions={() => setActiveModule('equipo-permisos')}
-            />
-          )}
-
-          {/* MÓDULO 9: EQUIPO & PERMISOS (ADMIN PRINCIPAL MULTI-SEDE) */}
-          {activeModule === 'equipo-permisos' && (
-            <TeamPermissionsView
+          {/* MÓDULO 8: GESTIÓN INTEGRAL DE CLÍNICA, SEDES & EQUIPO */}
+          {(activeModule === 'clinica-equipo' || activeModule === 'perfil-veterinaria' || activeModule === 'equipo-permisos') && (
+            <UnifiedClinicManagementView
               onNotify={showToast}
             />
           )}

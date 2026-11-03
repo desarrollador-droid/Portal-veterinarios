@@ -15,6 +15,8 @@ export default function ClinicalCatalogView() {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'table'
   const [selectedExam, setSelectedExam] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
+  const [categorySearchQuery, setCategorySearchQuery] = useState('');
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
 
   // Matrices de muestra más comunes para filtro rápido
   const sampleMatrices = [
@@ -115,6 +117,16 @@ export default function ClinicalCatalogView() {
     setTimeout(() => setCopiedId(null), 2500);
   };
 
+  const filteredCategoriesList = useMemo(() => {
+    if (!categorySearchQuery.trim()) return CLINICAL_CATEGORIES;
+    const q = categorySearchQuery.trim().toLowerCase();
+    return CLINICAL_CATEGORIES.filter(
+      (c) =>
+        c.nombre.toLowerCase().includes(q) ||
+        (c.descripcion && c.descripcion.toLowerCase().includes(q))
+    );
+  }, [categorySearchQuery]);
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
       {/* 1. ENCABEZADO PRINCIPAL DE LA MARCA */}
@@ -182,7 +194,7 @@ export default function ClinicalCatalogView() {
       {/* 3. BARRA DE BÚSQUEDA Y FILTROS */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-          {/* Buscador */}
+          {/* Buscador General de Pruebas */}
           <div className="relative flex-1">
             <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
               🔍
@@ -202,6 +214,105 @@ export default function ClinicalCatalogView() {
               >
                 ✕
               </button>
+            )}
+          </div>
+
+          {/* Selector y Buscador Interactivo de Categoría */}
+          <div className="relative w-full md:w-72">
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
+                📁
+              </span>
+              <input
+                type="text"
+                value={categorySearchQuery}
+                onFocus={() => setIsCategoryDropdownOpen(true)}
+                onChange={(e) => {
+                  setCategorySearchQuery(e.target.value);
+                  setIsCategoryDropdownOpen(true);
+                }}
+                placeholder="Filtrar por categoría..."
+                className="w-full pl-9 pr-7 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC] focus:bg-white transition-all cursor-pointer"
+              />
+              {categorySearchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCategorySearchQuery('');
+                    setActiveCategory('all');
+                    setIsCategoryDropdownOpen(false);
+                  }}
+                  className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-xs text-slate-400 hover:text-slate-700 cursor-pointer"
+                >
+                  ✕
+                </button>
+              ) : (
+                <span className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-xs text-slate-400">
+                  ▾
+                </span>
+              )}
+            </div>
+
+            {/* Menú desplegable interactivo con todas las categorías filtrables */}
+            {isCategoryDropdownOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-20"
+                  onClick={() => setIsCategoryDropdownOpen(false)}
+                />
+                <div className="absolute left-0 right-0 mt-1.5 max-h-64 overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-xl z-30 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveCategory('all');
+                      setCategorySearchQuery('');
+                      setIsCategoryDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-between transition-colors cursor-pointer ${
+                      activeCategory === 'all'
+                        ? 'bg-[#6F2BCC] text-white'
+                        : 'text-slate-700 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span>🌐 Todas las Categorías</span>
+                    <span className="text-[10px] opacity-80">{CLINICAL_EXAMS.length}</span>
+                  </button>
+
+                  {filteredCategoriesList.map((cat) => {
+                    const isSelected = activeCategory === cat.id;
+                    const count = categoryCounts[cat.id] || 0;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveCategory(cat.id);
+                          setCategorySearchQuery(cat.nombre);
+                          setIsCategoryDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                          isSelected
+                            ? 'bg-purple-100 text-[#2B017C] font-black'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span className="truncate flex items-center gap-1.5 mr-2">
+                          <span>{cat.icon || '🔬'}</span>
+                          <span className="truncate">{cat.nombre}</span>
+                        </span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-bold shrink-0">
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                  {filteredCategoriesList.length === 0 && (
+                    <div className="p-3 text-center text-xs text-slate-400">
+                      No se encontraron categorías coincidentes
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
 

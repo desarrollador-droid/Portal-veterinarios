@@ -146,9 +146,21 @@ export default function PatientTable({
                         <span className="text-slate-900 font-bold block">
                           {patient.name} {patient.lastName || ''}
                         </span>
-                        <span className="text-[11px] font-mono text-slate-400 block mt-0.5">
-                          {patient.id}
-                        </span>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[11px] font-mono text-slate-400">
+                            {patient.id}
+                          </span>
+                          {/* Carácter especial discreto de sede atendida */}
+                          {patient.codigoSedeNit && (
+                            <span
+                              title={`Atendido en: ${patient.sedeNombre || 'Sede'} (${patient.codigoSedeNit})`}
+                              className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-md bg-purple-50 text-[#6F2BCC] border border-purple-200/80 text-[10px] font-mono font-bold cursor-help hover:bg-purple-100 transition-colors"
+                            >
+                              <span>🏢</span>
+                              <span>{patient.codigoSedeNit.replace(/^#nit-?/i, '#')}</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </td>

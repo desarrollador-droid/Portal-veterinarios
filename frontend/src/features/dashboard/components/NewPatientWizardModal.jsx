@@ -189,66 +189,77 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
     }));
   };
 
+  const [formAlert, setFormAlert] = useState(null);
+
+  const triggerAlert = (message, fieldName = null) => {
+    setFormAlert({ message, fieldName });
+    const modalContainer = document.getElementById('new-patient-modal-content');
+    if (modalContainer) {
+      modalContainer.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const handleNext = () => {
+    setFormAlert(null);
     if (currentStep === 1) {
       if (!formData.ownerFirstName.trim() || !formData.ownerLastName.trim() || !formData.ownerPhone.trim()) {
-        alert('Por favor complete nombres, apellidos y teléfono principal del tutor.');
+        triggerAlert('Por favor complete nombres, apellidos y teléfono principal del tutor.', 'ownerPhone');
         return;
       }
       if (!formData.ownerDocumentType) {
-        alert('Por favor seleccione el tipo de documento del tutor.');
+        triggerAlert('Por favor seleccione el tipo de documento del tutor.', 'ownerDocumentType');
         return;
       }
       if (!formData.ownerDocumentNumber.trim()) {
-        alert('Por favor ingrese el número de documento del tutor.');
+        triggerAlert('Por favor ingrese el número de documento del tutor.', 'ownerDocumentNumber');
         return;
       }
       if (formData.ownerHasVetPlus && !formData.ownerVetPlusCode.trim()) {
-        alert('Por favor ingrese el código de póliza o autorización de VetPlus.');
+        triggerAlert('Por favor ingrese el código de póliza o autorización de VetPlus.', 'ownerVetPlusCode');
         return;
       }
     }
 
     if (currentStep === 2) {
       if (!formData.name.trim()) {
-        alert('Por favor ingrese el nombre del paciente.');
+        triggerAlert('Por favor ingrese el nombre del paciente.', 'name');
         return;
       }
       if (!formData.species) {
-        alert('Por favor seleccione la especie (Canino, Felino u Otro).');
+        triggerAlert('Por favor seleccione la especie (Canino, Felino u Otro).', 'species');
         return;
       }
       if (formData.species === 'Otro' && !formData.otherSpecies.trim()) {
-        alert('Por favor especifique la especie en el campo correspondiente.');
+        triggerAlert('Por favor especifique la especie en el campo correspondiente.', 'otherSpecies');
         return;
       }
       if (!formData.breed.trim()) {
-        alert('Por favor seleccione o escriba la raza de la mascota.');
+        triggerAlert('Por favor seleccione o escriba la raza de la mascota.', 'breed');
         return;
       }
       if (!formData.sex) {
-        alert('Por favor seleccione el sexo del paciente.');
+        triggerAlert('Por favor seleccione el sexo del paciente.', 'sex');
         return;
       }
       if (!formData.birthDate) {
-        alert('Por favor ingrese la fecha de nacimiento de la mascota.');
+        triggerAlert('Por favor ingrese la fecha de nacimiento de la mascota.', 'birthDate');
         return;
       }
 
       // Validar fecha futura
       const today = new Date().toISOString().split('T')[0];
       if (formData.birthDate > today) {
-        alert('La fecha de nacimiento no puede ser una fecha futura.');
+        triggerAlert('La fecha de nacimiento no puede ser una fecha futura.', 'birthDate');
         return;
       }
 
       if (formData.hasAllergies && !formData.allergies.trim()) {
-        alert('Por favor describa las alergias conocidas del paciente.');
+        triggerAlert('Por favor describa las alergias conocidas del paciente.', 'allergies');
         return;
       }
 
       if (formData.hasMicrochip && !formData.microchipNumber.trim()) {
-        alert('Por favor ingrese el número del microchip.');
+        triggerAlert('Por favor ingrese el número del microchip.', 'microchipNumber');
         return;
       }
     }
@@ -320,7 +331,7 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
       await onCreated(payload);
       onClose();
     } catch (err) {
-      alert(err.message || 'Error registrando paciente');
+      triggerAlert(err.message || 'Error registrando paciente');
     } finally {
       setSubmitting(false);
     }
@@ -388,7 +399,35 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
         </div>
 
         {/* Contenedor con scroll para los formularios */}
-        <div className="p-6 sm:p-8 overflow-y-auto space-y-6 flex-1">
+        <div id="new-patient-modal-content" className="p-6 sm:p-8 overflow-y-auto space-y-6 flex-1">
+          {/* Banner de Alerta Visual Diseñada para Campos Pendientes */}
+          {formAlert && (
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 shadow-sm flex items-start justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="flex items-start gap-3">
+                <span className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-base shrink-0 shadow-xs">
+                  ⚠️
+                </span>
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-amber-900">
+                    Campo Requerido Pendiente
+                  </h4>
+                  <p className="text-xs font-bold text-amber-950 mt-0.5">
+                    {formAlert.message}
+                  </p>
+                  <p className="text-[11px] text-amber-800/80 mt-0.5">
+                    Por favor complete esta información antes de avanzar a la siguiente etapa.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFormAlert(null)}
+                className="text-amber-500 hover:text-amber-800 font-bold text-sm p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          )}
           {/* ==================================================================== */}
           {/* ETAPA 1: REGISTRO DEL TUTOR / PROPIETARIO                            */}
           {/* ==================================================================== */}

@@ -191,15 +191,8 @@ export default function AdminSidebar({
       renderIcon: () => <TimelineChartIcon className="w-5 h-5 text-[#009e8a]" />,
     },
     {
-      id: 'perfil-veterinaria',
-      label: 'Perfil Veterinaria',
-      iconColor: 'text-[#009e8a]',
-      iconBg: 'bg-[#01FADA]/25 border border-[#01FADA]/60',
-      renderIcon: () => <ClinicProfileIcon className="w-5 h-5 text-[#009e8a]" />,
-    },
-    {
-      id: 'equipo-permisos',
-      label: 'Equipo & Permisos',
+      id: 'clinica-equipo',
+      label: 'Clínica & Equipo',
       badge: 'Admin',
       iconColor: 'text-[#6F2BCC]',
       iconBg: 'bg-[#6F2BCC]/10 border border-[#6F2BCC]/20',

@@ -6,6 +6,11 @@ import {
   CLINICAL_SYNDROMES_LIST,
   matchSyndromeTokens,
 } from '../services/qpcrApi.js';
+import {
+  CLINICAL_CATEGORIES,
+  CLINICAL_EXAMS,
+} from '../data/clinicalCatalogData.js';
+
 
 // ============================================================================
 // 1. CATÁLOGO DE SÍNDROMES CLÍNICOS VINCULADOS A LA TABLA OFICIAL (12 AGENTES)
@@ -464,6 +469,42 @@ export default function RequestExamModal({
   const [currentStep, setCurrentStep] = useState(1);
 
   // ============================================================================
+  // REQUERIMIENTO PRINCIPAL: 3 TIPOS DE SOLICITUD DE EXÁMENES
+  // 1. 'qpcr': Biología Molecular qPCR (con ayudas diagnósticas y recomendación)
+  // 2. 'clinicas': Portafolio Diagnóstico Clínico (223 pruebas, SIN ayudas)
+  // 3. 'microbiota': Microbiota Gastrointestinal (Kit o Recolección, SIN ayudas)
+  // ============================================================================
+  const [requestCategory, setRequestCategory] = useState('qpcr'); // 'qpcr' | 'clinicas' | 'microbiota'
+
+  // ============================================================================
+  // ESTADOS PARA SOLICITUD DE CLÍNICAS (PORTAFOLIO OFICIAL 2026 - 223 PRUEBAS)
+  // ============================================================================
+  const [clinicalSearchTerm, setClinicalSearchTerm] = useState('');
+  const [clinicalCategoryFilter, setClinicalCategoryFilter] = useState('all');
+  const [selectedClinicalExams, setSelectedClinicalExams] = useState([]);
+  const [clinicalObservations, setClinicalObservations] = useState('');
+  const [clinicalStep, setClinicalStep] = useState(1); // 1: Selección pruebas, 2: Resumen y despacho
+
+  // ============================================================================
+  // ESTADOS PARA SOLICITUD DE MICROBIOTA (KIT O RECOLECCIÓN)
+  // ============================================================================
+  const [microbiotaSubtype, setMicrobiotaSubtype] = useState('kit'); // 'kit' | 'recoleccion'
+  const [microbiotaKitQuantity, setMicrobiotaKitQuantity] = useState(1);
+  const [microbiotaDeliverySede, setMicrobiotaDeliverySede] = useState('Sede Principal - Calle 80');
+  const [microbiotaDeliveryAddress, setMicrobiotaDeliveryAddress] = useState('Cra 80 # 45-12, Bogotá');
+  const [microbiotaRecipientContact, setMicrobiotaRecipientContact] = useState('Dr. Alejandro Morales');
+  const [microbiotaRecipientPhone, setMicrobiotaRecipientPhone] = useState('310 456 7890');
+  const [microbiotaDeliveryNotes, setMicrobiotaDeliveryNotes] = useState('');
+  const [microbiotaCollectionDate, setMicrobiotaCollectionDate] = useState(() => {
+    const d = new Date();
+    return d.toISOString().split('T')[0];
+  });
+  const [microbiotaCollectionTimeSlot, setMicrobiotaCollectionTimeSlot] = useState('manana');
+  const [microbiotaCollectionSede, setMicrobiotaCollectionSede] = useState('Sede Principal - Calle 80');
+  const [microbiotaSampleCondition, setMicrobiotaSampleCondition] = useState('Tubo con buffer estabilizador de ADN fecal (4°C)');
+  const [microbiotaCollectionNotes, setMicrobiotaCollectionNotes] = useState('');
+
+  // ============================================================================
   // REQUERIMIENTO DEL USUARIO: TODO COMIENZA EN BLANCO PARA EVITAR CONFUSIÓN
   // ============================================================================
   const [examType, setExamType] = useState(initialExamType || 'nuevo'); // 'nuevo' | 'control'
@@ -499,9 +540,23 @@ export default function RequestExamModal({
   // Requerimiento: Preguntar esterilización si no está esterilizado previamente;
   // si ya lo está, NO volver a preguntar. Alergias con opción de agregar nuevas.
   // ============================================================================
-  const [examIsSterilized, setExamIsSterilized] = useState(null);
-  const [patientAllergiesList, setPatientAllergiesList] = useState([]);
-  const [hasAllergiesOption, setHasAllergiesOption] = useState(null);
+  const [examIsSterilized, setExamIsSterilized] = useState(() => {
+    if (initialPatient?.isSterilized === true) return true;
+    if (initialPatient?.isSterilized === false) return false;
+    return null;
+  });
+  const [patientAllergiesList, setPatientAllergiesList] = useState(() => {
+    if (Array.isArray(initialPatient?.allergies)) return initialPatient.allergies.filter(Boolean);
+    if (typeof initialPatient?.allergies === 'string' && initialPatient.allergies.trim()) {
+      return initialPatient.allergies.split(',').map((s) => s.trim()).filter(Boolean);
+    }
+    return [];
+  });
+  const [hasAllergiesOption, setHasAllergiesOption] = useState(() => {
+    if (Array.isArray(initialPatient?.allergies) && initialPatient.allergies.length > 0) return true;
+    if (initialPatient?.hasAllergies !== undefined) return Boolean(initialPatient.hasAllergies);
+    return null;
+  });
   const [newAllergyInput, setNewAllergyInput] = useState('');
 
   // ============================================================================
@@ -509,33 +564,56 @@ export default function RequestExamModal({
   // Requerimiento: Desde riesgos en adelante es la solicitud de muestra porque
   // estos factores modulan el diagnóstico y recomendación del perfil qPCR.
   // ============================================================================
-  const [riskFactors, setRiskFactors] = useState({
-    habitat: '',
-    housingArea: '',
-    housingType: '',
-    otherHousingType: '',
-    livesWithOtherAnimals: false,
-    cohabitingSpecies: [],
-    recentTravel: false,
-    recentTravelDetails: '',
-    ruralAccess: false,
-    parasiteExposure: false,
-    outdoorWater: false,
-    coastalRescue: false,
-    coastalRescueLocation: '',
+  const [riskFactors, setRiskFactors] = useState(() => {
+    const rf = initialPatient?.riskFactors || {};
+    return {
+      habitat: rf.habitat || '',
+      housingArea: rf.housingArea || '',
+      housingType: rf.housingType || '',
+      otherHousingType: rf.otherHousingType || '',
+      livesWithOtherAnimals: Boolean(rf.livesWithOtherAnimals),
+      cohabitingSpecies: Array.isArray(rf.cohabitingSpecies) ? rf.cohabitingSpecies : [],
+      recentTravel: Boolean(rf.recentTravel),
+      recentTravelDetails: rf.recentTravelDetails || '',
+      ruralAccess: Boolean(rf.ruralAccess),
+      parasiteExposure: Boolean(rf.parasiteExposure),
+      outdoorWater: Boolean(rf.outdoorWater),
+      coastalRescue: Boolean(rf.coastalRescue),
+      coastalRescueLocation: rf.coastalRescueLocation || '',
+    };
   });
-  const [otherRiskFactorsList, setOtherRiskFactorsList] = useState([]);
+  const [otherRiskFactorsList, setOtherRiskFactorsList] = useState(() => {
+    if (initialPatient?.riskFactors?.otherRiskFactors && typeof initialPatient.riskFactors.otherRiskFactors === 'string') {
+      return initialPatient.riskFactors.otherRiskFactors.split(',').map((s) => s.trim()).filter(Boolean);
+    }
+    return [];
+  });
   const [newRiskFactorInput, setNewRiskFactorInput] = useState('');
   const [customCohabitingSpeciesInput, setCustomCohabitingSpeciesInput] = useState('');
 
   // ============================================================================
   // CONSTANTES VITALES & TLLC EN SEGUNDOS (Paso 3)
   // ============================================================================
-  const [vitalSignsCapillaryRefillTime, setVitalSignsCapillaryRefillTime] = useState('');
-  const [vitalSignsHeartRate, setVitalSignsHeartRate] = useState('');
-  const [vitalSignsTemp, setVitalSignsTemp] = useState('');
-  const [vitalSignsResp, setVitalSignsResp] = useState('');
-  const [vitalSignsMucosa, setVitalSignsMucosa] = useState('');
+  const [vitalSignsCapillaryRefillTime, setVitalSignsCapillaryRefillTime] = useState(() => {
+    const vs = initialPatient?.vitalSigns || initialPatient?.healthMetrics?.vitalSigns;
+    return vs?.capillaryRefillTime ? String(vs.capillaryRefillTime).replace(/[^0-9.]/g, '') : '';
+  });
+  const [vitalSignsHeartRate, setVitalSignsHeartRate] = useState(() => {
+    const vs = initialPatient?.vitalSigns || initialPatient?.healthMetrics?.vitalSigns;
+    return vs?.heartRate ? String(vs.heartRate).replace(/\D/g, '') : '';
+  });
+  const [vitalSignsTemp, setVitalSignsTemp] = useState(() => {
+    const vs = initialPatient?.vitalSigns || initialPatient?.healthMetrics?.vitalSigns;
+    return vs?.temperature ? String(vs.temperature).replace(/[^0-9.]/g, '') : '';
+  });
+  const [vitalSignsResp, setVitalSignsResp] = useState(() => {
+    const vs = initialPatient?.vitalSigns || initialPatient?.healthMetrics?.vitalSigns;
+    return vs?.respiratoryRate ? String(vs.respiratoryRate).replace(/\D/g, '') : '';
+  });
+  const [vitalSignsMucosa, setVitalSignsMucosa] = useState(() => {
+    const vs = initialPatient?.vitalSigns || initialPatient?.healthMetrics?.vitalSigns;
+    return vs?.mucosa || '';
+  });
 
   // ============================================================================
   // CUADRO HEMÁTICO (HEMOGRAMA) (Paso 3)
@@ -777,6 +855,36 @@ export default function RequestExamModal({
           const parts = rf.otherRiskFactors.split(',').map((s) => s.trim()).filter(Boolean);
           if (parts.length > 0) setOtherRiskFactorsList(parts);
         }
+      }
+
+      // 4. Constantes vitales previas si las tuviera (no volver a pedir)
+      const vs = activePatient.vitalSigns || activePatient.healthMetrics?.vitalSigns || activePatient.medicalAdmission?.vitalSigns;
+      if (vs) {
+        if (vs.capillaryRefillTime) setVitalSignsCapillaryRefillTime(String(vs.capillaryRefillTime).replace(/[^0-9.]/g, ''));
+        if (vs.heartRate) setVitalSignsHeartRate(String(vs.heartRate).replace(/\D/g, ''));
+        if (vs.temperature) setVitalSignsTemp(String(vs.temperature).replace(/[^0-9.]/g, ''));
+        if (vs.respiratoryRate) setVitalSignsResp(String(vs.respiratoryRate).replace(/\D/g, ''));
+        if (vs.mucosa) setVitalSignsMucosa(String(vs.mucosa));
+      }
+
+      // 5. Cuadro hemático previo si lo tuviera (no volver a pedir)
+      const ch = activePatient.cuadroHematico || activePatient.medicalAdmission?.cuadroHematico;
+      if (ch) {
+        if (ch.hasCuadroHematico !== undefined) setHasCuadroHematico(Boolean(ch.hasCuadroHematico));
+        if (ch.hematocrito) setCuadroHematicoHematocrito(String(ch.hematocrito));
+        if (ch.hemoglobina) setCuadroHematicoHemoglobina(String(ch.hemoglobina));
+        if (ch.leucocitos) setCuadroHematicoLeucocitos(String(ch.leucocitos));
+        if (ch.plaquetas) setCuadroHematicoPlaquetas(String(ch.plaquetas));
+        if (ch.observaciones) setCuadroHematicoObservaciones(ch.observaciones);
+        if (ch.fileName) setCuadroHematicoFileName(ch.fileName);
+      }
+
+      // 6. Historia clínica previa si la tuviera (no volver a pedir)
+      const hc = activePatient.historiaClinica || activePatient.medicalAdmission?.historiaClinica;
+      if (hc) {
+        if (hc.hasHistoriaClinica !== undefined) setHasHistoriaClinica(Boolean(hc.hasHistoriaClinica));
+        if (hc.fileName) setHistoriaClinicaFileName(hc.fileName);
+        if (hc.notes) setHistoriaClinicaNotes(hc.notes);
       }
     } else {
       setExamIsSterilized(null);
@@ -1497,6 +1605,187 @@ export default function RequestExamModal({
     setHasVetPlusInsurance(false);
     setVetPlusCode('');
     setIsAsymptomatic(false);
+    setSelectedClinicalExams([]);
+    setClinicalSearchTerm('');
+    setClinicalCategoryFilter('all');
+    setClinicalObservations('');
+    setClinicalStep(1);
+    setMicrobiotaSubtype('kit');
+  };
+
+  // ============================================================================
+  // LÓGICA DE SOLICITUD DE CLÍNICAS (PORTAFOLIO OFICIAL 223 PRUEBAS - SIN AYUDAS)
+  // ============================================================================
+  const filteredClinicalExams = useMemo(() => {
+    let list = CLINICAL_EXAMS;
+    if (clinicalCategoryFilter !== 'all') {
+      const catObj = CLINICAL_CATEGORIES.find((c) => c.id === clinicalCategoryFilter);
+      if (catObj) {
+        list = list.filter((e) => e.categoria.toLowerCase() === catObj.nombre.toLowerCase());
+      }
+    }
+    if (clinicalSearchTerm.trim()) {
+      const term = clinicalSearchTerm.toLowerCase().trim();
+      list = list.filter(
+        (e) =>
+          e.nombre.toLowerCase().includes(term) ||
+          e.cups.toLowerCase().includes(term) ||
+          e.id.toLowerCase().includes(term) ||
+          (e.matrizMuestra && e.matrizMuestra.toLowerCase().includes(term))
+      );
+    }
+    return list;
+  }, [clinicalCategoryFilter, clinicalSearchTerm]);
+
+  const totalClinicalPrice = useMemo(() => {
+    return selectedClinicalExams.reduce((sum, e) => sum + (e.precioIva || 0), 0);
+  }, [selectedClinicalExams]);
+
+  const consolidatedClinicalMatrices = useMemo(() => {
+    const list = selectedClinicalExams.map((e) => e.matrizMuestra).filter(Boolean);
+    return Array.from(new Set(list));
+  }, [selectedClinicalExams]);
+
+  const handleToggleSelectClinicalExam = (exam) => {
+    setSelectedClinicalExams((prev) => {
+      const exists = prev.some((e) => e.id === exam.id);
+      if (exists) {
+        return prev.filter((e) => e.id !== exam.id);
+      } else {
+        return [...prev, exam];
+      }
+    });
+  };
+
+  const handleRemoveClinicalExam = (examId) => {
+    setSelectedClinicalExams((prev) => prev.filter((e) => e.id !== examId));
+  };
+
+  const handleSubmitClinicalOrder = async () => {
+    if (!activePatient) {
+      alert('Por favor selecciona un paciente para la solicitud de exámenes clínicos.');
+      return;
+    }
+    if (selectedClinicalExams.length === 0) {
+      alert('Por favor selecciona al menos una prueba clínica del catálogo.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        requestCategory: 'clinicas',
+        examType: 'nuevo',
+        testName: selectedClinicalExams.map((e) => e.nombre).join(' + '),
+        category: 'Pruebas Diagnósticas Clínicas',
+        selectedClinicalExams,
+        clinicalObservations: clinicalObservations.trim(),
+        samples: consolidatedClinicalMatrices.map((m) => ({ name: m, required: true })),
+        sampleType: consolidatedClinicalMatrices.join(' | ') || 'Muestra de laboratorio clínico',
+        totalPrice: `$${totalClinicalPrice.toLocaleString('es-CO')}`,
+        urgency: 'Normal (según catálogo)',
+        logistics: 'Toma en clínica',
+        requestedBy: activePatient.attendingVet || 'Dr. Alejandro Morales',
+        targets: selectedClinicalExams.map((e) => `${e.cups ? `[${e.cups}] ` : ''}${e.nombre}`).join(', '),
+        isSterilized: isAlreadySterilized ? true : (examIsSterilized !== null ? examIsSterilized : activePatient.isSterilized),
+        allergies: patientAllergiesList.join(', '),
+        hasAllergies: patientAllergiesList.length > 0,
+      };
+
+      const resultOrder = await onRequest(activePatient.id, payload);
+      const generatedCode = resultOrder?.id || `CLN-2026-${Math.floor(100 + Math.random() * 900)}`;
+
+      setSubmittedOrderData({
+        ...payload,
+        orderId: resultOrder?.id || generatedCode,
+        examCode: generatedCode,
+        patient: { ...activePatient },
+      });
+
+      setIsOrderSuccess(true);
+    } catch (err) {
+      alert(`Error al generar la orden clínica: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // ============================================================================
+  // LÓGICA DE SOLICITUD DE MICROBIOTA (KIT O RECOLECCIÓN - SIN AYUDAS)
+  // ============================================================================
+  const handleSubmitMicrobiotaOrder = async () => {
+    setIsSubmitting(true);
+    try {
+      let payload;
+      let targetPatientId = activePatient?.id || 'KIT-MICROBIOTA';
+
+      if (microbiotaSubtype === 'kit') {
+        payload = {
+          requestCategory: 'microbiota',
+          microbiotaSubtype: 'kit',
+          testName: `Solicitud de Kits de Microbiota (${microbiotaKitQuantity} un.)`,
+          category: 'Microbiota Gastrointestinal',
+          kitQuantity: microbiotaKitQuantity,
+          deliverySede: microbiotaDeliverySede,
+          deliveryAddress: microbiotaDeliveryAddress,
+          recipientContact: microbiotaRecipientContact,
+          recipientPhone: microbiotaRecipientPhone,
+          notes: microbiotaDeliveryNotes.trim(),
+          sampleType: 'Kit estéril con tubo estabilizador ADN fecal',
+          totalPrice: 'Incluido en convenio de secuenciación',
+          urgency: 'Envío estándar 24h',
+          requestedBy: microbiotaRecipientContact || 'Dr. Alejandro Morales',
+          targets: 'Kit de secuenciación masiva 16S rRNA',
+        };
+      } else {
+        if (!activePatient) {
+          alert('Por favor selecciona el paciente para la recolección de muestra de microbiota.');
+          setIsSubmitting(false);
+          return;
+        }
+        payload = {
+          requestCategory: 'microbiota',
+          microbiotaSubtype: 'recoleccion',
+          testName: 'Recolección de Muestra Microbiota Gastrointestinal (16S rRNA)',
+          category: 'Microbiota Gastrointestinal',
+          collectionDate: microbiotaCollectionDate,
+          collectionTimeSlot: microbiotaCollectionTimeSlot,
+          collectionSede: microbiotaCollectionSede,
+          sampleCondition: microbiotaSampleCondition,
+          notes: microbiotaCollectionNotes.trim(),
+          sampleType: 'Muestra fecal refrigerada (4°C) en vial conservante',
+          totalPrice: '$285.000',
+          urgency: microbiotaCollectionTimeSlot === 'urgente' ? 'Urgente (Mismo día)' : 'Programada',
+          requestedBy: activePatient.attendingVet || 'Dr. Alejandro Morales',
+          targets: 'Secuenciación metagenómica 16S rRNA V3-V4',
+          isSterilized: isAlreadySterilized ? true : (examIsSterilized !== null ? examIsSterilized : activePatient.isSterilized),
+          allergies: patientAllergiesList.join(', '),
+          hasAllergies: patientAllergiesList.length > 0,
+        };
+      }
+
+      const resultOrder = await onRequest(targetPatientId, payload);
+      const codePrefix = microbiotaSubtype === 'kit' ? 'KIT-MCB' : 'REC-MCB';
+      const generatedCode = resultOrder?.id || `${codePrefix}-2026-${Math.floor(100 + Math.random() * 900)}`;
+
+      setSubmittedOrderData({
+        ...payload,
+        orderId: resultOrder?.id || generatedCode,
+        examCode: generatedCode,
+        patient: activePatient || {
+          name: 'Clínica Veterinaria (Envío Sede)',
+          species: 'Logística de Kits',
+          breed: microbiotaDeliverySede,
+          owner: { name: microbiotaRecipientContact, phone: microbiotaRecipientPhone },
+        },
+      });
+
+      setIsOrderSuccess(true);
+    } catch (err) {
+      alert(`Error al generar la solicitud de microbiota: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // ============================================================================
@@ -1575,17 +1864,29 @@ export default function RequestExamModal({
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     <span className="text-[11px] font-extrabold text-[#6F2BCC] uppercase tracking-wider">
-                      Módulo Clínico · Solicitud de Examen qPCR
+                      {requestCategory === 'qpcr' && 'Módulo Clínico · Solicitud de Examen qPCR'}
+                      {requestCategory === 'clinicas' && 'Módulo Clínico · Solicitud de Clínicas (223 Pruebas)'}
+                      {requestCategory === 'microbiota' && 'Módulo Clínico · Solicitud de Microbiota (Kit & Recolección)'}
                     </span>
                   </div>
                 </div>
               )}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-sky-100 text-[#6F2BCC]">
-                    {examType === 'control' ? '🔄 SEGUIMIENTO / CONTROL' : '✨ NUEVO EXAMEN'}
+                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider ${
+                    requestCategory === 'qpcr' ? 'bg-purple-100 text-[#6F2BCC]' :
+                    requestCategory === 'clinicas' ? 'bg-teal-100 text-teal-800' :
+                    'bg-emerald-100 text-emerald-800'
+                  }`}>
+                    {requestCategory === 'qpcr' && (examType === 'control' ? '🔄 SEGUIMIENTO / CONTROL' : '🧬 BIOLOGÍA MOLECULAR qPCR')}
+                    {requestCategory === 'clinicas' && '🏥 CATÁLOGO DE CLÍNICAS'}
+                    {requestCategory === 'microbiota' && '🦠 MICROBIOTA GASTROINTESTINAL'}
                   </span>
-                  <span className="text-xs text-slate-400 font-medium">· Solicitud Molecular qPCR</span>
+                  <span className="text-xs text-slate-400 font-medium">
+                    {requestCategory === 'qpcr' && '· Asistente diagnóstico molecular qPCR'}
+                    {requestCategory === 'clinicas' && '· 223 pruebas de catálogo clínico (Sin ayudas diagnósticas)'}
+                    {requestCategory === 'microbiota' && '· Solicitud de kit o recolección (Sin ayudas diagnósticas)'}
+                  </span>
                 </div>
                 {isModal && (
                   <button
@@ -1597,26 +1898,106 @@ export default function RequestExamModal({
                 )}
               </div>
 
-              {/* Barra de progreso de 5 pasos */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
-                  <span>PASO {currentStep <= 5 ? currentStep : 5} DE 5</span>
-                  <span className="text-[#6F2BCC]">
-                    {currentStep === 1 && '1. Paciente & Esterilización'}
-                    {currentStep === 2 && '2. Factores de riesgo'}
-                    {currentStep === 3 && '3. Evaluación clínica & Historia'}
-                    {currentStep === 4 && '4. Perfiles qPCR'}
-                    {currentStep === 5 && '5. Revisión y despacho'}
-                  </span>
-                </div>
-                <div className="grid grid-cols-5 gap-2">
-                  <div className={`h-1.5 rounded-full transition-all ${currentStep >= 1 ? 'bg-[#6F2BCC]' : 'bg-slate-200'}`} />
-                  <div className={`h-1.5 rounded-full transition-all ${currentStep >= 2 ? 'bg-[#6F2BCC]' : 'bg-slate-200'}`} />
-                  <div className={`h-1.5 rounded-full transition-all ${currentStep >= 3 ? 'bg-[#6F2BCC]' : 'bg-slate-200'}`} />
-                  <div className={`h-1.5 rounded-full transition-all ${currentStep >= 4 ? 'bg-[#6F2BCC]' : 'bg-slate-200'}`} />
-                  <div className={`h-1.5 rounded-full transition-all ${currentStep >= 5 ? 'bg-[#6F2BCC]' : 'bg-slate-200'}`} />
-                </div>
+              {/* Selector de Modalidad Principal (3 Tipos de Examen) */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1.5 bg-slate-100/90 rounded-2xl mb-3">
+                <button
+                  type="button"
+                  onClick={() => setRequestCategory('qpcr')}
+                  className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
+                    requestCategory === 'qpcr'
+                      ? 'bg-white text-[#2B017C] shadow-xs ring-1 ring-slate-200'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                  }`}
+                >
+                  <span className="text-lg">🧬</span>
+                  <div className="min-w-0">
+                    <div className="font-extrabold truncate">Biología Molecular (qPCR)</div>
+                    <div className="text-[10px] text-[#6F2BCC] font-semibold truncate">Con ayudas diagnósticas</div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setRequestCategory('clinicas')}
+                  className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
+                    requestCategory === 'clinicas'
+                      ? 'bg-white text-[#2B017C] shadow-xs ring-1 ring-slate-200'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                  }`}
+                >
+                  <span className="text-lg">🏥</span>
+                  <div className="min-w-0">
+                    <div className="font-extrabold truncate">Solicitud de Clínicas</div>
+                    <div className="text-[10px] text-teal-700 font-semibold truncate">223 Pruebas · Sin ayudas</div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setRequestCategory('microbiota')}
+                  className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
+                    requestCategory === 'microbiota'
+                      ? 'bg-white text-[#2B017C] shadow-xs ring-1 ring-slate-200'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                  }`}
+                >
+                  <span className="text-lg">🦠</span>
+                  <div className="min-w-0">
+                    <div className="font-extrabold truncate">Solicitud de Microbiota</div>
+                    <div className="text-[10px] text-emerald-700 font-semibold truncate">Kit o Recolección · Sin ayudas</div>
+                  </div>
+                </button>
               </div>
+
+              {/* Barra de progreso según modalidad */}
+              {requestCategory === 'qpcr' && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
+                    <span>PASO {currentStep <= 5 ? currentStep : 5} DE 5</span>
+                    <span className="text-[#6F2BCC]">
+                      {currentStep === 1 && '1. Paciente & Esterilización'}
+                      {currentStep === 2 && '2. Factores de riesgo'}
+                      {currentStep === 3 && '3. Evaluación clínica & Historia'}
+                      {currentStep === 4 && '4. Perfiles qPCR'}
+                      {currentStep === 5 && '5. Revisión y despacho'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-5 gap-2">
+                    <div className={`h-1.5 rounded-full transition-all ${currentStep >= 1 ? 'bg-[#6F2BCC]' : 'bg-slate-200'}`} />
+                    <div className={`h-1.5 rounded-full transition-all ${currentStep >= 2 ? 'bg-[#6F2BCC]' : 'bg-slate-200'}`} />
+                    <div className={`h-1.5 rounded-full transition-all ${currentStep >= 3 ? 'bg-[#6F2BCC]' : 'bg-slate-200'}`} />
+                    <div className={`h-1.5 rounded-full transition-all ${currentStep >= 4 ? 'bg-[#6F2BCC]' : 'bg-slate-200'}`} />
+                    <div className={`h-1.5 rounded-full transition-all ${currentStep >= 5 ? 'bg-[#6F2BCC]' : 'bg-slate-200'}`} />
+                  </div>
+                </div>
+              )}
+
+              {requestCategory === 'clinicas' && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
+                    <span>SOLICITUD DE CLÍNICAS (PASO {clinicalStep} DE 2)</span>
+                    <span className="text-teal-700 font-bold">
+                      {clinicalStep === 1 ? '1. Selección de Paciente & Pruebas Clínicas' : '2. Resumen & Despacho'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className={`h-1.5 rounded-full transition-all ${clinicalStep >= 1 ? 'bg-teal-600' : 'bg-slate-200'}`} />
+                    <div className={`h-1.5 rounded-full transition-all ${clinicalStep >= 2 ? 'bg-teal-600' : 'bg-slate-200'}`} />
+                  </div>
+                </div>
+              )}
+
+              {requestCategory === 'microbiota' && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
+                    <span>MICROBIOTA GASTROINTESTINAL</span>
+                    <span className="text-emerald-700 font-bold">
+                      {microbiotaSubtype === 'kit' ? '📦 Modalidad: Solicitud de Kit de Toma' : '🚚 Modalidad: Solicitud de Recolección'}
+                    </span>
+                  </div>
+                  <div className="w-full bg-emerald-500 h-1.5 rounded-full" />
+                </div>
+              )}
             </>
           )}
         </div>
@@ -1676,8 +2057,136 @@ export default function RequestExamModal({
                 </div>
               </div>
 
-              {/* RENDERIZADO CONDICIONAL SEGÚN TIPO: SEGUIMIENTO/CONTROL vs EXAMEN NUEVO */}
-              {submittedOrderData.examType === 'control' ? (
+              {/* RENDERIZADO CONDICIONAL SEGÚN TIPO: CLÍNICAS vs MICROBIOTA vs qPCR (CONTROL vs NUEVO) */}
+              {submittedOrderData.requestCategory === 'clinicas' ? (
+                <>
+                  {/* Tarjeta de Pruebas Clínicas Ordenadas */}
+                  <div className="bg-white rounded-2xl border border-teal-200 p-5 shadow-2xs space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                        PRUEBAS DIAGNÓSTICAS CLÍNICAS ORDENADAS
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-teal-50 text-teal-800 border border-teal-200">
+                        {submittedOrderData.selectedClinicalExams?.length || 1} prueba(s)
+                      </span>
+                    </div>
+
+                    <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                      <div className="bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 flex items-center justify-between">
+                        <span>Prueba / Categoría</span>
+                        <span>Precio IVA incluido</span>
+                      </div>
+                      <div className="divide-y divide-slate-100 text-xs">
+                        {(submittedOrderData.selectedClinicalExams || []).map((exam, idx) => (
+                          <div key={idx} className="px-4 py-3 flex items-center justify-between">
+                            <div>
+                              <div className="font-extrabold text-slate-900">{exam.nombre}</div>
+                              <div className="text-[11px] text-slate-500 mt-0.5">
+                                {exam.categoria} {exam.cups ? `· CUPS: ${exam.cups}` : ''} · Muestra: <strong>{exam.matrizMuestra}</strong> · Entrega: {exam.tiempoEntrega}
+                              </div>
+                            </div>
+                            <span className="font-bold text-slate-800">${(exam.precioIva || 0).toLocaleString('es-CO')}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="bg-teal-50/80 px-4 py-3.5 border-t-2 border-teal-200 flex items-center justify-between text-sm font-extrabold">
+                        <span className="text-teal-950">Total Facturado:</span>
+                        <span className="text-teal-800 font-black text-base">{submittedOrderData.totalPrice}</span>
+                      </div>
+                    </div>
+
+                    {/* Tubos requeridos */}
+                    {submittedOrderData.samples && submittedOrderData.samples.length > 0 && (
+                      <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+                        <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider block">
+                          TUBOS Y MUESTRAS BIOLÓGICAS A TOMAR EN CLÍNICA:
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {submittedOrderData.samples.map((samp, sIdx) => (
+                            <span key={sIdx} className="px-3 py-1 rounded-full bg-white text-slate-700 border border-slate-200 text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
+                              <span>🩸</span>
+                              <span>{samp.name || samp}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {submittedOrderData.clinicalObservations && (
+                      <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs space-y-1">
+                        <span className="font-bold text-amber-900">Observaciones del Veterinario:</span>
+                        <p className="text-amber-800">{submittedOrderData.clinicalObservations}</p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : submittedOrderData.requestCategory === 'microbiota' ? (
+                <>
+                  {/* Tarjeta de Solicitud de Microbiota */}
+                  <div className="bg-white rounded-2xl border border-emerald-200 p-5 shadow-2xs space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                        DETALLES DE LA SOLICITUD DE MICROBIOTA
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        {submittedOrderData.microbiotaSubtype === 'kit' ? 'Envío de Kits' : 'Recolección de Muestra'}
+                      </span>
+                    </div>
+
+                    {submittedOrderData.microbiotaSubtype === 'kit' ? (
+                      <div className="p-4 bg-emerald-50/50 border border-emerald-200 rounded-xl space-y-3 text-xs">
+                        <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                          <span className="text-slate-600 font-medium">Cantidad de kits solicitados:</span>
+                          <span className="font-black text-emerald-900 text-sm">{submittedOrderData.kitQuantity} unidad(es)</span>
+                        </div>
+                        <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                          <span className="text-slate-600 font-medium">Sede de destino:</span>
+                          <span className="font-bold text-slate-900">{submittedOrderData.deliverySede}</span>
+                        </div>
+                        <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                          <span className="text-slate-600 font-medium">Dirección física de entrega:</span>
+                          <span className="font-bold text-slate-900">{submittedOrderData.deliveryAddress}</span>
+                        </div>
+                        <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                          <span className="text-slate-600 font-medium">Persona de contacto:</span>
+                          <span className="font-bold text-slate-900">{submittedOrderData.recipientContact} ({submittedOrderData.recipientPhone})</span>
+                        </div>
+                        {submittedOrderData.notes && (
+                          <div className="pt-1">
+                            <span className="text-slate-600 font-medium block">Notas de entrega:</span>
+                            <span className="font-semibold text-slate-800">{submittedOrderData.notes}</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-emerald-50/50 border border-emerald-200 rounded-xl space-y-3 text-xs">
+                        <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                          <span className="text-slate-600 font-medium">Sede de recolección:</span>
+                          <span className="font-bold text-slate-900">{submittedOrderData.collectionSede}</span>
+                        </div>
+                        <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                          <span className="text-slate-600 font-medium">Fecha y Franja horaria:</span>
+                          <span className="font-black text-emerald-900">{submittedOrderData.collectionDate} · {submittedOrderData.collectionTimeSlot === 'manana' ? 'Mañana (8am-12pm)' : submittedOrderData.collectionTimeSlot === 'tarde' ? 'Tarde (2pm-6pm)' : 'Urgente'}</span>
+                        </div>
+                        <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                          <span className="text-slate-600 font-medium">Condición de la muestra:</span>
+                          <span className="font-bold text-slate-900">{submittedOrderData.sampleCondition}</span>
+                        </div>
+                        <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                          <span className="text-slate-600 font-medium">Tarifa del servicio:</span>
+                          <span className="font-black text-emerald-800 text-sm">{submittedOrderData.totalPrice}</span>
+                        </div>
+                        {submittedOrderData.notes && (
+                          <div className="pt-1">
+                            <span className="text-slate-600 font-medium block">Observaciones:</span>
+                            <span className="font-semibold text-slate-800">{submittedOrderData.notes}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : submittedOrderData.examType === 'control' ? (
                 <>
                   {/* TARJETA 2 (CONTROL): EXAMEN DE REFERENCIA */}
                   <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-3">
@@ -2133,9 +2642,9 @@ export default function RequestExamModal({
           )}
 
           {/* ================================================================== */}
-          {/* PASO 1: TIPO DE EXAMEN Y BUSCADOR REACTIVO DE PACIENTE             */}
+          {/* PASO 1 (qPCR): TIPO DE EXAMEN Y BUSCADOR REACTIVO DE PACIENTE      */}
           {/* ================================================================== */}
-          {!isOrderSuccess && !isControlReviewOpen && currentStep === 1 && (
+          {!isOrderSuccess && !isControlReviewOpen && requestCategory === 'qpcr' && currentStep === 1 && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
                 <h3 className="text-lg font-extrabold text-slate-900">
@@ -2606,7 +3115,7 @@ export default function RequestExamModal({
           {/* Requerimiento: Desde riesgos en adelante es la solicitud porque    */}
           {/* estos factores modulan el perfil qPCR a solicitar                  */}
           {/* ================================================================== */}
-          {!isOrderSuccess && !isControlReviewOpen && currentStep === 2 && (
+          {!isOrderSuccess && !isControlReviewOpen && requestCategory === 'qpcr' && currentStep === 2 && (
             <div className="space-y-6 animate-in fade-in duration-150">
               
               {/* Encabezado del Paso 2 */}
@@ -2977,7 +3486,7 @@ export default function RequestExamModal({
           {/* Requerimiento: Síndromes, hallazgos, TLLC en segundos, hemograma y */}
           {/* DIRECTAMENTE ABAJO DEL CUADRO HEMÁTICO: Subir historia clínica     */}
           {/* ================================================================== */}
-          {!isOrderSuccess && !isControlReviewOpen && currentStep === 3 && (
+          {!isOrderSuccess && !isControlReviewOpen && requestCategory === 'qpcr' && currentStep === 3 && (
             <div className="space-y-6 animate-in fade-in duration-150">
               
               {/* Encabezado del Paso 3 */}
@@ -3440,7 +3949,7 @@ export default function RequestExamModal({
           {/* ================================================================== */}
           {/* PASO 4: PERFILES qPCR RECOMENDADOS (INICIA EN BLANCO: 0 AÑADIDOS)  */}
           {/* ================================================================== */}
-          {!isOrderSuccess && !isControlReviewOpen && currentStep === 4 && (
+          {!isOrderSuccess && !isControlReviewOpen && requestCategory === 'qpcr' && currentStep === 4 && (
             <div className="space-y-5 animate-in fade-in duration-150">
               <div>
                 <h3 className="text-lg font-extrabold text-slate-900">
@@ -3801,7 +4310,7 @@ export default function RequestExamModal({
           {/* ================================================================== */}
           {/* PASO 5: CONFIRMACIÓN DE LA ORDEN & EDICIÓN DE AGENTES              */}
           {/* ================================================================== */}
-          {!isOrderSuccess && !isControlReviewOpen && currentStep === 5 && (
+          {!isOrderSuccess && !isControlReviewOpen && requestCategory === 'qpcr' && currentStep === 5 && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
                 <h3 className="text-lg font-extrabold text-slate-900">
@@ -4260,6 +4769,736 @@ export default function RequestExamModal({
               </div>
             </div>
           )}
+
+          {/* ================================================================== */}
+          {/* SOLICITUD DE CLÍNICAS (PORTAFOLIO OFICIAL 2026 - 223 PRUEBAS)      */}
+          {/* SIN AYUDAS DIAGNÓSTICAS DE BIOLOGÍA MOLECULAR qPCR                 */}
+          {/* ================================================================== */}
+          {!isOrderSuccess && !isControlReviewOpen && requestCategory === 'clinicas' && (
+            <div className="space-y-6 animate-in fade-in duration-150">
+              
+              {/* PASO 1: SELECCIÓN DE PACIENTE Y PRUEBAS */}
+              {clinicalStep === 1 && (
+                <>
+                  {/* Encabezado informativo */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <h3 className="text-lg font-extrabold text-slate-900">
+                        Catálogo de Pruebas Diagnósticas Clínicas
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Selecciona el paciente y las pruebas clínicas requeridas del portafolio oficial (223 pruebas). Sin ayudas diagnósticas.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200">
+                        {selectedClinicalExams.length} prueba(s) seleccionada(s)
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Tarjeta de Paciente */}
+                  <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                        <span>🐾</span> Paciente para la orden clínica *
+                      </label>
+                      {activePatient && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedPatientId('')}
+                          className="text-xs text-[#6F2BCC] hover:underline font-bold cursor-pointer"
+                        >
+                          Cambiar paciente
+                        </button>
+                      )}
+                    </div>
+
+                    {activePatient ? (
+                      <div className="p-4 bg-teal-50/50 border border-teal-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3.5">
+                          <div className="w-12 h-12 rounded-2xl bg-white border border-teal-200 flex items-center justify-center text-2xl shrink-0 shadow-2xs">
+                            {activePatient.avatar || (activePatient.species?.toLowerCase().includes('felin') ? '🐱' : '🐶')}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="text-sm font-extrabold text-slate-900">
+                                {activePatient.name} {activePatient.lastName || ''}
+                              </h4>
+                              <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-md bg-white text-teal-800 border border-teal-200">
+                                {activePatient.id}
+                              </span>
+                              <span className="text-[11px] font-semibold text-slate-500">
+                                🏢 {activePatient.sedeName || 'Sede Principal - Calle 80'}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-600 mt-0.5 break-words">
+                              {activePatient.species} · {activePatient.breed} · {getPatientAgeDisplay(activePatient)} · Peso: {activePatient.weight || 'N/R'} · Tutor: {activePatient.owner?.name || activePatient.owner?.firstName} ({activePatient.owner?.phone || 'Sin tel.'})
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {isAlreadySterilized && (
+                            <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                              ✓ Esterilizado
+                            </span>
+                          )}
+                          {patientAllergiesList.length > 0 && (
+                            <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                              ⚠️ {patientAllergiesList.length} Alergia(s)
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Buscar paciente por nombre, ID o tutor..."
+                            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                          />
+                          {searchTerm && (
+                            <button
+                              type="button"
+                              onClick={() => setSearchTerm('')}
+                              className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-slate-600 cursor-pointer"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
+
+                        {displayedPatients.length > 0 ? (
+                          <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                            {displayedPatients.map((p) => (
+                              <div
+                                key={p.id}
+                                onClick={() => setSelectedPatientId(p.id)}
+                                className="p-3 rounded-xl border border-slate-200 hover:border-teal-500 hover:bg-teal-50/40 cursor-pointer transition-all flex items-center justify-between"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="text-xl">{p.avatar || (p.species?.toLowerCase().includes('felin') ? '🐱' : '🐶')}</span>
+                                  <div>
+                                    <div className="font-bold text-xs text-slate-900">{p.name} {p.lastName || ''}</div>
+                                    <div className="text-[11px] text-slate-500">{p.species} · {p.breed} · Tutor: {p.owner?.name}</div>
+                                  </div>
+                                </div>
+                                <span className="text-xs text-teal-700 font-bold">Seleccionar →</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-slate-400 italic text-center py-3">No se encontraron pacientes.</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Buscador & Selector de Pruebas Clínicas */}
+                  <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          value={clinicalSearchTerm}
+                          onChange={(e) => setClinicalSearchTerm(e.target.value)}
+                          placeholder="Buscar por prueba o CUPS (ej: Hemograma, Perfil Renal, 902210)..."
+                          className="w-full pl-9 pr-8 py-2.5 border border-slate-200 rounded-xl text-xs placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                        />
+                        <span className="absolute left-3 top-2.5 text-xs text-slate-400">🔍</span>
+                        {clinicalSearchTerm && (
+                          <button
+                            type="button"
+                            onClick={() => setClinicalSearchTerm('')}
+                            className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-slate-600"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Dropdown / Filtro de Categoría */}
+                      <select
+                        value={clinicalCategoryFilter}
+                        onChange={(e) => setClinicalCategoryFilter(e.target.value)}
+                        className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:ring-2 focus:ring-teal-500 focus:outline-none shrink-0"
+                      >
+                        <option value="all">Todas las Categorías ({CLINICAL_EXAMS.length})</option>
+                        {CLINICAL_CATEGORIES.map((cat) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.icon} {cat.nombre} ({cat.totalPruebas})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Chips de Categorías Populares para acceso rápido */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setClinicalCategoryFilter('all')}
+                        className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer ${
+                          clinicalCategoryFilter === 'all'
+                            ? 'bg-teal-600 text-white shadow-2xs'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        Todas ({CLINICAL_EXAMS.length})
+                      </button>
+                      {CLINICAL_CATEGORIES.slice(0, 8).map((cat) => (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => setClinicalCategoryFilter(cat.id)}
+                          className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 ${
+                            clinicalCategoryFilter === cat.id
+                              ? 'bg-teal-600 text-white shadow-2xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          <span>{cat.icon}</span>
+                          <span>{cat.nombre}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Lista de Pruebas del Catálogo (Cards Limpias) */}
+                    <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+                      {filteredClinicalExams.length > 0 ? (
+                        filteredClinicalExams.map((exam) => {
+                          const isSelected = selectedClinicalExams.some((e) => e.id === exam.id);
+                          return (
+                            <div
+                              key={exam.id}
+                              onClick={() => handleToggleSelectClinicalExam(exam)}
+                              className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 ${
+                                isSelected
+                                  ? 'bg-teal-50/70 border-teal-500 ring-1 ring-teal-500 shadow-2xs'
+                                  : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                              }`}
+                            >
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-extrabold text-xs text-slate-900">
+                                    {exam.nombre}
+                                  </span>
+                                  {exam.cups && (
+                                    <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                                      CUPS: {exam.cups}
+                                    </span>
+                                  )}
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                                    {exam.categoria}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-3 text-[11px] text-slate-500 flex-wrap">
+                                  <span>🩸 Muestra: <strong>{exam.matrizMuestra || 'Sangre total / Suero'}</strong></span>
+                                  <span>⏱️ Entrega: <strong>{exam.tiempoEntrega || '24h'}</strong></span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                                <div className="text-right">
+                                  <span className="text-xs font-black text-teal-800 block">
+                                    ${(exam.precioIva || 0).toLocaleString('es-CO')} COP
+                                  </span>
+                                  <span className="text-[10px] text-slate-400 font-medium">IVA incluido</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                    isSelected
+                                      ? 'bg-teal-600 text-white shadow-2xs'
+                                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                  }`}
+                                >
+                                  {isSelected ? '✓ Agregada' : '+ Agregar'}
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-8 text-slate-400 text-xs">
+                          No se encontraron pruebas clínicas con los filtros aplicados.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Resumen de Pruebas Seleccionadas (Bolsa de Pruebas) */}
+                  {selectedClinicalExams.length > 0 && (
+                    <div className="bg-white rounded-2xl border border-teal-200 p-5 shadow-2xs space-y-4">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <span className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                          <span>📋</span> Resumen de Pruebas Seleccionadas ({selectedClinicalExams.length})
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedClinicalExams([])}
+                          className="text-xs text-rose-600 hover:underline font-bold cursor-pointer"
+                        >
+                          Vaciar selección
+                        </button>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        {selectedClinicalExams.map((exam) => (
+                          <span
+                            key={exam.id}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-teal-50 border border-teal-200 text-teal-900 rounded-xl text-xs font-bold"
+                          >
+                            <span>{exam.nombre} (${(exam.precioIva || 0).toLocaleString('es-CO')})</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveClinicalExam(exam.id)}
+                              className="text-teal-700 hover:text-rose-600 font-bold"
+                            >
+                              ✕
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Matrices requeridas consolidadas */}
+                      {consolidatedClinicalMatrices.length > 0 && (
+                        <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                          <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider block">
+                            Muestras biológicas que deberás tomar:
+                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            {consolidatedClinicalMatrices.map((matrix, idx) => (
+                              <span key={idx} className="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold">
+                                🩸 {matrix}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Observaciones clínicas */}
+                      <div className="space-y-1.5 pt-1">
+                        <label className="text-xs font-bold text-slate-700">
+                          Observaciones clínicas / Motivo del examen (Opcional):
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={clinicalObservations}
+                          onChange={(e) => setClinicalObservations(e.target.value)}
+                          placeholder="Indique sospecha clínica, tratamiento previo con antibióticos/corticoides o notas para el bacteriólogo..."
+                          className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Total final */}
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <span className="text-xs font-extrabold text-slate-600">Total Orden Clínica:</span>
+                        <span className="text-lg font-black text-teal-800">
+                          ${totalClinicalPrice.toLocaleString('es-CO')} COP
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* PASO 2: REVISIÓN Y DESPACHO DE CLÍNICAS */}
+              {clinicalStep === 2 && (
+                <div className="space-y-5 animate-in fade-in duration-150">
+                  <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
+                    <h3 className="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-3">
+                      Revisión de Solicitud de Laboratorio Clínico
+                    </h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                        <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] block">Paciente:</span>
+                        <div className="font-extrabold text-slate-900 text-sm">{activePatient.name} {activePatient.lastName || ''} ({activePatient.id})</div>
+                        <div className="text-slate-600">{activePatient.species} · {activePatient.breed} · Tutor: {activePatient.owner?.name}</div>
+                      </div>
+
+                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                        <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] block">Sede & Profesional:</span>
+                        <div className="font-extrabold text-slate-900 text-sm">{activePatient.sedeName || 'Sede Principal - Calle 80'}</div>
+                        <div className="text-slate-600">{activePatient.attendingVet || 'Dr. Alejandro Morales'}</div>
+                      </div>
+                    </div>
+
+                    {/* Desglose de Pruebas */}
+                    <div className="border border-slate-200 rounded-xl overflow-hidden">
+                      <div className="bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-700 flex items-center justify-between">
+                        <span>Prueba Diagnóstica</span>
+                        <span>Precio (IVA incl.)</span>
+                      </div>
+                      <div className="divide-y divide-slate-100">
+                        {selectedClinicalExams.map((exam) => (
+                          <div key={exam.id} className="px-4 py-3 text-xs flex items-center justify-between">
+                            <div>
+                              <div className="font-bold text-slate-900">{exam.nombre}</div>
+                              <div className="text-[11px] text-slate-500">{exam.categoria} {exam.cups ? `· CUPS: ${exam.cups}` : ''} · Muestra: {exam.matrizMuestra}</div>
+                            </div>
+                            <span className="font-bold text-slate-800">${(exam.precioIva || 0).toLocaleString('es-CO')}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="bg-teal-50 px-4 py-3 border-t-2 border-teal-200 flex items-center justify-between text-sm font-extrabold">
+                        <span className="text-teal-950">Total a Facturar:</span>
+                        <span className="text-teal-800 font-black text-base">${totalClinicalPrice.toLocaleString('es-CO')} COP</span>
+                      </div>
+                    </div>
+
+                    {clinicalObservations && (
+                      <div className="p-3.5 bg-amber-50/60 border border-amber-200 rounded-xl text-xs space-y-1">
+                        <span className="font-bold text-amber-900">Observaciones registradas:</span>
+                        <p className="text-amber-800">{clinicalObservations}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ================================================================== */}
+          {/* SOLICITUD DE MICROBIOTA (KIT O RECOLECCIÓN)                        */}
+          {/* SIN AYUDAS DIAGNÓSTICAS DE BIOLOGÍA MOLECULAR qPCR                 */}
+          {/* ================================================================== */}
+          {!isOrderSuccess && !isControlReviewOpen && requestCategory === 'microbiota' && (
+            <div className="space-y-6 animate-in fade-in duration-150">
+              
+              {/* Encabezado */}
+              <div>
+                <h3 className="text-lg font-extrabold text-slate-900">
+                  Secuenciación & Perfil de Microbiota Gastrointestinal
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Plataforma metagenómica 16S rRNA. Selecciona si requieres el envío de kits físicos a la clínica o la programación de recolección de muestra.
+                </p>
+              </div>
+
+              {/* Toggle de Modo: Kit vs Recolección */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMicrobiotaSubtype('kit')}
+                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+                    microbiotaSubtype === 'kit'
+                      ? 'bg-emerald-50/80 border-emerald-600 ring-2 ring-emerald-600/30 shadow-xs'
+                      : 'bg-white border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-2xl">📦</span>
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                      Logística Insumos
+                    </span>
+                  </div>
+                  <div className="font-extrabold text-sm text-slate-900">1. Solicitud de Kit(s) de Toma</div>
+                  <div className="text-[11px] text-slate-500 mt-1 leading-snug">
+                    Envío de kits físicos estériles con vial de conservación de ADN fecal a tu sede veterinaria.
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setMicrobiotaSubtype('recoleccion')}
+                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+                    microbiotaSubtype === 'recoleccion'
+                      ? 'bg-emerald-50/80 border-emerald-600 ring-2 ring-emerald-600/30 shadow-xs'
+                      : 'bg-white border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-2xl">🚚</span>
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                      Transporte Muestra
+                    </span>
+                  </div>
+                  <div className="font-extrabold text-sm text-slate-900">2. Solicitud de Recolección</div>
+                  <div className="text-[11px] text-slate-500 mt-1 leading-snug">
+                    Programa la recogida motorizada de la muestra tomada del paciente para transporte en frío al laboratorio.
+                  </div>
+                </button>
+              </div>
+
+              {/* FORMULARIO SUBTIPO 1: SOLICITUD DE KIT */}
+              {microbiotaSubtype === 'kit' && (
+                <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
+                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2.5">
+                    <span>📦</span> Datos para el Envío de Kits a la Clínica
+                  </h4>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Sede de entrega */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Sede de destino *</label>
+                      <select
+                        value={microbiotaDeliverySede}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setMicrobiotaDeliverySede(val);
+                          if (val.includes('80')) setMicrobiotaDeliveryAddress('Cra 80 # 45-12, Bogotá');
+                          else if (val.includes('Norte')) setMicrobiotaDeliveryAddress('Calle 140 # 15-20, Bogotá');
+                          else if (val.includes('Chía')) setMicrobiotaDeliveryAddress('Km 2 Vía Chía-Cajicá');
+                          else setMicrobiotaDeliveryAddress('Cra 91 # 128-40, Bogotá');
+                        }}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      >
+                        <option value="Sede Principal - Calle 80">Sede Principal - Calle 80 (#nit-1)</option>
+                        <option value="Sede Norte - Cedritos">Sede Norte - Cedritos (#nit-2)</option>
+                        <option value="Sede Chía - Sabana">Sede Chía - Sabana (#nit-3)</option>
+                        <option value="Sede Campestre - Suba">Sede Campestre - Suba (#nit-4)</option>
+                      </select>
+                    </div>
+
+                    {/* Cantidad de kits */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Cantidad de kits requeridos *</label>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setMicrobiotaKitQuantity((prev) => Math.max(1, prev - 1))}
+                          className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-slate-700 flex items-center justify-center cursor-pointer"
+                        >
+                          -
+                        </button>
+                        <input
+                          type="number"
+                          min={1}
+                          max={20}
+                          value={microbiotaKitQuantity}
+                          onChange={(e) => setMicrobiotaKitQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                          className="w-20 text-center py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-extrabold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setMicrobiotaKitQuantity((prev) => prev + 1)}
+                          className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-slate-700 flex items-center justify-center cursor-pointer"
+                        >
+                          +
+                        </button>
+                        <span className="text-[11px] text-slate-500 font-medium ml-1">Kit(s) de toma</span>
+                      </div>
+                    </div>
+
+                    {/* Dirección */}
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <label className="text-xs font-bold text-slate-700">Dirección física de entrega *</label>
+                      <input
+                        type="text"
+                        value={microbiotaDeliveryAddress}
+                        onChange={(e) => setMicrobiotaDeliveryAddress(e.target.value)}
+                        placeholder="Ej. Cra 80 # 45-12, Bogotá"
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      />
+                    </div>
+
+                    {/* Contacto y Teléfono */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Veterinario / Contacto recepción *</label>
+                      <input
+                        type="text"
+                        value={microbiotaRecipientContact}
+                        onChange={(e) => setMicrobiotaRecipientContact(e.target.value)}
+                        placeholder="Nombre de la persona que recibe"
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Teléfono celular de contacto *</label>
+                      <input
+                        type="text"
+                        value={microbiotaRecipientPhone}
+                        onChange={(e) => setMicrobiotaRecipientPhone(e.target.value)}
+                        placeholder="Ej. 310 456 7890"
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      />
+                    </div>
+
+                    {/* Notas de entrega */}
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <label className="text-xs font-bold text-slate-700">Instrucciones de entrega / Horarios de recepción</label>
+                      <textarea
+                        rows={2}
+                        value={microbiotaDeliveryNotes}
+                        onChange={(e) => setMicrobiotaDeliveryNotes(e.target.value)}
+                        placeholder="Ej. Entregar en portería o recepción veterinaria antes de las 5:00 PM."
+                        className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-center gap-2.5">
+                    <span className="text-lg">✨</span>
+                    <div>
+                      <span className="font-bold">Insumos sin costo inicial:</span> Los kits de microbiota se despachan de forma gratuita bajo convenio clínico para mantener stock disponible en la sede.
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* FORMULARIO SUBTIPO 2: SOLICITUD DE RECOLECCIÓN */}
+              {microbiotaSubtype === 'recoleccion' && (
+                <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
+                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2.5">
+                    <span>🚚</span> Datos para la Recolección de Muestra de Microbiota
+                  </h4>
+
+                  {/* Paciente */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-700">Paciente del cual se tomó la muestra *</label>
+                    {activePatient ? (
+                      <div className="p-3 bg-emerald-50/60 border border-emerald-200 rounded-xl flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{activePatient.avatar || '🐶'}</span>
+                          <div>
+                            <span className="font-extrabold text-xs text-slate-900">{activePatient.name} ({activePatient.id})</span>
+                            <p className="text-[11px] text-slate-500">{activePatient.species} · {activePatient.breed} · Tutor: {activePatient.owner?.name}</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedPatientId('')}
+                          className="text-xs text-emerald-800 hover:underline font-bold"
+                        >
+                          Cambiar
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          placeholder="Buscar paciente para asociar la recolección..."
+                          className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                        />
+                        {displayedPatients.length > 0 && (
+                          <div className="max-h-40 overflow-y-auto space-y-1.5 border border-slate-100 rounded-xl p-2">
+                            {displayedPatients.map((p) => (
+                              <div
+                                key={p.id}
+                                onClick={() => setSelectedPatientId(p.id)}
+                                className="p-2 rounded-lg hover:bg-emerald-50 cursor-pointer text-xs flex justify-between"
+                              >
+                                <span className="font-bold text-slate-800">{p.name} ({p.id})</span>
+                                <span className="text-emerald-700 font-semibold">Seleccionar</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                    {/* Sede de recogida */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Sede donde está la muestra *</label>
+                      <select
+                        value={microbiotaCollectionSede}
+                        onChange={(e) => setMicrobiotaCollectionSede(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      >
+                        <option value="Sede Principal - Calle 80">Sede Principal - Calle 80 (#nit-1)</option>
+                        <option value="Sede Norte - Cedritos">Sede Norte - Cedritos (#nit-2)</option>
+                        <option value="Sede Chía - Sabana">Sede Chía - Sabana (#nit-3)</option>
+                        <option value="Sede Campestre - Suba">Sede Campestre - Suba (#nit-4)</option>
+                      </select>
+                    </div>
+
+                    {/* Fecha de recolección */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Fecha programada *</label>
+                      <input
+                        type="date"
+                        value={microbiotaCollectionDate}
+                        onChange={(e) => setMicrobiotaCollectionDate(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      />
+                    </div>
+
+                    {/* Franja Horaria */}
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <label className="text-xs font-bold text-slate-700">Franja horaria preferida *</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setMicrobiotaCollectionTimeSlot('manana')}
+                          className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                            microbiotaCollectionTimeSlot === 'manana'
+                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                              : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          ☀️ Mañana (8am - 12pm)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setMicrobiotaCollectionTimeSlot('tarde')}
+                          className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                            microbiotaCollectionTimeSlot === 'tarde'
+                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                              : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          🌤️ Tarde (2pm - 6pm)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setMicrobiotaCollectionTimeSlot('urgente')}
+                          className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                            microbiotaCollectionTimeSlot === 'urgente'
+                              ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
+                              : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          🚨 Urgente (Mismo día)
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Condiciones de la muestra */}
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <label className="text-xs font-bold text-slate-700">Condiciones de conservación de la muestra</label>
+                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs text-slate-700">
+                        <div className="flex items-center gap-2">
+                          <input type="checkbox" defaultChecked disabled className="w-4 h-4 text-emerald-600 rounded" />
+                          <span>Tubo estéril con buffer estabilizador de ADN fecal cerrado herméticamente</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input type="checkbox" defaultChecked disabled className="w-4 h-4 text-emerald-600 rounded" />
+                          <span>Conservado en refrigeración (4°C) previo al transporte del mensajero</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Notas */}
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <label className="text-xs font-bold text-slate-700">Observaciones para el transportador</label>
+                      <textarea
+                        rows={2}
+                        value={microbiotaCollectionNotes}
+                        onChange={(e) => setMicrobiotaCollectionNotes(e.target.value)}
+                        placeholder="Ej. Muestra rotulada en nevera de laboratorio de la clínica, preguntar por Dr. Alejandro."
+                        className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
+                    <span className="font-extrabold text-slate-600">Servicio de Secuenciación 16S rRNA:</span>
+                    <span className="text-base font-black text-emerald-800">$285.000 COP</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* ==================================================================== */}
@@ -4304,7 +5543,7 @@ export default function RequestExamModal({
           </div>
         )}
 
-        {!isOrderSuccess && !isControlReviewOpen && (
+        {!isOrderSuccess && !isControlReviewOpen && requestCategory === 'qpcr' && (
           <div className="bg-white px-6 sm:px-8 py-4 border-t border-slate-100 flex items-center justify-between shrink-0">
             <div>
               {currentStep === 1 && (
@@ -4408,6 +5647,88 @@ export default function RequestExamModal({
                   <span>{isSubmitting ? 'Enviando a Laboratorio...' : 'Confirmar y enviar al laboratorio'}</span>
                 </button>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Footer para Solicitud de Clínicas */}
+        {!isOrderSuccess && !isControlReviewOpen && requestCategory === 'clinicas' && (
+          <div className="bg-white px-6 sm:px-8 py-4 border-t border-slate-100 flex items-center justify-between shrink-0">
+            <div>
+              {clinicalStep === 1 ? (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  {isModal ? 'Cancelar' : '← Volver a Pacientes'}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setClinicalStep(1)}
+                  className="px-4 py-2.5 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  ← Volver a Selección de Pruebas
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              {clinicalStep === 1 ? (
+                <button
+                  type="button"
+                  disabled={!activePatient || selectedClinicalExams.length === 0}
+                  onClick={() => setClinicalStep(2)}
+                  className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span>Revisar Orden Clínica ({selectedClinicalExams.length})</span>
+                  <span>→</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={handleSubmitClinicalOrder}
+                  className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-md cursor-pointer disabled:opacity-50"
+                >
+                  <span>✓</span>
+                  <span>{isSubmitting ? 'Generando Orden Clínica...' : `Confirmar y Enviar Orden (${totalClinicalPrice ? `$${totalClinicalPrice.toLocaleString('es-CO')}` : '$0'})`}</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Footer para Solicitud de Microbiota */}
+        {!isOrderSuccess && !isControlReviewOpen && requestCategory === 'microbiota' && (
+          <div className="bg-white px-6 sm:px-8 py-4 border-t border-slate-100 flex items-center justify-between shrink-0">
+            <div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                {isModal ? 'Cancelar' : '← Volver a Pacientes'}
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                disabled={isSubmitting || (microbiotaSubtype === 'recoleccion' && !activePatient)}
+                onClick={handleSubmitMicrobiotaOrder}
+                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span>✓</span>
+                <span>
+                  {isSubmitting
+                    ? 'Procesando...'
+                    : microbiotaSubtype === 'kit'
+                    ? `Solicitar ${microbiotaKitQuantity} Kit(s) de Microbiota`
+                    : 'Confirmar y Programar Recolección'}
+                </span>
+              </button>
             </div>
           </div>
         )}

@@ -821,10 +821,105 @@ export const patientApi = {
           ? true
           : (updatedData.isSterilized !== undefined ? Boolean(updatedData.isSterilized) : Boolean(currentPatient.isSterilized));
 
+        // Calcular historial de auditoría de todos los campos editados
+        const auditChanges = [];
+        if (updatedData.status && updatedData.status !== currentPatient.status) {
+          auditChanges.push({ campo: 'Estado Clínico', categoria: 'Clínica', anterior: currentPatient.status, nuevo: updatedData.status });
+        }
+        if (updatedData.weight && updatedData.weight !== currentPatient.weight) {
+          auditChanges.push({ campo: 'Peso', categoria: 'Medidas', anterior: currentPatient.weight || 'N/A', nuevo: updatedData.weight });
+        }
+        if (updatedData.isSterilized !== undefined && Boolean(updatedData.isSterilized) !== Boolean(currentPatient.isSterilized)) {
+          auditChanges.push({ campo: 'Esterilización', categoria: 'Reproducción', anterior: currentPatient.isSterilized ? 'Esterilizado' : 'Entero', nuevo: updatedData.isSterilized ? 'Esterilizado' : 'Entero' });
+        }
+        if (updatedData.allergies !== undefined && updatedData.allergies !== currentPatient.allergies) {
+          auditChanges.push({ campo: 'Alergias Conocidas', categoria: 'Clínica', anterior: currentPatient.allergies || 'Ninguna', nuevo: updatedData.allergies || 'Ninguna' });
+        }
+        if (updatedData.notes !== undefined && updatedData.notes !== currentPatient.notes) {
+          auditChanges.push({ campo: 'Notas Médicas', categoria: 'Observaciones', anterior: currentPatient.notes || 'Sin notas', nuevo: updatedData.notes || 'Sin notas' });
+        }
+        if (updatedData.riskFactors) {
+          const rf = updatedData.riskFactors;
+          const crf = currentPatient.riskFactors || {};
+          if (rf.habitat !== undefined && rf.habitat !== crf.habitat) {
+            auditChanges.push({ campo: 'Hábitat', categoria: 'Factores de Riesgo', anterior: crf.habitat || 'No especificado', nuevo: rf.habitat });
+          }
+          if (rf.coastalRescue !== undefined && rf.coastalRescue !== crf.coastalRescue) {
+            auditChanges.push({ campo: 'Rescate Zona Costera', categoria: 'Factores de Riesgo', anterior: crf.coastalRescue ? 'Sí' : 'No', nuevo: rf.coastalRescue ? 'Sí' : 'No' });
+          }
+          if (rf.recentTravel !== undefined && rf.recentTravel !== crf.recentTravel) {
+            auditChanges.push({ campo: 'Viaje Reciente', categoria: 'Factores de Riesgo', anterior: crf.recentTravel ? 'Sí' : 'No', nuevo: rf.recentTravel ? 'Sí' : 'No' });
+          }
+          if (rf.parasiteExposure !== undefined && rf.parasiteExposure !== crf.parasiteExposure) {
+            auditChanges.push({ campo: 'Exposición a Parásitos', categoria: 'Factores de Riesgo', anterior: crf.parasiteExposure ? 'Sí' : 'No', nuevo: rf.parasiteExposure ? 'Sí' : 'No' });
+          }
+        }
+        if (updatedData.vitalSigns) {
+          const vs = updatedData.vitalSigns;
+          const cvs = currentPatient.healthMetrics?.vitalSigns || {};
+          if (vs.temperature && vs.temperature !== cvs.temperature) {
+            auditChanges.push({ campo: 'Temperatura', categoria: 'Constantes Vitales', anterior: cvs.temperature || 'N/A', nuevo: vs.temperature });
+          }
+          if (vs.heartRate && vs.heartRate !== cvs.heartRate) {
+            auditChanges.push({ campo: 'Frecuencia Cardíaca', categoria: 'Constantes Vitales', anterior: cvs.heartRate || 'N/A', nuevo: vs.heartRate });
+          }
+          if (vs.respiratoryRate && vs.respiratoryRate !== cvs.respiratoryRate) {
+            auditChanges.push({ campo: 'Frecuencia Respiratoria', categoria: 'Constantes Vitales', anterior: cvs.respiratoryRate || 'N/A', nuevo: vs.respiratoryRate });
+          }
+          if (vs.mucosa && vs.mucosa !== cvs.mucosa) {
+            auditChanges.push({ campo: 'Color de Mucosas', categoria: 'Constantes Vitales', anterior: cvs.mucosa || 'N/A', nuevo: vs.mucosa });
+          }
+          if (vs.capillaryRefillTime && vs.capillaryRefillTime !== cvs.capillaryRefillTime) {
+            auditChanges.push({ campo: 'TLLC', categoria: 'Constantes Vitales', anterior: cvs.capillaryRefillTime || 'N/A', nuevo: `${vs.capillaryRefillTime} seg` });
+          }
+        }
+        if (updatedData.owner) {
+          const ow = updatedData.owner;
+          const cow = currentPatient.owner || {};
+          if (ow.phone && ow.phone !== cow.phone) {
+            auditChanges.push({ campo: 'Teléfono Tutor', categoria: 'Tutor', anterior: cow.phone || 'N/A', nuevo: ow.phone });
+          }
+          if (ow.address && ow.address !== cow.address) {
+            auditChanges.push({ campo: 'Dirección Tutor', categoria: 'Tutor', anterior: cow.address || 'N/A', nuevo: ow.address });
+          }
+        }
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
+          ' ' + now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+        const auditEntry = {
+          id: `AUD-${Date.now()}`,
+          fecha: dateStr,
+          timestamp: now.toISOString(),
+          veterinario: 'Dr. Alejandro Morales',
+          rol: 'Director Médico / Admin',
+          accion: auditChanges.length > 0 ? `Modificación de ${auditChanges.length} campo(s)` : 'Edición y verificación de ficha',
+          cambios: auditChanges.length > 0 ? auditChanges : [{ campo: 'Expediente', categoria: 'General', anterior: 'Revisión médica', nuevo: 'Guardado actualizado' }],
+        };
+
+        const currentAuditHistory = Array.isArray(currentPatient.auditHistory) && currentPatient.auditHistory.length > 0
+          ? currentPatient.auditHistory
+          : [
+              {
+                id: 'AUD-0',
+                fecha: currentPatient.lastVisit || '10/01/2026',
+                timestamp: new Date(Date.now() - 86400000 * 30).toISOString(),
+                veterinario: 'Dr. Alejandro Morales',
+                rol: 'Director Médico',
+                accion: 'Registro y admisión inicial de paciente',
+                cambios: [
+                  { campo: 'Expediente Inicial', categoria: 'General', anterior: 'No existía', nuevo: 'Ficha médica creada' },
+                  { campo: 'Hábitat Inicial', categoria: 'Factores de Riesgo', anterior: '-', nuevo: currentPatient.riskFactors?.habitat || 'Casa urbana' },
+                ],
+              },
+            ];
+
         localPatientsStore[idx] = {
           ...currentPatient,
           ...updatedData,
           isSterilized,
+          auditHistory: [auditEntry, ...currentAuditHistory],
           owner: {
             ...localPatientsStore[idx].owner,
             ...(updatedData.owner || {}),

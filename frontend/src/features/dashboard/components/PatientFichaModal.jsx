@@ -280,61 +280,54 @@ export default function PatientFichaModal({
               </div>
             </div>
 
-            {/* Fila 2: Cuadro de Información General Integral (Campos de la tabla + Peso + Edad) */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 py-4 border-b border-slate-100 text-xs">
-              <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/80">
-                <span className="text-slate-400 block text-[10px] font-semibold uppercase tracking-wider">
-                  Especie / Raza
+            {/* Fila 2: Cuadro de Información General Integral (Campos de la tabla + Sede + Peso + Edad) */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 py-5 border-b border-slate-100 text-xs">
+              <div className="col-span-2 sm:col-span-1 lg:col-span-2 bg-purple-50/40 rounded-2xl p-4 border border-purple-100 shadow-2xs">
+                <span className="text-purple-600 block text-[10px] font-bold uppercase tracking-wider">
+                  🐾 Especie / Raza
                 </span>
-                <span className="font-extrabold text-slate-900 mt-0.5 block truncate">
+                <span className="font-extrabold text-slate-900 mt-1 block break-words text-sm leading-snug">
                   {patient.species} · {patient.breed}
                 </span>
               </div>
 
-              <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/80">
+              <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80">
                 <span className="text-slate-400 block text-[10px] font-semibold uppercase tracking-wider">
-                  Propietario / Tutor
+                  👤 Propietario / Tutor
                 </span>
-                <span className="font-extrabold text-slate-900 mt-0.5 block truncate">
+                <span className="font-extrabold text-slate-900 mt-1 block break-words">
                   {patient.owner?.name}
                 </span>
               </div>
 
-              <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/80">
+              <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80">
                 <span className="text-slate-400 block text-[10px] font-semibold uppercase tracking-wider">
-                  Estado Muestra
+                  🏢 Sede de Atención
                 </span>
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold border mt-0.5 ${sampleStyle.bg}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${sampleStyle.dot}`}></span>
-                  {sampleStyle.label}
+                <span className="font-bold text-[#6F2BCC] mt-1 block break-words text-xs">
+                  {patient.sedeNombre || 'Sede Principal'}
+                  {patient.codigoSedeNit && (
+                    <span className="ml-1 px-1.5 py-0.2 rounded bg-purple-100 text-[#2B017C] text-[10px] font-mono">
+                      {patient.codigoSedeNit}
+                    </span>
+                  )}
                 </span>
               </div>
 
-              <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/80">
-                <span className="text-slate-400 block text-[10px] font-semibold uppercase tracking-wider">
-                  Última Visita
-                </span>
-                <span className="font-extrabold text-slate-900 mt-0.5 block">
-                  {patient.lastVisit}
-                </span>
-              </div>
-
-              {/* PESO (Campo requerido por el usuario) */}
-              <div className="bg-sky-50/80 rounded-xl p-3 border border-sky-200">
+              <div className="bg-sky-50/80 rounded-2xl p-4 border border-sky-200">
                 <span className="text-sky-700 block text-[10px] font-bold uppercase tracking-wider">
                   ⚖️ Peso Actual
                 </span>
-                <span className="font-black text-sky-950 text-sm mt-0.5 block">
+                <span className="font-black text-sky-950 text-sm mt-1 block">
                   {patient.weight || 'N/A'}
                 </span>
               </div>
 
-              {/* EDAD (Campo requerido por el usuario, calculada dinámicamente) */}
-              <div className="bg-indigo-50/80 rounded-xl p-3 border border-indigo-200">
+              <div className="bg-indigo-50/80 rounded-2xl p-4 border border-indigo-200">
                 <span className="text-indigo-700 block text-[10px] font-bold uppercase tracking-wider">
                   🎂 Edad Calculada
                 </span>
-                <span className="font-black text-indigo-950 text-sm mt-0.5 block truncate">
+                <span className="font-black text-indigo-950 text-sm mt-1 block">
                   {patient.age || 'No calculada'}
                 </span>
               </div>
@@ -428,6 +421,17 @@ export default function PatientFichaModal({
                 }`}
               >
                 <span>📋</span> Datos Generales & Tutor
+              </button>
+
+              <button
+                onClick={() => setActiveTab('auditoria')}
+                className={`py-3.5 px-4 border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === 'auditoria'
+                    ? 'border-[#6F2BCC] text-[#6F2BCC] bg-white font-extrabold'
+                    : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
+                }`}
+              >
+                <span>📜</span> Historial de Cambios ({patient.auditHistory?.length || 1})
               </button>
             </div>
 
@@ -1149,10 +1153,10 @@ export default function PatientFichaModal({
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-3">
                       Identidad Biológica Inmutable (Sin microchip)
                     </span>
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
-                      <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                    <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 text-xs">
+                      <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 col-span-2 sm:col-span-2">
                         <span className="text-slate-400 block text-[10px] font-semibold uppercase">Especie y Raza</span>
-                        <span className="font-extrabold text-slate-800 text-sm mt-0.5 block">{patient.species} · {patient.breed}</span>
+                        <span className="font-extrabold text-slate-800 text-sm mt-0.5 block break-words leading-snug">{patient.species} · {patient.breed}</span>
                       </div>
                       <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                         <span className="text-slate-400 block text-[10px] font-semibold uppercase">Sexo (Inmutable)</span>
@@ -1342,6 +1346,97 @@ export default function PatientFichaModal({
                         </div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* PESTAÑA 5: HISTORIAL DE CAMBIOS Y AUDITORÍA INTEGRAL */}
+              {activeTab === 'auditoria' && (
+                <div className="space-y-6 animate-in fade-in duration-150">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-purple-50/60 border border-purple-200/80 rounded-2xl">
+                    <div className="space-y-0.5">
+                      <h4 className="text-sm font-black text-[#2B017C] flex items-center gap-2">
+                        <span>📜</span> Trazabilidad Legal & Auditoría del Paciente
+                      </h4>
+                      <p className="text-xs text-purple-900/80">
+                        Registro cronológico de todas las modificaciones realizadas sobre la ficha médica, factores de riesgo, constantes vitales y datos administrativos.
+                      </p>
+                    </div>
+                    <span className="px-3 py-1 bg-white border border-purple-200 text-[#6F2BCC] font-bold text-xs rounded-xl shadow-2xs shrink-0">
+                      Total eventos: {(patient.auditHistory?.length || 1)}
+                    </span>
+                  </div>
+
+                  <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-purple-200">
+                    {(patient.auditHistory && patient.auditHistory.length > 0
+                      ? patient.auditHistory
+                      : [
+                          {
+                            id: 'AUD-0',
+                            fecha: patient.lastVisit || '10/01/2026 09:00 AM',
+                            veterinario: 'Dr. Alejandro Morales',
+                            rol: 'Director Médico / Admin',
+                            accion: 'Registro y admisión inicial de paciente',
+                            cambios: [
+                              { campo: 'Expediente', categoria: 'General', anterior: 'Inexistente', nuevo: 'Ficha médica creada' },
+                              { campo: 'Hábitat Inicial', categoria: 'Factores de Riesgo', anterior: '-', nuevo: patient.riskFactors?.habitat || 'Casa urbana' },
+                              { campo: 'Esterilización', categoria: 'Reproducción', anterior: '-', nuevo: patient.isSterilized ? 'Esterilizado' : 'Entero' },
+                              { campo: 'Peso Inicial', categoria: 'Medidas', anterior: '-', nuevo: patient.weight || '3.5 kg' },
+                            ],
+                          },
+                        ]
+                    ).map((entry, eIdx) => (
+                      <div key={entry.id || eIdx} className="relative group">
+                        <span className="absolute -left-[1.8rem] top-1.5 w-4 h-4 rounded-full bg-[#6F2BCC] ring-4 ring-purple-100 shadow-xs" />
+                        <div className="bg-white border border-slate-200/90 rounded-2xl p-4.5 shadow-2xs hover:shadow-xs transition-shadow space-y-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-mono text-xs font-bold text-[#6F2BCC] bg-purple-50 px-2.5 py-0.5 rounded-lg border border-purple-200/80">
+                                {entry.fecha}
+                              </span>
+                              <h5 className="font-extrabold text-slate-900 text-xs sm:text-sm">
+                                {entry.accion}
+                              </h5>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                              <span>👨‍⚕️ {entry.veterinario || 'Dr. Alejandro Morales'}</span>
+                              <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-semibold">
+                                {entry.rol || 'Admin'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                              Valores y campos modificados:
+                            </span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {(entry.cambios || []).map((ch, cIdx) => (
+                                <div key={cIdx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs flex flex-col justify-between gap-1">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-bold text-slate-800">{ch.campo}</span>
+                                    {ch.categoria && (
+                                      <span className="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded bg-purple-100 text-[#6F2BCC]">
+                                        {ch.categoria}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-[11px] font-medium pt-0.5">
+                                    <span className="line-through text-slate-400 truncate max-w-[120px]" title={String(ch.anterior)}>
+                                      {String(ch.anterior || 'Vacío')}
+                                    </span>
+                                    <span className="text-slate-400">➔</span>
+                                    <span className="font-extrabold text-[#2B017C] bg-white px-2 py-0.5 rounded border border-purple-200 truncate max-w-[150px]" title={String(ch.nuevo)}>
+                                      {String(ch.nuevo || 'Vacío')}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}

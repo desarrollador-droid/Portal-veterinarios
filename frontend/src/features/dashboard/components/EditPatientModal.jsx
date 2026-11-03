@@ -90,7 +90,7 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isDeceased) {
-      alert('Operación denegada: Un paciente registrado como fallecido no puede ser modificado.');
+      setErrorMsg('Operación denegada: Un paciente registrado como fallecido no puede ser modificado.');
       return;
     }
 

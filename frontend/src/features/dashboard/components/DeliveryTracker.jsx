@@ -89,7 +89,7 @@ export default function DeliveryTracker({ order }) {
 
           {/* Línea activa calculada hasta el paso actual */}
           <div
-            className="absolute left-6 top-4 h-1 bg-gradient-to-r from-sky-500 via-blue-600 to-emerald-500 -z-0 transition-all duration-700"
+            className="absolute left-6 top-4 h-1 bg-gradient-to-r from-slate-300 to-[#6F2BCC] -z-0 transition-all duration-700"
             style={{
               width: `${(currentStep / (totalSteps - 1)) * 100}%`,
               maxWidth: 'calc(100% - 3rem)',
@@ -108,20 +108,20 @@ export default function DeliveryTracker({ order }) {
                   key={index}
                   className="flex flex-col items-center text-center w-24 sm:w-28 md:w-32 group"
                 >
-                  {/* Nodo circular del paso */}
+                  {/* Nodo circular del paso: Solo el activo tiene color y animación, los anteriores en gris */}
                   <div
                     className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-xs ${
                       isCurrent
-                        ? 'bg-[#6F2BCC] text-white ring-4 ring-sky-200 scale-110 shadow-md'
+                        ? 'bg-[#6F2BCC] text-white ring-4 ring-[#6F2BCC]/30 scale-110 shadow-md animate-pulse'
                         : isPast
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-white border-2 border-slate-300 text-slate-400'
+                        ? 'bg-slate-200 text-slate-600 border border-slate-300'
+                        : 'bg-white border-2 border-slate-200 text-slate-300'
                     }`}
                   >
                     {isCurrent ? (
                       <span className="animate-spin text-sm">⏳</span>
                     ) : isPast ? (
-                      <span className="font-extrabold">✓</span>
+                      <span className="font-extrabold text-slate-600">✓</span>
                     ) : (
                       <span>{index + 1}</span>
                     )}
@@ -129,12 +129,12 @@ export default function DeliveryTracker({ order }) {
 
                   {/* Título del paso */}
                   <span
-                    className={`text-xs font-bold mt-2.5 leading-tight ${
+                    className={`text-xs mt-2.5 leading-tight ${
                       isCurrent
-                        ? 'text-[#6F2BCC]'
+                        ? 'text-[#2B017C] font-extrabold scale-105'
                         : isPast
-                        ? 'text-slate-800'
-                        : 'text-slate-400'
+                        ? 'text-slate-500 font-semibold'
+                        : 'text-slate-400 font-normal'
                     }`}
                   >
                     {step.label}
@@ -144,10 +144,10 @@ export default function DeliveryTracker({ order }) {
                   <span
                     className={`text-[10px] mt-0.5 leading-tight hidden sm:block ${
                       isCurrent
-                        ? 'text-sky-700 font-medium'
+                        ? 'text-[#6F2BCC] font-bold'
                         : isPast
-                        ? 'text-slate-500'
-                        : 'text-slate-400'
+                        ? 'text-slate-400'
+                        : 'text-slate-300'
                     }`}
                   >
                     {step.desc}
@@ -157,13 +157,17 @@ export default function DeliveryTracker({ order }) {
                   <span
                     className={`text-[9px] mt-1 px-1.5 py-0.5 rounded font-mono font-semibold ${
                       isCurrent
-                        ? 'bg-sky-100 text-sky-800'
+                        ? 'bg-[#6F2BCC]/10 text-[#2B017C] font-black border border-[#6F2BCC]/20'
                         : isPast
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'bg-slate-100 text-slate-400'
+                        ? 'bg-slate-100 text-slate-500'
+                        : 'bg-slate-50 text-slate-300'
                     }`}
                   >
-                    {isCurrent ? 'En curso' : step.date}
+                    {isCurrent
+                      ? 'Activo ahora'
+                      : isPast
+                      ? step.date || 'Completado'
+                      : 'Pendiente'}
                   </span>
                 </div>
               );
