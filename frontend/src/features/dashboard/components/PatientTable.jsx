@@ -97,111 +97,25 @@ export default function PatientTable({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/70 shadow-xs overflow-hidden">
-      {/* Encabezado y Barra de búsqueda */}
-      <div className="p-6 pb-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-          <h2 className="text-xl font-extrabold text-[#2B017C]">
-            Listado de pacientes
-          </h2>
+      {/* Encabezado y Barra de búsqueda limpia */}
+      <div className="p-6 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h2 className="text-xl font-extrabold text-[#2B017C]">
+          Listado de pacientes
+        </h2>
 
-          <div className="relative w-full md:w-80">
-            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#6F2BCC]">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
-              </svg>
-            </span>
-            <input
-              type="text"
-              value={filters.search}
-              onChange={(e) => onFilterChange('search', e.target.value)}
-              placeholder="Buscar paciente o propietario..."
-              className="w-full pl-10 pr-4 py-2 bg-purple-50/40 border border-purple-100 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC] focus:border-transparent focus:bg-white transition-all font-primeform"
-            />
-          </div>
-        </div>
-
-        {/* Fila de Filtros */}
-        <div className="flex flex-wrap items-center gap-3 pt-1 text-sm text-slate-600">
-          <span className="text-xs font-semibold text-slate-500">Filtrar por:</span>
-
-          {/* Especie */}
-          <div className="relative">
-            <select
-              value={filters.species}
-              onChange={(e) => onFilterChange('species', e.target.value)}
-              className="appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-full px-3.5 py-1.5 pr-8 text-xs font-medium text-slate-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-sky-500"
-            >
-              <option value="all">Especie: Todas</option>
-              {filterOptions?.species?.map((sp) => (
-                <option key={sp} value={sp}>{sp}</option>
-              ))}
-            </select>
-            <span className="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400 text-xs">▼</span>
-          </div>
-
-          {/* Raza */}
-          <div className="relative">
-            <select
-              value={filters.breed}
-              onChange={(e) => onFilterChange('breed', e.target.value)}
-              className="appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-full px-3.5 py-1.5 pr-8 text-xs font-medium text-slate-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-sky-500"
-            >
-              <option value="all">Raza: Todas</option>
-              {filterOptions?.breeds?.map((br) => (
-                <option key={br} value={br}>{br}</option>
-              ))}
-            </select>
-            <span className="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400 text-xs">▼</span>
-          </div>
-
-          {/* Estado de muestra */}
-          <div className="relative">
-            <select
-              value={filters.sampleStatus}
-              onChange={(e) => onFilterChange('sampleStatus', e.target.value)}
-              className="appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-full px-3.5 py-1.5 pr-8 text-xs font-medium text-slate-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-sky-500"
-            >
-              <option value="all">Estado de muestra: Todos</option>
-              {filterOptions?.sampleStatuses?.map((st) => (
-                <option key={st} value={st}>{st}</option>
-              ))}
-            </select>
-            <span className="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400 text-xs">▼</span>
-          </div>
-
-          {/* Sede / Sucursal */}
-          {sedesList && sedesList.length > 0 && (
-            <div className="relative">
-              <select
-                value={filters.sedeId || 'all'}
-                onChange={(e) => onFilterChange('sedeId', e.target.value)}
-                className="appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded-full px-3.5 py-1.5 pr-8 text-xs font-medium text-slate-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-sky-500"
-              >
-                <option value="all">Sede: Todas las Sedes (Consolidado)</option>
-                {sedesList.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.nombreSede} ({s.codigoSedeNit || ''})
-                  </option>
-                ))}
-              </select>
-              <span className="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400 text-xs">▼</span>
-            </div>
-          )}
-
-          {(filters.search || filters.species !== 'all' || filters.breed !== 'all' || filters.sampleStatus !== 'all' || (filters.sedeId && filters.sedeId !== 'all')) && (
-            <button
-              onClick={() => {
-                onFilterChange('search', '');
-                onFilterChange('species', 'all');
-                onFilterChange('breed', 'all');
-                onFilterChange('sampleStatus', 'all');
-                onFilterChange('sedeId', 'all');
-              }}
-              className="text-xs text-sky-600 hover:text-sky-800 underline ml-2 cursor-pointer font-medium"
-            >
-              Limpiar filtros
-            </button>
-          )}
+        <div className="relative w-full sm:w-80">
+          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#6F2BCC]">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
+            </svg>
+          </span>
+          <input
+            type="text"
+            value={filters.search}
+            onChange={(e) => onFilterChange('search', e.target.value)}
+            placeholder="Buscar paciente o propietario..."
+            className="w-full pl-10 pr-4 py-2 bg-purple-50/40 border border-purple-100 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC] focus:border-transparent focus:bg-white transition-all font-primeform"
+          />
         </div>
       </div>
 

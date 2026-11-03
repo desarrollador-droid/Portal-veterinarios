@@ -233,31 +233,9 @@ export default function VeterinariansPortal() {
               {/* Encabezado: Título y Botones de Acción */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2B017C] tracking-tight">
-                      Pacientes
-                    </h1>
-                    {activeClinic?.sedes && activeClinic.sedes.length > 0 && (
-                      <div className="flex items-center gap-1.5 bg-white border border-[#6F2BCC]/30 rounded-xl px-3 py-1.5 shadow-2xs">
-                        <span className="text-xs">🏢</span>
-                        <span className="text-[10px] font-black uppercase tracking-wider text-[#6F2BCC]">
-                          Sede:
-                        </span>
-                        <select
-                          value={filters.sedeId || 'all'}
-                          onChange={(e) => handleFilterChange('sedeId', e.target.value)}
-                          className="bg-transparent text-xs font-bold text-[#2B017C] focus:outline-none cursor-pointer"
-                        >
-                          <option value="all">Todas las Sedes (Consolidado)</option>
-                          {activeClinic.sedes.map((s) => (
-                            <option key={s.id} value={s.id}>
-                              📍 {s.nombreSede} ({s.codigoSedeNit || ''})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2B017C] tracking-tight">
+                    Pacientes
+                  </h1>
                   <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
                     miércoles, 7 de octubre de 2026
                   </p>
