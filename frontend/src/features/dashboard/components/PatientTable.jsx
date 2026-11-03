@@ -125,7 +125,6 @@ export default function PatientTable({
           <thead>
             <tr className="border-t border-b border-slate-100 bg-[#f8fbfe]/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
               <th className="py-3 px-6">PACIENTE</th>
-              <th className="py-3 px-6">SEDE / SUCURSAL</th>
               <th className="py-3 px-6">ESPECIE / RAZA</th>
               <th className="py-3 px-6">PROPIETARIO</th>
               <th className="py-3 px-6">ESTADO ADMIN.</th>
@@ -152,19 +151,6 @@ export default function PatientTable({
                         </span>
                       </div>
                     </div>
-                  </td>
-
-                  {/* Sede / Sucursal */}
-                  <td className="py-4 px-6 whitespace-nowrap">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-50 text-[#6F2BCC] border border-purple-200/80">
-                      <span>📍</span>
-                      <span className="truncate max-w-[150px]">{patient.sedeNombre || 'Sede Principal'}</span>
-                      {patient.codigoSedeNit && (
-                        <span className="text-[10px] bg-[#6F2BCC] text-white px-1.5 py-0.2 rounded font-mono font-bold">
-                          {patient.codigoSedeNit}
-                        </span>
-                      )}
-                    </span>
                   </td>
 
                   <td className="py-4 px-6 text-slate-600 whitespace-nowrap">

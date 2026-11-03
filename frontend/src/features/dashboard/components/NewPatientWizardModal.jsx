@@ -680,38 +680,6 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                 </div>
               </div>
 
-              {/* Sede / Sucursal de Admisión */}
-              {activeClinic?.sedes && activeClinic.sedes.length > 0 && (
-                <div className="p-3.5 bg-purple-50/70 border border-purple-200/80 rounded-2xl space-y-1.5">
-                  <label className="block text-xs font-black text-[#2B017C] uppercase tracking-wider flex items-center gap-1.5">
-                    <span>🏢</span> Sede / Sucursal de Admisión del Paciente *
-                  </label>
-                  <select
-                    name="sedeId"
-                    value={formData.sedeId}
-                    onChange={(e) => {
-                      const sel = activeClinic.sedes.find((s) => s.id === e.target.value);
-                      setFormData((prev) => ({
-                        ...prev,
-                        sedeId: e.target.value,
-                        sedeNombre: sel?.nombreSede || 'Sede Principal',
-                        codigoSedeNit: sel?.codigoSedeNit || '#nit-1',
-                      }));
-                    }}
-                    className="w-full px-3.5 py-2.5 border border-purple-200 rounded-xl text-xs font-bold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#6F2BCC] cursor-pointer"
-                  >
-                    {activeClinic.sedes.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.nombreSede} ({s.codigoSedeNit || ''}) - {s.ciudad} ({s.direccionFisica})
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-[10px] text-purple-700/80 leading-tight">
-                    El paciente será registrado bajo esta sede y aparecerá en el consolidado multi-sede general del Administrador Principal.
-                  </p>
-                </div>
-              )}
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">

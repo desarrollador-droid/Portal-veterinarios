@@ -271,33 +271,6 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
                 Parámetros Clínicos Actualizables
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {activeClinic?.sedes && activeClinic.sedes.length > 0 && (
-                  <div className="sm:col-span-3 p-3 bg-purple-50/70 border border-purple-200/80 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-[#2B017C] flex items-center gap-1.5">
-                      <span>🏢</span> Sede / Sucursal Asignada:
-                    </span>
-                    <select
-                      name="sedeId"
-                      value={formData.sedeId}
-                      onChange={(e) => {
-                        const sel = activeClinic.sedes.find((s) => s.id === e.target.value);
-                        setFormData((prev) => ({
-                          ...prev,
-                          sedeId: e.target.value,
-                          sedeNombre: sel?.nombreSede || 'Sede Principal',
-                          codigoSedeNit: sel?.codigoSedeNit || '#nit-1',
-                        }));
-                      }}
-                      className="px-3 py-1.5 border border-purple-200 rounded-lg text-xs font-bold text-slate-900 bg-white focus:ring-2 focus:ring-[#6F2BCC] cursor-pointer"
-                    >
-                      {activeClinic.sedes.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.nombreSede} ({s.codigoSedeNit || ''}) - {s.ciudad}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Peso Actualizado *

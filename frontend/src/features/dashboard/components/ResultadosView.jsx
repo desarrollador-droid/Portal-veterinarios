@@ -189,13 +189,6 @@ export default function ResultadosView({
                           <span>Paciente: <strong className="underline decoration-purple-400">{item.patient.name} {item.patient.lastName || ''}</strong></span>
                         </span>
 
-                        {item.patient.sedeNombre && (
-                          <span className="text-xs font-bold bg-slate-100 text-[#2B017C] px-2.5 py-0.5 rounded-full border border-slate-200 flex items-center gap-1">
-                            <span>📍</span>
-                            <span>{item.patient.sedeNombre} {item.patient.codigoSedeNit ? `(${item.patient.codigoSedeNit})` : ''}</span>
-                          </span>
-                        )}
-
                         {positiveAgents.length > 0 ? (
                           <span className="text-xs font-bold bg-rose-50 text-rose-700 px-2.5 py-0.5 rounded-full border border-rose-200 flex items-center gap-1">
                             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
