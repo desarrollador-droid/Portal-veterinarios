@@ -10,6 +10,7 @@ import {
   CLINICAL_CATEGORIES,
   CLINICAL_EXAMS,
 } from '../data/clinicalCatalogData.js';
+import MicrobiotaOrderForm from './MicrobiotaOrderForm.jsx';
 
 
 // ============================================================================
@@ -499,7 +500,6 @@ export default function RequestExamModal({
     const d = new Date();
     return d.toISOString().split('T')[0];
   });
-  const [microbiotaCollectionTimeSlot, setMicrobiotaCollectionTimeSlot] = useState('manana');
   const [microbiotaCollectionSede, setMicrobiotaCollectionSede] = useState('Sede Principal - Calle 80');
   const [microbiotaSampleCondition, setMicrobiotaSampleCondition] = useState('Tubo con buffer estabilizador de ADN fecal (4°C)');
   const [microbiotaCollectionNotes, setMicrobiotaCollectionNotes] = useState('');
@@ -1713,59 +1713,62 @@ export default function RequestExamModal({
   // ============================================================================
   // LÓGICA DE SOLICITUD DE MICROBIOTA (KIT O RECOLECCIÓN - SIN AYUDAS)
   // ============================================================================
-  const handleSubmitMicrobiotaOrder = async () => {
+  const handleSubmitMicrobiotaOrder = async (customPayload) => {
     setIsSubmitting(true);
     try {
-      let payload;
+      let payload = customPayload;
       let targetPatientId = activePatient?.id || 'KIT-MICROBIOTA';
 
-      if (microbiotaSubtype === 'kit') {
-        payload = {
-          requestCategory: 'microbiota',
-          microbiotaSubtype: 'kit',
-          testName: `Solicitud de Kits de Microbiota (${microbiotaKitQuantity} un.)`,
-          category: 'Microbiota Gastrointestinal',
-          kitQuantity: microbiotaKitQuantity,
-          deliverySede: microbiotaDeliverySede,
-          deliveryAddress: microbiotaDeliveryAddress,
-          recipientContact: microbiotaRecipientContact,
-          recipientPhone: microbiotaRecipientPhone,
-          notes: microbiotaDeliveryNotes.trim(),
-          sampleType: 'Kit estéril con tubo estabilizador ADN fecal',
-          totalPrice: 'Incluido en convenio de secuenciación',
-          urgency: 'Envío estándar 24h',
-          requestedBy: microbiotaRecipientContact || 'Dr. Alejandro Morales',
-          targets: 'Kit de secuenciación masiva 16S rRNA',
-        };
-      } else {
-        if (!activePatient) {
-          alert('Por favor selecciona el paciente para la recolección de muestra de microbiota.');
-          setIsSubmitting(false);
-          return;
+      if (!payload) {
+        if (microbiotaSubtype === 'kit') {
+          payload = {
+            requestCategory: 'microbiota',
+            microbiotaSubtype: 'kit',
+            testName: `Solicitud de Kits de Microbiota (${microbiotaKitQuantity} un.)`,
+            category: 'Microbiota Gastrointestinal',
+            kitQuantity: microbiotaKitQuantity,
+            deliverySede: microbiotaDeliverySede,
+            deliveryAddress: microbiotaDeliveryAddress,
+            recipientContact: microbiotaRecipientContact,
+            recipientPhone: microbiotaRecipientPhone,
+            notes: microbiotaDeliveryNotes.trim(),
+            sampleType: 'Kit estéril con tubo estabilizador ADN fecal',
+            totalPrice: 'Incluido en convenio de secuenciación',
+            urgency: 'Envío estándar 24h',
+            requestedBy: microbiotaRecipientContact || 'Dr. Alejandro Morales',
+            targets: 'Kit de secuenciación masiva 16S rRNA',
+          };
+        } else {
+          if (!activePatient) {
+            alert('Por favor selecciona el paciente para la recolección de muestra de microbiota.');
+            setIsSubmitting(false);
+            return;
+          }
+          payload = {
+            requestCategory: 'microbiota',
+            microbiotaSubtype: 'recoleccion',
+            testName: 'Recolección de Muestra Microbiota Gastrointestinal (16S rRNA)',
+            category: 'Microbiota Gastrointestinal',
+            collectionDate: microbiotaCollectionDate,
+            collectionSede: microbiotaCollectionSede,
+            sampleCondition: microbiotaSampleCondition,
+            notes: microbiotaCollectionNotes.trim(),
+            sampleType: 'Muestra fecal refrigerada (4°C) en vial conservante',
+            totalPrice: '$285.000',
+            urgency: 'Programada',
+            requestedBy: activePatient.attendingVet || 'Dr. Alejandro Morales',
+            targets: 'Secuenciación metagenómica 16S rRNA V3-V4',
+            isSterilized: isAlreadySterilized ? true : (examIsSterilized !== null ? examIsSterilized : activePatient.isSterilized),
+            allergies: patientAllergiesList.join(', '),
+            hasAllergies: patientAllergiesList.length > 0,
+          };
         }
-        payload = {
-          requestCategory: 'microbiota',
-          microbiotaSubtype: 'recoleccion',
-          testName: 'Recolección de Muestra Microbiota Gastrointestinal (16S rRNA)',
-          category: 'Microbiota Gastrointestinal',
-          collectionDate: microbiotaCollectionDate,
-          collectionTimeSlot: microbiotaCollectionTimeSlot,
-          collectionSede: microbiotaCollectionSede,
-          sampleCondition: microbiotaSampleCondition,
-          notes: microbiotaCollectionNotes.trim(),
-          sampleType: 'Muestra fecal refrigerada (4°C) en vial conservante',
-          totalPrice: '$285.000',
-          urgency: microbiotaCollectionTimeSlot === 'urgente' ? 'Urgente (Mismo día)' : 'Programada',
-          requestedBy: activePatient.attendingVet || 'Dr. Alejandro Morales',
-          targets: 'Secuenciación metagenómica 16S rRNA V3-V4',
-          isSterilized: isAlreadySterilized ? true : (examIsSterilized !== null ? examIsSterilized : activePatient.isSterilized),
-          allergies: patientAllergiesList.join(', '),
-          hasAllergies: patientAllergiesList.length > 0,
-        };
+      } else {
+        targetPatientId = activePatient?.id || (payload.petData?.name ? `PAC-MCB-${Date.now().toString().slice(-4)}` : 'KIT-MICROBIOTA');
       }
 
       const resultOrder = await onRequest(targetPatientId, payload);
-      const codePrefix = microbiotaSubtype === 'kit' ? 'KIT-MCB' : 'REC-MCB';
+      const codePrefix = payload.microbiotaSubtype === 'kit' ? 'KIT-MCB' : 'REC-MCB';
       const generatedCode = resultOrder?.id || `${codePrefix}-2026-${Math.floor(100 + Math.random() * 900)}`;
 
       setSubmittedOrderData({
@@ -1773,10 +1776,10 @@ export default function RequestExamModal({
         orderId: resultOrder?.id || generatedCode,
         examCode: generatedCode,
         patient: activePatient || {
-          name: 'Clínica Veterinaria (Envío Sede)',
-          species: 'Logística de Kits',
-          breed: microbiotaDeliverySede,
-          owner: { name: microbiotaRecipientContact, phone: microbiotaRecipientPhone },
+          name: payload.petData?.name || 'Clínica Veterinaria (Envío Sede)',
+          species: payload.petData?.species || 'Logística de Kits',
+          breed: payload.petData?.breed || payload.deliverySede || 'Sede Principal',
+          owner: { name: payload.ownerName || payload.recipientContact, phone: payload.contactPhone || payload.recipientPhone },
         },
       });
 
@@ -2136,20 +2139,62 @@ export default function RequestExamModal({
                     {submittedOrderData.microbiotaSubtype === 'kit' ? (
                       <div className="p-4 bg-emerald-50/50 border border-emerald-200 rounded-xl space-y-3 text-xs">
                         <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
-                          <span className="text-slate-600 font-medium">Cantidad de kits solicitados:</span>
-                          <span className="font-black text-emerald-900 text-sm">{submittedOrderData.kitQuantity} unidad(es)</span>
+                          <span className="text-slate-600 font-medium">Tipo de solicitante:</span>
+                          <span className="font-extrabold text-emerald-900 bg-emerald-100/70 px-2 py-0.5 rounded-md">
+                            {submittedOrderData.userRole || 'Médico veterinario'}
+                          </span>
                         </div>
                         <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
-                          <span className="text-slate-600 font-medium">Sede de destino:</span>
-                          <span className="font-bold text-slate-900">{submittedOrderData.deliverySede}</span>
+                          <span className="text-slate-600 font-medium">Nombre o razón social:</span>
+                          <span className="font-bold text-slate-900">{submittedOrderData.nameOrBusiness || submittedOrderData.recipientContact || submittedOrderData.requestedBy}</span>
+                        </div>
+                        {submittedOrderData.documentId && (
+                          <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                            <span className="text-slate-600 font-medium">NIT o documento de identidad:</span>
+                            <span className="font-mono font-bold text-slate-900">{submittedOrderData.documentId}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                          <span className="text-slate-600 font-medium">Ciudad y dirección de envío:</span>
+                          <span className="font-bold text-slate-900 text-right">
+                            {submittedOrderData.city ? `${submittedOrderData.city} · ` : ''}{submittedOrderData.deliveryAddress || submittedOrderData.shippingAddress}
+                          </span>
                         </div>
                         <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
-                          <span className="text-slate-600 font-medium">Dirección física de entrega:</span>
-                          <span className="font-bold text-slate-900">{submittedOrderData.deliveryAddress}</span>
+                          <span className="text-slate-600 font-medium">Número celular:</span>
+                          <span className="font-mono font-bold text-slate-900">{submittedOrderData.contactPhone || submittedOrderData.recipientPhone}</span>
                         </div>
                         <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
-                          <span className="text-slate-600 font-medium">Persona de contacto:</span>
-                          <span className="font-bold text-slate-900">{submittedOrderData.recipientContact} ({submittedOrderData.recipientPhone})</span>
+                          <span className="text-slate-600 font-medium">Correo para reporte de resultados:</span>
+                          <span className="font-bold text-slate-900">{submittedOrderData.reportEmail || submittedOrderData.recipientEmail}</span>
+                        </div>
+                        {submittedOrderData.billingEmail && (
+                          <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                            <span className="text-slate-600 font-medium">Correo electrónico de facturación:</span>
+                            <span className="font-bold text-slate-900">{submittedOrderData.billingEmail}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                          <span className="text-slate-600 font-medium">Mascota:</span>
+                          <span className="font-bold text-emerald-950">
+                            {submittedOrderData.petData?.name || submittedOrderData.petName} ({submittedOrderData.petData?.species || submittedOrderData.petSpecies || 'Canino'})
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                          <span className="text-slate-600 font-medium">Prueba de microbiota:</span>
+                          <span className="font-bold text-emerald-800 flex items-center gap-1">
+                            <span>✓</span> Si, es la prueba de microbiota lo que necesito
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                          <span className="text-slate-600 font-medium">Acuerdo de pago:</span>
+                          <span className="font-bold text-slate-900">
+                            {submittedOrderData.hasPaymentAgreement || 'Sí'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                          <span className="text-slate-600 font-medium">Cantidad de kits:</span>
+                          <span className="font-black text-emerald-900">{submittedOrderData.kitQuantity || 1} unidad(es)</span>
                         </div>
                         {submittedOrderData.notes && (
                           <div className="pt-1">
@@ -2162,15 +2207,15 @@ export default function RequestExamModal({
                       <div className="p-4 bg-emerald-50/50 border border-emerald-200 rounded-xl space-y-3 text-xs">
                         <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
                           <span className="text-slate-600 font-medium">Sede de recolección:</span>
-                          <span className="font-bold text-slate-900">{submittedOrderData.collectionSede}</span>
+                          <span className="font-bold text-slate-900">{submittedOrderData.collectionSede || submittedOrderData.collectionAddress}</span>
                         </div>
                         <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
-                          <span className="text-slate-600 font-medium">Fecha y Franja horaria:</span>
-                          <span className="font-black text-emerald-900">{submittedOrderData.collectionDate} · {submittedOrderData.collectionTimeSlot === 'manana' ? 'Mañana (8am-12pm)' : submittedOrderData.collectionTimeSlot === 'tarde' ? 'Tarde (2pm-6pm)' : 'Urgente'}</span>
+                          <span className="text-slate-600 font-medium">Fecha programada de recogida:</span>
+                          <span className="font-black text-emerald-900">{submittedOrderData.collectionDate}</span>
                         </div>
                         <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
                           <span className="text-slate-600 font-medium">Condición de la muestra:</span>
-                          <span className="font-bold text-slate-900">{submittedOrderData.sampleCondition}</span>
+                          <span className="font-bold text-slate-900">{submittedOrderData.sampleCondition || submittedOrderData.sampleType}</span>
                         </div>
                         <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
                           <span className="text-slate-600 font-medium">Tarifa del servicio:</span>
@@ -5164,340 +5209,18 @@ export default function RequestExamModal({
           )}
 
           {/* ================================================================== */}
-          {/* SOLICITUD DE MICROBIOTA (KIT O RECOLECCIÓN)                        */}
-          {/* SIN AYUDAS DIAGNÓSTICAS DE BIOLOGÍA MOLECULAR qPCR                 */}
+          {/* SOLICITUD DE MICROBIOTA (KIT O RECOLECCIÓN & ANAMNESIS COMPLETA)   */}
           {/* ================================================================== */}
           {!isOrderSuccess && !isControlReviewOpen && requestCategory === 'microbiota' && (
-            <div className="space-y-6 animate-in fade-in duration-150">
-              
-              {/* Encabezado */}
-              <div>
-                <h3 className="text-lg font-extrabold text-slate-900">
-                  Secuenciación & Perfil de Microbiota Gastrointestinal
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Plataforma metagenómica 16S rRNA. Selecciona si requieres el envío de kits físicos a la clínica o la programación de recolección de muestra.
-                </p>
-              </div>
-
-              {/* Toggle de Modo: Kit vs Recolección */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setMicrobiotaSubtype('kit')}
-                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
-                    microbiotaSubtype === 'kit'
-                      ? 'bg-emerald-50/80 border-emerald-600 ring-2 ring-emerald-600/30 shadow-xs'
-                      : 'bg-white border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-2xl">📦</span>
-                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                      Logística Insumos
-                    </span>
-                  </div>
-                  <div className="font-extrabold text-sm text-slate-900">1. Solicitud de Kit(s) de Toma</div>
-                  <div className="text-[11px] text-slate-500 mt-1 leading-snug">
-                    Envío de kits físicos estériles con vial de conservación de ADN fecal a tu sede veterinaria.
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setMicrobiotaSubtype('recoleccion')}
-                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
-                    microbiotaSubtype === 'recoleccion'
-                      ? 'bg-emerald-50/80 border-emerald-600 ring-2 ring-emerald-600/30 shadow-xs'
-                      : 'bg-white border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-2xl">🚚</span>
-                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                      Transporte Muestra
-                    </span>
-                  </div>
-                  <div className="font-extrabold text-sm text-slate-900">2. Solicitud de Recolección</div>
-                  <div className="text-[11px] text-slate-500 mt-1 leading-snug">
-                    Programa la recogida motorizada de la muestra tomada del paciente para transporte en frío al laboratorio.
-                  </div>
-                </button>
-              </div>
-
-              {/* FORMULARIO SUBTIPO 1: SOLICITUD DE KIT */}
-              {microbiotaSubtype === 'kit' && (
-                <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
-                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2.5">
-                    <span>📦</span> Datos para el Envío de Kits a la Clínica
-                  </h4>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Sede de entrega */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Sede de destino *</label>
-                      <select
-                        value={microbiotaDeliverySede}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setMicrobiotaDeliverySede(val);
-                          if (val.includes('80')) setMicrobiotaDeliveryAddress('Cra 80 # 45-12, Bogotá');
-                          else if (val.includes('Norte')) setMicrobiotaDeliveryAddress('Calle 140 # 15-20, Bogotá');
-                          else if (val.includes('Chía')) setMicrobiotaDeliveryAddress('Km 2 Vía Chía-Cajicá');
-                          else setMicrobiotaDeliveryAddress('Cra 91 # 128-40, Bogotá');
-                        }}
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      >
-                        <option value="Sede Principal - Calle 80">Sede Principal - Calle 80 (#nit-1)</option>
-                        <option value="Sede Norte - Cedritos">Sede Norte - Cedritos (#nit-2)</option>
-                        <option value="Sede Chía - Sabana">Sede Chía - Sabana (#nit-3)</option>
-                        <option value="Sede Campestre - Suba">Sede Campestre - Suba (#nit-4)</option>
-                      </select>
-                    </div>
-
-                    {/* Cantidad de kits */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Cantidad de kits requeridos *</label>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setMicrobiotaKitQuantity((prev) => Math.max(1, prev - 1))}
-                          className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-slate-700 flex items-center justify-center cursor-pointer"
-                        >
-                          -
-                        </button>
-                        <input
-                          type="number"
-                          min={1}
-                          max={20}
-                          value={microbiotaKitQuantity}
-                          onChange={(e) => setMicrobiotaKitQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                          className="w-20 text-center py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-extrabold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setMicrobiotaKitQuantity((prev) => prev + 1)}
-                          className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-slate-700 flex items-center justify-center cursor-pointer"
-                        >
-                          +
-                        </button>
-                        <span className="text-[11px] text-slate-500 font-medium ml-1">Kit(s) de toma</span>
-                      </div>
-                    </div>
-
-                    {/* Dirección */}
-                    <div className="space-y-1.5 sm:col-span-2">
-                      <label className="text-xs font-bold text-slate-700">Dirección física de entrega *</label>
-                      <input
-                        type="text"
-                        value={microbiotaDeliveryAddress}
-                        onChange={(e) => setMicrobiotaDeliveryAddress(e.target.value)}
-                        placeholder="Ej. Cra 80 # 45-12, Bogotá"
-                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      />
-                    </div>
-
-                    {/* Contacto y Teléfono */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Veterinario / Contacto recepción *</label>
-                      <input
-                        type="text"
-                        value={microbiotaRecipientContact}
-                        onChange={(e) => setMicrobiotaRecipientContact(e.target.value)}
-                        placeholder="Nombre de la persona que recibe"
-                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Teléfono celular de contacto *</label>
-                      <input
-                        type="text"
-                        value={microbiotaRecipientPhone}
-                        onChange={(e) => setMicrobiotaRecipientPhone(e.target.value)}
-                        placeholder="Ej. 310 456 7890"
-                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      />
-                    </div>
-
-                    {/* Notas de entrega */}
-                    <div className="space-y-1.5 sm:col-span-2">
-                      <label className="text-xs font-bold text-slate-700">Instrucciones de entrega / Horarios de recepción</label>
-                      <textarea
-                        rows={2}
-                        value={microbiotaDeliveryNotes}
-                        onChange={(e) => setMicrobiotaDeliveryNotes(e.target.value)}
-                        placeholder="Ej. Entregar en portería o recepción veterinaria antes de las 5:00 PM."
-                        className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-center gap-2.5">
-                    <span className="text-lg">✨</span>
-                    <div>
-                      <span className="font-bold">Insumos sin costo inicial:</span> Los kits de microbiota se despachan de forma gratuita bajo convenio clínico para mantener stock disponible en la sede.
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* FORMULARIO SUBTIPO 2: SOLICITUD DE RECOLECCIÓN */}
-              {microbiotaSubtype === 'recoleccion' && (
-                <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
-                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2.5">
-                    <span>🚚</span> Datos para la Recolección de Muestra de Microbiota
-                  </h4>
-
-                  {/* Paciente */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700">Paciente del cual se tomó la muestra *</label>
-                    {activePatient ? (
-                      <div className="p-3 bg-emerald-50/60 border border-emerald-200 rounded-xl flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">{activePatient.avatar || '🐶'}</span>
-                          <div>
-                            <span className="font-extrabold text-xs text-slate-900">{activePatient.name} ({activePatient.id})</span>
-                            <p className="text-[11px] text-slate-500">{activePatient.species} · {activePatient.breed} · Tutor: {activePatient.owner?.name}</p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedPatientId('')}
-                          className="text-xs text-emerald-800 hover:underline font-bold"
-                        >
-                          Cambiar
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <input
-                          type="text"
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          placeholder="Buscar paciente para asociar la recolección..."
-                          className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                        />
-                        {displayedPatients.length > 0 && (
-                          <div className="max-h-40 overflow-y-auto space-y-1.5 border border-slate-100 rounded-xl p-2">
-                            {displayedPatients.map((p) => (
-                              <div
-                                key={p.id}
-                                onClick={() => setSelectedPatientId(p.id)}
-                                className="p-2 rounded-lg hover:bg-emerald-50 cursor-pointer text-xs flex justify-between"
-                              >
-                                <span className="font-bold text-slate-800">{p.name} ({p.id})</span>
-                                <span className="text-emerald-700 font-semibold">Seleccionar</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                    {/* Sede de recogida */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Sede donde está la muestra *</label>
-                      <select
-                        value={microbiotaCollectionSede}
-                        onChange={(e) => setMicrobiotaCollectionSede(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      >
-                        <option value="Sede Principal - Calle 80">Sede Principal - Calle 80 (#nit-1)</option>
-                        <option value="Sede Norte - Cedritos">Sede Norte - Cedritos (#nit-2)</option>
-                        <option value="Sede Chía - Sabana">Sede Chía - Sabana (#nit-3)</option>
-                        <option value="Sede Campestre - Suba">Sede Campestre - Suba (#nit-4)</option>
-                      </select>
-                    </div>
-
-                    {/* Fecha de recolección */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Fecha programada *</label>
-                      <input
-                        type="date"
-                        value={microbiotaCollectionDate}
-                        onChange={(e) => setMicrobiotaCollectionDate(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      />
-                    </div>
-
-                    {/* Franja Horaria */}
-                    <div className="space-y-1.5 sm:col-span-2">
-                      <label className="text-xs font-bold text-slate-700">Franja horaria preferida *</label>
-                      <div className="grid grid-cols-3 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setMicrobiotaCollectionTimeSlot('manana')}
-                          className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                            microbiotaCollectionTimeSlot === 'manana'
-                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
-                              : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                          }`}
-                        >
-                          ☀️ Mañana (8am - 12pm)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setMicrobiotaCollectionTimeSlot('tarde')}
-                          className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                            microbiotaCollectionTimeSlot === 'tarde'
-                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
-                              : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                          }`}
-                        >
-                          🌤️ Tarde (2pm - 6pm)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setMicrobiotaCollectionTimeSlot('urgente')}
-                          className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                            microbiotaCollectionTimeSlot === 'urgente'
-                              ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
-                              : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                          }`}
-                        >
-                          🚨 Urgente (Mismo día)
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Condiciones de la muestra */}
-                    <div className="space-y-1.5 sm:col-span-2">
-                      <label className="text-xs font-bold text-slate-700">Condiciones de conservación de la muestra</label>
-                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs text-slate-700">
-                        <div className="flex items-center gap-2">
-                          <input type="checkbox" defaultChecked disabled className="w-4 h-4 text-emerald-600 rounded" />
-                          <span>Tubo estéril con buffer estabilizador de ADN fecal cerrado herméticamente</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <input type="checkbox" defaultChecked disabled className="w-4 h-4 text-emerald-600 rounded" />
-                          <span>Conservado en refrigeración (4°C) previo al transporte del mensajero</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Notas */}
-                    <div className="space-y-1.5 sm:col-span-2">
-                      <label className="text-xs font-bold text-slate-700">Observaciones para el transportador</label>
-                      <textarea
-                        rows={2}
-                        value={microbiotaCollectionNotes}
-                        onChange={(e) => setMicrobiotaCollectionNotes(e.target.value)}
-                        placeholder="Ej. Muestra rotulada en nevera de laboratorio de la clínica, preguntar por Dr. Alejandro."
-                        className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
-                    <span className="font-extrabold text-slate-600">Servicio de Secuenciación 16S rRNA:</span>
-                    <span className="text-base font-black text-emerald-800">$285.000 COP</span>
-                  </div>
-                </div>
-              )}
-            </div>
+            <MicrobiotaOrderForm
+              activePatient={activePatient}
+              patients={patients}
+              onSelectPatient={(id) => setSelectedPatientId(id)}
+              onSubmitOrder={(payload) => handleSubmitMicrobiotaOrder(payload)}
+              isSubmitting={isSubmitting}
+              onClose={onClose}
+              isModal={isModal}
+            />
           )}
         </div>
 
@@ -5700,38 +5423,7 @@ export default function RequestExamModal({
           </div>
         )}
 
-        {/* Footer para Solicitud de Microbiota */}
-        {!isOrderSuccess && !isControlReviewOpen && requestCategory === 'microbiota' && (
-          <div className="bg-white px-6 sm:px-8 py-4 border-t border-slate-100 flex items-center justify-between shrink-0">
-            <div>
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors cursor-pointer"
-              >
-                {isModal ? 'Cancelar' : '← Volver a Pacientes'}
-              </button>
-            </div>
 
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                disabled={isSubmitting || (microbiotaSubtype === 'recoleccion' && !activePatient)}
-                onClick={handleSubmitMicrobiotaOrder}
-                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span>✓</span>
-                <span>
-                  {isSubmitting
-                    ? 'Procesando...'
-                    : microbiotaSubtype === 'kit'
-                    ? `Solicitar ${microbiotaKitQuantity} Kit(s) de Microbiota`
-                    : 'Confirmar y Programar Recolección'}
-                </span>
-              </button>
-            </div>
-          </div>
-        )}
 
       </div>
     </div>

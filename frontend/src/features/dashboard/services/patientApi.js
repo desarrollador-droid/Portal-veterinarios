@@ -962,13 +962,14 @@ export const patientApi = {
       const now = new Date();
       const formattedDate = `${now.toLocaleDateString('es-ES')} - ${now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
       patient.activeExamOrder = {
-        id: `ORD-2026-${Math.floor(100 + Math.random() * 900)}`,
+        ...examData,
+        id: examData.id || `ORD-2026-${Math.floor(100 + Math.random() * 900)}`,
         testName: examData.testName || 'Panel Diagnóstico Molecular qPCR',
-        category: 'Biología Molecular Cuantitativa (qPCR)',
+        category: examData.category || 'Biología Molecular Cuantitativa (qPCR)',
         sampleType: examData.sampleType || 'Hisopado / Muestra biológica',
         priority: examData.urgency || 'Normal (24-48h)',
         requestedBy: examData.requestedBy || 'Dr. Alejandro Morales',
-        laboratory: 'VetLab Central - Unidad de Genómica',
+        laboratory: examData.laboratory || 'VetLab Central - Unidad de Genómica',
         targets: examData.targets || 'Detección cuantitativa de patógenos diana',
         syndromes: examData.syndromes || [],
         findings: examData.findings || [],
@@ -982,8 +983,8 @@ export const patientApi = {
         steps: [
           { label: 'Solicitud creada', desc: 'Orden médica generada', date: formattedDate, completed: true },
           { label: 'Muestra recibida', desc: 'Ingreso a laboratorio', date: 'Pendiente', completed: false },
-          { label: 'En análisis qPCR', desc: 'Extracción y amplificación', date: 'Pendiente', completed: false },
-          { label: 'Validación médica', desc: 'Revisión por patólogo', date: 'Pendiente', completed: false },
+          { label: 'En análisis molecular / secuenciación', desc: 'Extracción y amplificación / NGS', date: 'Pendiente', completed: false },
+          { label: 'Validación médica', desc: 'Revisión por patólogo / bioinformático', date: 'Pendiente', completed: false },
           { label: 'Resultado enviado', desc: 'Informe emitido a clínica', date: 'Pendiente', completed: false },
         ],
       };
