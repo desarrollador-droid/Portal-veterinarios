@@ -214,10 +214,6 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
         triggerAlert('Por favor ingrese el número de documento del tutor.', 'ownerDocumentNumber');
         return;
       }
-      if (formData.ownerHasVetPlus && !formData.ownerVetPlusCode.trim()) {
-        triggerAlert('Por favor ingrese el código de póliza o autorización de VetPlus.', 'ownerVetPlusCode');
-        return;
-      }
     }
 
     if (currentStep === 2) {
@@ -631,46 +627,6 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                   placeholder="Ej. Cra 15 # 85-30, Apto 402"
                   className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
                 />
-              </div>
-
-              {/* Aseguramiento VetPlus */}
-              <div className="p-4 bg-sky-50 border border-sky-200 rounded-2xl space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-extrabold text-[#2B017C] flex items-center gap-1.5">
-                      <span>🛡️</span> Seguro Médico VetPlus
-                    </span>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      ¿El tutor cuenta con afiliación activa o convenio VetPlus?
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="ownerHasVetPlus"
-                      checked={formData.ownerHasVetPlus}
-                      onChange={handleChange}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#6F2BCC]" />
-                  </label>
-                </div>
-
-                {formData.ownerHasVetPlus && (
-                  <div className="pt-2 animate-in fade-in duration-150">
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Código de Póliza / Afiliación VetPlus *
-                    </label>
-                    <input
-                      type="text"
-                      name="ownerVetPlusCode"
-                      value={formData.ownerVetPlusCode}
-                      onChange={handleChange}
-                      placeholder="Ej. VP-90284-COL"
-                      className="w-full px-3.5 py-2 border border-sky-300 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none font-mono"
-                    />
-                  </div>
-                )}
               </div>
             </div>
           )}
@@ -1095,10 +1051,6 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                   <div>
                     <span className="text-slate-400 block text-[11px]">Dirección</span>
                     <strong className="text-slate-800">{formData.ownerAddress || 'No especificada'}</strong>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-[11px]">VetPlus</span>
-                    <strong className="text-slate-800">{formData.ownerHasVetPlus ? `Sí (${formData.ownerVetPlusCode})` : 'No'}</strong>
                   </div>
                 </div>
               </div>

@@ -1,14 +1,53 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function PatientTable({
-  patients,
-  filters,
+  patients = [],
+  filters = {},
   filterOptions,
   onFilterChange,
   onSelectPatient,
   onRequestExam,
   sedesList = [],
 }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Reiniciar a página 1 cuando cambian los filtros o el tamaño de página
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    filters?.search,
+    filters?.species,
+    filters?.breed,
+    filters?.sampleStatus,
+    filters?.sedeId,
+    pageSize,
+  ]);
+
+  const totalPatients = patients?.length || 0;
+  const totalPages = Math.max(1, Math.ceil(totalPatients / pageSize));
+  const validPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const startIndex = totalPatients === 0 ? 0 : (validPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalPatients);
+  const paginatedPatients = patients.slice(startIndex, endIndex);
+
+  // Generador de números de página
+  const getPageNumbers = () => {
+    const pages = [];
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (validPage <= 3) {
+        pages.push(1, 2, 3, 4, '...', totalPages);
+      } else if (validPage >= totalPages - 2) {
+        pages.push(1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+      } else {
+        pages.push(1, '...', validPage - 1, validPage, validPage + 1, '...', totalPages);
+      }
+    }
+    return pages;
+  };
   const getSampleBadge = (patient) => {
     let statusText = 'Pendiente de toma';
     if (patient.activeExamOrder) {
@@ -96,15 +135,20 @@ export default function PatientTable({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/70 shadow-xs overflow-hidden">
+    <div className="bg-white dark:bg-[#15102a] rounded-2xl border border-slate-200/70 dark:border-[#281f47] shadow-xs overflow-hidden">
       {/* Encabezado y Barra de búsqueda limpia */}
       <div className="p-6 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-xl font-extrabold text-[#2B017C]">
-          Listado de pacientes
-        </h2>
+        <div>
+          <h2 className="text-xl font-extrabold text-[#2B017C] dark:text-[#01FADA]">
+            Listado de pacientes
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Haz clic en cualquier paciente de la tabla para abrir y revisar su ficha clínica completa.
+          </p>
+        </div>
 
         <div className="relative w-full sm:w-80">
-          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#6F2BCC]">
+          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#6F2BCC] dark:text-[#a78bfa]">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
             </svg>
@@ -114,47 +158,53 @@ export default function PatientTable({
             value={filters.search}
             onChange={(e) => onFilterChange('search', e.target.value)}
             placeholder="Buscar paciente o propietario..."
-            className="w-full pl-10 pr-4 py-2 bg-purple-50/40 border border-purple-100 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC] focus:border-transparent focus:bg-white transition-all font-primeform"
+            className="w-full pl-10 pr-4 py-2 bg-purple-50/40 dark:bg-[#1d1738] border border-purple-100 dark:border-[#382b61] rounded-xl text-sm text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC] focus:border-transparent focus:bg-white dark:focus:bg-[#231c44] transition-all font-primeform"
           />
         </div>
       </div>
 
-      {/* Tabla */}
+      {/* Tabla sin barra horizontal forzada */}
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-t border-b border-slate-100 bg-[#f8fbfe]/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              <th className="py-3 px-6">PACIENTE</th>
-              <th className="py-3 px-6">ESPECIE / RAZA</th>
-              <th className="py-3 px-6">PROPIETARIO</th>
-              <th className="py-3 px-6">ESTADO ADMIN.</th>
-              <th className="py-3 px-6">ESTADO MUESTRA</th>
-              <th className="py-3 px-6">ÚLTIMA VISITA</th>
-              <th className="py-3 px-6 text-right"></th>
+            <tr className="border-t border-b border-slate-100 dark:border-[#281f47] bg-[#f8fbfe]/80 dark:bg-[#1a1336] text-[11px] font-bold text-slate-500 dark:text-purple-300 uppercase tracking-wider">
+              <th className="py-3 px-4 sm:px-5">PACIENTE</th>
+              <th className="py-3 px-4 sm:px-5">ESPECIE / RAZA</th>
+              <th className="py-3 px-4 sm:px-5">PROPIETARIO</th>
+              <th className="py-3 px-4 sm:px-5">ESTADO ADMIN.</th>
+              <th className="py-3 px-4 sm:px-5">ESTADO MUESTRA</th>
+              <th className="py-3 px-4 sm:px-5">ÚLTIMA VISITA</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-sm">
-            {patients.length > 0 ? (
-              patients.map((patient) => (
-                <tr key={patient.id} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="py-4 px-6 font-semibold text-slate-800 whitespace-nowrap">
+          <tbody className="divide-y divide-slate-100 dark:divide-[#241a42] text-sm">
+            {paginatedPatients.length > 0 ? (
+              paginatedPatients.map((patient) => (
+                <tr
+                  key={patient.id}
+                  onClick={() => onSelectPatient(patient)}
+                  title="Haz clic para ver la ficha clínica de este paciente"
+                  className="hover:bg-purple-50/50 dark:hover:bg-[#211947] transition-colors cursor-pointer group"
+                >
+                  <td className="py-3.5 px-4 sm:px-5 font-semibold text-slate-800 dark:text-white whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-xl shadow-2xs">
+                      <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-800/50 flex items-center justify-center text-xl shadow-2xs group-hover:scale-105 transition-transform">
                         {patient.avatar || (patient.species.toLowerCase().includes('felin') ? '🐱' : patient.species.toLowerCase().includes('canin') ? '🐶' : '🐾')}
                       </div>
                       <div>
-                        <span className="text-slate-900 font-bold block">
-                          {patient.name} {patient.lastName || ''}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-900 dark:text-white font-bold block group-hover:text-[#6F2BCC] dark:group-hover:text-[#01FADA] transition-colors">
+                            {patient.name} {patient.lastName || ''}
+                          </span>
+                        </div>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-[11px] font-mono text-slate-400">
+                          <span className="text-[11px] font-mono text-slate-400 dark:text-slate-400">
                             {patient.id}
                           </span>
                           {/* Carácter especial discreto de sede atendida */}
                           {patient.codigoSedeNit && (
                             <span
                               title={`Atendido en: ${patient.sedeNombre || 'Sede'} (${patient.codigoSedeNit})`}
-                              className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-md bg-purple-50 text-[#6F2BCC] border border-purple-200/80 text-[10px] font-mono font-bold cursor-help hover:bg-purple-100 transition-colors"
+                              className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-md bg-purple-50 dark:bg-purple-950/60 text-[#6F2BCC] dark:text-purple-300 border border-purple-200/80 dark:border-purple-800 text-[10px] font-mono font-bold"
                             >
                               <span>🏢</span>
                               <span>{patient.codigoSedeNit.replace(/^#nit-?/i, '#')}</span>
@@ -165,41 +215,30 @@ export default function PatientTable({
                     </div>
                   </td>
 
-                  <td className="py-4 px-6 text-slate-600 whitespace-nowrap">
+                  <td className="py-3.5 px-4 sm:px-5 text-slate-600 dark:text-slate-300 whitespace-nowrap">
                     {patient.species} · {patient.breed}
                   </td>
 
-                  <td className="py-4 px-6 text-slate-700 whitespace-nowrap">
+                  <td className="py-3.5 px-4 sm:px-5 text-slate-700 dark:text-slate-300 whitespace-nowrap">
                     {patient.owner?.name}
                   </td>
 
-                  <td className="py-4 px-6 whitespace-nowrap">
+                  <td className="py-3.5 px-4 sm:px-5 whitespace-nowrap">
                     {getAdminBadge(patient.status)}
                   </td>
 
-                  <td className="py-4 px-6 whitespace-nowrap">
+                  <td className="py-3.5 px-4 sm:px-5 whitespace-nowrap">
                     {getSampleBadge(patient)}
                   </td>
 
-                  <td className="py-4 px-6 text-slate-600 whitespace-nowrap">
+                  <td className="py-3.5 px-4 sm:px-5 text-slate-600 dark:text-slate-300 whitespace-nowrap">
                     {patient.lastVisit}
-                  </td>
-
-                  <td className="py-4 px-6 text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end">
-                      <button
-                        onClick={() => onSelectPatient(patient)}
-                        className="text-[#6F2BCC] hover:text-[#2B017C] font-bold font-primeform text-sm cursor-pointer transition-colors"
-                      >
-                        Ver ficha →
-                      </button>
-                    </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="py-12 text-center text-slate-400">
+                <td colSpan="6" className="py-12 text-center text-slate-400 dark:text-slate-500">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <span className="text-3xl">🐾</span>
                     <p className="text-sm font-medium">No se encontraron pacientes con los filtros seleccionados.</p>
@@ -209,6 +248,89 @@ export default function PatientTable({
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Paginación */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-slate-100 dark:border-[#281f47] bg-[#f8fbfe]/50 dark:bg-[#15102a]">
+        {/* Contador y selector de tamaño */}
+        <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+          <span>
+            {totalPatients > 0 ? (
+              <>
+                Mostrando <strong className="text-slate-700 dark:text-purple-200">{startIndex + 1}</strong> -{' '}
+                <strong className="text-slate-700 dark:text-purple-200">{endIndex}</strong> de{' '}
+                <strong className="text-slate-700 dark:text-purple-200">{totalPatients}</strong> pacientes
+              </>
+            ) : (
+              '0 pacientes'
+            )}
+          </span>
+
+          <div className="flex items-center gap-1.5 border-l border-slate-200 dark:border-[#281f47] pl-4">
+            <span>Mostrar:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+              className="bg-white dark:bg-[#1d1738] border border-slate-200 dark:border-[#382b61] rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 dark:text-purple-200 focus:outline-none focus:ring-1 focus:ring-[#6F2BCC] cursor-pointer"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Controles de navegación */}
+        {totalPages > 1 && (
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={validPage <= 1}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 border border-slate-200 dark:border-[#382b61] bg-white dark:bg-[#1d1738] text-slate-700 dark:text-purple-200 hover:bg-purple-50 dark:hover:bg-[#281f47] disabled:opacity-35 disabled:cursor-not-allowed transition-all"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+              </svg>
+              <span>Anterior</span>
+            </button>
+
+            <div className="flex items-center gap-1">
+              {getPageNumbers().map((num, idx) =>
+                num === '...' ? (
+                  <span
+                    key={`ellipsis-${idx}`}
+                    className="w-7 text-center text-slate-400 dark:text-purple-400 text-xs font-bold select-none"
+                  >
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    key={`page-${num}`}
+                    onClick={() => setCurrentPage(num)}
+                    className={`w-8 h-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center border ${
+                      validPage === num
+                        ? 'bg-[#2B017C] dark:bg-[#6F2BCC] text-white dark:text-[#01FADA] border-[#2B017C] dark:border-[#6F2BCC] shadow-xs'
+                        : 'border-slate-200 dark:border-[#382b61] bg-white dark:bg-[#1d1738] text-slate-700 dark:text-purple-200 hover:bg-purple-50 dark:hover:bg-[#281f47]'
+                    }`}
+                  >
+                    {num}
+                  </button>
+                )
+              )}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={validPage >= totalPages}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 border border-slate-200 dark:border-[#382b61] bg-white dark:bg-[#1d1738] text-slate-700 dark:text-purple-200 hover:bg-purple-50 dark:hover:bg-[#281f47] disabled:opacity-35 disabled:cursor-not-allowed transition-all"
+            >
+              <span>Siguiente</span>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

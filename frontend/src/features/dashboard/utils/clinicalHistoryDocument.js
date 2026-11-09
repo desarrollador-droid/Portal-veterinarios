@@ -1,3 +1,5 @@
+import { hasReportedAllergy, getAllergyDisplay } from './allergyHelpers.js';
+
 /**
  * Generador de Historia Clínica Visual Digital - VetLab
  * Genera un documento clínico completo con diseño idéntico al dashboard visual de la plataforma,
@@ -967,12 +969,12 @@ export function generateClinicalHistoryHtml(patient) {
 
       <!-- Alergias y Antecedentes -->
       <div class="two-col" style="margin-top: 10px;">
-        <div class="data-box ${patient.hasAllergies || (patient.allergies && patient.allergies !== 'Ninguna' && patient.allergies !== 'Ninguna conocida' && patient.allergies.trim() !== '') ? 'data-box-rose' : ''}">
+        <div class="data-box ${hasReportedAllergy(patient) ? 'data-box-rose' : ''}">
           <span class="box-label">Alergias o Contraindicaciones</span>
           <span class="box-val">
-            ${patient.hasAllergies || (patient.allergies && patient.allergies !== 'Ninguna' && patient.allergies !== 'Ninguna conocida' && patient.allergies.trim() !== '')
-              ? `<span style="color: var(--rose-800);">⚠️ ${patient.allergies}</span>`
-              : 'Ninguna conocida'}
+            ${hasReportedAllergy(patient)
+              ? `<span style="color: var(--rose-800);">⚠️ ${getAllergyDisplay(patient)}</span>`
+              : 'Sin alergias conocidas'}
           </span>
         </div>
         <div class="data-box">

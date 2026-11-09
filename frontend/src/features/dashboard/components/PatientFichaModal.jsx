@@ -3,8 +3,90 @@ import DeliveryTracker from './DeliveryTracker.jsx';
 import EditPatientModal from './EditPatientModal.jsx';
 import RequestExamModal from './RequestExamModal.jsx';
 import NewConsultationModal from './NewConsultationModal.jsx';
+import PatientDocumentsTab from './PatientDocumentsTab.jsx';
 import { patientApi } from '../services/patientApi.js';
 import { downloadClinicalHistoryDocument } from '../utils/clinicalHistoryDocument.js';
+import { hasReportedAllergy, getAllergyDisplay } from '../utils/allergyHelpers.js';
+
+export const SAMPLE_DOCS_BY_PATIENT = {
+  'PAC-PRUEBA-01': [
+    {
+      id: 'DOC-2026-001',
+      title: 'Cuadro Hemático & Frotis Sanguíneo (Remisión)',
+      documentType: 'laboratorio',
+      date: '28/08/2026',
+      uploadedBy: 'Dr. Alejandro Morales',
+      fileName: 'Hemograma_Completo_Luna.pdf',
+      fileSize: '1.2 MB',
+      keyFindings: ['Anemia microcítica', 'Trombocitopenia leve', 'Letargia'],
+      hematocrito: 29,
+      plaquetas: 155000,
+      leucocitos: 11200,
+      notes: 'Hematocrito 29%, plaquetas 155.000 /uL. Frotis con anisocitosis leve y macroplaquetas. Sugerido descarte de hemotrópicos caninos.',
+      fileUrl: '#',
+    },
+    {
+      id: 'DOC-2026-002',
+      title: 'Historia Clínica Externa & Epicrisis Previa',
+      documentType: 'historia_clinica',
+      date: '10/05/2026',
+      uploadedBy: 'Dra. Marcela Restrepo',
+      fileName: 'Epicrisis_Remision_Luna.pdf',
+      fileSize: '2.4 MB',
+      keyFindings: ['Vómito intermitente', 'Diarrea mucosa', 'Anorexia parcial'],
+      notes: 'Paciente con antecedentes de intolerancia alimentaria y disbiosis transitoria. Se sugiere seguimiento de microbiota por qPCR.',
+      fileUrl: '#',
+    },
+  ],
+  'PAC-PRUEBA-02': [
+    {
+      id: 'DOC-2026-003',
+      title: 'Hemograma Completo y Bioquímica Hepática',
+      documentType: 'laboratorio',
+      date: '29/09/2026',
+      uploadedBy: 'Dr. Daniel Ramírez',
+      fileName: 'Hemograma_Bioquimica_Michi.pdf',
+      fileSize: '980 KB',
+      keyFindings: ['Trombocitopenia marcada', 'Anemia normocítica', 'Fiebre'],
+      hematocrito: 31,
+      plaquetas: 85000,
+      leucocitos: 18500,
+      notes: 'Paciente felino con fiebre persistente. Se solicita panel de hemotrópicos felinos por qPCR.',
+      fileUrl: '#',
+    },
+  ],
+  'PAC-PRUEBA-03': [
+    {
+      id: 'DOC-2026-004',
+      title: 'Cuadro Hemático Completo & Bioquímica Renal',
+      documentType: 'laboratorio',
+      date: '02/10/2026',
+      uploadedBy: 'Dr. Alejandro Morales',
+      fileName: 'Hemograma_Rocky.pdf',
+      fileSize: '1.1 MB',
+      keyFindings: ['Leucocitosis reactiva', 'Neutrofilia'],
+      hematocrito: 38,
+      plaquetas: 210000,
+      leucocitos: 16500,
+      notes: 'Control previo a protocolo de análisis molecular.',
+      fileUrl: '#',
+    },
+  ],
+  'PAC-R01': [
+    {
+      id: 'DOC-2026-005',
+      title: 'Historia Clínica y Ficha de Ingreso',
+      documentType: 'historia_clinica',
+      date: '15/10/2026',
+      uploadedBy: 'Dr. Alejandro Morales',
+      fileName: 'Historia_Clinica_Zeus.pdf',
+      fileSize: '1.5 MB',
+      keyFindings: ['Letargia', 'Coinfección sospechada'],
+      notes: 'Registro inicial sincronizado con base de datos Kea Tools.',
+      fileUrl: '#',
+    },
+  ],
+};
 
 export function getExamAgentsList(exam) {
   if (exam?.agents && Array.isArray(exam.agents) && exam.agents.length > 0) {
@@ -79,6 +161,9 @@ export default function PatientFichaModal({
   const [showExamModal, setShowExamModal] = useState(false);
   const [examModalType, setExamModalType] = useState('nuevo');
   const [showConsultationModal, setShowConsultationModal] = useState(false);
+  const [clinicalDocs, setClinicalDocs] = useState(() => {
+    return patient.clinicalDocuments || SAMPLE_DOCS_BY_PATIENT[patient.id] || [];
+  });
 
   const handleOpenExam = (examType = 'nuevo') => {
     setExamModalType(examType);
@@ -166,15 +251,15 @@ export default function PatientFichaModal({
   const ma = patient.medicalAdmission || {};
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-5xl w-full shadow-2xl border border-slate-100 overflow-hidden my-6 max-h-[94vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
-        <div className="px-6 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-xs text-slate-500 shrink-0">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-[#140f2d] rounded-3xl max-w-5xl w-full shadow-2xl border border-slate-100 dark:border-[#2b2052] overflow-hidden my-6 max-h-[94vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
+        <div className="px-6 py-3 bg-slate-50 dark:bg-[#1a1438] border-b border-slate-100 dark:border-[#2b2052] flex items-center justify-between text-xs text-slate-500 dark:text-slate-300 shrink-0">
           <span className="font-semibold flex items-center gap-1.5">
             <span>🐾</span> Expediente Clínico Digital · Portal Veterinario
           </span>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer"
+            className="text-slate-400 hover:text-slate-700 dark:hover:text-white font-bold text-lg cursor-pointer"
           >
             ✕
           </button>
@@ -187,30 +272,30 @@ export default function PatientFichaModal({
           {/* Estado muestra, Última visita) + PESO, EDAD + Opciones        */}
           {/* + LÍNEA DE TIEMPO TIPO DELIVERY COMPLETA                       */}
           {/* ============================================================== */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+          <div className="bg-white dark:bg-[#1b143c] rounded-2xl border border-slate-200 dark:border-[#2b2052] p-6 shadow-xs">
             {/* Fila 1: Encabezado con Avatar, Nombre, ID, Estado y Botones de Acción */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 pb-5 border-b border-slate-100">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 pb-5 border-b border-slate-100 dark:border-[#2b2052]">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center text-3xl shadow-xs shrink-0">
+                <div className="w-16 h-16 rounded-2xl bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800/60 flex items-center justify-center text-3xl shadow-xs shrink-0">
                   {patient.avatar || (patient.species?.toLowerCase().includes('felin') ? '🐱' : '🐶')}
                 </div>
 
                 <div>
-                  {/* ALERTA DE ALERGIA ENCIMA DEL NOMBRE DEL PACIENTE (TONO SUAVE Y CLÍNICO) */}
-                  {((patient.hasAllergies && patient.allergies) || (patient.allergies && patient.allergies !== 'Ninguna' && patient.allergies !== 'Ninguna conocida' && patient.allergies !== 'Ninguna reportada' && patient.allergies.trim() !== '')) && (
+                  {/* ALERTA DE ALERGIA ENCIMA DEL NOMBRE DEL PACIENTE (Únicamente cuando se reporta una alergia) */}
+                  {hasReportedAllergy(patient) && (
                     <div className="mb-2">
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200/80 shadow-2xs">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 dark:bg-rose-950/50 text-rose-800 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800 shadow-2xs">
                         <span>⚠️ Alergia reportada:</span>
-                        <span className="font-bold">{patient.allergies}</span>
+                        <span className="font-bold">{getAllergyDisplay(patient)}</span>
                       </div>
                     </div>
                   )}
 
                   <div className="flex items-center gap-3 flex-wrap">
-                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                       {fullPatientName}
                     </h2>
-                    <span className="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                    <span className="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
                       {patient.id}
                     </span>
                     <span
@@ -222,15 +307,15 @@ export default function PatientFichaModal({
                     {patient.isSterilized !== undefined && patient.isSterilized !== null && (
                       <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
                         patient.isSterilized 
-                          ? 'bg-purple-50 text-purple-800 border-purple-200' 
-                          : 'bg-slate-50 text-slate-600 border-slate-200'
+                          ? 'bg-purple-50 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800' 
+                          : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                       }`}>
                         {patient.isSterilized ? '🔒 Esterilizado(a)' : 'Entero(a)'}
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Médico tratante: <strong className="text-slate-900 font-bold">{patient.attendingVet || 'Dr. Alejandro Morales'}</strong>
+                  <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
+                    Médico tratante: <strong className="text-slate-900 dark:text-white font-bold">{patient.attendingVet || 'Dr. Alejandro Morales'}</strong>
                   </p>
                 </div>
               </div>
@@ -240,7 +325,7 @@ export default function PatientFichaModal({
                 <button
                   onClick={handleDownloadHistory}
                   title="Descargar historia clínica completa con diseño visual oficial (Guardar como PDF o archivo HTML)"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
                 >
                   <span>📄</span> Descargar historia clínica
                 </button>
@@ -249,14 +334,14 @@ export default function PatientFichaModal({
                   <button
                     disabled
                     title="Paciente fallecido: La ficha médica está bloqueada permanentemente"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 font-semibold text-xs cursor-not-allowed select-none"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 font-semibold text-xs cursor-not-allowed select-none"
                   >
                     <span>🔒</span> Editar información (Bloqueada)
                   </button>
                 ) : (
                   <button
                     onClick={() => setShowEditModal(true)}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#6F2BCC] text-[#6F2BCC] hover:bg-sky-50 font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#6F2BCC] text-[#6F2BCC] dark:text-[#a78bfa] dark:border-[#a78bfa] hover:bg-sky-50 dark:hover:bg-purple-950/40 font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
                   >
                     <span>✏️</span> Editar información
                   </button>
@@ -265,7 +350,7 @@ export default function PatientFichaModal({
                 {isDeceased ? (
                   <button
                     disabled
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 text-slate-400 font-semibold text-xs cursor-not-allowed select-none"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-semibold text-xs cursor-not-allowed select-none"
                   >
                     <span>🧪</span> Solicitar nuevo examen
                   </button>
@@ -281,53 +366,53 @@ export default function PatientFichaModal({
             </div>
 
             {/* Fila 2: Cuadro de Información General Integral (Campos de la tabla + Sede + Peso + Edad) */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 py-5 border-b border-slate-100 text-xs">
-              <div className="col-span-2 sm:col-span-1 lg:col-span-2 bg-purple-50/40 rounded-2xl p-4 border border-purple-100 shadow-2xs">
-                <span className="text-purple-600 block text-[10px] font-bold uppercase tracking-wider">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 py-5 border-b border-slate-100 dark:border-[#2b2052] text-xs">
+              <div className="col-span-2 sm:col-span-1 lg:col-span-2 bg-purple-50/40 dark:bg-purple-950/40 rounded-2xl p-4 border border-purple-100 dark:border-purple-800/60 shadow-2xs">
+                <span className="text-purple-600 dark:text-purple-300 block text-[10px] font-bold uppercase tracking-wider">
                   🐾 Especie / Raza
                 </span>
-                <span className="font-extrabold text-slate-900 mt-1 block break-words text-sm leading-snug">
+                <span className="font-extrabold text-slate-900 dark:text-white mt-1 block break-words text-sm leading-snug">
                   {patient.species} · {patient.breed}
                 </span>
               </div>
 
-              <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80">
-                <span className="text-slate-400 block text-[10px] font-semibold uppercase tracking-wider">
+              <div className="bg-slate-50/80 dark:bg-[#201844] rounded-2xl p-4 border border-slate-200/80 dark:border-[#332666]">
+                <span className="text-slate-400 dark:text-slate-300 block text-[10px] font-semibold uppercase tracking-wider">
                   👤 Propietario / Tutor
                 </span>
-                <span className="font-extrabold text-slate-900 mt-1 block break-words">
+                <span className="font-extrabold text-slate-900 dark:text-white mt-1 block break-words">
                   {patient.owner?.name}
                 </span>
               </div>
 
-              <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80">
-                <span className="text-slate-400 block text-[10px] font-semibold uppercase tracking-wider">
+              <div className="bg-slate-50/80 dark:bg-[#201844] rounded-2xl p-4 border border-slate-200/80 dark:border-[#332666]">
+                <span className="text-slate-400 dark:text-slate-300 block text-[10px] font-semibold uppercase tracking-wider">
                   🏢 Sede de Atención
                 </span>
-                <span className="font-bold text-[#6F2BCC] mt-1 block break-words text-xs">
+                <span className="font-bold text-[#6F2BCC] dark:text-[#a78bfa] mt-1 block break-words text-xs">
                   {patient.sedeNombre || 'Sede Principal'}
                   {patient.codigoSedeNit && (
-                    <span className="ml-1 px-1.5 py-0.2 rounded bg-purple-100 text-[#2B017C] text-[10px] font-mono">
+                    <span className="ml-1 px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-950/80 text-[#2B017C] dark:text-[#01FADA] text-[10px] font-mono">
                       {patient.codigoSedeNit}
                     </span>
                   )}
                 </span>
               </div>
 
-              <div className="bg-sky-50/80 rounded-2xl p-4 border border-sky-200">
-                <span className="text-sky-700 block text-[10px] font-bold uppercase tracking-wider">
+              <div className="bg-sky-50/80 dark:bg-sky-950/40 rounded-2xl p-4 border border-sky-200 dark:border-sky-800/60">
+                <span className="text-sky-700 dark:text-sky-300 block text-[10px] font-bold uppercase tracking-wider">
                   ⚖️ Peso Actual
                 </span>
-                <span className="font-black text-sky-950 text-sm mt-1 block">
+                <span className="font-black text-sky-950 dark:text-[#01FADA] text-sm mt-1 block">
                   {patient.weight || 'N/A'}
                 </span>
               </div>
 
-              <div className="bg-indigo-50/80 rounded-2xl p-4 border border-indigo-200">
-                <span className="text-indigo-700 block text-[10px] font-bold uppercase tracking-wider">
+              <div className="bg-indigo-50/80 dark:bg-indigo-950/40 rounded-2xl p-4 border border-indigo-200 dark:border-indigo-800/60">
+                <span className="text-indigo-700 dark:text-indigo-300 block text-[10px] font-bold uppercase tracking-wider">
                   🎂 Edad Calculada
                 </span>
-                <span className="font-black text-indigo-950 text-sm mt-1 block">
+                <span className="font-black text-indigo-950 dark:text-indigo-200 text-sm mt-1 block">
                   {patient.age || 'No calculada'}
                 </span>
               </div>
@@ -374,17 +459,19 @@ export default function PatientFichaModal({
           {/* 1. Dashboard del paciente                                      */}
           {/* 2. Consultas médicas                                           */}
           {/* 3. Exámenes qPCR                                               */}
-          {/* 4. Datos Generales & Tutor (Anamnesis completa + Factores)     */}
+          {/* 4. Exámenes Previos e Historia Clínica Adjunta                 */}
+          {/* 5. Datos Generales & Tutor (Anamnesis completa + Factores)     */}
+          {/* 6. Historial de Cambios                                        */}
           {/* ============================================================== */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+          <div className="bg-white dark:bg-[#1b143c] rounded-2xl border border-slate-200/90 dark:border-[#2b2052] shadow-xs overflow-hidden">
             {/* Pestañas de Navegación Modular */}
-            <div className="flex border-b border-slate-200 bg-slate-50/70 text-xs font-bold px-4 gap-2 overflow-x-auto">
+            <div className="flex border-b border-slate-200 dark:border-[#2b2052] bg-slate-50/70 dark:bg-[#171035] text-xs font-bold px-4 gap-2 overflow-x-auto">
               <button
                 onClick={() => setActiveTab('dashboard')}
                 className={`py-3.5 px-4 border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === 'dashboard'
-                    ? 'border-[#6F2BCC] text-[#6F2BCC] bg-white font-extrabold'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
+                    ? 'border-[#6F2BCC] text-[#6F2BCC] dark:text-[#01FADA] dark:border-[#01FADA] bg-white dark:bg-[#1b143c] font-extrabold'
+                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-800/50'
                 }`}
               >
                 <span>📊</span> Dashboard del Paciente
@@ -394,8 +481,8 @@ export default function PatientFichaModal({
                 onClick={() => setActiveTab('consultas')}
                 className={`py-3.5 px-4 border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === 'consultas'
-                    ? 'border-[#6F2BCC] text-[#6F2BCC] bg-white font-extrabold'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
+                    ? 'border-[#6F2BCC] text-[#6F2BCC] dark:text-[#01FADA] dark:border-[#01FADA] bg-white dark:bg-[#1b143c] font-extrabold'
+                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-800/50'
                 }`}
               >
                 <span>🩺</span> Consultas Médicas ({patient.consultations?.length || 0})
@@ -405,19 +492,30 @@ export default function PatientFichaModal({
                 onClick={() => setActiveTab('qpcr')}
                 className={`py-3.5 px-4 border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === 'qpcr'
-                    ? 'border-[#6F2BCC] text-[#6F2BCC] bg-white font-extrabold'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
+                    ? 'border-[#6F2BCC] text-[#6F2BCC] dark:text-[#01FADA] dark:border-[#01FADA] bg-white dark:bg-[#1b143c] font-extrabold'
+                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-800/50'
                 }`}
               >
                 <span>🔬</span> Exámenes qPCR ({patient.qpcrExams?.length || 0})
               </button>
 
               <button
+                onClick={() => setActiveTab('documentos')}
+                className={`py-3.5 px-4 border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === 'documentos'
+                    ? 'border-[#6F2BCC] text-[#6F2BCC] dark:text-[#01FADA] dark:border-[#01FADA] bg-white dark:bg-[#1b143c] font-extrabold'
+                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-800/50'
+                }`}
+              >
+                <span>📁</span> Exámenes e Historia ({clinicalDocs.length})
+              </button>
+
+              <button
                 onClick={() => setActiveTab('general')}
                 className={`py-3.5 px-4 border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === 'general'
-                    ? 'border-[#6F2BCC] text-[#6F2BCC] bg-white font-extrabold'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
+                    ? 'border-[#6F2BCC] text-[#6F2BCC] dark:text-[#01FADA] dark:border-[#01FADA] bg-white dark:bg-[#1b143c] font-extrabold'
+                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-800/50'
                 }`}
               >
                 <span>📋</span> Datos Generales & Tutor
@@ -427,8 +525,8 @@ export default function PatientFichaModal({
                 onClick={() => setActiveTab('auditoria')}
                 className={`py-3.5 px-4 border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === 'auditoria'
-                    ? 'border-[#6F2BCC] text-[#6F2BCC] bg-white font-extrabold'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
+                    ? 'border-[#6F2BCC] text-[#6F2BCC] dark:text-[#01FADA] dark:border-[#01FADA] bg-white dark:bg-[#1b143c] font-extrabold'
+                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-800/50'
                 }`}
               >
                 <span>📜</span> Historial de Cambios ({patient.auditHistory?.length || 1})
@@ -1064,7 +1162,35 @@ export default function PatientFichaModal({
                 </div>
               )}
 
-              {/* PESTAÑA 4: DATOS GENERALES & TUTOR */}
+              {/* PESTAÑA: EXÁMENES E HISTORIA CLÍNICA ADJUNTA */}
+              {activeTab === 'documentos' && (
+                <PatientDocumentsTab
+                  patient={patient}
+                  documents={clinicalDocs}
+                  onAddDocument={async (newDoc) => {
+                    const updated = [newDoc, ...clinicalDocs];
+                    setClinicalDocs(updated);
+                    if (onUpdatePatient) {
+                      await onUpdatePatient(patient.id, {
+                        ...patient,
+                        clinicalDocuments: updated,
+                      });
+                    }
+                  }}
+                  onDeleteDocument={async (docId) => {
+                    const updated = clinicalDocs.filter((d) => d.id !== docId);
+                    setClinicalDocs(updated);
+                    if (onUpdatePatient) {
+                      await onUpdatePatient(patient.id, {
+                        ...patient,
+                        clinicalDocuments: updated,
+                      });
+                    }
+                  }}
+                />
+              )}
+
+              {/* PESTAÑA 5: DATOS GENERALES & TUTOR */}
               {activeTab === 'general' && (
                 <div className="space-y-6 animate-in fade-in duration-150">
                   {/* SECCIÓN 4.1: INFORMACIÓN DEL TUTOR / PROPIETARIO */}
@@ -1322,14 +1448,14 @@ export default function PatientFichaModal({
 
                       {/* Alergias, Antecedentes Médicos y Observaciones */}
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                        <div className={`p-3 rounded-xl border ${patient.hasAllergies || (patient.allergies && patient.allergies !== 'Ninguna' && patient.allergies !== 'Ninguna conocida' && patient.allergies !== 'Ninguna reportada') ? 'bg-rose-50/60 border-rose-200' : 'bg-white border-slate-200'}`}>
+                        <div className={`p-3 rounded-xl border ${hasReportedAllergy(patient) ? 'bg-rose-50/60 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800' : 'bg-white dark:bg-[#1a1336] border-slate-200 dark:border-[#2b2052]'}`}>
                           <span className="text-slate-400 block text-[10px] font-semibold uppercase">Alergias o Contraindicaciones</span>
-                          {patient.hasAllergies || (patient.allergies && patient.allergies !== 'Ninguna' && patient.allergies !== 'Ninguna conocida' && patient.allergies !== 'Ninguna reportada') ? (
-                            <span className="font-bold text-rose-800 text-xs mt-0.5 block flex items-center gap-1">
-                              <span>⚠️</span> {patient.allergies}
+                          {hasReportedAllergy(patient) ? (
+                            <span className="font-bold text-rose-800 dark:text-rose-300 text-xs mt-0.5 block flex items-center gap-1">
+                              <span>⚠️</span> {getAllergyDisplay(patient)}
                             </span>
                           ) : (
-                            <span className="font-semibold text-slate-700 mt-0.5 block">Ninguna conocida</span>
+                            <span className="font-semibold text-slate-700 dark:text-slate-300 mt-0.5 block">Sin alergias conocidas</span>
                           )}
                         </div>
                         <div className="bg-white p-3 rounded-xl border border-slate-200">

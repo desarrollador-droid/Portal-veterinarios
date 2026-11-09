@@ -42,12 +42,12 @@ export const getFilterOptions = (req, res) => {
   }
 };
 
-export const createPatient = (req, res) => {
+export const createPatient = async (req, res) => {
   try {
-    const newPatient = patientService.createPatient(req.body);
+    const newPatient = await patientService.createPatient(req.body);
     return res.status(201).json({
       success: true,
-      message: 'Paciente registrado exitosamente',
+      message: 'Paciente registrado exitosamente en Kea Tools',
       data: newPatient,
     });
   } catch (error) {
@@ -55,13 +55,13 @@ export const createPatient = (req, res) => {
   }
 };
 
-export const updatePatient = (req, res) => {
+export const updatePatient = async (req, res) => {
   try {
     const { id } = req.params;
-    const updated = patientService.updatePatient(id, req.body);
+    const updated = await patientService.updatePatient(id, req.body);
     return res.json({
       success: true,
-      message: 'Ficha del paciente actualizada con éxito',
+      message: 'Ficha del paciente actualizada con éxito en Kea Tools',
       data: updated,
     });
   } catch (error) {
@@ -70,6 +70,16 @@ export const updatePatient = (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+export const deletePatient = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await patientService.deletePatient(id);
+    return res.json(result);
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -108,3 +118,28 @@ export const addConsultation = (req, res) => {
     });
   }
 };
+
+export const testKeaConnection = async (req, res) => {
+  try {
+    const result = await patientService.testKeaConnection();
+    return res.json({ success: true, ...result });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const syncKeaPatients = async (req, res) => {
+  try {
+    const result = await patientService.syncPatientsWithKea();
+    return res.json({ success: true, data: result });
+  } catch (error) {
+    const status = error.code === 'API_MODE_DISABLED' ? 403 : (error.status || 500);
+    return res.status(status).json({
+      success: false,
+      code: error.code || 'KEA_SYNC_ERROR',
+      message: error.message,
+      details: error.details,
+    });
+  }
+};
+

@@ -134,12 +134,19 @@ html.dark {
 }
 
 /* 4. Tarjetas, Paneles y Contenedores */
-.dark .bg-white {
+.dark .bg-white,
+.dark .bg-white\/95,
+.dark .bg-white\/90,
+.dark .bg-white\/80,
+.dark .bg-white\/70,
+.dark .bg-white\/60,
+.dark .bg-white\/50 {
   background-color: #15102a !important;
   color: #f1f5f9;
 }
 
 .dark .bg-slate-50,
+.dark .bg-slate-50\/40,
 .dark .bg-slate-50\/50,
 .dark .bg-slate-50\/60,
 .dark .bg-slate-50\/70,
@@ -148,27 +155,41 @@ html.dark {
 }
 
 .dark .bg-sky-50,
-.dark .bg-sky-50\/70 {
+.dark .bg-sky-50\/70,
+.dark .bg-sky-50\/80,
+.dark .bg-sky-50\/90 {
   background-color: rgba(1, 250, 218, 0.08) !important;
 }
 
 .dark .bg-purple-50,
+.dark .bg-purple-50\/40,
+.dark .bg-purple-50\/50,
 .dark .bg-purple-50\/60,
 .dark .bg-purple-50\/70,
 .dark .bg-purple-50\/80 {
   background-color: rgba(111, 43, 204, 0.15) !important;
 }
 
-.dark .bg-emerald-50 {
+.dark .bg-indigo-50,
+.dark .bg-indigo-50\/70,
+.dark .bg-indigo-50\/80 {
+  background-color: rgba(99, 102, 241, 0.12) !important;
+}
+
+.dark .bg-emerald-50,
+.dark .bg-emerald-50\/70,
+.dark .bg-emerald-50\/80 {
   background-color: rgba(16, 185, 129, 0.12) !important;
 }
 
 .dark .bg-amber-50,
-.dark .bg-amber-50\/60 {
+.dark .bg-amber-50\/60,
+.dark .bg-amber-50\/80 {
   background-color: rgba(245, 158, 11, 0.12) !important;
 }
 
-.dark .bg-rose-50 {
+.dark .bg-rose-50,
+.dark .bg-rose-50\/80 {
   background-color: rgba(244, 63, 94, 0.12) !important;
 }
 

@@ -56,6 +56,25 @@ export default function VeterinariansPortal() {
 
   useEffect(() => {
     loadInitialStats();
+
+    // Sincronización 100% automática en segundo plano:
+    // 1. Al volver a enfocar la ventana / pestaña del navegador
+    // 2. Periódicamente cada 45 segundos para detectar cambios externos en Kea
+    const doAutoSync = () => {
+      patientApi.syncKea().then((res) => {
+        if (res?.data?.patients) {
+          setPatients(res.data.patients);
+        }
+      }).catch(() => {});
+    };
+
+    window.addEventListener('focus', doAutoSync);
+    const syncInterval = setInterval(doAutoSync, 45000);
+
+    return () => {
+      window.removeEventListener('focus', doAutoSync);
+      clearInterval(syncInterval);
+    };
   }, []);
 
   const loadInitialStats = async () => {
@@ -68,6 +87,13 @@ export default function VeterinariansPortal() {
       setStats(s);
       setFilterOptions(f);
       setActiveClinic(clinic);
+
+      // Auto-sincronizar con Kea Tools en segundo plano
+      patientApi.syncKea().then((res) => {
+        if (res && res.data && res.data.patients) {
+          setPatients(res.data.patients);
+        }
+      }).catch(() => {});
     } catch (err) {
       console.error('Error cargando datos iniciales:', err);
     }

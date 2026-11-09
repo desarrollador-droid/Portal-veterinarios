@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PATIENT_STATUSES } from '../services/patientApi.js';
 import { colombiaGeoApi } from '../services/colombiaGeoApi.js';
 import { clinicApi } from '../services/clinicApi.js';
+import { hasReportedAllergy, getAllergyDisplay } from '../utils/allergyHelpers.js';
 
 const COLOMBIA_DEPARTMENTS = colombiaGeoApi.getDepartmentsSync().map((d) => d.name);
 
@@ -16,11 +17,8 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
     weight: patient.weight || '',
     status: patient.status || 'activo',
     isSterilized: isAlreadySterilized || Boolean(patient.isSterilized),
-    hasAllergies: Boolean(
-      patient.hasAllergies ||
-      (patient.allergies && patient.allergies !== 'Ninguna' && patient.allergies !== 'Ninguna reportada' && patient.allergies !== 'Ninguna conocida' && patient.allergies.trim() !== '')
-    ),
-    allergies: patient.allergies || '',
+    hasAllergies: hasReportedAllergy(patient),
+    allergies: hasReportedAllergy(patient) ? getAllergyDisplay(patient, '') : '',
     medicalBackground: patient.medicalBackground || '',
     notes: patient.notes || '',
 

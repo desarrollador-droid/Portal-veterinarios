@@ -226,6 +226,16 @@ export default function TemporalEvolutionView({
     return [...currentPatient.qpcrExams].reverse();
   }, [currentPatient]);
 
+  // Elegibilidad estricta de control: solo si tiene examen qPCR previo emitido con agentes positivos
+  const canRequestControl = useMemo(() => {
+    if (!currentPatient?.qpcrExams || !Array.isArray(currentPatient.qpcrExams)) return false;
+    return currentPatient.qpcrExams.some((q) => {
+      const isIssued = q.status === 'Emitido' || q.status === 'Completado' || q.status === 'Resultado enviado';
+      const hasPositives = q.agents && Array.isArray(q.agents) && q.agents.some((a) => a.isPositive || String(a.result || '').toLowerCase().includes('positivo') || String(a.result || '').includes('+'));
+      return isIssued && hasPositives;
+    });
+  }, [currentPatient]);
+
   // Línea de tiempo cronológica filtrada por Tipo y Fechas
   const timelineEvents = useMemo(() => {
     if (!currentPatient) return [];
@@ -670,12 +680,14 @@ export default function TemporalEvolutionView({
                 <span>📄</span> Ver Expediente Clínico
               </button>
 
-              <button
-                onClick={() => onNavigateToNewExam?.(currentPatient, 'control')}
-                className="px-4 py-2 rounded-xl bg-[#6F2BCC] hover:bg-[#5b20a8] text-white font-bold text-xs transition-all shadow-sm shadow-[#6F2BCC]/25 border border-[#01FADA]/40 cursor-pointer flex items-center gap-1.5"
-              >
-                <span>🔄</span> Solicitar Control qPCR
-              </button>
+              {canRequestControl && (
+                <button
+                  onClick={() => onNavigateToNewExam?.(currentPatient, 'control')}
+                  className="px-4 py-2 rounded-xl bg-[#6F2BCC] hover:bg-[#5b20a8] text-white font-bold text-xs transition-all shadow-sm shadow-[#6F2BCC]/25 border border-[#01FADA]/40 cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>🔄</span> Solicitar Control qPCR
+                </button>
+              )}
             </div>
           </div>
 

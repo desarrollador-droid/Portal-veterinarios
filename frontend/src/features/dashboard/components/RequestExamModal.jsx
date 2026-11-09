@@ -11,6 +11,7 @@ import {
   CLINICAL_EXAMS,
 } from '../data/clinicalCatalogData.js';
 import MicrobiotaOrderForm from './MicrobiotaOrderForm.jsx';
+import { hasReportedAllergy, isNegativeAllergyText } from '../utils/allergyHelpers.js';
 
 
 // ============================================================================
@@ -253,15 +254,28 @@ export function getPatientExamHistoryInfo(patient) {
       totalBasePrice: 0,
       totalDiscount: 0,
       totalWithDiscount: 0,
-      reason: 'No hay paciente seleccionado',
+      reason: 'Seleccione primero un paciente para verificar si cuenta con exámenes previos',
     };
   }
 
-  const exams = patient.qpcrExams || patient.exams || [];
-  const activeOrder = patient.activeExamOrder;
+  // Solo se consideran exámenes reales previos completados o históricos en qpcrExams
+  const exams = Array.isArray(patient.qpcrExams) ? patient.qpcrExams : (Array.isArray(patient.exams) ? patient.exams : []);
 
-  // Si no tiene ningún examen en historial ni orden activa, no tiene derecho a control
-  if (exams.length === 0 && !activeOrder) {
+  // Si activeExamOrder ya fue emitido y tiene resultados completos
+  const emittedActiveOrder = patient.activeExamOrder && (
+    patient.activeExamOrder.currentStep >= 4 ||
+    patient.activeExamOrder.status === 'Resultado enviado' ||
+    patient.activeExamOrder.status === 'Completado' ||
+    patient.activeExamOrder.status === 'Emitido'
+  ) ? patient.activeExamOrder : null;
+
+  const validExams = [...exams];
+  if (emittedActiveOrder && !validExams.some((e) => e.id === emittedActiveOrder.id)) {
+    validExams.unshift(emittedActiveOrder);
+  }
+
+  // REGLA FUNDAMENTAL: De la única forma en que un paciente puede solicitar control, es que haya solicitado un examen anteriormente
+  if (validExams.length === 0) {
     return {
       hasPreviousExam: false,
       canRequestControl: false,
@@ -273,15 +287,15 @@ export function getPatientExamHistoryInfo(patient) {
       totalBasePrice: 0,
       totalDiscount: 0,
       totalWithDiscount: 0,
-      reason: 'El paciente no cuenta con historial de exámenes previos registrados',
+      reason: 'El paciente no ha solicitado ningún examen anteriormente. Debe solicitar un "Examen nuevo".',
     };
   }
 
-  // 1. Buscar el examen con agentes positivos (el más relevante o reciente)
+  // 1. Buscar en los exámenes previos reales los agentes positivos detectados
   let examWithPositives = null;
   let rawPositiveAgents = [];
 
-  for (const ex of exams) {
+  for (const ex of validExams) {
     const list = extractExamAgents(ex);
     const pos = list.filter(
       (a) => a.isPositive || (typeof a.result === 'string' && (a.result.toLowerCase().includes('positivo') || a.result.includes('+')))
@@ -293,7 +307,7 @@ export function getPatientExamHistoryInfo(patient) {
     }
   }
 
-  const selectedRefExam = examWithPositives || exams[0] || activeOrder;
+  const selectedRefExam = examWithPositives || validExams[0];
 
   let latestDateStr = null;
   let latestId = null;
@@ -302,8 +316,8 @@ export function getPatientExamHistoryInfo(patient) {
 
   if (selectedRefExam) {
     latestDateStr = selectedRefExam.date || selectedRefExam.requestedAt;
-    latestId = selectedRefExam.id;
-    latestExamName = selectedRefExam.testName;
+    latestId = selectedRefExam.id || selectedRefExam.examCode;
+    latestExamName = selectedRefExam.testName || selectedRefExam.name;
     if (selectedRefExam.sampleType) {
       sampleType = selectedRefExam.sampleType;
     }
@@ -335,8 +349,42 @@ export function getPatientExamHistoryInfo(patient) {
     }
   }
 
+  // Si el examen previo no tuvo agentes positivos:
+  if (rawPositiveAgents.length === 0) {
+    return {
+      hasPreviousExam: true,
+      canRequestControl: false,
+      daysAgo,
+      lastExamId: latestId || 'PREV-001',
+      lastExamDate: latestDateStr || 'Reciente',
+      lastExamName: latestExamName || 'Examen previo',
+      sampleType,
+      positiveAgents: [],
+      totalBasePrice: 0,
+      totalDiscount: 0,
+      totalWithDiscount: 0,
+      reason: 'El examen previo no reportó agentes infecciosos positivos para control de seguimiento.',
+    };
+  }
+
   // REGLA: Plazo máximo de 6 meses (180 días)
   const canRequestControl = daysAgo <= 180;
+  if (!canRequestControl) {
+    return {
+      hasPreviousExam: true,
+      canRequestControl: false,
+      daysAgo,
+      lastExamId: latestId,
+      lastExamDate: latestDateStr,
+      lastExamName: latestExamName,
+      sampleType,
+      positiveAgents: [],
+      totalBasePrice: 0,
+      totalDiscount: 0,
+      totalWithDiscount: 0,
+      reason: `El examen previo tiene ${daysAgo} días (supera el límite de 6 meses / 180 días para control).`,
+    };
+  }
 
   // Código exacto o derivado (como en Figma: CTRL-3-2026)
   let code = 'CTRL-3-2026';
@@ -344,15 +392,13 @@ export function getPatientExamHistoryInfo(patient) {
     const idStr = String(latestId);
     if (idStr.startsWith('CTRL')) {
       code = idStr;
-    } else if (idStr === 'ORD-2026-904' || idStr === 'QPCR-2026-904') {
-      code = 'CTRL-3-2026';
     } else {
       const cleanNum = idStr.replace('ORD-', '').replace('QPCR-', '').replace('2026-', '');
       code = `CTRL-${cleanNum}-2026`;
     }
   }
 
-  let examName = 'Panel Hemotrópico Canino';
+  let examName = 'Panel qPCR de Control';
   if (latestExamName && typeof latestExamName === 'string') {
     if (latestExamName.toLowerCase().includes('hemotr')) {
       examName = 'Panel Hemotrópico Canino';
@@ -369,71 +415,21 @@ export function getPatientExamHistoryInfo(patient) {
     dateFormatted = dateStr.includes(' ') ? dateStr.split(' ')[0] : dateStr;
   }
 
-  // Agentes positivos con 15% de descuento individual (extraídos dinámicamente)
-  let positiveAgents = [];
-  if (rawPositiveAgents.length > 0) {
-    positiveAgents = rawPositiveAgents.map((a) => {
-      const isEnteric = a.name.toLowerCase().includes('crypto') || a.name.toLowerCase().includes('clostridium') || a.name.toLowerCase().includes('coli') || a.name.toLowerCase().includes('giardia');
-      const basePrice = isEnteric ? 35000 : 38000;
-      const discount = Math.round(basePrice * 0.15);
-      return {
-        id: a.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-        name: a.name,
-        ct: a.ct || 'N/D',
-        load: a.load || 'Carga genómica detectable',
-        basePrice,
-        discount,
-        finalPrice: basePrice - discount,
-      };
-    });
-  }
-
-  // Fallback si no tiene agentes positivos directos en el array pero es elegible para control
-  if (positiveAgents.length === 0) {
-    if (patient.species && patient.species.toLowerCase().includes('felin')) {
-      positiveAgents = [
-        {
-          id: 'cryptosporidium-spp',
-          name: 'Cryptosporidium spp.',
-          ct: '24.1',
-          load: 'Carga moderada',
-          basePrice: 35000,
-          discount: 5250,
-          finalPrice: 29750,
-        },
-        {
-          id: 'clostridium-perfringens-enterotoxin',
-          name: 'Clostridium perfringens enterotoxin',
-          ct: '21.8',
-          load: 'Carga bacteriana elevada',
-          basePrice: 38000,
-          discount: 5700,
-          finalPrice: 32300,
-        },
-      ];
-    } else {
-      positiveAgents = [
-        {
-          id: 'ehrlichia-canis',
-          name: 'Ehrlichia canis',
-          ct: '22.8',
-          load: 'Carga genómica alta',
-          basePrice: 38000,
-          discount: 5700,
-          finalPrice: 32300,
-        },
-        {
-          id: 'anaplasma-platys',
-          name: 'Anaplasma platys',
-          ct: '27.4',
-          load: 'Carga genómica moderada',
-          basePrice: 38000,
-          discount: 5700,
-          finalPrice: 32300,
-        },
-      ];
-    }
-  }
+  // Agentes positivos REALES con 15% de descuento individual
+  const positiveAgents = rawPositiveAgents.map((a) => {
+    const isEnteric = a.name.toLowerCase().includes('crypto') || a.name.toLowerCase().includes('clostridium') || a.name.toLowerCase().includes('coli') || a.name.toLowerCase().includes('giardia');
+    const basePrice = isEnteric ? 35000 : 38000;
+    const discount = Math.round(basePrice * 0.15);
+    return {
+      id: a.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+      name: a.name,
+      ct: a.ct || 'N/D',
+      load: a.load || 'Carga genómica detectable',
+      basePrice,
+      discount,
+      finalPrice: basePrice - discount,
+    };
+  });
 
   const totalBasePrice = positiveAgents.reduce((sum, a) => sum + a.basePrice, 0);
   const totalDiscount = positiveAgents.reduce((sum, a) => sum + a.discount, 0);
@@ -441,7 +437,7 @@ export function getPatientExamHistoryInfo(patient) {
 
   return {
     hasPreviousExam: true,
-    canRequestControl,
+    canRequestControl: true,
     daysAgo,
     lastExamId: code,
     lastExamDate: dateFormatted,
@@ -451,9 +447,7 @@ export function getPatientExamHistoryInfo(patient) {
     totalBasePrice,
     totalDiscount,
     totalWithDiscount,
-    reason: canRequestControl
-      ? 'Examen previo dentro de los 6 meses de seguimiento'
-      : `El último examen fue hace ${daysAgo} días (superó el límite de 6 meses / 180 días)`,
+    reason: 'Examen previo con agentes positivos dentro de los 6 meses de seguimiento',
   };
 }
 
@@ -507,7 +501,13 @@ export default function RequestExamModal({
   // ============================================================================
   // REQUERIMIENTO DEL USUARIO: TODO COMIENZA EN BLANCO PARA EVITAR CONFUSIÓN
   // ============================================================================
-  const [examType, setExamType] = useState(initialExamType || 'nuevo'); // 'nuevo' | 'control'
+  const [examType, setExamType] = useState(() => {
+    if (initialExamType === 'control' && initialPatient) {
+      const info = getPatientExamHistoryInfo(initialPatient);
+      return info.canRequestControl ? 'control' : 'nuevo';
+    }
+    return 'nuevo';
+  });
   const [previousExamCode, setPreviousExamCode] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   // Selección de paciente única (solo 1 a la vez, con posibilidad de deseleccionar)
@@ -678,17 +678,20 @@ export default function RequestExamModal({
           if (info.lastExamId) setPreviousExamCode(info.lastExamId);
           setIsControlReviewOpen(true);
         } else {
+          setExamType('nuevo');
+          setIsControlReviewOpen(false);
           setCurrentStep(1);
         }
       } else {
+        setExamType('nuevo');
+        setIsControlReviewOpen(false);
         setCurrentStep(1);
       }
     } else {
       setSelectedPatientId('');
       setCurrentStep(1);
-      if (initialExamType === 'control') {
-        setExamType('control');
-      }
+      setExamType('nuevo');
+      setIsControlReviewOpen(false);
     }
   }, [initialPatient, initialExamType]);
 
@@ -823,15 +826,20 @@ export default function RequestExamModal({
         setExamIsSterilized(null);
       }
 
-      // 2. Alergias del paciente
+      // 2. Alergias del paciente (solo si tiene alergias reportadas reales)
       let initialAllergiesList = [];
-      if (Array.isArray(activePatient.allergies)) {
-        initialAllergiesList = activePatient.allergies.filter(Boolean);
-      } else if (typeof activePatient.allergies === 'string' && activePatient.allergies.trim()) {
-        initialAllergiesList = activePatient.allergies.split(',').map((s) => s.trim()).filter(Boolean);
+      if (hasReportedAllergy(activePatient)) {
+        if (Array.isArray(activePatient.allergies)) {
+          initialAllergiesList = activePatient.allergies.filter((s) => s && !isNegativeAllergyText(String(s)));
+        } else if (typeof activePatient.allergies === 'string' && activePatient.allergies.trim()) {
+          initialAllergiesList = activePatient.allergies
+            .split(',')
+            .map((s) => s.trim())
+            .filter((s) => s && !isNegativeAllergyText(s));
+        }
       }
       setPatientAllergiesList(initialAllergiesList);
-      setHasAllergiesOption(initialAllergiesList.length > 0 ? true : Boolean(activePatient.hasAllergies));
+      setHasAllergiesOption(initialAllergiesList.length > 0);
 
       // 3. Factores de riesgo previos si los tuviera
       if (activePatient.riskFactors) {
@@ -1297,25 +1305,94 @@ export default function RequestExamModal({
 
   const handleToggleExamType = (type) => {
     if (type === 'control') {
-      if (activePatient) {
-        if (!controlHistoryInfo.canRequestControl) {
-          alert(`Este paciente no tiene habilitada la opción de seguimiento / control.\n\nMotivo: ${controlHistoryInfo.reason}.\nDebe solicitar un "Examen nuevo".`);
-          return;
-        }
-        setExamType('control');
-        if (controlHistoryInfo.lastExamId && !previousExamCode) {
-          setPreviousExamCode(controlHistoryInfo.lastExamId);
-        }
-        // REQUERIMIENTO: Si ya hay paciente seleccionado, abre DIRECTAMENTE la revisión de control con los agentes positivos
-        setIsControlReviewOpen(true);
-      } else {
-        setExamType('control');
+      if (!activePatient) {
+        alert('Debe seleccionar primero un paciente para evaluar si cuenta con exámenes previos y califica para control.');
+        return;
       }
+      if (!controlHistoryInfo.canRequestControl) {
+        alert(`Este paciente no tiene habilitada la opción de seguimiento / control.\n\nMotivo: ${controlHistoryInfo.reason}.\nDebe solicitar un "Examen nuevo".`);
+        return;
+      }
+      setExamType('control');
+      if (controlHistoryInfo.lastExamId && !previousExamCode) {
+        setPreviousExamCode(controlHistoryInfo.lastExamId);
+      }
+      // Si ya hay paciente seleccionado y califica, abre la revisión de control con sus agentes positivos reales
+      setIsControlReviewOpen(true);
     } else {
       setExamType('nuevo');
       setPreviousExamCode('');
       setIsControlReviewOpen(false);
     }
+  };
+
+  const [isImportedFromHistory, setIsImportedFromHistory] = useState(false);
+
+  const handleImportFromClinicalDocuments = () => {
+    if (!activePatient) return;
+    const docs = activePatient.clinicalDocuments || [];
+    if (docs.length === 0) return;
+
+    // Extraer hallazgos y valores de laboratorio
+    const extractedFindings = [];
+    docs.forEach((doc) => {
+      if (Array.isArray(doc.keyFindings)) {
+        extractedFindings.push(...doc.keyFindings);
+      }
+      if (doc.hematocrito) setHematocrito(String(doc.hematocrito));
+      if (doc.plaquetas) setPlaquetas(String(doc.plaquetas));
+      if (doc.leucocitos) setLeucocitos(String(doc.leucocitos));
+    });
+
+    const textCorpus = docs
+      .map((d) => `${d.title} ${d.notes || ''} ${(d.keyFindings || []).join(' ')}`)
+      .join(' ')
+      .toLowerCase();
+
+    setSelectedSyndromes((prev) => {
+      const next = [...prev];
+      if (
+        (textCorpus.includes('anemia') ||
+          textCorpus.includes('plaquet') ||
+          textCorpus.includes('garrapat') ||
+          textCorpus.includes('trombocit') ||
+          textCorpus.includes('hemotr')) &&
+        !next.includes('Síndrome Hemotrópico / Vectorial')
+      ) {
+        next.push('Síndrome Hemotrópico / Vectorial');
+      }
+      if (
+        (textCorpus.includes('vómit') ||
+          textCorpus.includes('vomit') ||
+          textCorpus.includes('diarrea') ||
+          textCorpus.includes('digestiv') ||
+          textCorpus.includes('fecal')) &&
+        !next.includes('Síndrome Digestivo / Hepático')
+      ) {
+        next.push('Síndrome Digestivo / Hepático');
+      }
+      if (
+        (textCorpus.includes('tos') || textCorpus.includes('respirat') || textCorpus.includes('pulmon')) &&
+        !next.includes('Síndrome Respiratorio / Filarial')
+      ) {
+        next.push('Síndrome Respiratorio / Filarial');
+      }
+      return next;
+    });
+
+    setSelectedFindings((prev) => {
+      const next = [...prev];
+      extractedFindings.forEach((f) => {
+        const clean = f.replace(/\(.*?\)/g, '').trim();
+        if (clean && !next.includes(clean)) {
+          next.push(clean);
+        }
+      });
+      return next;
+    });
+
+    setIsImportedFromHistory(true);
+    setIsAsymptomatic(false);
   };
 
   const handleToggleSyndrome = (syndromeName) => {
@@ -2702,53 +2779,48 @@ export default function RequestExamModal({
 
               <div className="bg-white rounded-2xl border border-slate-200/90 p-5 space-y-5 shadow-2xs">
                 
-                {/* 1.1 Tipo de examen: Nuevo vs Control */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-bold text-slate-700">
-                      Tipo de examen *
-                    </label>
-                    {activePatient && !controlHistoryInfo.canRequestControl && (
-                      <span className="text-[11px] text-slate-400 font-medium italic">
-                        Control inhabilitado: Paciente sin examen previo en los últimos 6 meses
+                {/* 1.1 Tipo de examen: Nuevo vs Control (SOLO se muestra si el paciente califica para control) */}
+                {activePatient && controlHistoryInfo.canRequestControl && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-xs font-bold text-slate-700">
+                        Tipo de examen *
+                      </label>
+                      <span className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
+                        <span>✓</span> Habilitado para control (Examen previo {controlHistoryInfo.lastExamId})
                       </span>
-                    )}
-                  </div>
+                    </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => handleToggleExamType('nuevo')}
-                      className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        examType === 'nuevo'
-                          ? 'bg-[#6F2BCC] text-white shadow-sm ring-2 ring-[#6F2BCC]/30'
-                          : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
-                      }`}
-                    >
-                      <span>🆕</span> Examen nuevo
-                    </button>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleExamType('nuevo')}
+                        className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          examType === 'nuevo'
+                            ? 'bg-[#6F2BCC] text-white shadow-sm ring-2 ring-[#6F2BCC]/30'
+                            : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+                        }`}
+                      >
+                        <span>🆕</span> Examen nuevo
+                      </button>
 
-                    <button
-                      type="button"
-                      onClick={() => handleToggleExamType('control')}
-                      className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold transition-all ${
-                        examType === 'control'
-                          ? 'bg-[#6F2BCC] text-white shadow-sm ring-2 ring-[#6F2BCC]/30 cursor-pointer'
-                          : activePatient && !controlHistoryInfo.canRequestControl
-                          ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60'
-                          : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200 cursor-pointer'
-                      }`}
-                    >
-                      <span>🔄</span> Seguimiento / control
-                      {activePatient && !controlHistoryInfo.canRequestControl && (
-                        <span className="text-[10px] ml-1">🔒</span>
-                      )}
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleExamType('control')}
+                        className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          examType === 'control'
+                            ? 'bg-[#6F2BCC] text-white shadow-sm ring-2 ring-[#6F2BCC]/30'
+                            : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+                        }`}
+                      >
+                        <span>🔄</span> Seguimiento / control
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Si es seguimiento / control: Se solicita el código del examen anterior */}
-                {examType === 'control' && (
+                {examType === 'control' && controlHistoryInfo.canRequestControl && (
                   <div className="p-4 bg-sky-50/70 border border-sky-200 rounded-xl space-y-2 animate-in fade-in duration-150">
                     <label className="block text-xs font-bold text-sky-950">
                       Código del examen anterior *
@@ -3049,90 +3121,41 @@ export default function RequestExamModal({
                         )}
                       </div>
 
-                      {/* 3. MODALIDAD, ASEGURAMIENTO VETPLUS & CONDICIÓN CLÍNICA */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {/* VetPlus */}
-                        <div className="p-3.5 bg-sky-50/50 border border-sky-200/80 rounded-2xl space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
-                              <span>🛡️</span> Seguro Médico VetPlus:
+                      {/* 3. CONDICIÓN CLÍNICA (ASINTOMÁTICO VS SINTOMÁTICO) */}
+                      <div className="p-4 bg-emerald-50/50 border border-emerald-200/80 rounded-2xl space-y-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div>
+                            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                              <span>🩺</span> Condición clínica del paciente:
                             </span>
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setHasVetPlusInsurance(false);
-                                  setVetPlusCode('');
-                                }}
-                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer ${
-                                  !hasVetPlusInsurance
-                                    ? 'bg-slate-700 text-white'
-                                    : 'bg-white border border-slate-200 text-slate-600'
-                                }`}
-                              >
-                                No
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setHasVetPlusInsurance(true)}
-                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer ${
-                                  hasVetPlusInsurance
-                                    ? 'bg-[#6F2BCC] text-white'
-                                    : 'bg-white border border-slate-200 text-slate-600'
-                                }`}
-                              >
-                                Sí
-                              </button>
-                            </div>
+                            <p className="text-[11px] text-slate-500 mt-0.5">
+                              Indica si el paciente presenta signos clínicos activos o acude a chequeo preventivo/tamizaje.
+                            </p>
                           </div>
-
-                          {hasVetPlusInsurance && (
-                            <input
-                              type="text"
-                              value={vetPlusCode}
-                              onChange={(e) => setVetPlusCode(e.target.value)}
-                              placeholder="Código póliza/autorización VetPlus"
-                              className="w-full px-2.5 py-1.5 bg-white border border-sky-300 rounded-lg text-[11px] font-mono font-bold text-slate-800 focus:ring-1 focus:ring-[#6F2BCC] focus:outline-none"
-                            />
-                          )}
-                        </div>
-
-                        {/* Condición clínica */}
-                        <div className="p-3.5 bg-emerald-50/50 border border-emerald-200/80 rounded-2xl space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
-                              <span>🩺</span> Condición clínica:
-                            </span>
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => setIsAsymptomatic(false)}
-                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer ${
-                                  !isAsymptomatic
-                                    ? 'bg-slate-700 text-white'
-                                    : 'bg-white border border-slate-200 text-slate-600'
-                                }`}
-                              >
-                                Sintomático
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setIsAsymptomatic(true)}
-                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer ${
-                                  isAsymptomatic
-                                    ? 'bg-emerald-600 text-white'
-                                    : 'bg-white border border-slate-200 text-slate-600'
-                                }`}
-                              >
-                                Asintomático
-                              </button>
-                            </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setIsAsymptomatic(false)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
+                                !isAsymptomatic
+                                  ? 'bg-[#6F2BCC] text-white shadow-2xs'
+                                  : 'bg-white border border-slate-200 text-slate-600'
+                              }`}
+                            >
+                              ⚠️ Sintomático
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setIsAsymptomatic(true)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
+                                isAsymptomatic
+                                  ? 'bg-emerald-600 text-white shadow-2xs'
+                                  : 'bg-white border border-slate-200 text-slate-600'
+                              }`}
+                            >
+                              🌿 Asintomático (Tamizaje)
+                            </button>
                           </div>
-                          <p className="text-[10px] text-slate-500">
-                            {isAsymptomatic
-                              ? '🌿 Tamizaje / chequeo preventivo general'
-                              : '⚠️ Paciente con signología clínica activa'}
-                          </p>
                         </div>
                       </div>
 
@@ -3571,6 +3594,74 @@ export default function RequestExamModal({
                   >
                     Ir a Perfiles qPCR →
                   </button>
+                </div>
+              )}
+
+              {/* ASISTENTE DIAGNÓSTICO: ANTECEDENTES Y EXÁMENES PREVIOS SUBIDOS */}
+              {activePatient?.clinicalDocuments && activePatient.clinicalDocuments.length > 0 && (
+                <div className="p-4 bg-gradient-to-r from-purple-50/90 via-indigo-50/70 to-sky-50/80 border-2 border-[#6F2BCC]/30 rounded-2xl shadow-xs space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-[#6F2BCC] text-white flex items-center justify-center font-bold text-lg shadow-2xs shrink-0">
+                        📂
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black text-[#2B017C] flex items-center gap-1.5 flex-wrap">
+                          <span>Antecedentes de Historias y Exámenes Previos Detectados</span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#6F2BCC] text-white">
+                            {activePatient.clinicalDocuments.length} doc(s) en ficha
+                          </span>
+                        </h4>
+                        <p className="text-[11px] text-slate-600 mt-0.5">
+                          Se detectaron exámenes previos e historia clínica subida para <strong>{activePatient.name}</strong>. Puedes incorporar automáticamente sus hallazgos al algoritmo de qPCR.
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleImportFromClinicalDocuments}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#6F2BCC] hover:bg-[#581ea3] text-white text-xs font-bold transition-all shadow-2xs shrink-0 cursor-pointer"
+                    >
+                      <span>✨</span>
+                      <span>Incorporar a evaluación qPCR</span>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                    {activePatient.clinicalDocuments.map((doc) => (
+                      <div key={doc.id} className="p-3 bg-white/95 border border-purple-100 rounded-xl text-xs space-y-1.5 shadow-2xs">
+                        <div className="flex items-center justify-between font-bold text-slate-800">
+                          <span className="truncate max-w-[200px] flex items-center gap-1">
+                            <span>{doc.documentType === 'laboratorio' ? '🩸' : doc.documentType === 'imagenologia' ? '🩻' : '📋'}</span>
+                            <span>{doc.title}</span>
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono">{doc.date}</span>
+                        </div>
+                        {doc.keyFindings && doc.keyFindings.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {doc.keyFindings.map((f, i) => (
+                              <span key={i} className="px-1.5 py-0.5 rounded bg-purple-50 text-[#6F2BCC] text-[10px] font-bold border border-purple-200/60">
+                                {f}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {doc.notes && (
+                          <p className="text-[10px] text-slate-500 line-clamp-1 italic">
+                            "{doc.notes}"
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {isImportedFromHistory && (
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 text-xs font-bold flex items-center gap-2">
+                      <span className="text-emerald-600 font-black">✓</span>
+                      <span>Hallazgos clínicos, valores de hemograma y antecedentes de los documentos vinculados activamente al cálculo de perfiles qPCR.</span>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -4395,17 +4486,6 @@ export default function RequestExamModal({
                       <span>{examType === 'control' ? 'Seguimiento / control' : 'Examen nuevo'}</span>
                     </span>
 
-                    {hasVetPlusInsurance ? (
-                      <span className="px-3 py-1 rounded-xl text-xs font-bold bg-sky-50 text-[#6F2BCC] border border-sky-200 flex items-center gap-1.5">
-                        <span>🛡️</span>
-                        <span>VetPlus: {vetPlusCode || 'Asegurado'}</span>
-                      </span>
-                    ) : (
-                      <span className="px-3 py-1 rounded-xl text-xs font-medium bg-slate-50 text-slate-500 border border-slate-200">
-                        Sin seguro VetPlus
-                      </span>
-                    )}
-
                     <span className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 ${
                       isAsymptomatic
                         ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
@@ -5139,6 +5219,62 @@ export default function RequestExamModal({
                         />
                       </div>
 
+                      {/* Cobertura de Seguro VetPlus (Exclusivo para Exámenes Clínicos) */}
+                      <div className="p-4 bg-sky-50/70 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl space-y-2.5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div>
+                            <span className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                              <span>🛡️</span> ¿El paciente cuenta con seguro o cobertura VetPlus para esta orden clínica?
+                            </span>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                              Aplica para las pruebas de catálogo clínico. Si cuenta con seguro, ingresa el código de autorización emitido.
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setHasVetPlusInsurance(false);
+                                setVetPlusCode('');
+                              }}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                !hasVetPlusInsurance
+                                  ? 'bg-[#2B017C] text-white shadow-2xs'
+                                  : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                              }`}
+                            >
+                              No asegurado
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setHasVetPlusInsurance(true)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                hasVetPlusInsurance
+                                  ? 'bg-[#6F2BCC] text-white shadow-2xs'
+                                  : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                              }`}
+                            >
+                              ✓ Sí, asegurado
+                            </button>
+                          </div>
+                        </div>
+
+                        {hasVetPlusInsurance && (
+                          <div className="pt-2 border-t border-sky-200/60 dark:border-sky-800/60 flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                            <label className="text-xs font-bold text-[#2B017C] dark:text-[#01FADA] whitespace-nowrap">
+                              Código de Autorización VetPlus *:
+                            </label>
+                            <input
+                              type="text"
+                              value={vetPlusCode}
+                              onChange={(e) => setVetPlusCode(e.target.value)}
+                              placeholder="Ej. AUT-2026-VP9821"
+                              className="flex-1 w-full px-3 py-1.5 bg-white dark:bg-slate-800 border border-sky-300 dark:border-sky-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC]"
+                            />
+                          </div>
+                        )}
+                      </div>
+
                       {/* Total final */}
                       <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                         <span className="text-xs font-extrabold text-slate-600">Total Orden Clínica:</span>
@@ -5171,6 +5307,20 @@ export default function RequestExamModal({
                         <div className="font-extrabold text-slate-900 text-sm">{activePatient.sedeName || 'Sede Principal - Calle 80'}</div>
                         <div className="text-slate-600">{activePatient.attendingVet || 'Dr. Alejandro Morales'}</div>
                       </div>
+                    </div>
+
+                    {/* Estado de Cobertura VetPlus en Revisión */}
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
+                      <span className="font-bold text-slate-700 flex items-center gap-1.5">
+                        <span>🛡️</span> Cobertura VetPlus:
+                      </span>
+                      {hasVetPlusInsurance ? (
+                        <span className="font-mono font-bold px-2.5 py-1 bg-sky-100 text-[#2B017C] rounded-lg border border-sky-300">
+                          Código Autorizado: {vetPlusCode || 'Registrado'}
+                        </span>
+                      ) : (
+                        <span className="text-slate-500 font-medium">No asegurado / Particular</span>
+                      )}
                     </div>
 
                     {/* Desglose de Pruebas */}

@@ -2,6 +2,9 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:5000/api/patients';
 
+import { hasReportedAllergy, getAllergyDisplay, isNegativeAllergyText } from '../utils/allergyHelpers.js';
+export { hasReportedAllergy, getAllergyDisplay, isNegativeAllergyText };
+
 export const PATIENT_STATUSES = [
   'activo',
   'pendiente por atención',
@@ -19,721 +22,420 @@ export const PATIENT_STATUSES = [
 // Fallback data con estructura completa idéntica al backend
 const FALLBACK_PATIENTS = [
   {
-    id: 'PAC-001',
+    id: 'PAC-PRUEBA-01',
+    keaRecordId: 1,
     name: 'Luna',
-    lastName: 'González',
-    avatar: '🐱',
-    species: 'Felino',
-    breed: 'Siamés',
+    lastName: '(PRUEBA)',
+    fullName: 'Luna (PRUEBA)',
+    avatar: '🐕',
+    species: 'Canino',
+    otherSpecies: '',
+    breed: 'Mestizo',
     sex: 'Hembra',
-    birthDate: '2023-05-12',
-    age: '3 años, 4 meses',
-    weight: '4.2 kg',
+    birthDate: '2022-03-01',
+    age: '4 años, 9 meses',
+    weight: '18 kg',
     sedeId: 'sede-principal-80',
     sedeNombre: 'Sede Principal - Calle 80',
-    codigoSedeNit: '#nit-1',
-    isSterilized: true,
-    hasAllergies: false,
-    allergies: '',
-    medicalBackground: 'Sin cirugías previas ni patologías crónicas conocidas.',
+    codigoSedeNit: '#nit-900000001',
+    microchip: 'Sin microchip',
     owner: {
-      firstName: 'María',
-      lastName: 'González',
-      name: 'María González',
-      document: '1.020.345.678',
-      phone: '+57 310 123 4567',
-      emergencyPhone: '+57 314 999 8877',
-      email: 'maria.gonzalez@email.com',
-      department: 'Bogotá D.C.',
-      city: 'Bogotá',
-      address: 'Cra 15 # 85-30, Apto 402',
-      stratum: 'Estrato 4',
-      hasVetPlus: true,
-      vetPlusCode: 'VP-90284-COL',
+      name: 'PROP-PRUEBA-01',
+      firstName: 'PROP-PRUEBA-01',
+      lastName: '',
+      phone: '+57 300 000 0000',
+      email: 'tutor@ejemplo.com',
+      city: 'Bogotá'
     },
     riskFactors: {
-      habitat: 'Interiores',
-      contactOutside: { hasContact: false, contactType: '' },
-      livesWithOtherAnimals: true,
+      habitat: 'Interiores / Mixto',
       recentTravel: false,
-      ruralAccess: false,
-      parasiteExposure: false,
-      outdoorWater: false,
-      coastalRescue: false,
-      otherRiskFactors: 'Ninguno',
+      lastVisitedCountry: 'Ninguno',
+      livesWithOtherAnimals: true,
+      ruralAccess: false
     },
     medicalAdmission: {
-      isAsymptomatic: true,
+      isAsymptomatic: false,
       symptoms: [],
-      otherSymptoms: '',
-      physicalFindings: 'Condición corporal 3/5, normotérmica.',
-      consultationType: 'Control',
-      generalCondition: 'Bueno',
-      vaccinationStatus: 'Al día',
-      lastVaccinationDate: '15/01/2026',
-      dewormingStatus: 'Al día',
-      lastDewormingDate: '10/06/2026',
+      bodyCondition: '3/5',
+      generalCondition: 'Estable',
+      physicalFindings: 'Condición corporal 3/5, Estable.'
     },
     status: 'activo',
-    lastVisit: '05/09/2026',
-    attendingVet: 'Dr. Alejandro Morales',
-    notes: 'Paciente con buena condición corporal. Antecedente leve de disbiosis resuelto.',
-    activeExamOrder: {
-      id: 'ORD-2026-904',
-      testName: 'qPCR Panel Microbiota & Disbiosis Intestinal',
-      category: 'Biología Molecular Cuantitativa (qPCR)',
-      sampleType: 'Hisopado rectal / Heces (Tubo conservador ARN/ADN)',
-      priority: 'Normal (24-48h)',
-      requestedBy: 'Dr. Alejandro Morales',
-      laboratory: 'VetLab Central - Unidad de Genómica',
-      targets: 'Faecalibacterium, Turicibacter, E. coli, Streptococcus, Blautia, C. hiranonis',
-      requestedAt: '05/09/2026 - 08:30 AM',
-      currentStep: 4,
-      steps: [
-        { label: 'Solicitud creada', desc: 'Orden médica generada en clínica', date: '05/09/2026 08:30 AM', completed: true },
-        { label: 'Muestra recibida', desc: 'Recepción y código de barras en laboratorio', date: '05/09/2026 10:15 AM', completed: true },
-        { label: 'En análisis qPCR', desc: 'Extracción de ácidos nucleicos y amplificación en termociclador', date: '05/09/2026 02:40 PM', completed: true },
-        { label: 'Validación médica', desc: 'Curvas de amplificación verificadas por patólogo molecular', date: '05/09/2026 04:20 PM', completed: true },
-        { label: 'Resultado enviado', desc: 'Informe emitido y disponible para descarga', date: '05/09/2026 05:00 PM', completed: true },
-      ],
-    },
-    healthMetrics: {
-      weightHistory: [
-        { date: '15/01/2026', weight: '3.8 kg' },
-        { date: '10/05/2026', weight: '4.0 kg' },
-        { date: '05/09/2026', weight: '4.2 kg' },
-      ],
-      vitalSigns: { heartRate: '140 bpm', temperature: '38.4 °C', respiratoryRate: '24 rpm', mucosa: 'Rosadas y húmedas' },
-      lastDiagnosticScore: '-1.4 (Microbiota Saludable / Normal)',
-    },
-    consultations: [
-      {
-        date: '05/09/2026',
-        time: '10:30 AM',
-        vet: 'Dr. Alejandro Morales',
-        weight: '4.2 kg',
-        clinicalStatus: 'Estable',
-        vitalSigns: {
-          heartRate: '140 bpm',
-          temperature: '38.4 °C',
-          respiratoryRate: '24 rpm',
-          mucosa: 'Rosadas y húmedas',
-        },
-        reason: 'Control anual y chequeo gastrointestinal',
-        medication: 'Probióticos de mantenimiento x 3 meses.',
-        relevantBackground: 'Episodio de disbiosis previa resuelto.',
-        observationsAndFollowUp: 'Microbiota equilibrada. Próximo control preventivo en 6 meses.',
-      },
-    ],
-    qpcrExams: [
-      {
-        id: 'QPCR-2026-812',
-        testName: 'qPCR Panel Microbiota & Disbiosis Intestinal',
-        date: '05/09/2026',
-        requestedAt: '05/09/2026, 08:30 AM',
-        receivedAt: '05/09/2026, 05:00 PM',
-        status: 'Emitido',
-        sampleType: 'Hisopado rectal / Heces (Tubo conservador ARN/ADN)',
-        resultSummary: 'Índice DI: -1.4 (Microbiota Saludable / En rango eubiótico)',
-        methodology: 'qPCR multiplex cuantitativa en tiempo real (Sondas TaqMan)',
-        reportUrl: '#',
-        agents: [
-          { name: 'Faecalibacterium', isPositive: false, result: 'Normal', ct: '19.2', load: 'Dentro de rango fisiológico [> 3.5 log10]' },
-          { name: 'Turicibacter', isPositive: false, result: 'Normal', ct: '21.0', load: 'Dentro de rango fisiológico' },
-          { name: 'Clostridium hiranonis', isPositive: false, result: 'Normal', ct: '23.4', load: 'Eubiosis adecuada' },
-          { name: 'Blautia', isPositive: false, result: 'Normal', ct: '18.9', load: 'Dentro de rango fisiológico' },
-          { name: 'Escherichia coli', isPositive: false, result: 'Normal', ct: '28.1', load: 'Sin sobrecrecimiento (< 5.0 log10)' },
-          { name: 'Streptococcus', isPositive: false, result: 'Normal', ct: '29.5', load: 'Sin sobrecrecimiento (< 4.5 log10)' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'PAC-002',
-    name: 'Max',
-    lastName: 'Rodríguez',
-    avatar: '🐶',
-    species: 'Canino',
-    breed: 'Golden Retriever',
-    sex: 'Macho',
-    birthDate: '2021-08-20',
-    age: '5 años',
-    weight: '31.5 kg',
-    sedeId: 'sede-norte-127',
-    sedeNombre: 'Sede Norte - Santa Bárbara',
-    codigoSedeNit: '#nit-2',
-    isSterilized: true,
-    hasAllergies: true,
-    allergies: 'Sensibilidad severa a cefalexina',
-    medicalBackground: 'Episodio previo de ehrlichiosis canina hace 1 año.',
-    owner: {
-      firstName: 'Carlos',
-      lastName: 'Rodríguez',
-      name: 'Carlos Rodríguez',
-      document: '79.845.123',
-      phone: '+57 312 987 6543',
-      emergencyPhone: '+57 310 888 1234',
-      email: 'carlos.rodriguez@email.com',
-      department: 'Cundinamarca',
-      city: 'Chía',
-      address: 'Calle 116 # 7-15, Bogotá',
-      stratum: 'Estrato 5',
-      hasVetPlus: false,
-      vetPlusCode: '',
-    },
-    riskFactors: {
-      habitat: 'Mixto',
-      contactOutside: { hasContact: true, contactType: 'Parques caninos y paseos en grupo' },
-      livesWithOtherAnimals: false,
-      recentTravel: true,
-      ruralAccess: true,
-      parasiteExposure: true,
-      outdoorWater: true,
-      coastalRescue: false,
-      otherRiskFactors: 'Presencia previa de garrapatas en finca',
-    },
-    medicalAdmission: {
-      isAsymptomatic: false,
-      symptoms: ['Fiebre', 'Decaimiento', 'Pérdida de apetito', 'Letargia'],
-      otherSymptoms: '',
-      physicalFindings: 'Temperatura 39.1°C, mucosas ligeramente pálidas.',
-      consultationType: 'Urgencia',
-      generalCondition: 'Regular',
-      vaccinationStatus: 'Al día',
-      lastVaccinationDate: '10/02/2026',
-      dewormingStatus: 'Incompleto',
-      lastDewormingDate: '15/11/2025',
-    },
-    status: 'en tratamiento',
-    lastVisit: '02/10/2026',
-    attendingVet: 'Dra. Camila Torres',
-    notes: 'Sospecha de hemotrópicos. En terapia con doxiciclina.',
-    activeExamOrder: {
-      id: 'ORD-2026-915',
-      testName: 'Panel Hemotrópicos Caninos (qPCR)',
-      category: 'Biología Molecular Cuantitativa (qPCR)',
-      sampleType: 'Sangre total con EDTA (2 ml)',
-      priority: 'Urgente (Mismo día)',
-      requestedBy: 'Dra. Camila Torres',
-      laboratory: 'VetLab Central - Unidad de Genómica',
-      targets: 'Ehrlichia canis, Anaplasma platys, Babesia canis, Hepatozoon canis',
-      requestedAt: '02/10/2026 - 11:00 AM',
-      currentStep: 2,
-      steps: [
-        { label: 'Solicitud creada', desc: 'Orden médica generada en clínica', date: '02/10/2026 11:00 AM', completed: true },
-        { label: 'Muestra recibida', desc: 'Recepción y código de barras en laboratorio', date: '02/10/2026 01:20 PM', completed: true },
-        { label: 'En análisis qPCR', desc: 'Extracción de ácidos nucleicos y amplificación en termociclador', date: 'En curso', completed: false },
-        { label: 'Validación médica', desc: 'Curvas de amplificación verificadas por patólogo molecular', date: 'Pendiente', completed: false },
-        { label: 'Resultado enviado', desc: 'Informe emitido y disponible para descarga', date: 'Pendiente', completed: false },
-      ],
-    },
-    healthMetrics: {
-      weightHistory: [
-        { date: '02/08/2026', weight: '32.0 kg' },
-        { date: '02/10/2026', weight: '31.5 kg' },
-      ],
-      vitalSigns: { heartRate: '95 bpm', temperature: '39.1 °C', respiratoryRate: '20 rpm', mucosa: 'Ligeramente pálidas' },
-      lastDiagnosticScore: 'Pendiente de resultado qPCR',
-    },
-    consultations: [],
-    qpcrExams: [
-      {
-        id: 'QPCR-2026-904',
-        testName: 'Panel Hemotrópico & Vectorial Canino Completo (TBP)',
-        date: '02/09/2026',
-        requestedAt: '02/09/2026, 08:30 AM',
-        receivedAt: '03/09/2026, 04:30 PM',
-        status: 'Emitido',
-        sampleType: 'Sangre total con EDTA (2 ml)',
-        resultSummary: 'Detección POSITIVA (+) para Ehrlichia canis y Anaplasma platys. Correlación directa con síndrome febril y trombocitopenia.',
-        methodology: 'qPCR multiplex cuantitativa en tiempo real (Sondas de hidrólisis TaqMan)',
-        reportUrl: '#',
-        agents: [
-          { name: 'Ehrlichia canis', isPositive: true, result: 'POSITIVO (+)', ct: '22.8', load: 'Carga genómica alta' },
-          { name: 'Anaplasma platys', isPositive: true, result: 'POSITIVO (+)', ct: '27.4', load: 'Carga genómica moderada' },
-          { name: 'Hepatozoon canis', isPositive: false, result: 'Negativo (-)', ct: 'N/D', load: 'No detectado' },
-          { name: 'Anaplasma phagocytophilum', isPositive: false, result: 'Negativo (-)', ct: 'N/D', load: 'No detectado' },
-          { name: 'Rickettsia rickettsii', isPositive: false, result: 'Negativo (-)', ct: 'N/D', load: 'No detectado' },
-          { name: 'Mycoplasma haemocanis', isPositive: false, result: 'Negativo (-)', ct: 'N/D', load: 'No detectado' },
-          { name: 'Bartonella spp. (canina)', isPositive: false, result: 'Negativo (-)', ct: 'N/D', load: 'No detectado' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'PAC-003',
-    name: 'Milo',
-    lastName: 'Martínez',
-    avatar: '🐶',
-    species: 'Canino',
-    breed: 'Bulldog Francés',
-    sex: 'Macho',
-    birthDate: '2024-07-15',
-    age: '2 años, 1 mes',
-    weight: '12.8 kg',
-    sedeId: 'sede-principal-80',
-    sedeNombre: 'Sede Principal - Calle 80',
-    codigoSedeNit: '#nit-1',
-    isSterilized: false,
-    hasAllergies: true,
-    allergies: 'Pollo y derivados de ave',
-    medicalBackground: 'Gastroenteritis recurrente.',
-    owner: {
-      firstName: 'Ana',
-      lastName: 'Martínez',
-      name: 'Ana Martínez',
-      document: '52.987.654',
-      phone: '+57 315 555 4321',
-      emergencyPhone: '+57 311 222 3344',
-      email: 'ana.martinez@email.com',
-      department: 'Bogotá D.C.',
-      city: 'Bogotá',
-      address: 'Carrera 7 # 127-45',
-      stratum: 'Estrato 4',
-      hasVetPlus: true,
-      vetPlusCode: 'VP-88210-BOG',
-    },
-    riskFactors: {
-      habitat: 'Interiores',
-      contactOutside: { hasContact: false, contactType: '' },
-      livesWithOtherAnimals: false,
-      recentTravel: false,
-      ruralAccess: false,
-      parasiteExposure: false,
-      outdoorWater: false,
-      coastalRescue: false,
-      otherRiskFactors: 'Ninguno',
-    },
-    medicalAdmission: {
-      isAsymptomatic: false,
-      symptoms: ['Vómito', 'Diarrea', 'Decaimiento'],
-      otherSymptoms: '',
-      physicalFindings: 'Deshidratación 6%, dolor a la palpación abdominal.',
-      consultationType: 'Urgencia',
-      generalCondition: 'Regular',
-      vaccinationStatus: 'Al día',
-      lastVaccinationDate: '01/03/2026',
-      dewormingStatus: 'Al día',
-      lastDewormingDate: '10/05/2026',
-    },
-    status: 'internado',
-    lastVisit: '06/10/2026',
-    attendingVet: 'Dr. Alejandro Morales',
-    notes: 'Internado en UCI veterinaria por cuadro de gastroenteritis.',
-    activeExamOrder: {
-      id: 'ORD-2026-920',
-      testName: 'Panel Diarrea Canina Completo (qPCR)',
-      category: 'Biología Molecular Cuantitativa (qPCR)',
-      sampleType: 'Hisopado fecal',
-      priority: 'Urgente (Mismo día)',
-      requestedBy: 'Dr. Alejandro Morales',
-      laboratory: 'VetLab Central - Unidad de Genómica',
-      targets: 'Parvovirus canino, Coronavirus canino, Giardia lamblia, Cryptosporidium',
-      requestedAt: '06/10/2026 - 09:15 AM',
-      currentStep: 1,
-      steps: [
-        { label: 'Solicitud creada', desc: 'Orden médica generada en clínica', date: '06/10/2026 09:15 AM', completed: true },
-        { label: 'Muestra recibida', desc: 'Recepción y código de barras en laboratorio', date: '06/10/2026 11:00 AM', completed: true },
-        { label: 'En análisis qPCR', desc: 'Extracción de ácidos nucleicos y amplificación en termociclador', date: 'Pendiente', completed: false },
-        { label: 'Validación médica', desc: 'Curvas de amplificación verificadas por patólogo molecular', date: 'Pendiente', completed: false },
-        { label: 'Resultado enviado', desc: 'Informe emitido y disponible para descarga', date: 'Pendiente', completed: false },
-      ],
-    },
-    healthMetrics: {
-      vitalSigns: { heartRate: '135 bpm', temperature: '38.9 °C', respiratoryRate: '28 rpm', mucosa: 'Pálidas' },
-    },
-    consultations: [],
-    qpcrExams: [
-      {
-        id: 'QPCR-2026-750',
-        testName: 'Panel Diarrea Canina & Patógenos Entéricos Completo',
-        date: '12/08/2026',
-        requestedAt: '12/08/2026, 09:15 AM',
-        receivedAt: '13/08/2026, 02:45 PM',
-        status: 'Emitido',
-        sampleType: 'Hisopado rectal / Muestra de heces frescas',
-        resultSummary: 'Detección POSITIVA (+) para Cryptosporidium spp. y Clostridium perfringens enterotoxin. Hallazgo etiológico de enteritis infecciosa aguda.',
-        methodology: 'qPCR multiplex cuantitativa en tiempo real (Sondas TaqMan)',
-        reportUrl: '#',
-        agents: [
-          { name: 'Cryptosporidium spp.', isPositive: true, result: 'POSITIVO (+)', ct: '24.1', load: 'Carga parasitaria moderada-alta' },
-          { name: 'Clostridium perfringens enterotoxin', isPositive: true, result: 'POSITIVO (+)', ct: '21.8', load: 'Carga bacteriana elevada (gen cpe detectable)' },
-          { name: 'Giardia lamblia', isPositive: false, result: 'Negativo (-)', ct: 'N/D', load: 'No detectado' },
-          { name: 'Parvovirus canino (CPV-2)', isPositive: false, result: 'Negativo (-)', ct: 'N/D', load: 'No detectado' },
-          { name: 'Coronavirus entérico canino (CCoV)', isPositive: false, result: 'Negativo (-)', ct: 'N/D', load: 'No detectado' },
-          { name: 'Salmonella enterica', isPositive: false, result: 'Negativo (-)', ct: 'N/D', load: 'No detectado' },
-          { name: 'Campylobacter jejuni', isPositive: false, result: 'Negativo (-)', ct: 'N/D', load: 'No detectado' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'PAC-004',
-    name: 'Thor',
-    lastName: 'Salamanca',
-    avatar: '🐶',
-    species: 'Canino',
-    breed: 'Rottweiler',
-    sex: 'Macho',
-    birthDate: '2015-02-10',
-    age: '11 años',
-    weight: '42.0 kg',
-    sedeId: 'sede-sabana-chia',
-    sedeNombre: 'Sede Sabana - Chía',
-    codigoSedeNit: '#nit-3',
     isSterilized: false,
     hasAllergies: false,
     allergies: '',
-    medicalBackground: 'Cardiopatía dilatada y falla renal crónica.',
-    owner: {
-      firstName: 'Andrés',
-      lastName: 'Salamanca',
-      name: 'Andrés Salamanca',
-      document: '19.456.789',
-      phone: '+57 311 000 9988',
-      emergencyPhone: '',
-      email: 'andres.s@email.com',
-      department: 'Cundinamarca',
-      city: 'Chía',
-      address: 'Carrera 9 # 72-10',
-      stratum: 'Estrato 5',
-      hasVetPlus: false,
-      vetPlusCode: '',
-    },
-    riskFactors: {
-      habitat: 'Mixto',
-      contactOutside: { hasContact: false, contactType: '' },
-      livesWithOtherAnimals: false,
-      recentTravel: false,
-      ruralAccess: false,
-      parasiteExposure: false,
-      outdoorWater: false,
-      coastalRescue: false,
-      otherRiskFactors: 'Paciente geriátrico',
-    },
-    medicalAdmission: {
-      isAsymptomatic: false,
-      symptoms: ['Letargia', 'Anorexia'],
-      otherSymptoms: '',
-      physicalFindings: 'Falla multiorgánica terminal.',
-      consultationType: 'Consulta',
-      generalCondition: 'Crítico',
-      vaccinationStatus: 'Desconocido',
-      lastVaccinationDate: '',
-      dewormingStatus: 'Desconocido',
-      lastDewormingDate: '',
-    },
-    status: 'fallecido',
-    lastVisit: '15/07/2026',
-    attendingVet: 'Dr. Alejandro Morales',
-    notes: 'Paciente geriátrico con falla multiorgánica terminal. Ficha histórica archivada.',
-    activeExamOrder: null,
-    consultations: [],
-    qpcrExams: [],
+    attendingVet: 'TP-PRUEBA-01',
+    lastVisit: '09/11/2026',
+    source: 'Kea Tools DB'
   },
   {
-    id: 'PAC-005',
-    name: 'Simba',
-    lastName: 'Morales',
+    id: 'PAC-PRUEBA-02',
+    keaRecordId: 2,
+    name: 'Michi',
+    lastName: '(PRUEBA)',
+    fullName: 'Michi (PRUEBA)',
     avatar: '🐱',
     species: 'Felino',
-    breed: 'Persa',
+    otherSpecies: '',
+    breed: 'Mestizo',
     sex: 'Macho',
-    birthDate: '2022-04-18',
-    age: '4 años, 5 meses',
-    weight: '4.8 kg',
-    sedeId: 'sede-sabana-chia',
-    sedeNombre: 'Sede Sabana - Chía',
-    codigoSedeNit: '#nit-3',
-    isSterilized: true,
-    hasAllergies: false,
-    allergies: '',
-    medicalBackground: 'Sin antecedentes respiratorios previos.',
-    owner: {
-      firstName: 'Valentina',
-      lastName: 'Morales',
-      name: 'Valentina Morales',
-      document: '1.019.876.543',
-      phone: '+57 320 654 9871',
-      emergencyPhone: '+57 311 234 5678',
-      email: 'valentina.morales@gmail.com',
-      department: 'Cundinamarca',
-      city: 'Chía',
-      address: 'Km 2 Vía Chía-Cajicá, Condominio El Roble Casa 12',
-      stratum: 'Estrato 5',
-      hasVetPlus: true,
-      vetPlusCode: 'VP-91024-COL',
-    },
-    riskFactors: {
-      habitat: 'Interiores',
-      contactOutside: { hasContact: false, contactType: '' },
-      livesWithOtherAnimals: true,
-      recentTravel: false,
-      ruralAccess: false,
-      parasiteExposure: false,
-      outdoorWater: false,
-      coastalRescue: false,
-      otherRiskFactors: 'Ninguno',
-    },
-    medicalAdmission: {
-      isAsymptomatic: false,
-      symptoms: ['Secreción ocular', 'Estornudos frecuentes'],
-      otherSymptoms: 'Blefarospasmo unilateral leve',
-      physicalFindings: 'Secreción serosa bilateral, conjuntivitis leve.',
-      consultationType: 'Consulta especializada',
-      generalCondition: 'Bueno',
-      vaccinationStatus: 'Al día',
-      lastVaccinationDate: '10/02/2026',
-      dewormingStatus: 'Al día',
-      lastDewormingDate: '10/08/2026',
-    },
-    status: 'activo',
-    lastVisit: '02/10/2026',
-    attendingVet: 'Dr. Alejandro Morales',
-    notes: 'Sospecha de complejo respiratorio felino (Herpesvirus vs Calicivirus).',
-    activeExamOrder: {
-      id: 'ORD-2026-905',
-      testName: 'qPCR Panel Respiratorio Felino Completo',
-      category: 'Biología Molecular Cuantitativa (qPCR)',
-      sampleType: 'Hisopado conjuntival y orofaríngeo',
-      priority: 'Normal (24-48h)',
-      requestedBy: 'Dr. Alejandro Morales',
-      laboratory: 'VetLab Central - Unidad de Genómica',
-      targets: 'FHV-1, FCV, Chlamydia felis, Mycoplasma felis, Bordetella bronchiseptica',
-      requestedAt: '02/10/2026 - 11:20 AM',
-      currentStep: 2,
-      steps: [
-        { label: 'Solicitud creada', desc: 'Orden médica generada en clínica', date: '02/10/2026 11:20 AM', completed: true },
-        { label: 'Muestra recibida', desc: 'Recepción y código de barras en laboratorio', date: '02/10/2026 02:40 PM', completed: true },
-        { label: 'En análisis qPCR', desc: 'Extracción de ácidos nucleicos y amplificación en termociclador', date: '02/10/2026 05:15 PM', completed: true },
-        { label: 'Validación médica', desc: 'Curvas de amplificación verificadas por patólogo molecular', date: '', completed: false },
-        { label: 'Resultado enviado', desc: 'Informe emitido y disponible para descarga', date: '', completed: false },
-      ],
-    },
-    healthMetrics: {
-      weightHistory: [
-        { date: '10/02/2026', weight: '4.6 kg', note: 'Control de vacunación' },
-        { date: '02/10/2026', weight: '4.8 kg', note: 'Consulta por estornudos' },
-      ],
-      vitalSigns: {
-        heartRate: '150 bpm',
-        temperature: '38.6 °C',
-        respiratoryRate: '26 rpm',
-        mucosa: 'Rosadas',
-      },
-    },
-    consultations: [],
-    qpcrExams: [],
-  },
-  {
-    id: 'PAC-006',
-    name: 'Bella',
-    lastName: 'Cárdenas',
-    avatar: '🐶',
-    species: 'Canino',
-    breed: 'Bulldog Francés',
-    sex: 'Hembra',
-    birthDate: '2023-09-05',
-    age: '3 años',
-    weight: '11.2 kg',
-    sedeId: 'sede-norte-127',
-    sedeNombre: 'Sede Norte - Santa Bárbara',
-    codigoSedeNit: '#nit-2',
-    isSterilized: true,
-    hasAllergies: true,
-    allergies: 'Alergia a proteínas de pollo y ácaros del polvo',
-    medicalBackground: 'Atopia canina diagnosticada en 2024.',
-    owner: {
-      firstName: 'Felipe',
-      lastName: 'Cárdenas',
-      name: 'Felipe Cárdenas',
-      document: '80.765.432',
-      phone: '+57 316 432 1098',
-      emergencyPhone: '+57 310 987 6543',
-      email: 'felipe.cardenas@empresa.com',
-      department: 'Bogotá D.C.',
-      city: 'Bogotá',
-      address: 'Calle 122 # 15-45, Apto 501',
-      stratum: 'Estrato 5',
-      hasVetPlus: true,
-      vetPlusCode: 'VP-94301-COL',
-    },
-    riskFactors: {
-      habitat: 'Interiores',
-      contactOutside: { hasContact: true, contactType: 'Parque canino' },
-      livesWithOtherAnimals: false,
-      recentTravel: false,
-      ruralAccess: false,
-      parasiteExposure: true,
-      outdoorWater: false,
-      coastalRescue: false,
-      otherRiskFactors: 'Dermatitis atópica estacional',
-    },
-    medicalAdmission: {
-      isAsymptomatic: false,
-      symptoms: ['Prurito podal', 'Eritema interdigital'],
-      otherSymptoms: 'Lesiones alopécicas focales',
-      physicalFindings: 'Eritema intenso en pliegues faciales y zonas interdigitales.',
-      consultationType: 'Dermatología',
-      generalCondition: 'Bueno',
-      vaccinationStatus: 'Al día',
-      lastVaccinationDate: '05/01/2026',
-      dewormingStatus: 'Al día',
-      lastDewormingDate: '01/09/2026',
-    },
-    status: 'activo',
-    lastVisit: '04/10/2026',
-    attendingVet: 'Dra. Camila Torres',
-    notes: 'Toma de raspado cutáneo e hisopado para qPCR dermatológico.',
-    activeExamOrder: {
-      id: 'ORD-2026-906',
-      testName: 'qPCR Panel Dermatofitos & Levaduras Patógenas',
-      category: 'Biología Molecular Cuantitativa (qPCR)',
-      sampleType: 'Raspado cutáneo y pelo',
-      priority: 'Normal (24-48h)',
-      requestedBy: 'Dra. Camila Torres',
-      laboratory: 'VetLab Central - Unidad de Genómica',
-      targets: 'Microsporum canis, Trichophyton mentagrophytes, Malassezia pachydermatis',
-      requestedAt: '04/10/2026 - 09:40 AM',
-      currentStep: 4,
-      steps: [
-        { label: 'Solicitud creada', desc: 'Orden médica generada en clínica', date: '04/10/2026 09:40 AM', completed: true },
-        { label: 'Muestra recibida', desc: 'Recepción y código de barras en laboratorio', date: '04/10/2026 11:30 AM', completed: true },
-        { label: 'En análisis qPCR', desc: 'Extracción de ácidos nucleicos y termociclaje', date: '04/10/2026 03:00 PM', completed: true },
-        { label: 'Validación médica', desc: 'Curvas validadas por patólogo molecular', date: '04/10/2026 05:20 PM', completed: true },
-        { label: 'Resultado enviado', desc: 'Informe emitido y disponible para descarga', date: '04/10/2026 06:00 PM', completed: true },
-      ],
-    },
-    healthMetrics: {
-      weightHistory: [
-        { date: '05/01/2026', weight: '10.8 kg', note: 'Vacunación' },
-        { date: '04/10/2026', weight: '11.2 kg', note: 'Consulta dermatología' },
-      ],
-      vitalSigns: {
-        heartRate: '128 bpm',
-        temperature: '38.5 °C',
-        respiratoryRate: '22 rpm',
-        mucosa: 'Rosadas',
-      },
-    },
-    consultations: [],
-    qpcrExams: [
-      {
-        id: 'QPCR-2026-906',
-        testName: 'qPCR Panel Dermatofitos & Levaduras Patógenas',
-        date: '04/10/2026',
-        requestedAt: '04/10/2026, 09:40 AM',
-        receivedAt: '04/10/2026, 06:00 PM',
-        status: 'Emitido',
-        sampleType: 'Raspado cutáneo y pelo',
-        resultSummary: 'Malassezia pachydermatis POSITIVA (+). Negativo para Microsporum canis y Trichophyton.',
-        methodology: 'qPCR tiempo real con sondas de hidrólisis TaqMan',
-        reportUrl: '#',
-        agents: [
-          { name: 'Malassezia pachydermatis', isPositive: true, result: 'POSITIVO (+)', ct: '21.4', load: 'Carga alta' },
-          { name: 'Microsporum canis', isPositive: false, result: 'Negativo (-)', ct: 'N/D', load: 'No detectado' },
-          { name: 'Trichophyton mentagrophytes', isPositive: false, result: 'Negativo (-)', ct: 'N/D', load: 'No detectado' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'PAC-007',
-    name: 'Zeus',
-    lastName: 'Ospina',
-    avatar: '🐶',
-    species: 'Canino',
-    breed: 'Pastor Alemán',
-    sex: 'Macho',
-    birthDate: '2021-12-10',
-    age: '4 años, 10 meses',
-    weight: '36.0 kg',
+    birthDate: '2022-03-01',
+    age: '4 años, 9 meses',
+    weight: '4 kg',
     sedeId: 'sede-principal-80',
     sedeNombre: 'Sede Principal - Calle 80',
-    codigoSedeNit: '#nit-1',
+    codigoSedeNit: '#nit-900000001',
+    microchip: 'Sin microchip',
+    owner: {
+      name: 'PROP-PRUEBA-01',
+      firstName: 'PROP-PRUEBA-01',
+      lastName: '',
+      phone: '+57 300 000 0000',
+      email: 'tutor@ejemplo.com',
+      city: 'Bogotá'
+    },
+    riskFactors: {
+      habitat: 'Interiores / Mixto',
+      recentTravel: false,
+      lastVisitedCountry: 'Ninguno',
+      livesWithOtherAnimals: true,
+      ruralAccess: false
+    },
+    medicalAdmission: {
+      isAsymptomatic: false,
+      symptoms: [],
+      bodyCondition: '3/5',
+      generalCondition: 'Estable',
+      physicalFindings: 'Condición corporal 3/5, Estable.'
+    },
+    status: 'activo',
     isSterilized: false,
     hasAllergies: false,
     allergies: '',
-    medicalBackground: 'Sin cirugías previas.',
+    attendingVet: 'TP-PRUEBA-01',
+    lastVisit: '09/11/2026',
+    source: 'Kea Tools DB'
+  },
+  {
+    id: 'PAC-PRUEBA-03',
+    keaRecordId: 3,
+    name: 'Rocky',
+    lastName: '(PRUEBA)',
+    fullName: 'Rocky (PRUEBA)',
+    avatar: '🐕',
+    species: 'Canino',
+    otherSpecies: '',
+    breed: 'Mestizo',
+    sex: 'Macho',
+    birthDate: '2022-03-01',
+    age: '4 años, 9 meses',
+    weight: '30 kg',
+    sedeId: 'sede-principal-80',
+    sedeNombre: 'Sede Principal - Calle 80',
+    codigoSedeNit: '#nit-900000002',
+    microchip: 'Sin microchip',
     owner: {
-      firstName: 'Diana',
-      lastName: 'Ospina',
-      name: 'Diana Ospina',
-      document: '52.987.654',
-      phone: '+57 315 876 5432',
-      emergencyPhone: '+57 311 987 1234',
-      email: 'diana.ospina@gmail.com',
-      department: 'Bogotá D.C.',
-      city: 'Bogotá',
-      address: 'Carrera 70 # 100-30',
-      stratum: 'Estrato 4',
-      hasVetPlus: true,
-      vetPlusCode: 'VP-97812-COL',
+      name: 'PROP-PRUEBA-02',
+      firstName: 'PROP-PRUEBA-02',
+      lastName: '',
+      phone: '+57 300 000 0000',
+      email: 'tutor@ejemplo.com',
+      city: 'Bogotá'
     },
     riskFactors: {
-      habitat: 'Mixto',
-      contactOutside: { hasContact: true, contactType: 'Paseos en fincas y senderos' },
-      livesWithOtherAnimals: false,
-      recentTravel: true,
-      ruralAccess: true,
-      parasiteExposure: true,
-      outdoorWater: true,
-      coastalRescue: false,
-      otherRiskFactors: 'Exposición a garrapatas en zona rural de Cundinamarca',
+      habitat: 'Interiores / Mixto',
+      recentTravel: false,
+      lastVisitedCountry: 'Ninguno',
+      livesWithOtherAnimals: true,
+      ruralAccess: false
     },
     medicalAdmission: {
       isAsymptomatic: false,
-      symptoms: ['Fiebre', 'Anorexia', 'Debilidad en tren posterior'],
-      otherSymptoms: 'Trombocitopenia en hemograma inicial',
-      physicalFindings: 'Linfadenopatía reactiva preescapular, esplenomegalia palpable.',
-      consultationType: 'Urgencia médica',
-      generalCondition: 'Regular',
-      vaccinationStatus: 'Al día',
-      lastVaccinationDate: '12/12/2025',
-      dewormingStatus: 'Al día',
-      lastDewormingDate: '15/07/2026',
+      symptoms: [],
+      bodyCondition: '3/5',
+      generalCondition: 'Estable',
+      physicalFindings: 'Condición corporal 3/5, Estable.'
     },
-    status: 'en tratamiento',
-    lastVisit: '06/10/2026',
-    attendingVet: 'Dr. Alejandro Morales',
-    notes: 'Sospecha alta de hemotrópicos (Ehrlichia / Anaplasma). Muestra tomada en EDTA.',
-    activeExamOrder: {
-      id: 'ORD-2026-907',
-      testName: 'qPCR Panel Vector Borne & Hemotrópicos Caninos',
-      category: 'Biología Molecular Cuantitativa (qPCR)',
-      sampleType: 'Sangre total con EDTA',
-      priority: 'Urgente (< 12h)',
-      requestedBy: 'Dr. Alejandro Morales',
-      laboratory: 'VetLab Central - Unidad de Genómica',
-      targets: 'Ehrlichia canis, Anaplasma platys, Babesia vogeli, Hepatozoon canis',
-      requestedAt: '06/10/2026 - 08:15 AM',
-      currentStep: 1,
-      steps: [
-        { label: 'Solicitud creada', desc: 'Orden médica generada en clínica', date: '06/10/2026 08:15 AM', completed: true },
-        { label: 'Muestra recibida', desc: 'Recepción y código de barras en laboratorio', date: '06/10/2026 09:30 AM', completed: true },
-        { label: 'En análisis qPCR', desc: 'Extracción de ácidos nucleicos y amplificación en termociclador', date: '', completed: false },
-        { label: 'Validación médica', desc: 'Curvas de amplificación verificadas por patólogo molecular', date: '', completed: false },
-        { label: 'Resultado enviado', desc: 'Informe emitido y disponible para descarga', date: '', completed: false },
-      ],
-    },
-    healthMetrics: {
-      weightHistory: [
-        { date: '12/12/2025', weight: '37.5 kg', note: 'Control anual' },
-        { date: '06/10/2026', weight: '36.0 kg', note: 'Urgencia por decaimiento (-1.5 kg)' },
-      ],
-      vitalSigns: {
-        heartRate: '110 bpm',
-        temperature: '39.6 °C',
-        respiratoryRate: '32 rpm',
-        mucosa: 'Levemente pálidas',
-      },
-    },
-    consultations: [],
-    qpcrExams: [],
+    status: 'activo',
+    isSterilized: false,
+    hasAllergies: false,
+    allergies: '',
+    attendingVet: 'TP-PRUEBA-02',
+    lastVisit: '09/11/2026',
+    source: 'Kea Tools DB'
   },
+  {
+    id: 'PAC-R01',
+    keaRecordId: 4,
+    name: 'Sotia',
+    lastName: '',
+    fullName: 'Sotia',
+    avatar: '🐕',
+    species: 'Canino',
+    otherSpecies: '',
+    breed: 'Labrador',
+    sex: 'Macho',
+    birthDate: '2026-08-04',
+    age: '3 meses',
+    weight: 'Sin registrar',
+    sedeId: 'sede-principal-80',
+    sedeNombre: 'Sede Principal - Calle 80',
+    codigoSedeNit: '#nit-900949599',
+    microchip: 'Sin microchip',
+    owner: {
+      name: '001',
+      firstName: '001',
+      lastName: '',
+      phone: '+57 300 000 0000',
+      email: 'tutor@ejemplo.com',
+      city: 'Bogotá'
+    },
+    riskFactors: {
+      habitat: 'Interiores / Mixto',
+      recentTravel: false,
+      lastVisitedCountry: 'Ninguno',
+      livesWithOtherAnimals: true,
+      ruralAccess: false
+    },
+    medicalAdmission: {
+      isAsymptomatic: false,
+      symptoms: [],
+      bodyCondition: '3/5',
+      generalCondition: 'Estable',
+      physicalFindings: 'Condición corporal 3/5, Estable.'
+    },
+    status: 'activo',
+    isSterilized: false,
+    hasAllergies: false,
+    allergies: '',
+    attendingVet: 'Dr. Asignado',
+    lastVisit: '09/11/2026',
+    source: 'Kea Tools DB'
+  },
+  {
+    id: 'PAC-PROP-PRUEBA-01-LOLA',
+    keaRecordId: 5,
+    name: 'Lola',
+    lastName: '',
+    fullName: 'Lola',
+    avatar: '🐱',
+    species: 'Felino',
+    otherSpecies: '',
+    breed: 'idk',
+    sex: 'Macho',
+    birthDate: '2026-11-02',
+    age: '0 meses',
+    weight: 'Sin registrar',
+    sedeId: 'sede-principal-80',
+    sedeNombre: 'Sede Principal - Calle 80',
+    codigoSedeNit: '#nit-1000087681',
+    microchip: 'Sin microchip',
+    owner: {
+      name: 'PROP-PRUEBA-01',
+      firstName: 'PROP-PRUEBA-01',
+      lastName: '',
+      phone: '+57 300 000 0000',
+      email: 'tutor@ejemplo.com',
+      city: 'Bogotá'
+    },
+    riskFactors: {
+      habitat: 'Interiores / Mixto',
+      recentTravel: false,
+      lastVisitedCountry: 'Ninguno',
+      livesWithOtherAnimals: true,
+      ruralAccess: false
+    },
+    medicalAdmission: {
+      isAsymptomatic: false,
+      symptoms: [],
+      bodyCondition: '3/5',
+      generalCondition: 'Estable',
+      physicalFindings: 'Condición corporal 3/5, Estable.'
+    },
+    status: 'activo',
+    isSterilized: false,
+    hasAllergies: false,
+    allergies: '',
+    attendingVet: 'TP-PRUEBA-01',
+    lastVisit: '09/11/2026',
+    source: 'Kea Tools DB'
+  },
+  {
+    id: 'PAC-542133',
+    keaRecordId: 6,
+    name: 'Lucas',
+    lastName: '',
+    fullName: 'Lucas',
+    avatar: '🐱',
+    species: 'Felino',
+    otherSpecies: '',
+    breed: 'cruce',
+    sex: 'Macho',
+    birthDate: '2026-11-02',
+    age: '0 meses',
+    weight: 'Sin registrar',
+    sedeId: 'sede-principal-80',
+    sedeNombre: 'Sede Principal - Calle 80',
+    codigoSedeNit: '#nit-900949599',
+    microchip: 'Sin microchip',
+    owner: {
+      name: '98542',
+      firstName: '98542',
+      lastName: '',
+      phone: '+57 300 000 0000',
+      email: 'tutor@ejemplo.com',
+      city: 'Bogotá'
+    },
+    riskFactors: {
+      habitat: 'Interiores / Mixto',
+      recentTravel: false,
+      lastVisitedCountry: 'Ninguno',
+      livesWithOtherAnimals: true,
+      ruralAccess: false
+    },
+    medicalAdmission: {
+      isAsymptomatic: false,
+      symptoms: [],
+      bodyCondition: '3/5',
+      generalCondition: 'Estable',
+      physicalFindings: 'Condición corporal 3/5, Estable.'
+    },
+    status: 'activo',
+    isSterilized: false,
+    hasAllergies: false,
+    allergies: '',
+    attendingVet: 'Dr. Asignado',
+    lastVisit: '09/11/2026',
+    source: 'Kea Tools DB'
+  }
 ];
 
 let localPatientsStore = [...FALLBACK_PATIENTS];
+
+export const KEA_API_URL = 'https://osd.kea.tools/api/v1/databases/PACIENTE/records';
+export const KEA_BEARER_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiMzQ4NzBlMGU3YTU2ZjFmZjE0ODk2YWFmMjg0NzZjNzBkNjM3ZDc5MmMyOTY4ZjQ4YjZhODBjYjg3NTc1MjcwMjg0YWVjNjQwMzA2ODk4ZWEiLCJpYXQiOjE3OTQyNTU2MzEuMTIyMDA2LCJuYmYiOjE3OTQyNTU2MzEuMTIyMDA5LCJleHAiOjE4MjU3OTE2MzEuMTE1OTk3LCJzdWIiOiI0Iiwic2NvcGVzIjpbImtlYS5kYXRhYmFzZSJdfQ.Lxhv0uyiWUR5RBTia3TIFj0zrF2ZzMsIsVUGEmToW9A6atSKyShg10ODTLs8-gf9ovA4RZpldXDKcqkh5-GbTnnWKzl4ltCFMCN_TolNQnYWHnXPX7PtJhprvzojtg8Ue_ovffXzMS4EVlFl40HG3AJokfw8ZeOv4RRdSn2hA9vfhNBBNKEvQQgWpY6KVobTlpgrGAe7bI5YJFq0yG0Nu3uziE1dXTacVrGxgmMj45dFMR_y9vLIN-rhQBuJWmTl6e1GuzSCnS41JiWXktbHIJKEFCEGtK6P6Hb-XhFscnfrBAxr_-Mh1R3yTrRgYhhpBB4C5Afo9ZcH1j-_3FGFdBHa0P71_sjuw8lPIz6BR9FpybY_tnEV6IlP1e94K2CExS7OvVCc9yFyGPLj18FhICQzQWr9scXCpUMa0WkXiqbgDhgywnTrEvoWHcbWF4iEdNgKGra1u_A3lQlctN6-5GE0fb91qI2gLkXIzLgVkSjEhT3Xi_YNeWfUO3njUuPWZGxcQbAp3InnNiFjIwP27FBORkjAPdaGlouU91w2EE87fEwnpKgQ9fcxeQMLOxQDEiYOHe_uvxDwTgMmqCpEtkuxrZGKw3_ZIiVz2IHSzjSWh-89Xb9cr0kyVrBGIiFlVRLgc1Q3FZuhwG87pjS3Tk4cD6akblkyusWgTxCYiVc';
+
+export const calculateAgeFromBirthDate = (birthDateString) => {
+  if (!birthDateString) return 'No especificada';
+  const birth = new Date(birthDateString);
+  const now = new Date();
+  if (isNaN(birth.getTime())) return 'Fecha inválida';
+
+  let years = now.getFullYear() - birth.getFullYear();
+  let months = now.getMonth() - birth.getMonth();
+
+  if (months < 0 || (months === 0 && now.getDate() < birth.getDate())) {
+    years--;
+    months += 12;
+  }
+
+  if (years > 0) {
+    return `${years} ${years === 1 ? 'año' : 'años'}${months > 0 ? `, ${months} ${months === 1 ? 'mes' : 'meses'}` : ''}`;
+  }
+  return `${months} ${months === 1 ? 'mes' : 'meses'}`;
+};
+
+export const mapRawKeaRecord = (record, index = 0) => {
+  const rawId = record.CODIGO_PACIENTE || record['Código del paciente'] || record.codigo_paciente || record.id;
+  const patientId = rawId ? (String(rawId).startsWith('PAC-') ? String(rawId) : `PAC-${String(rawId)}`) : `PAC-KEA-${index + 1}`;
+
+  const fullName = String(record.NOMBRE || record.Nombre || 'Paciente sin nombre').trim();
+  const nameParts = fullName.split(' ');
+  const firstName = nameParts[0] || 'Paciente';
+  const lastName = nameParts.slice(1).join(' ') || '';
+
+  const rawSpecies = String(record.ESPECIE || record.Especie || 'Canino').trim();
+  const otherSpecies = String(record.ESPECIE_OTRO || record['Otra especie'] || '').trim();
+  const species = rawSpecies.toLowerCase().includes('otro') && otherSpecies ? otherSpecies : rawSpecies;
+
+  const breed = String(record.RAZA || record.Raza || 'Mestizo').trim();
+  const rawSex = String(record.SEXO || record.Sexo || 'No especificado').trim();
+  const sex = rawSex.toLowerCase().startsWith('h') ? 'Hembra' : (rawSex.toLowerCase().startsWith('m') ? 'Macho' : rawSex);
+
+  const rawWeight = record.PESO_KG ?? record.Peso;
+  const weight = rawWeight !== undefined && rawWeight !== null && rawWeight !== '' ? `${rawWeight} kg` : 'Sin registrar';
+
+  const rawBirth = record.FECHA_NACIMIENTO || record['Fecha de nacimiento'] || '';
+  const birthDate = rawBirth ? String(rawBirth).split('T')[0] : '';
+  const rawAge = record.EDAD ?? record.Edad;
+  let age = 'No especificada';
+  if (birthDate) {
+    age = calculateAgeFromBirthDate(birthDate);
+  } else if (rawAge !== undefined && rawAge !== null && rawAge !== '') {
+    age = typeof rawAge === 'number' ? `${rawAge} ${rawAge === 1 ? 'año' : 'años'}` : String(rawAge);
+  }
+
+  const rawVet = String(record.VETERINARIO || record['Veterinario actual'] || record.Veterinario || 'Dr. Asignado').trim();
+  const rawOwner = record.PROPIETARIO ?? record.Propietario;
+  const ownerName = rawOwner !== undefined && rawOwner !== null && rawOwner !== '' ? String(rawOwner).trim() : 'Tutor no registrado';
+  const rawNit = String(record.VETERINARIA || '#nit-1').trim();
+  const isSterilized = Boolean(record.ESTERILIZADO === true || record.ESTERILIZADO === 'true' || record.ESTERILIZADO === 1);
+  const isAsymptomatic = Boolean(record.ASINTOMATICO === true || record.ASINTOMATICO === 'true' || record.ASINTOMATICO === 1);
+  const bodyCondition = String(record.CONDICION_CORPORAL || '3/5').trim();
+  const status = String(record.ESTADO || 'activo').toLowerCase().trim();
+  const clinicalStatus = String(record.ESTADO_CLINICO || (isAsymptomatic ? 'Asintomático' : 'Estable')).trim();
+
+  let avatar = '🐾';
+  const spLower = species.toLowerCase();
+  if (spLower.includes('canin') || spLower.includes('perr') || breed.toLowerCase().includes('labrador')) avatar = '🐕';
+  else if (spLower.includes('felin') || spLower.includes('gat')) avatar = '🐱';
+  else if (spLower.includes('equin') || spLower.includes('caball')) avatar = '🐴';
+  else if (spLower.includes('ave') || spLower.includes('loro')) avatar = '🦜';
+  else if (spLower.includes('conejo')) avatar = '🐰';
+
+  const ownerParts = ownerName.split(' ');
+
+  return {
+    id: patientId,
+    keaRecordId: record.id || null,
+    name: firstName,
+    lastName: lastName,
+    fullName: `${firstName} ${lastName}`.trim(),
+    avatar,
+    species,
+    otherSpecies,
+    breed,
+    sex,
+    birthDate,
+    age,
+    weight,
+    sedeId: 'sede-principal-80',
+    sedeNombre: 'Sede Principal - Calle 80',
+    codigoSedeNit: rawNit.startsWith('#') ? rawNit : `#nit-${rawNit}`,
+    microchip: String(record.MICROCHIP || 'Sin microchip').trim(),
+    owner: {
+      name: ownerName,
+      firstName: ownerParts[0] || ownerName,
+      lastName: ownerParts.slice(1).join(' ') || '',
+      phone: '+57 300 000 0000',
+      email: 'tutor@ejemplo.com',
+      city: 'Bogotá',
+    },
+    riskFactors: {
+      habitat: 'Interiores / Mixto',
+      recentTravel: Boolean(record.VIAJE_EXTERIOR === true || record.VIAJE_EXTERIOR === 'true'),
+      lastVisitedCountry: String(record.ULTIMO_PAIS_VISITADO || 'Ninguno').trim(),
+      livesWithOtherAnimals: true,
+      ruralAccess: false,
+    },
+    medicalAdmission: {
+      isAsymptomatic,
+      symptoms: record.SINTOMAS ? [record.SINTOMAS] : [],
+      bodyCondition: bodyCondition || '3/5',
+      generalCondition: clinicalStatus || 'Estable',
+      physicalFindings: `Condición corporal ${bodyCondition || '3/5'}, ${clinicalStatus || 'Estable'}.`,
+    },
+    status: status || 'activo',
+    isSterilized,
+    hasAllergies: Boolean((record.ALERGIAS === true || record.ALERGIAS === 'true' || (record.ALERGIAS_CUAL && !isNegativeAllergyText(String(record.ALERGIAS_CUAL)))) && !isNegativeAllergyText(String(record.ALERGIAS_CUAL || ''))),
+    allergies: !isNegativeAllergyText(String(record.ALERGIAS_CUAL || '')) ? String(record.ALERGIAS_CUAL).trim() : '',
+    attendingVet: rawVet || 'Dr. Asignado',
+    lastVisit: new Date().toLocaleDateString('es-CO'),
+    source: 'Kea Tools DB',
+    clinicalDocuments: [],
+  };
+};
 
 export const patientApi = {
   async getStats(params = {}) {
@@ -941,9 +643,81 @@ export const patientApi = {
             },
           },
         };
+
+        // Sincronizar actualización directamente con Kea Tools vía PATCH /records/{keaRecordId}
+        if (currentPatient.keaRecordId) {
+          try {
+            const keaPayload = {};
+            if (updatedData.weight !== undefined) {
+              keaPayload.PESO_KG = parseFloat(String(updatedData.weight).replace(/[^0-9.]/g, '')) || 5;
+            }
+            if (updatedData.status !== undefined) {
+              keaPayload.ESTADO = updatedData.status.toLowerCase();
+            }
+            if (updatedData.isSterilized !== undefined) {
+              keaPayload.ESTERILIZADO = Boolean(updatedData.isSterilized);
+            }
+            if (updatedData.allergies !== undefined || updatedData.hasAllergies !== undefined) {
+              const hasAllergyFlag = Boolean(updatedData.hasAllergies && updatedData.allergies && !isNegativeAllergyText(updatedData.allergies));
+              keaPayload.ALERGIAS = hasAllergyFlag;
+              keaPayload.ALERGIAS_CUAL = hasAllergyFlag ? String(updatedData.allergies).trim() : '';
+            }
+            if (updatedData.medicalAdmission?.bodyCondition || updatedData.bodyCondition) {
+              keaPayload.CONDICION_CORPORAL = updatedData.medicalAdmission?.bodyCondition || updatedData.bodyCondition;
+            }
+            if (updatedData.medicalAdmission?.generalCondition || updatedData.clinicalStatus) {
+              keaPayload.ESTADO_CLINICO = updatedData.medicalAdmission?.generalCondition || updatedData.clinicalStatus;
+            }
+            if (updatedData.attendingVet) {
+              keaPayload.VETERINARIO = updatedData.attendingVet;
+            }
+
+            const keaUpdateUrl = `${KEA_API_URL}/${currentPatient.keaRecordId}`;
+            await fetch(keaUpdateUrl, {
+              method: 'PATCH',
+              headers: {
+                'Authorization': `Bearer ${KEA_BEARER_TOKEN}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+              body: JSON.stringify(keaPayload),
+            });
+          } catch (keaErr) {
+            console.warn('Advertencia al sincronizar PATCH con Kea:', keaErr.message);
+          }
+        }
+
         return localPatientsStore[idx];
       }
       throw err;
+    }
+  },
+
+  async deletePatient(id) {
+    try {
+      const response = await axios.delete(`${API_BASE_URL}/${id}`);
+      return response.data;
+    } catch (err) {
+      console.warn('Backend local no disponible, inactivando en Kea Tools...', err.message);
+      const patient = localPatientsStore.find((p) => p.id === id);
+      if (patient && patient.keaRecordId) {
+        try {
+          const keaUrl = `${KEA_API_URL}/${patient.keaRecordId}`;
+          await fetch(keaUrl, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${KEA_BEARER_TOKEN}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({ ESTADO: 'inactivo' }),
+          });
+        } catch (keaErr) {
+          console.warn('Advertencia al inactivar en Kea:', keaErr.message);
+        }
+      }
+      localPatientsStore = localPatientsStore.filter((p) => p.id !== id);
+      return { success: true, message: 'Paciente inactivado correctamente' };
     }
   },
 
@@ -1129,6 +903,8 @@ export const patientApi = {
       const response = await axios.post(API_BASE_URL, patientData);
       return response.data.data;
     } catch (err) {
+      console.warn('Backend local no disponible, registrando directamente en Kea Tools...', err.message);
+
       let maxNum = 0;
       for (const p of localPatientsStore) {
         if (p.id && typeof p.id === 'string') {
@@ -1139,36 +915,128 @@ export const patientApi = {
           }
         }
       }
-      const newId = `PAC-${String(maxNum + 1).padStart(3, '0')}`;
-      const ownerName = patientData.ownerName || `${patientData.ownerFirstName || ''} ${patientData.ownerLastName || ''}`.trim();
+      const newId = patientData.id || `PAC-${String(maxNum + 1).padStart(3, '0')}`;
+      const ownerName = patientData.ownerName || `${patientData.ownerFirstName || ''} ${patientData.ownerLastName || ''}`.trim() || 'Tutor no registrado';
+      const parsedWeight = patientData.weight ? (parseFloat(String(patientData.weight).replace(/[^0-9.]/g, '')) || 5) : 5;
+      const parsedAge = patientData.age ? (parseInt(String(patientData.age).replace(/[^0-9]/g, ''), 10) || 1) : 1;
+      const birthDateStr = patientData.birthDate
+        ? (patientData.birthDate.includes('T') ? patientData.birthDate : `${patientData.birthDate}T00:00:00-05:00`)
+        : new Date().toISOString();
+
+      const symptoms = Array.isArray(patientData.medicalAdmission?.symptoms)
+        ? patientData.medicalAdmission.symptoms.join(', ')
+        : (patientData.symptoms || '');
+
+      let keaRecordId = null;
+
+      // Guardar directamente en Kea Tools vía POST con sanitización de relaciones
+      try {
+        const VALID_NITS = ['900000001', '900000002', '900949599', '1000087681'];
+        const rawNit = String(patientData.codigoSedeNit || '').replace(/[^0-9]/g, '');
+        const nit = VALID_NITS.includes(rawNit) ? rawNit : '900000001';
+
+        // Veterinario en Kea es relación en desuso que solo acepta códigos existentes o vacío
+        const knownVets = ['TP-PRUEBA-01', 'TP-PRUEBA-02'];
+        const vetValue = knownVets.includes(patientData.attendingVet) ? patientData.attendingVet : '';
+
+        // Propietario en Kea es relación foránea obligatoria con la base PROPIETARIO
+        const preferredOwner = patientData.ownerCode || patientData.owner?.code || patientData.ownerDocumentNumber || ownerName || 'PROP-PRUEBA-01';
+
+        const buildKeaPayload = (ownerVal) => ({
+          CODIGO_PACIENTE: newId,
+          NOMBRE: `${patientData.name || ''} ${patientData.lastName || ''}`.trim() || 'Paciente sin nombre',
+          ESPECIE: patientData.species || 'Canino',
+          ESPECIE_OTRO: patientData.otherSpecies || '',
+          RAZA: patientData.breed || 'Mestizo',
+          SEXO: (patientData.sex || 'Macho').toLowerCase().startsWith('h') ? 'hembra' : 'macho',
+          EDAD: parsedAge,
+          PESO_KG: parsedWeight,
+          FECHA_NACIMIENTO: birthDateStr,
+          VETERINARIO: vetValue,
+          PROPIETARIO: ownerVal,
+          VETERINARIA: nit,
+          ESTADO: patientData.status || 'activo',
+          SINTOMAS: symptoms,
+          CONDICION_CORPORAL: patientData.medicalAdmission?.bodyCondition || patientData.bodyCondition || '3/5',
+          ESTERILIZADO: Boolean(patientData.isSterilized),
+          ASINTOMATICO: Boolean(patientData.medicalAdmission?.isAsymptomatic ?? patientData.isAsymptomatic ?? true),
+          MICROCHIP: patientData.microchip || '',
+          ALERGIAS: Boolean(patientData.hasAllergies),
+          ALERGIAS_CUAL: patientData.allergies || '',
+          VIAJE_EXTERIOR: Boolean(patientData.riskFactors?.recentTravel ?? patientData.recentTravel),
+          ULTIMO_PAIS_VISITADO: patientData.riskFactors?.lastVisitedCountry || '',
+          ESTADO_CLINICO: patientData.medicalAdmission?.generalCondition || 'Estable',
+        });
+
+        let keaRes = await fetch(KEA_API_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${KEA_BEARER_TOKEN}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(buildKeaPayload(preferredOwner)),
+        });
+
+        let keaJson = await keaRes.json();
+
+        // Si falla por clave foránea de propietario no existente, auto-reintentar con tutor base 'PROP-PRUEBA-01'
+        if (!keaRes.ok && String(keaJson.data?.message || keaJson.message || '').includes('Propietario')) {
+          keaRes = await fetch(KEA_API_URL, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${KEA_BEARER_TOKEN}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify(buildKeaPayload('PROP-PRUEBA-01')),
+          });
+          keaJson = await keaRes.json();
+        }
+
+        if (keaRes.ok && (keaJson.status === 'success' || !keaJson.status)) {
+          const rec = keaJson.data || keaJson;
+          keaRecordId = rec.id || null;
+        } else {
+          const errDetail = keaJson.data?.message || keaJson.message || `Error HTTP ${keaRes.status}`;
+          throw new Error(`Kea Tools rechazó el registro: ${errDetail}`);
+        }
+      } catch (keaErr) {
+        console.error('Error al guardar en Kea Tools:', keaErr);
+        throw keaErr;
+      }
+
       const newPatient = {
         id: newId,
+        keaRecordId,
         avatar: patientData.avatar || (patientData.species?.toLowerCase().includes('felin') ? '🐱' : '🐶'),
         name: patientData.name,
         lastName: patientData.lastName || patientData.ownerLastName || '',
+        fullName: `${patientData.name || ''} ${patientData.lastName || ''}`.trim(),
         species: patientData.species,
+        otherSpecies: patientData.otherSpecies || '',
         breed: patientData.breed,
         sex: patientData.sex,
         birthDate: patientData.birthDate,
         age: patientData.age || '1 año',
-        weight: patientData.weight,
+        weight: patientData.weight ? `${patientData.weight} kg` : `${parsedWeight} kg`,
         sedeId: patientData.sedeId || 'sede-principal-80',
         sedeNombre: patientData.sedeNombre || 'Sede Principal - Calle 80',
         codigoSedeNit: patientData.codigoSedeNit || '#nit-1',
         isSterilized: Boolean(patientData.isSterilized),
-        hasAllergies: Boolean(patientData.hasAllergies),
-        allergies: patientData.hasAllergies ? (patientData.allergies || 'Alergia reportada') : '',
+        hasAllergies: Boolean(patientData.hasAllergies && patientData.allergies?.trim() && !isNegativeAllergyText(patientData.allergies)),
+        allergies: Boolean(patientData.hasAllergies && patientData.allergies?.trim() && !isNegativeAllergyText(patientData.allergies)) ? patientData.allergies.trim() : '',
         medicalBackground: patientData.medicalBackground || 'Sin antecedentes patológicos previos',
         owner: {
           name: ownerName,
-          firstName: patientData.ownerFirstName || '',
-          lastName: patientData.ownerLastName || '',
+          firstName: patientData.ownerFirstName || ownerName.split(' ')[0] || '',
+          lastName: patientData.ownerLastName || ownerName.split(' ').slice(1).join(' ') || '',
           documentType: patientData.ownerDocumentType || 'C.C.',
           documentNumber: patientData.ownerDocumentNumber || '',
           document: patientData.ownerDocumentNumber ? `${patientData.ownerDocumentType || 'C.C.'} ${patientData.ownerDocumentNumber}` : (patientData.ownerDocument || ''),
-          phone: patientData.ownerPhone || '',
+          phone: patientData.ownerPhone || '+57 300 000 0000',
           emergencyPhone: patientData.ownerEmergencyPhone || '',
-          email: patientData.ownerEmail || '',
+          email: patientData.ownerEmail || 'tutor@ejemplo.com',
           department: patientData.ownerDepartment || 'Bogotá D.C.',
           city: patientData.ownerCity || 'Bogotá',
           address: patientData.ownerAddress || '',
@@ -1198,7 +1066,7 @@ export const patientApi = {
           otherSymptoms: patientData.otherSymptoms || '',
           physicalFindings: patientData.physicalFindings || '',
           consultationType: patientData.consultationType || 'Consulta',
-          generalCondition: patientData.generalCondition || 'Bueno',
+          generalCondition: patientData.generalCondition || 'Estable',
           vaccinationStatus: patientData.vaccinationStatus || 'No registrado',
           lastVaccinationDate: patientData.vaccinationStatus === 'Desconocido' ? '' : (patientData.lastVaccinationDate || ''),
           dewormingStatus: patientData.dewormingStatus || 'No registrado',
@@ -1210,11 +1078,11 @@ export const patientApi = {
           lastCountryVisited: patientData.lastCountryVisited || '',
         },
         status: patientData.status || 'activo',
-        lastVisit: new Date().toLocaleDateString('es-ES'),
-        attendingVet: 'Dr. Alejandro Morales',
+        lastVisit: new Date().toLocaleDateString('es-CO'),
+        attendingVet: patientData.attendingVet || 'Dr. Alejandro Morales',
         notes: patientData.physicalFindings ? `Admisión: ${patientData.physicalFindings}` : '',
         healthMetrics: {
-          weightHistory: [{ date: new Date().toLocaleDateString('es-ES'), weight: patientData.weight || '4.0 kg' }],
+          weightHistory: [{ date: new Date().toLocaleDateString('es-CO'), weight: `${parsedWeight} kg` }],
           vitalSigns: {
             heartRate: patientData.vitalSignsHeartRate || patientData.vitalSigns?.heartRate || 'No registrada',
             temperature: patientData.vitalSignsTemp || patientData.vitalSigns?.temperature || 'No registrada',
@@ -1223,33 +1091,79 @@ export const patientApi = {
           },
           lastDiagnosticScore: 'Sin registros previos',
         },
-        activeExamOrder: patientData.requestExam
-          ? {
-              id: `ORD-2026-${Math.floor(100 + Math.random() * 900)}`,
-              testName: patientData.initialExamName || 'qPCR Panel Diagnóstico',
-              category: 'Biología Molecular Cuantitativa (qPCR)',
-              sampleType: 'Hisopado / Muestra biológica',
-              priority: 'Normal (24-48h)',
-              requestedBy: 'Dr. Alejandro Morales',
-              laboratory: 'VetLab Central - Unidad de Genómica',
-              targets: 'Detección cuantitativa de patógenos diana',
-              requestedAt: `${new Date().toLocaleDateString('es-ES')} - 09:00 AM`,
-              currentStep: 0,
-              steps: [
-                { label: 'Solicitud creada', desc: 'Orden médica generada', date: 'Hoy', completed: true },
-                { label: 'Muestra recibida', desc: 'Ingreso a laboratorio', date: 'Pendiente', completed: false },
-                { label: 'En análisis qPCR', desc: 'Extracción y amplificación', date: 'Pendiente', completed: false },
-                { label: 'Validación médica', desc: 'Revisión por patólogo', date: 'Pendiente', completed: false },
-                { label: 'Resultado enviado', desc: 'Informe emitido a clínica', date: 'Pendiente', completed: false },
-              ],
-            }
-          : null,
+        activeExamOrder: null,
         consultations: [],
         qpcrExams: [],
         createdAt: new Date().toISOString(),
       };
       localPatientsStore.unshift(newPatient);
       return newPatient;
+    }
+  },
+
+  async testKea() {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/kea/test`, { timeout: 6000 });
+      return res.data;
+    } catch (err) {
+      return {
+        connected: false,
+        message: err.response?.data?.message || err.message,
+        code: err.response?.data?.code || 'ERROR',
+        details: err.response?.data?.details,
+      };
+    }
+  },
+
+  async syncKea() {
+    try {
+      const res = await axios.post(`${API_BASE_URL}/kea/sync`, {}, { timeout: 4000 });
+      return res.data;
+    } catch {
+      // Fallback directo a Kea Tools API
+      const resp = await fetch(KEA_API_URL, {
+        headers: {
+          Authorization: `Bearer ${KEA_BEARER_TOKEN}`,
+          Accept: 'application/json',
+        },
+      });
+      const data = await resp.json();
+      if (data.status === 'success' && Array.isArray(data.data)) {
+        let added = 0;
+        let updated = 0;
+        data.data.forEach((rec, idx) => {
+          const mapped = mapRawKeaRecord(rec, idx);
+          const existingIdx = localPatientsStore.findIndex(
+            (p) =>
+              p.id === mapped.id ||
+              (p.name.toLowerCase() === mapped.name.toLowerCase() &&
+                p.lastName.toLowerCase() === mapped.lastName.toLowerCase())
+          );
+          if (existingIdx !== -1) {
+            localPatientsStore[existingIdx] = {
+              ...localPatientsStore[existingIdx],
+              ...mapped,
+              activeExamOrder: localPatientsStore[existingIdx].activeExamOrder || mapped.activeExamOrder,
+              clinicalDocuments: localPatientsStore[existingIdx].clinicalDocuments || [],
+            };
+            updated++;
+          } else {
+            localPatientsStore.unshift(mapped);
+            added++;
+          }
+        });
+        return {
+          success: true,
+          data: {
+            totalInKea: data.data.length,
+            added,
+            updated,
+            totalLocal: localPatientsStore.length,
+            patients: [...localPatientsStore],
+          },
+        };
+      }
+      throw new Error(data.message || 'Error en respuesta de Kea Tools');
     }
   },
 };

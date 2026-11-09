@@ -1,4 +1,5 @@
 import { patientsStore, PATIENT_STATUSES, calculateAgeFromBirthDate } from '../models/patientModel.js';
+import { keaService } from './keaService.js';
 
 export const patientService = {
   getDashboardStats({ sedeId } = {}) {
@@ -93,7 +94,7 @@ export const patientService = {
     };
   },
 
-  updatePatient(id, updateData) {
+  async updatePatient(id, updateData) {
     const index = patientsStore.findIndex((p) => p.id === id);
     if (index === -1) {
       throw new Error('Paciente no encontrado');
@@ -109,6 +110,15 @@ export const patientService = {
 
     if (updateData.status && !PATIENT_STATUSES.includes(updateData.status.toLowerCase())) {
       throw new Error(`Estado no válido. Los estados permitidos son: ${PATIENT_STATUSES.join(', ')}`);
+    }
+
+    // Sincronizar actualización con Kea Tools
+    if (currentPatient.keaRecordId) {
+      try {
+        await keaService.updatePatientInKea(currentPatient.keaRecordId, updateData);
+      } catch (err) {
+        console.warn('Advertencia al sincronizar actualización con Kea:', err.message);
+      }
     }
 
     // Campos inmutables protegidos: name, lastName, sex, birthDate
@@ -435,7 +445,14 @@ export const patientService = {
     return newOrder;
   },
 
-  createPatient(data) {
+  async createPatient(data) {
+    let keaPatient = null;
+    try {
+      keaPatient = await keaService.createPatientInKea(data);
+    } catch (err) {
+      console.warn('Advertencia al registrar paciente en Kea Tools:', err.message);
+    }
+
     let maxNum = 0;
     for (const p of patientsStore) {
       if (p.id && typeof p.id === 'string') {
@@ -464,7 +481,8 @@ export const patientService = {
     const patientLastName = ownerLastName || data.lastName || '';
 
     const newPatient = {
-      id: newId,
+      id: keaPatient ? keaPatient.id : newId,
+      keaRecordId: keaPatient?.keaRecordId || null,
       name: data.name,
       lastName: patientLastName,
       avatar: resolvedSpecies.toLowerCase().includes('felin') ? '🐱' : resolvedSpecies.toLowerCase().includes('canin') ? '🐶' : '🐾',
@@ -573,6 +591,78 @@ export const patientService = {
     return {
       ...newPatient,
       age: calculateAgeFromBirthDate(newPatient.birthDate),
+    };
+  },
+
+  async deletePatient(id) {
+    const index = patientsStore.findIndex((p) => p.id === id);
+    if (index === -1) {
+      throw new Error('Paciente no encontrado');
+    }
+    const currentPatient = patientsStore[index];
+    if (currentPatient.keaRecordId) {
+      try {
+        await keaService.deletePatientInKea(currentPatient.keaRecordId);
+      } catch (err) {
+        console.warn('Advertencia al eliminar en Kea Tools:', err.message);
+      }
+    }
+    patientsStore.splice(index, 1);
+    return { success: true, message: 'Paciente eliminado exitosamente' };
+  },
+
+  async testKeaConnection() {
+    return await keaService.testConnection();
+  },
+
+  async syncPatientsWithKea() {
+    const result = await keaService.fetchPatientsFromKea();
+    if (result && result.patients && result.patients.length > 0) {
+      let added = 0;
+      let updated = 0;
+      result.patients.forEach((keaPat) => {
+        const existingIdx = patientsStore.findIndex(
+          (p) => p.id === keaPat.id || (
+            p.name.toLowerCase() === keaPat.name.toLowerCase() &&
+            p.lastName.toLowerCase() === keaPat.lastName.toLowerCase()
+          )
+        );
+        if (existingIdx !== -1) {
+          patientsStore[existingIdx] = {
+            ...patientsStore[existingIdx],
+            ...keaPat,
+            activeExamOrder: patientsStore[existingIdx].activeExamOrder || keaPat.activeExamOrder,
+            consultations: patientsStore[existingIdx].consultations || keaPat.consultations,
+            documents: patientsStore[existingIdx].documents || [],
+          };
+          updated++;
+        } else {
+          patientsStore.unshift(keaPat);
+          added++;
+        }
+      });
+      return {
+        success: true,
+        totalInKea: result.count,
+        added,
+        updated,
+        totalLocal: patientsStore.length,
+        patients: patientsStore.map((p) => ({
+          ...p,
+          age: calculateAgeFromBirthDate(p.birthDate),
+        })),
+      };
+    }
+    return {
+      success: true,
+      totalInKea: 0,
+      added: 0,
+      updated: 0,
+      totalLocal: patientsStore.length,
+      patients: patientsStore.map((p) => ({
+        ...p,
+        age: calculateAgeFromBirthDate(p.birthDate),
+      })),
     };
   },
 };
