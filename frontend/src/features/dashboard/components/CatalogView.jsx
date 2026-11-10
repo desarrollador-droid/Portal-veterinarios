@@ -545,19 +545,29 @@ export default function CatalogView() {
                     </div>
 
                     {/* Nota aclaratoria sobre matrices biológicas */}
-                    <div className="flex items-start gap-2 text-[11px] text-slate-600 bg-sky-50/70 p-2.5 rounded-xl border border-sky-100 leading-snug">
-                      <span className="text-sky-600 text-xs shrink-0 mt-0.5">ℹ️</span>
-                      <span>
-                        <strong className="text-slate-800">Nota sobre matrices biológicas:</strong> Posibilidad de utilizar diferentes tipos de matrices biológicas (sangre EDTA, hisopados, aspirados de médula, orina estéril, líquido cavitario/LCR o biopsias) según las características y necesidades de cada caso clínico.
-                      </span>
+                    <div className="p-3 rounded-2xl bg-gradient-to-r from-teal-500/10 via-sky-500/5 to-transparent dark:from-teal-950/40 dark:via-sky-950/20 dark:to-transparent border-l-4 border-l-teal-600 dark:border-l-teal-400 border border-teal-500/30 dark:border-teal-500/40 shadow-xs flex items-start gap-2.5">
+                      <span className="text-base text-teal-600 dark:text-teal-400 shrink-0">🔬</span>
+                      <div className="text-[11px] space-y-0.5">
+                        <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-teal-500/20 text-teal-900 dark:text-teal-200 border border-teal-500/30 inline-block mb-0.5">
+                          Anotación · Matrices Biológicas
+                        </span>
+                        <p className="text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
+                          <strong className="text-slate-900 dark:text-white">Flexibilidad de matriz:</strong> Posibilidad de utilizar diferentes tipos de matrices biológicas (sangre EDTA, hisopados, aspirados de médula, orina estéril, líquido cavitario/LCR o biopsias) según las características y necesidades de cada caso clínico.
+                        </p>
+                      </div>
                     </div>
 
                     {/* Nota aclaratoria sobre alternativas diagnósticas diferentes a hemotrópicas */}
-                    <div className="flex items-start gap-2 text-[11px] text-amber-800 bg-amber-50/70 p-2.5 rounded-xl border border-amber-200 leading-snug">
-                      <span className="text-amber-600 text-xs shrink-0 mt-0.5">⚠️</span>
-                      <span>
-                        <strong className="text-amber-900">Razonamiento clínico y alternativas:</strong> Cuando el paciente haya sido evaluado mediante un proceso adecuado de razonamiento clínico y se hayan seleccionado las matrices biológicas pertinentes, se deben considerar otras alternativas diagnósticas diferentes a las enfermedades infecciosas hemotrópicas.
-                      </span>
+                    <div className="p-3 rounded-2xl bg-gradient-to-r from-purple-500/10 via-[#6F2BCC]/5 to-sky-500/5 dark:from-purple-950/40 dark:via-[#6F2BCC]/20 dark:to-sky-950/20 border-l-4 border-l-[#6F2BCC] border border-[#6F2BCC]/30 dark:border-[#6F2BCC]/40 shadow-xs flex items-start gap-2.5">
+                      <span className="text-base text-[#6F2BCC] dark:text-[#01FADA] shrink-0">🩺</span>
+                      <div className="text-[11px] space-y-0.5">
+                        <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-[#6F2BCC]/15 text-[#6F2BCC] dark:text-[#01FADA] border border-[#6F2BCC]/30 inline-block mb-0.5">
+                          Anotación · Criterio Clínico
+                        </span>
+                        <p className="text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
+                          <strong className="text-slate-900 dark:text-white">Razonamiento diagnóstico:</strong> Cuando el paciente haya sido evaluado mediante un proceso adecuado de razonamiento clínico y se hayan seleccionado las matrices biológicas pertinentes, se deben considerar otras alternativas diagnósticas diferentes a las enfermedades infecciosas hemotrópicas.
+                        </p>
+                      </div>
                     </div>
                   </div>
 

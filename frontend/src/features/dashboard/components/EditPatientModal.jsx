@@ -205,11 +205,24 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto">
             {formData.status === 'fallecido' && (
-              <div className="p-3 bg-amber-50 border border-amber-300 text-amber-800 text-xs rounded-xl font-semibold flex items-start gap-2">
-                <span>⚠️</span>
-                <span>
-                  <strong>Atención:</strong> Si guarda al paciente como <strong>Fallecido</strong>, la ficha quedará bloqueada permanentemente y no se podrá volver a editar.
-                </span>
+              <div className="relative overflow-hidden p-4 rounded-2xl bg-gradient-to-r from-rose-500/15 via-rose-500/10 to-amber-500/5 dark:from-rose-950/50 dark:via-rose-900/40 dark:to-transparent border-l-4 border-l-rose-500 border border-rose-300 dark:border-rose-500/60 shadow-md text-xs flex items-start gap-3 animate-in fade-in duration-150">
+                <div className="relative flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-base">🚨</span>
+                  <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-900 dark:text-rose-200 border border-rose-500/30">
+                      Alerta Crítica · Bloqueo Permanente
+                    </span>
+                  </div>
+                  <p className="text-slate-800 dark:text-rose-100 font-bold leading-relaxed">
+                    Si guarda al paciente con estado <strong className="text-rose-600 dark:text-rose-400">Fallecido</strong>, la ficha quedará archivada y bloqueada permanentemente y no se podrá volver a editar.
+                  </p>
+                </div>
               </div>
             )}
 

@@ -281,12 +281,25 @@ export default function PatientFichaModal({
                 </div>
 
                 <div>
-                  {/* ALERTA DE ALERGIA ENCIMA DEL NOMBRE DEL PACIENTE (Únicamente cuando se reporta una alergia) */}
+                  {/* ALERTA CRÍTICA DE ALERGIA MÉDICA VETERINARIA */}
                   {hasReportedAllergy(patient) && (
-                    <div className="mb-2">
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 dark:bg-rose-950/50 text-rose-800 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800 shadow-2xs">
-                        <span>⚠️ Alergia reportada:</span>
-                        <span className="font-bold">{getAllergyDisplay(patient)}</span>
+                    <div className="mb-2.5">
+                      <div className="relative overflow-hidden inline-flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-gradient-to-r from-rose-500/15 via-rose-500/10 to-transparent dark:from-rose-950/60 dark:via-rose-900/40 dark:to-transparent border-l-4 border-l-rose-500 border border-rose-300 dark:border-rose-500/60 shadow-md shadow-rose-500/10 text-xs">
+                        <div className="relative flex items-center justify-center shrink-0">
+                          <span className="text-sm">🚨</span>
+                          <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-black tracking-wider text-rose-900 dark:text-rose-200 uppercase text-[10px] bg-rose-500/20 px-2 py-0.5 rounded-full border border-rose-500/30">
+                            Alerta Médica · Alergia Registrada
+                          </span>
+                          <span className="font-extrabold text-rose-950 dark:text-rose-100 text-xs">
+                            {getAllergyDisplay(patient)}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -420,11 +433,16 @@ export default function PatientFichaModal({
 
             {/* Alerta estricta de paciente fallecido */}
             {isDeceased && (
-              <div className="mt-4 p-3.5 bg-slate-900 text-white rounded-xl text-xs flex items-center gap-3">
-                <span className="text-xl">🔒</span>
-                <div>
-                  <p className="font-bold">Ficha de paciente archivada y bloqueada</p>
-                  <p className="text-slate-300 text-[11px]">
+              <div className="mt-4 p-4 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl border-l-4 border-l-rose-500 border border-slate-700 text-xs flex items-center gap-3.5 shadow-lg">
+                <span className="text-2xl shrink-0">🔒</span>
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                      Ficha Archivada
+                    </span>
+                    <p className="font-bold text-white">Paciente Fallecido · Edición Bloqueada</p>
+                  </div>
+                  <p className="text-slate-300 text-[11px] leading-relaxed">
                     Este paciente se encuentra marcado con estado <strong>fallecido</strong>. La edición de su ficha médica está terminantemente bloqueada para preservar la trazabilidad legal del historial.
                   </p>
                 </div>
@@ -919,13 +937,27 @@ export default function PatientFichaModal({
                   </div>
 
                   {/* Nota aclaratoria médica de razonamiento clínico y diagnósticos diferenciales */}
-                  <div className="bg-sky-50/80 border border-sky-200/90 rounded-2xl p-4 flex items-start gap-3 shadow-2xs">
-                    <span className="text-lg text-[#6F2BCC] mt-0.5 shrink-0">🩺</span>
-                    <div className="text-xs space-y-0.5">
-                      <strong className="text-slate-900 block font-bold">Nota Aclaratoria de Criterio Clínico:</strong>
-                      <p className="text-slate-700 leading-relaxed font-medium">
-                        Cuando el paciente haya sido evaluado mediante un proceso adecuado de razonamiento clínico y se hayan seleccionado las matrices biológicas pertinentes, se deben considerar otras alternativas diagnósticas diferentes a las enfermedades infecciosas hemotrópicas.
-                      </p>
+                  <div className="relative overflow-hidden p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-purple-500/15 via-[#6F2BCC]/10 to-sky-500/5 dark:from-purple-950/40 dark:via-[#6F2BCC]/20 dark:to-sky-950/20 border-l-4 border-l-[#6F2BCC] border border-[#6F2BCC]/30 dark:border-[#6F2BCC]/40 shadow-lg shadow-[#6F2BCC]/5">
+                    <div className="flex items-start gap-3.5">
+                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#6F2BCC] to-[#2B017C] text-white flex items-center justify-center text-lg shrink-0 shadow-md ring-4 ring-[#6F2BCC]/15">
+                        🩺
+                      </div>
+                      <div className="space-y-1 text-xs">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#6F2BCC]/15 text-[#6F2BCC] dark:text-[#01FADA] border border-[#6F2BCC]/30">
+                            Anotación Médica · Criterio Clínico
+                          </span>
+                          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                            Razonamiento Diagnóstico
+                          </span>
+                        </div>
+                        <h4 className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm">
+                          Nota Aclaratoria de Diagnósticos Diferenciales
+                        </h4>
+                        <p className="text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
+                          Cuando el paciente haya sido evaluado mediante un proceso adecuado de razonamiento clínico y se hayan seleccionado las matrices biológicas pertinentes, se deben considerar otras alternativas diagnósticas diferentes a las enfermedades infecciosas hemotrópicas.
+                        </p>
+                      </div>
                     </div>
                   </div>
 

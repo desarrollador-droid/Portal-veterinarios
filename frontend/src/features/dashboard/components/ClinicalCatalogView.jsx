@@ -6,12 +6,12 @@ import {
   getClinicalExamById,
 } from '../data/clinicalCatalogData.js';
 
-export default function ClinicalCatalogView() {
+export default function ClinicalCatalogView({ onNavigateToRequestExam, patients = [] }) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sampleMatrixFilter, setSampleMatrixFilter] = useState('all');
   const [turnaroundFilter, setTurnaroundFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('default');
+  const [sortBy, setSortBy] = useState('name-asc');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'table'
   const [selectedExam, setSelectedExam] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
@@ -165,6 +165,17 @@ export default function ClinicalCatalogView() {
                 <span className="text-xs font-bold text-white block">300 514 3626 · 300 514 3701</span>
               </div>
             </div>
+
+            {onNavigateToRequestExam && (
+              <button
+                type="button"
+                onClick={() => onNavigateToRequestExam(null)}
+                className="bg-white hover:bg-teal-50 text-[#2B017C] font-extrabold px-4 py-3 rounded-2xl flex items-center justify-center gap-2 text-xs transition-all cursor-pointer shadow-md"
+              >
+                <span>➕</span>
+                <span>Solicitar Examen Clínico</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -217,103 +228,23 @@ export default function ClinicalCatalogView() {
             )}
           </div>
 
-          {/* Selector y Buscador Interactivo de Categoría */}
-          <div className="relative w-full md:w-72">
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
-                📁
-              </span>
-              <input
-                type="text"
-                value={categorySearchQuery}
-                onFocus={() => setIsCategoryDropdownOpen(true)}
-                onChange={(e) => {
-                  setCategorySearchQuery(e.target.value);
-                  setIsCategoryDropdownOpen(true);
-                }}
-                placeholder="Filtrar por categoría..."
-                className="w-full pl-9 pr-7 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC] focus:bg-white transition-all cursor-pointer"
-              />
-              {categorySearchQuery ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCategorySearchQuery('');
-                    setActiveCategory('all');
-                    setIsCategoryDropdownOpen(false);
-                  }}
-                  className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-xs text-slate-400 hover:text-slate-700 cursor-pointer"
-                >
-                  ✕
-                </button>
-              ) : (
-                <span className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-xs text-slate-400">
-                  ▾
-                </span>
-              )}
-            </div>
-
-            {/* Menú desplegable interactivo con todas las categorías filtrables */}
-            {isCategoryDropdownOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-20"
-                  onClick={() => setIsCategoryDropdownOpen(false)}
-                />
-                <div className="absolute left-0 right-0 mt-1.5 max-h-64 overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-xl z-30 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveCategory('all');
-                      setCategorySearchQuery('');
-                      setIsCategoryDropdownOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-between transition-colors cursor-pointer ${
-                      activeCategory === 'all'
-                        ? 'bg-[#6F2BCC] text-white'
-                        : 'text-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    <span>🌐 Todas las Categorías</span>
-                    <span className="text-[10px] opacity-80">{CLINICAL_EXAMS.length}</span>
-                  </button>
-
-                  {filteredCategoriesList.map((cat) => {
-                    const isSelected = activeCategory === cat.id;
-                    const count = categoryCounts[cat.id] || 0;
-                    return (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => {
-                          setActiveCategory(cat.id);
-                          setCategorySearchQuery(cat.nombre);
-                          setIsCategoryDropdownOpen(false);
-                        }}
-                        className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
-                          isSelected
-                            ? 'bg-purple-100 text-[#2B017C] font-black'
-                            : 'text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        <span className="truncate flex items-center gap-1.5 mr-2">
-                          <span>{cat.icon || '🔬'}</span>
-                          <span className="truncate">{cat.nombre}</span>
-                        </span>
-                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-bold shrink-0">
-                          {count}
-                        </span>
-                      </button>
-                    );
-                  })}
-                  {filteredCategoriesList.length === 0 && (
-                    <div className="p-3 text-center text-xs text-slate-400">
-                      No se encontraron categorías coincidentes
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
+          {/* Menú desplegable oficial: Categoría de Laboratorio */}
+          <div className="w-full md:w-72">
+            <select
+              value={activeCategory}
+              onChange={(e) => {
+                setActiveCategory(e.target.value);
+                setCategorySearchQuery('');
+              }}
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC] focus:bg-white transition-all cursor-pointer shadow-2xs"
+            >
+              <option value="all">📁 Todas las Categorías ({CLINICAL_EXAMS.length})</option>
+              {CLINICAL_CATEGORIES.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.icon || '🔬'} {cat.nombre} ({categoryCounts[cat.id] || 0})
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Filtros secundarios: Matriz, Tiempo, Orden y Modo de Vista */}
@@ -342,18 +273,6 @@ export default function ClinicalCatalogView() {
                   {to.label}
                 </option>
               ))}
-            </select>
-
-            {/* Ordenamiento */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC]"
-            >
-              <option value="default">Orden por Defecto</option>
-              <option value="name-asc">Nombre (A - Z)</option>
-              <option value="price-asc">Precio: Menor a Mayor</option>
-              <option value="price-desc">Precio: Mayor a Menor</option>
             </select>
 
             {/* Botones Grid / Table */}
@@ -401,7 +320,7 @@ export default function ClinicalCatalogView() {
               setSearchTerm('');
               setSampleMatrixFilter('all');
               setTurnaroundFilter('all');
-              setSortBy('default');
+              setSortBy('name-asc');
             }}
             className="text-[#6F2BCC] font-bold hover:underline cursor-pointer"
           >
@@ -479,6 +398,18 @@ export default function ClinicalCatalogView() {
                   >
                     Ficha Técnica
                   </button>
+
+                  {onNavigateToRequestExam && (
+                    <button
+                      type="button"
+                      onClick={() => onNavigateToRequestExam(exam)}
+                      className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs flex items-center gap-1"
+                      title="Solicitar este examen en la orden clínica"
+                    >
+                      <span>+</span>
+                      <span>Solicitar</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -530,13 +461,25 @@ export default function ClinicalCatalogView() {
                       {exam.precioFormateado}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedExam(exam)}
-                        className="px-2.5 py-1 bg-slate-100 hover:bg-[#6F2BCC] hover:text-white rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
-                      >
-                        Ver Detalle
-                      </button>
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedExam(exam)}
+                          className="px-2.5 py-1 bg-slate-100 hover:bg-[#6F2BCC] hover:text-white rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
+                        >
+                          Ver Detalle
+                        </button>
+                        {onNavigateToRequestExam && (
+                          <button
+                            type="button"
+                            onClick={() => onNavigateToRequestExam(exam)}
+                            className="px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
+                            title="Solicitar este examen"
+                          >
+                            + Solicitar
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -680,10 +623,25 @@ export default function ClinicalCatalogView() {
               <button
                 type="button"
                 onClick={() => setSelectedExam(null)}
-                className="px-5 py-2.5 bg-[#2B017C] hover:bg-[#6F2BCC] text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
               >
                 Cerrar
               </button>
+
+              {onNavigateToRequestExam && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const examToOrder = selectedExam;
+                    setSelectedExam(null);
+                    onNavigateToRequestExam(examToOrder);
+                  }}
+                  className="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs flex items-center gap-1.5"
+                >
+                  <span>✓</span>
+                  <span>Solicitar esta Prueba</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
