@@ -96,22 +96,27 @@ export default function ResultadosView({
       </div>
 
       {/* Nota aclaratoria médica obligatoria sobre razonamiento clínico y diagnósticos diferenciales */}
-      <div className="bg-gradient-to-r from-sky-50 via-white to-sky-50/70 border border-sky-200/90 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 shadow-2xs">
-        <div className="w-10 h-10 rounded-xl bg-sky-100 text-[#6F2BCC] flex items-center justify-center text-lg shrink-0 border border-sky-200 shadow-2xs">
-          🩺
-        </div>
-        <div className="space-y-1 text-xs">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="font-extrabold text-slate-900 text-sm">
+      <div className="relative overflow-hidden p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-purple-500/15 via-[#6F2BCC]/10 to-sky-500/5 dark:from-purple-950/40 dark:via-[#6F2BCC]/20 dark:to-sky-950/20 border-l-4 border-l-[#6F2BCC] border border-[#6F2BCC]/30 dark:border-[#6F2BCC]/40 shadow-lg shadow-[#6F2BCC]/5">
+        <div className="flex items-start gap-3.5">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#6F2BCC] to-[#2B017C] text-white flex items-center justify-center text-lg shrink-0 shadow-md ring-4 ring-[#6F2BCC]/15">
+            🩺
+          </div>
+          <div className="space-y-1 text-xs">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#6F2BCC]/15 text-[#6F2BCC] dark:text-[#01FADA] border border-[#6F2BCC]/30">
+                Anotación Médica · Criterio Clínico
+              </span>
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                Abordaje Diagnóstico Obligatorio
+              </span>
+            </div>
+            <h4 className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm">
               Nota Aclaratoria de Razonamiento Clínico y Abordaje Diagnóstico
             </h4>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-100 text-[#6F2BCC] border border-sky-200">
-              Criterio Médico
-            </span>
+            <p className="text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
+              Cuando el paciente haya sido evaluado mediante un proceso adecuado de razonamiento clínico y se hayan seleccionado las matrices biológicas pertinentes, se deben considerar otras alternativas diagnósticas diferentes a las enfermedades infecciosas hemotrópicas.
+            </p>
           </div>
-          <p className="text-slate-700 leading-relaxed font-medium">
-            Cuando el paciente haya sido evaluado mediante un proceso adecuado de razonamiento clínico y se hayan seleccionado las matrices biológicas pertinentes, se deben considerar otras alternativas diagnósticas diferentes a las enfermedades infecciosas hemotrópicas.
-          </p>
         </div>
       </div>
 

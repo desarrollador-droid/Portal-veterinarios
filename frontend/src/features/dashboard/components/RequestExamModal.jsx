@@ -11,6 +11,7 @@ import {
   CLINICAL_EXAMS,
 } from '../data/clinicalCatalogData.js';
 import MicrobiotaOrderForm from './MicrobiotaOrderForm.jsx';
+import ClinicalOrderForm from './ClinicalOrderForm.jsx';
 
 
 // ============================================================================
@@ -457,10 +458,75 @@ export function getPatientExamHistoryInfo(patient) {
   };
 }
 
+// Lista oficial de departamentos de Colombia para viajes epidemiológicos
+export const COLOMBIAN_DEPARTMENTS_LIST = [
+  'Antioquia (Medellín, Rionegro, Urabá)',
+  'Bogotá D.C. / Cundinamarca (Girardot, La Vega, Anapoima)',
+  'Valle del Cauca (Cali, Palmira, Buenaventura)',
+  'Santander (Bucaramanga, San Gil, Barrancabermeja)',
+  'Tolima (Ibagué, Melgar, Flandes, Espinal)',
+  'Meta (Villavicencio, Acacías, Llanos)',
+  'Bolívar (Cartagena, Magangué)',
+  'Magdalena (Santa Marta, Ciénaga)',
+  'Atlántico (Barranquilla, Soledad)',
+  'Huila (Neiva, Pitalito, Garzón)',
+  'Caldas / Risaralda / Quindío (Eje Cafetero)',
+  'Boyacá (Tunja, Duitama, Villa de Leyva)',
+  'Cesar (Valledupar, Aguachica)',
+  'Córdoba (Montería, Cereté, Lorica)',
+  'La Guajira (Riohacha, Maicao)',
+  'San Andrés y Providencia',
+  'Casanare (Yopal, Aguazul)',
+  'Norte de Santander (Cúcuta, Ocaña)',
+  'Nariño (Pasto, Tumaco, Ipiales)',
+  'Cauca (Popayán, Santander de Quilichao)',
+  'Chocó (Quibdó, Bahía Solano)',
+  'Sucre (Sincelejo, Coveñas)',
+  'Arauca (Arauca, Saravena)',
+  'Caquetá / Putumayo / Amazonía',
+  'Viaje Internacional',
+  'Otro departamento / Región',
+];
+
+// Metadatos visuales oficiales e iconos específicos por tipo de muestra biológica
+export const getSampleIconAndColor = (sampleName = '') => {
+  const s = (sampleName || '').toLowerCase();
+  if (s.includes('edta') || s.includes('lila') || s.includes('sangre')) {
+    return { icon: '🩸', badge: 'Tubo Lila (EDTA)', color: 'bg-purple-100 text-purple-900 border-purple-200' };
+  }
+  if (s.includes('suero') || s.includes('plasma') || s.includes('rojo') || s.includes('amarillo') || s.includes('gel')) {
+    return { icon: '🟡', badge: 'Tubo Tapa Roja / Amarilla (Suero)', color: 'bg-amber-100 text-amber-900 border-amber-200' };
+  }
+  if (s.includes('orina')) {
+    return { icon: '🧪', badge: 'Frasco Estéril (Orina)', color: 'bg-yellow-100 text-yellow-900 border-yellow-200' };
+  }
+  if (s.includes('conjuntiv') || s.includes('ocular') || s.includes('ojo')) {
+    return { icon: '👁️', badge: 'Hisopo Conjuntival Estéril', color: 'bg-sky-100 text-sky-900 border-sky-200' };
+  }
+  if (s.includes('nasal') || s.includes('respirator') || s.includes('orofar') || s.includes('faring')) {
+    return { icon: '👃', badge: 'Hisopo Respiratorio Estéril', color: 'bg-teal-100 text-teal-900 border-teal-200' };
+  }
+  if (s.includes('lcr') || s.includes('cefalorraqu') || s.includes('sinovial') || s.includes('liquido') || s.includes('líquido') || s.includes('efusion')) {
+    return { icon: '💧', badge: 'Líquido Biológico Estéril', color: 'bg-cyan-100 text-cyan-900 border-cyan-200' };
+  }
+  if (s.includes('fecal') || s.includes('heces') || s.includes('rectal')) {
+    return { icon: '💩', badge: 'Muestra Fecal en Tubo Estéril', color: 'bg-emerald-100 text-emerald-900 border-emerald-200' };
+  }
+  if (s.includes('piel') || s.includes('pelo') || s.includes('raspado') || s.includes('cutane') || s.includes('cutáne')) {
+    return { icon: '🔬', badge: 'Raspado / Muestra Cutánea', color: 'bg-rose-100 text-rose-900 border-rose-200' };
+  }
+  if (s.includes('biopsia') || s.includes('tejido') || s.includes('formol')) {
+    return { icon: '🥩', badge: 'Tejido Biopsia en Formol', color: 'bg-orange-100 text-orange-900 border-orange-200' };
+  }
+  return { icon: '📦', badge: 'Muestra Biológica Específica', color: 'bg-slate-100 text-slate-800 border-slate-200' };
+};
+
 export default function RequestExamModal({
   patient: initialPatient,
   patients = [],
   initialExamType = 'nuevo',
+  initialRequestCategory = null,
+  initialClinicalExam = null,
   onClose,
   onRequest,
   isModal = true,
@@ -470,12 +536,15 @@ export default function RequestExamModal({
   const [currentStep, setCurrentStep] = useState(1);
 
   // ============================================================================
-  // REQUERIMIENTO PRINCIPAL: 3 TIPOS DE SOLICITUD DE EXÁMENES
-  // 1. 'qpcr': Biología Molecular qPCR (con ayudas diagnósticas y recomendación)
-  // 2. 'clinicas': Portafolio Diagnóstico Clínico (223 pruebas, SIN ayudas)
-  // 3. 'microbiota': Microbiota Gastrointestinal (Kit o Recolección, SIN ayudas)
+  // REQUERIMIENTO PRINCIPAL: El usuario primero debe escoger qué examen va a solicitar.
+  // Orden oficial de exámenes:
+  // 1. Portafolio Clínico (Clínicas - 223 Pruebas)
+  // 2. Biología Molecular (qPCR)
+  // 3. Microbiota Gastrointestinal
   // ============================================================================
-  const [requestCategory, setRequestCategory] = useState('qpcr'); // 'qpcr' | 'clinicas' | 'microbiota'
+  const [requestCategory, setRequestCategory] = useState(
+    initialRequestCategory || (initialExamType === 'control' ? 'qpcr' : null)
+  );
 
   // ============================================================================
   // ESTADOS PARA SOLICITUD DE CLÍNICAS (PORTAFOLIO OFICIAL 2026 - 223 PRUEBAS)
@@ -485,6 +554,19 @@ export default function RequestExamModal({
   const [selectedClinicalExams, setSelectedClinicalExams] = useState([]);
   const [clinicalObservations, setClinicalObservations] = useState('');
   const [clinicalStep, setClinicalStep] = useState(1); // 1: Selección pruebas, 2: Resumen y despacho
+  // Código VetPlus individual por cada examen de clínicas
+  // { [examId]: { hasVetPlus: boolean, code: string } }
+  const [clinicalExamVetPlus, setClinicalExamVetPlus] = useState({});
+
+  // ============================================================================
+  // ESTADOS PARA AGENTES ADICIONALES EN PERFILES qPCR & CHECKLIST DE MUESTRAS
+  // ============================================================================
+  // Agentes extra añadidos manualmente por perfil: { [profileId]: Array<string> }
+  const [addedAgentsByProfile, setAddedAgentsByProfile] = useState({});
+  const [isAddingAgentByProfile, setIsAddingAgentByProfile] = useState({});
+  const [newAgentInputByProfile, setNewAgentInputByProfile] = useState({});
+  // Checklist de confirmación obligatoria de muestras biológicas: { [sampleName]: boolean }
+  const [confirmedSamplesChecklist, setConfirmedSamplesChecklist] = useState({});
 
   // ============================================================================
   // ESTADOS PARA SOLICITUD DE MICROBIOTA (KIT O RECOLECCIÓN)
@@ -1229,16 +1311,24 @@ export default function RequestExamModal({
     };
   }, [selectedProfiles, replacedAgents]);
 
-  // Total de la orden
+  // Conteo total de agentes adicionales agregados a los perfiles qPCR
+  const addedAgentsCount = useMemo(() => {
+    return Object.values(addedAgentsByProfile).reduce((sum, list) => sum + (Array.isArray(list) ? list.length : 0), 0);
+  }, [addedAgentsByProfile]);
+
+  // Total de la orden con reemplazos y agentes adicionales
   const orderFinancials = useMemo(() => {
     const baseTotal = selectedProfiles.reduce((acc, p) => acc + p.basePrice, 0);
-    const finalTotal = baseTotal + replacementMetrics.additionalCost;
+    const addedAgentsCost = addedAgentsCount * 25000;
+    const finalTotal = baseTotal + replacementMetrics.additionalCost + addedAgentsCost;
     return {
       baseTotal,
       additionalCost: replacementMetrics.additionalCost,
+      addedAgentsCost,
+      addedAgentsCount,
       finalTotal,
     };
-  }, [selectedProfiles, replacementMetrics]);
+  }, [selectedProfiles, replacementMetrics, addedAgentsCount]);
 
   // Muestras requeridas consolidadas
   const consolidatedSamples = useMemo(() => {
@@ -1252,6 +1342,38 @@ export default function RequestExamModal({
     });
     return Array.from(sampleMap.entries()).map(([name, desc]) => ({ name, desc }));
   }, [selectedProfiles]);
+
+  // Verificación estricta: ¿Están todas las muestras requeridas marcadas en el checklist?
+  const areAllSamplesConfirmed = useMemo(() => {
+    if (consolidatedSamples.length === 0) return true;
+    return consolidatedSamples.every((s) => Boolean(confirmedSamplesChecklist[s.name]));
+  }, [consolidatedSamples, confirmedSamplesChecklist]);
+
+  // Handlers para agregar y quitar agentes adicionales en un perfil qPCR
+  const handleAddAgentToProfile = (profileId, agentName) => {
+    if (!agentName || !agentName.trim()) return;
+    const clean = agentName.trim();
+    setAddedAgentsByProfile((prev) => {
+      const existing = prev[profileId] || [];
+      if (existing.includes(clean)) return prev;
+      return {
+        ...prev,
+        [profileId]: [...existing, clean],
+      };
+    });
+    setNewAgentInputByProfile((prev) => ({ ...prev, [profileId]: '' }));
+    setIsAddingAgentByProfile((prev) => ({ ...prev, [profileId]: false }));
+  };
+
+  const handleRemoveAddedAgent = (profileId, indexToRemove) => {
+    setAddedAgentsByProfile((prev) => {
+      const existing = prev[profileId] || [];
+      return {
+        ...prev,
+        [profileId]: existing.filter((_, idx) => idx !== indexToRemove),
+      };
+    });
+  };
 
   // ============================================================================
   // HANDLERS
@@ -1400,7 +1522,10 @@ export default function RequestExamModal({
 
   // Confirmar y enviar la orden -> Lleva a la pantalla final de resumen integral
   const handleSubmitFinalOrder = async () => {
-    if (!confirmedSamples) return;
+    if (!areAllSamplesConfirmed || !confirmedSamples) {
+      alert('Por favor complete el checklist confirmando todas las muestras biológicas requeridas antes de enviar.');
+      return;
+    }
     if (!activePatient) return;
 
     setIsSubmitting(true);
@@ -1409,12 +1534,16 @@ export default function RequestExamModal({
         const customAgents = p.agents.map((origAgent, idx) => {
           return replacedAgents[p.id]?.[idx] || origAgent;
         });
+        const extraAgents = addedAgentsByProfile[p.id] || [];
+        const allAgents = [...customAgents, ...extraAgents];
         return {
           id: p.id,
           title: p.title,
           type: p.type || 'Amplio',
           price: p.basePrice,
-          agents: customAgents,
+          agents: allAgents,
+          customAgents,
+          extraAgents,
           originalAgents: p.agents,
           samples: p.samples,
         };
@@ -1432,6 +1561,8 @@ export default function RequestExamModal({
         totalPrice: `$${orderFinancials.finalTotal.toLocaleString('es-CO')}`,
         replacementCount: replacementMetrics.totalReplacementsCount,
         additionalCost: replacementMetrics.additionalCost,
+        addedAgentsCount,
+        addedAgentsCost: orderFinancials.addedAgentsCost,
         hasVetPlusInsurance: Boolean(hasVetPlusInsurance),
         vetPlusCode: hasVetPlusInsurance ? (vetPlusCode.trim() || 'VETP-REG') : null,
         isAsymptomatic: Boolean(isAsymptomatic),
@@ -1652,6 +1783,15 @@ export default function RequestExamModal({
       if (exists) {
         return prev.filter((e) => e.id !== exam.id);
       } else {
+        if (!clinicalExamVetPlus[exam.id] && activePatient?.owner?.vetPlusCode) {
+          setClinicalExamVetPlus((vPrev) => ({
+            ...vPrev,
+            [exam.id]: {
+              hasVetPlus: true,
+              code: activePatient.owner.vetPlusCode,
+            },
+          }));
+        }
         return [...prev, exam];
       }
     });
@@ -1661,45 +1801,102 @@ export default function RequestExamModal({
     setSelectedClinicalExams((prev) => prev.filter((e) => e.id !== examId));
   };
 
-  const handleSubmitClinicalOrder = async () => {
-    if (!activePatient) {
-      alert('Por favor selecciona un paciente para la solicitud de exámenes clínicos.');
-      return;
-    }
-    if (selectedClinicalExams.length === 0) {
-      alert('Por favor selecciona al menos una prueba clínica del catálogo.');
-      return;
-    }
-
+  const handleSubmitClinicalOrder = async (customPayload) => {
     setIsSubmitting(true);
     try {
-      const payload = {
-        requestCategory: 'clinicas',
-        examType: 'nuevo',
-        testName: selectedClinicalExams.map((e) => e.nombre).join(' + '),
-        category: 'Pruebas Diagnósticas Clínicas',
-        selectedClinicalExams,
-        clinicalObservations: clinicalObservations.trim(),
-        samples: consolidatedClinicalMatrices.map((m) => ({ name: m, required: true })),
-        sampleType: consolidatedClinicalMatrices.join(' | ') || 'Muestra de laboratorio clínico',
-        totalPrice: `$${totalClinicalPrice.toLocaleString('es-CO')}`,
-        urgency: 'Normal (según catálogo)',
-        logistics: 'Toma en clínica',
-        requestedBy: activePatient.attendingVet || 'Dr. Alejandro Morales',
-        targets: selectedClinicalExams.map((e) => `${e.cups ? `[${e.cups}] ` : ''}${e.nombre}`).join(', '),
-        isSterilized: isAlreadySterilized ? true : (examIsSterilized !== null ? examIsSterilized : activePatient.isSterilized),
-        allergies: patientAllergiesList.join(', '),
-        hasAllergies: patientAllergiesList.length > 0,
-      };
+      let payload;
+      let targetPatientId = activePatient?.id;
 
-      const resultOrder = await onRequest(activePatient.id, payload);
+      if (customPayload) {
+        payload = {
+          requestCategory: 'clinicas',
+          examType: customPayload.testDetails?.isPcrOrOtherControl ? 'control' : 'nuevo',
+          testName: customPayload.testDetails?.catalogExams?.length > 0
+            ? customPayload.testDetails.catalogExams.map((e) => e.name).join(' + ')
+            : customPayload.testDetails?.customTestName || 'Solicitud de Laboratorio Clínico OSD',
+          category: 'Portafolio Clínico OSD (223 Pruebas)',
+          ...customPayload,
+          selectedClinicalExams: (customPayload.testDetails?.catalogExams || []).map((e) => ({
+            id: e.id,
+            nombre: e.name,
+            categoria: e.categoria,
+            cups: e.cups || null,
+            matrizMuestra: e.sampleMatrix,
+            tiempoEntrega: e.deliveryTime,
+            precioIva: e.price,
+            hasVetPlus: e.hasVetPlus,
+            vetPlusCode: e.vetPlusCode,
+          })),
+          samples: (customPayload.sampleAndClinicalData?.sampleTypes || []).map((st) => ({ name: st, required: true })),
+          sampleType: (customPayload.sampleAndClinicalData?.sampleTypes || []).join(' | ') || 'Muestra de laboratorio clínico',
+          totalPrice: customPayload.testDetails?.totalPrice
+            ? `$${customPayload.testDetails.totalPrice.toLocaleString('es-CO')}`
+            : 'Tarifa oficial OSD',
+          urgency: 'Normal (según catálogo)',
+          logistics: customPayload.billingCompany?.collectionAddress || 'Toma en clínica',
+          requestedBy: customPayload.billingCompany?.solicitingVetName || activePatient?.attendingVet || 'Dr. Alejandro Morales',
+          targets: (customPayload.testDetails?.catalogExams || []).map((e) => `${e.cups ? `[${e.cups}] ` : ''}${e.name}`).join(', ') || customPayload.testDetails?.customTestName || 'Pruebas diagnósticas clínicas',
+          clinicalObservations: customPayload.testDetails?.observations || '',
+        };
+        targetPatientId = activePatient?.id || customPayload.patientData?.id || `PAC-CLN-${Date.now().toString().slice(-4)}`;
+      } else {
+        if (!activePatient) {
+          alert('Por favor selecciona un paciente para la solicitud de exámenes clínicos.');
+          setIsSubmitting(false);
+          return;
+        }
+        if (selectedClinicalExams.length === 0) {
+          alert('Por favor selecciona al menos una prueba clínica del catálogo.');
+          setIsSubmitting(false);
+          return;
+        }
+
+        const enrichedClinicalExams = selectedClinicalExams.map((e) => {
+          const vp = clinicalExamVetPlus[e.id] || {
+            hasVetPlus: Boolean(activePatient?.owner?.hasVetPlus),
+            code: activePatient?.owner?.vetPlusCode || '',
+          };
+          return {
+            ...e,
+            hasVetPlus: Boolean(vp.code?.trim()),
+            vetPlusCode: vp.code?.trim() || null,
+          };
+        });
+
+        payload = {
+          requestCategory: 'clinicas',
+          examType: 'nuevo',
+          testName: selectedClinicalExams.map((e) => e.nombre).join(' + '),
+          category: 'Pruebas Diagnósticas Clínicas',
+          selectedClinicalExams: enrichedClinicalExams,
+          clinicalObservations: clinicalObservations.trim(),
+          samples: consolidatedClinicalMatrices.map((m) => ({ name: m, required: true })),
+          sampleType: consolidatedClinicalMatrices.join(' | ') || 'Muestra de laboratorio clínico',
+          totalPrice: `$${totalClinicalPrice.toLocaleString('es-CO')}`,
+          urgency: 'Normal (según catálogo)',
+          logistics: 'Toma en clínica',
+          requestedBy: activePatient.attendingVet || 'Dr. Alejandro Morales',
+          targets: selectedClinicalExams.map((e) => `${e.cups ? `[${e.cups}] ` : ''}${e.nombre}`).join(', '),
+          isSterilized: isAlreadySterilized ? true : (examIsSterilized !== null ? examIsSterilized : activePatient.isSterilized),
+          allergies: patientAllergiesList.join(', '),
+          hasAllergies: patientAllergiesList.length > 0,
+        };
+        targetPatientId = activePatient.id;
+      }
+
+      const resultOrder = await onRequest(targetPatientId, payload);
       const generatedCode = resultOrder?.id || `CLN-2026-${Math.floor(100 + Math.random() * 900)}`;
 
       setSubmittedOrderData({
         ...payload,
         orderId: resultOrder?.id || generatedCode,
         examCode: generatedCode,
-        patient: { ...activePatient },
+        patient: activePatient || {
+          name: payload.patientData?.name || 'Paciente Clínicas',
+          species: payload.patientData?.species || 'Canino',
+          breed: payload.patientData?.breed || 'Mestizo',
+          owner: { name: payload.patientData?.ownerName || 'Tutor', phone: payload.billingCompany?.contactPhone },
+        },
       });
 
       setIsOrderSuccess(true);
@@ -1875,21 +2072,31 @@ export default function RequestExamModal({
                 </div>
               )}
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider ${
-                    requestCategory === 'qpcr' ? 'bg-purple-100 text-[#6F2BCC]' :
-                    requestCategory === 'clinicas' ? 'bg-teal-100 text-teal-800' :
-                    'bg-emerald-100 text-emerald-800'
-                  }`}>
-                    {requestCategory === 'qpcr' && (examType === 'control' ? '🔄 SEGUIMIENTO / CONTROL' : '🧬 BIOLOGÍA MOLECULAR qPCR')}
-                    {requestCategory === 'clinicas' && '🏥 CATÁLOGO DE CLÍNICAS'}
-                    {requestCategory === 'microbiota' && '🦠 MICROBIOTA GASTROINTESTINAL'}
-                  </span>
-                  <span className="text-xs text-slate-400 font-medium">
-                    {requestCategory === 'qpcr' && '· Asistente diagnóstico molecular qPCR'}
-                    {requestCategory === 'clinicas' && '· 223 pruebas de catálogo clínico (Sin ayudas diagnósticas)'}
-                    {requestCategory === 'microbiota' && '· Solicitud de kit o recolección (Sin ayudas diagnósticas)'}
-                  </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {requestCategory ? (
+                    <>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider ${
+                        requestCategory === 'clinicas' ? 'bg-teal-100 text-teal-800' :
+                        requestCategory === 'qpcr' ? 'bg-purple-100 text-[#6F2BCC]' :
+                        'bg-emerald-100 text-emerald-800'
+                      }`}>
+                        {requestCategory === 'clinicas' && '🏥 1. CATÁLOGO DE CLÍNICAS (223 PRUEBAS)'}
+                        {requestCategory === 'qpcr' && (examType === 'control' ? '🔄 2. SEGUIMIENTO / CONTROL qPCR' : '🧬 2. BIOLOGÍA MOLECULAR qPCR')}
+                        {requestCategory === 'microbiota' && '🦠 3. MICROBIOTA GASTROINTESTINAL'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setRequestCategory(null)}
+                        className="text-[11px] text-[#6F2BCC] hover:underline font-bold cursor-pointer ml-1"
+                      >
+                        ← Cambiar examen
+                      </button>
+                    </>
+                  ) : (
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-purple-100 text-[#6F2BCC]">
+                      📋 NUEVA SOLICITUD DIAGNÓSTICA
+                    </span>
+                  )}
                 </div>
                 {isModal && (
                   <button
@@ -1901,56 +2108,58 @@ export default function RequestExamModal({
                 )}
               </div>
 
-              {/* Selector de Modalidad Principal (3 Tipos de Examen) */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1.5 bg-slate-100/90 rounded-2xl mb-3">
-                <button
-                  type="button"
-                  onClick={() => setRequestCategory('qpcr')}
-                  className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
-                    requestCategory === 'qpcr'
-                      ? 'bg-white text-[#2B017C] shadow-xs ring-1 ring-slate-200'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
-                  }`}
-                >
-                  <span className="text-lg">🧬</span>
-                  <div className="min-w-0">
-                    <div className="font-extrabold truncate">Biología Molecular (qPCR)</div>
-                    <div className="text-[10px] text-[#6F2BCC] font-semibold truncate">Con ayudas diagnósticas</div>
-                  </div>
-                </button>
+              {/* Selector de Modalidad Principal (Orden Oficial: 1. Clínicas, 2. qPCR, 3. Microbiota) */}
+              {requestCategory && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1.5 bg-slate-100/90 rounded-2xl mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setRequestCategory('clinicas')}
+                    className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
+                      requestCategory === 'clinicas'
+                        ? 'bg-white text-[#2B017C] shadow-xs ring-1 ring-slate-200'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                    }`}
+                  >
+                    <span className="text-lg">🏥</span>
+                    <div className="min-w-0">
+                      <div className="font-extrabold truncate">1. Solicitud de Clínicas</div>
+                      <div className="text-[10px] text-teal-700 font-semibold truncate">223 Pruebas · Sin ayudas</div>
+                    </div>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => setRequestCategory('clinicas')}
-                  className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
-                    requestCategory === 'clinicas'
-                      ? 'bg-white text-[#2B017C] shadow-xs ring-1 ring-slate-200'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
-                  }`}
-                >
-                  <span className="text-lg">🏥</span>
-                  <div className="min-w-0">
-                    <div className="font-extrabold truncate">Solicitud de Clínicas</div>
-                    <div className="text-[10px] text-teal-700 font-semibold truncate">223 Pruebas · Sin ayudas</div>
-                  </div>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setRequestCategory('qpcr')}
+                    className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
+                      requestCategory === 'qpcr'
+                        ? 'bg-white text-[#2B017C] shadow-xs ring-1 ring-slate-200'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                    }`}
+                  >
+                    <span className="text-lg">🧬</span>
+                    <div className="min-w-0">
+                      <div className="font-extrabold truncate">2. Biología Molecular (qPCR)</div>
+                      <div className="text-[10px] text-[#6F2BCC] font-semibold truncate">Con ayudas diagnósticas</div>
+                    </div>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => setRequestCategory('microbiota')}
-                  className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
-                    requestCategory === 'microbiota'
-                      ? 'bg-white text-[#2B017C] shadow-xs ring-1 ring-slate-200'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
-                  }`}
-                >
-                  <span className="text-lg">🦠</span>
-                  <div className="min-w-0">
-                    <div className="font-extrabold truncate">Solicitud de Microbiota</div>
-                    <div className="text-[10px] text-emerald-700 font-semibold truncate">Kit o Recolección · Sin ayudas</div>
-                  </div>
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => setRequestCategory('microbiota')}
+                    className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
+                      requestCategory === 'microbiota'
+                        ? 'bg-white text-[#2B017C] shadow-xs ring-1 ring-slate-200'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                    }`}
+                  >
+                    <span className="text-lg">🦠</span>
+                    <div className="min-w-0">
+                      <div className="font-extrabold truncate">3. Solicitud de Microbiota</div>
+                      <div className="text-[10px] text-emerald-700 font-semibold truncate">Kit o Recolección · Sin ayudas</div>
+                    </div>
+                  </button>
+                </div>
+              )}
 
               {/* Barra de progreso según modalidad */}
               {requestCategory === 'qpcr' && (
@@ -1978,15 +2187,12 @@ export default function RequestExamModal({
               {requestCategory === 'clinicas' && (
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
-                    <span>SOLICITUD DE CLÍNICAS (PASO {clinicalStep} DE 2)</span>
+                    <span>SOLICITUD DE CLÍNICAS — FORMULARIO OFICIAL OSD</span>
                     <span className="text-teal-700 font-bold">
-                      {clinicalStep === 1 ? '1. Selección de Paciente & Pruebas Clínicas' : '2. Resumen & Despacho'}
+                      Portafolio Oficial 2026 (223 Pruebas) · Sin qPCR
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className={`h-1.5 rounded-full transition-all ${clinicalStep >= 1 ? 'bg-teal-600' : 'bg-slate-200'}`} />
-                    <div className={`h-1.5 rounded-full transition-all ${clinicalStep >= 2 ? 'bg-teal-600' : 'bg-slate-200'}`} />
-                  </div>
+                  <div className="w-full bg-teal-600 h-1.5 rounded-full" />
                 </div>
               )}
 
@@ -2119,6 +2325,52 @@ export default function RequestExamModal({
                       <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs space-y-1">
                         <span className="font-bold text-amber-900">Observaciones del Veterinario:</span>
                         <p className="text-amber-800">{submittedOrderData.clinicalObservations}</p>
+                      </div>
+                    )}
+
+                    {submittedOrderData.insuranceInfo && (
+                      <div className="p-3.5 bg-teal-50 border border-teal-200 rounded-xl text-xs flex items-center justify-between gap-3 shadow-2xs">
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-xl">🛡️</span>
+                          <div>
+                            <span className="font-extrabold text-teal-950 block">
+                              {submittedOrderData.insuranceInfo.hasVetPlus ? 'Asegurado con VetPlus' : 'Modalidad de Facturación: Particular'}
+                            </span>
+                            <span className="text-teal-800 text-[11px]">
+                              {submittedOrderData.insuranceInfo.hasVetPlus
+                                ? `Convenio VetPlus · Autorización N°: ${submittedOrderData.insuranceInfo.vetPlusAuthCode || 'N/D'}`
+                                : 'Sin cobertura de seguro VetPlus · Facturación directa'}
+                            </span>
+                          </div>
+                        </div>
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                          submittedOrderData.insuranceInfo.hasVetPlus
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                            : 'bg-slate-100 text-slate-700 border border-slate-200'
+                        }`}>
+                          {submittedOrderData.insuranceInfo.hasVetPlus ? 'VetPlus' : 'Particular'}
+                        </span>
+                      </div>
+                    )}
+
+                    {submittedOrderData.billingCompany && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-teal-50/50 border border-teal-100 rounded-xl text-xs">
+                        <div>
+                          <span className="font-bold text-teal-900 block mb-1">🏢 Facturación Electrónica & Solicitante:</span>
+                          <p className="text-slate-700"><strong>NIT / Cédula:</strong> {submittedOrderData.billingCompany.taxId || 'N/A'}</p>
+                          <p className="text-slate-700"><strong>Clínica / Profesional:</strong> {submittedOrderData.billingCompany.clinicOrVetName || 'N/A'}</p>
+                          <p className="text-slate-700"><strong>Médico:</strong> {submittedOrderData.billingCompany.solicitingVetName} (T.P. {submittedOrderData.billingCompany.vetLicense})</p>
+                          <p className="text-slate-700"><strong>Contacto:</strong> {submittedOrderData.billingCompany.contactPhone}</p>
+                        </div>
+                        <div>
+                          <span className="font-bold text-teal-900 block mb-1">📍 Recolección & Facturación:</span>
+                          <p className="text-slate-700"><strong>Dirección:</strong> {submittedOrderData.billingCompany.collectionAddress || 'N/A'}</p>
+                          <p className="text-slate-700"><strong>Email reporte:</strong> {submittedOrderData.billingCompany.reportEmail || 'N/A'}</p>
+                          <p className="text-slate-700"><strong>Email facturación:</strong> {submittedOrderData.billingCompany.billingEmail || 'N/A'}</p>
+                          {submittedOrderData.testDetails?.paymentMethod && (
+                            <p className="text-teal-800 font-semibold mt-1">💳 <strong>Método de pago:</strong> {submittedOrderData.testDetails.paymentMethod}</p>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -2687,6 +2939,112 @@ export default function RequestExamModal({
           )}
 
           {/* ================================================================== */}
+          {/* PANTALLA INICIAL: SELECCIÓN DEL TIPO DE EXAMEN (ORDEN OFICIAL)     */}
+          {/* 1. Clínicas, 2. qPCR, 3. Microbiota                                */}
+          {/* ================================================================== */}
+          {!isOrderSuccess && !isControlReviewOpen && requestCategory === null && (
+            <div className="py-6 sm:py-10 px-2 sm:px-6 space-y-8 animate-in fade-in duration-200">
+              <div className="text-center max-w-xl mx-auto space-y-2.5">
+                <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-purple-100 text-[#6F2BCC] inline-block shadow-2xs">
+                  Nuevo Examen Diagnóstico
+                </span>
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  ¿Qué tipo de examen desea solicitar?
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  Seleccione el catálogo o modalidad requerida para desplegar el formulario correspondiente.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto">
+                {/* 1. CLÍNICAS */}
+                <button
+                  type="button"
+                  onClick={() => setRequestCategory('clinicas')}
+                  className="p-6 rounded-3xl border-2 border-teal-200 bg-gradient-to-b from-white via-white to-teal-50/50 hover:border-teal-500 hover:shadow-xl transition-all text-left flex flex-col justify-between group cursor-pointer relative overflow-hidden"
+                >
+                  <div className="space-y-4">
+                    <div className="w-14 h-14 rounded-2xl bg-teal-100 text-teal-800 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-2xs">
+                      🏥
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-teal-700 bg-teal-100/80 px-2.5 py-0.5 rounded-md inline-block mb-1.5">
+                        1. Portafolio Clínico
+                      </span>
+                      <h4 className="text-base font-black text-slate-900 group-hover:text-teal-900">
+                        Solicitud de Clínicas
+                      </h4>
+                      <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                        Portafolio oficial de 223 pruebas de laboratorio clínico (Hematología, Química, Uroanálisis, Hormonas, Citología).
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-4 mt-4 border-t border-teal-100 flex items-center justify-between text-xs font-black text-teal-700">
+                    <span>Tramitar Clínicas</span>
+                    <span className="text-base group-hover:translate-x-1.5 transition-transform">➔</span>
+                  </div>
+                </button>
+
+                {/* 2. qPCR */}
+                <button
+                  type="button"
+                  onClick={() => setRequestCategory('qpcr')}
+                  className="p-6 rounded-3xl border-2 border-purple-200 bg-gradient-to-b from-white via-white to-purple-50/50 hover:border-[#6F2BCC] hover:shadow-xl transition-all text-left flex flex-col justify-between group cursor-pointer relative overflow-hidden"
+                >
+                  <div className="space-y-4">
+                    <div className="w-14 h-14 rounded-2xl bg-purple-100 text-[#6F2BCC] flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-2xs">
+                      🧬
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[#6F2BCC] bg-purple-100/80 px-2.5 py-0.5 rounded-md inline-block mb-1.5">
+                        2. Biología Molecular
+                      </span>
+                      <h4 className="text-base font-black text-slate-900 group-hover:text-[#2B017C]">
+                        Biología Molecular (qPCR)
+                      </h4>
+                      <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                        Detección cuantitativa de patógenos con motor de recomendación sindrómica y personalización de agentes.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-4 mt-4 border-t border-purple-100 flex items-center justify-between text-xs font-black text-[#6F2BCC]">
+                    <span>Tramitar qPCR</span>
+                    <span className="text-base group-hover:translate-x-1.5 transition-transform">➔</span>
+                  </div>
+                </button>
+
+                {/* 3. MICROBIOTA */}
+                <button
+                  type="button"
+                  onClick={() => setRequestCategory('microbiota')}
+                  className="p-6 rounded-3xl border-2 border-emerald-200 bg-gradient-to-b from-white via-white to-emerald-50/50 hover:border-emerald-500 hover:shadow-xl transition-all text-left flex flex-col justify-between group cursor-pointer relative overflow-hidden"
+                >
+                  <div className="space-y-4">
+                    <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-2xs">
+                      🦠
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-md inline-block mb-1.5">
+                        3. Secuenciación 16S
+                      </span>
+                      <h4 className="text-base font-black text-slate-900 group-hover:text-emerald-950">
+                        Solicitud de Microbiota
+                      </h4>
+                      <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                        Solicitud de kits o programación de recolección de muestra fecal con anamnesis oficial OSD+LIFE.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-4 mt-4 border-t border-emerald-100 flex items-center justify-between text-xs font-black text-emerald-700">
+                    <span>Tramitar Microbiota</span>
+                    <span className="text-base group-hover:translate-x-1.5 transition-transform">➔</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ================================================================== */}
           {/* PASO 1 (qPCR): TIPO DE EXAMEN Y BUSCADOR REACTIVO DE PACIENTE      */}
           {/* ================================================================== */}
           {!isOrderSuccess && !isControlReviewOpen && requestCategory === 'qpcr' && currentStep === 1 && (
@@ -3049,90 +3407,41 @@ export default function RequestExamModal({
                         )}
                       </div>
 
-                      {/* 3. MODALIDAD, ASEGURAMIENTO VETPLUS & CONDICIÓN CLÍNICA */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {/* VetPlus */}
-                        <div className="p-3.5 bg-sky-50/50 border border-sky-200/80 rounded-2xl space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
-                              <span>🛡️</span> Seguro Médico VetPlus:
-                            </span>
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setHasVetPlusInsurance(false);
-                                  setVetPlusCode('');
-                                }}
-                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer ${
-                                  !hasVetPlusInsurance
-                                    ? 'bg-slate-700 text-white'
-                                    : 'bg-white border border-slate-200 text-slate-600'
-                                }`}
-                              >
-                                No
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setHasVetPlusInsurance(true)}
-                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer ${
-                                  hasVetPlusInsurance
-                                    ? 'bg-[#6F2BCC] text-white'
-                                    : 'bg-white border border-slate-200 text-slate-600'
-                                }`}
-                              >
-                                Sí
-                              </button>
-                            </div>
-                          </div>
-
-                          {hasVetPlusInsurance && (
-                            <input
-                              type="text"
-                              value={vetPlusCode}
-                              onChange={(e) => setVetPlusCode(e.target.value)}
-                              placeholder="Código póliza/autorización VetPlus"
-                              className="w-full px-2.5 py-1.5 bg-white border border-sky-300 rounded-lg text-[11px] font-mono font-bold text-slate-800 focus:ring-1 focus:ring-[#6F2BCC] focus:outline-none"
-                            />
-                          )}
-                        </div>
-
-                        {/* Condición clínica */}
-                        <div className="p-3.5 bg-emerald-50/50 border border-emerald-200/80 rounded-2xl space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
-                              <span>🩺</span> Condición clínica:
-                            </span>
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => setIsAsymptomatic(false)}
-                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer ${
-                                  !isAsymptomatic
-                                    ? 'bg-slate-700 text-white'
-                                    : 'bg-white border border-slate-200 text-slate-600'
-                                }`}
-                              >
-                                Sintomático
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setIsAsymptomatic(true)}
-                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer ${
-                                  isAsymptomatic
-                                    ? 'bg-emerald-600 text-white'
-                                    : 'bg-white border border-slate-200 text-slate-600'
-                                }`}
-                              >
-                                Asintomático
-                              </button>
-                            </div>
-                          </div>
-                          <p className="text-[10px] text-slate-500">
+                      {/* 3. CONDICIÓN CLÍNICA DEL PACIENTE */}
+                      <div className="p-4 bg-emerald-50/60 border border-emerald-200/90 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            <span>🩺</span> Condición clínica actual del paciente:
+                          </span>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
                             {isAsymptomatic
-                              ? '🌿 Tamizaje / chequeo preventivo general'
-                              : '⚠️ Paciente con signología clínica activa'}
+                              ? '🌿 Tamizaje molecular o chequeo preventivo general (sin sintomatología evidente).'
+                              : '⚠️ Paciente con signología clínica activa o sospecha de patología.'}
                           </p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setIsAsymptomatic(false)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                              !isAsymptomatic
+                                ? 'bg-slate-800 text-white shadow-xs'
+                                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                            }`}
+                          >
+                            Sintomático
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setIsAsymptomatic(true)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                              isAsymptomatic
+                                ? 'bg-emerald-600 text-white shadow-xs'
+                                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                            }`}
+                          >
+                            🌿 Asintomático
+                          </button>
                         </div>
                       </div>
 
@@ -3383,15 +3692,34 @@ export default function RequestExamModal({
                   </div>
 
                   {riskFactors.recentTravel && (
-                    <div className="pt-2 border-t border-slate-200 animate-in fade-in duration-150">
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                        Indique el lugar o departamento del viaje más reciente:
+                    <div className="pt-2 border-t border-slate-200 animate-in fade-in duration-150 space-y-2">
+                      <label className="block text-[11px] font-bold text-slate-700">
+                        Departamento o destino del viaje más reciente:
                       </label>
+                      <select
+                        value={riskFactors.recentTravelDepartment || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          handleRiskChange('recentTravelDepartment', val);
+                          if (!riskFactors.recentTravelDetails) {
+                            handleRiskChange('recentTravelDetails', val);
+                          }
+                        }}
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none cursor-pointer"
+                      >
+                        <option value="">-- Seleccione departamento o destino --</option>
+                        {COLOMBIAN_DEPARTMENTS_LIST.map((dep) => (
+                          <option key={dep} value={dep}>
+                            {dep}
+                          </option>
+                        ))}
+                      </select>
+
                       <input
                         type="text"
                         value={riskFactors.recentTravelDetails}
                         onChange={(e) => handleRiskChange('recentTravelDetails', e.target.value)}
-                        placeholder="Ej. Melgar (Tolima), Costa Atlántica, Girardot, Llanos..."
+                        placeholder="Municipio, vereda o detalles adicionales del viaje (opcional)..."
                         className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
                       />
                     </div>
@@ -3399,14 +3727,14 @@ export default function RequestExamModal({
                 </div>
 
                 {/* 2.4 Exposición a vectores biológicos */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-2">
+                <div className="space-y-3">
+                  <label className="block text-xs font-bold text-slate-700">
                     Exposición a factores biológicos y vectores conocidos:
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     <label className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer transition-all ${
                       riskFactors.parasiteExposure
-                        ? 'bg-amber-50 border-amber-300 text-amber-900'
+                        ? 'bg-amber-50 border-amber-300 text-amber-900 shadow-2xs'
                         : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                     }`}>
                       <input
@@ -3420,7 +3748,7 @@ export default function RequestExamModal({
 
                     <label className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer transition-all ${
                       riskFactors.ruralAccess
-                        ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-2xs'
                         : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                     }`}>
                       <input
@@ -3429,12 +3757,12 @@ export default function RequestExamModal({
                         onChange={(e) => handleRiskChange('ruralAccess', e.target.checked)}
                         className="w-4 h-4 text-[#6F2BCC] rounded cursor-pointer accent-[#6F2BCC]"
                       />
-                      <span className="text-xs font-semibold">🌲 Acceso a monte / zonas boscosas</span>
+                      <span className="text-xs font-semibold">🌲 Acceso a zonas boscosas, rurales o vegetación densa</span>
                     </label>
 
                     <label className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer transition-all ${
                       riskFactors.outdoorWater
-                        ? 'bg-sky-50 border-sky-300 text-sky-900'
+                        ? 'bg-sky-50 border-sky-300 text-sky-900 shadow-2xs'
                         : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                     }`}>
                       <input
@@ -3445,31 +3773,19 @@ export default function RequestExamModal({
                       />
                       <span className="text-xs font-semibold">💧 Contacto con aguas estancadas / ríos</span>
                     </label>
-
-                    <label className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer transition-all ${
-                      riskFactors.coastalRescue
-                        ? 'bg-purple-50 border-purple-300 text-[#2B017C]'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                    }`}>
-                      <input
-                        type="checkbox"
-                        checked={riskFactors.coastalRescue}
-                        onChange={(e) => handleRiskChange('coastalRescue', e.target.checked)}
-                        className="w-4 h-4 text-[#6F2BCC] rounded cursor-pointer accent-[#6F2BCC]"
-                      />
-                      <span className="text-xs font-semibold">🏖️ Rescatado de zona costera o refugio</span>
-                    </label>
                   </div>
 
-                  {riskFactors.coastalRescue && (
-                    <div className="pt-2 animate-in fade-in duration-150">
-                      <input
-                        type="text"
-                        value={riskFactors.coastalRescueLocation}
-                        onChange={(e) => handleRiskChange('coastalRescueLocation', e.target.value)}
-                        placeholder="Especifique lugar o refugio de rescate..."
-                        className="w-full px-3.5 py-2 border border-purple-300 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
-                      />
+                  {/* Información heredada de rescate en zona costera desde la matrícula del paciente */}
+                  {activePatient?.riskFactors?.coastalRescue && (
+                    <div className="p-3 bg-purple-50/70 border border-purple-200 rounded-xl flex items-center gap-2.5 text-xs text-[#2B017C]">
+                      <span className="text-base shrink-0">🏖️</span>
+                      <div>
+                        <span className="font-bold">Antecedente de matrícula:</span>{' '}
+                        <span>Paciente registrado como rescatado de zona costera o refugio</span>
+                        {activePatient.riskFactors.coastalRescueLocation && (
+                          <span className="text-purple-700 font-semibold"> ({activePatient.riskFactors.coastalRescueLocation})</span>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -4270,11 +4586,16 @@ export default function RequestExamModal({
                       )}
 
                       {/* Nota aclaratoria sobre tipos de matrices biológicas según las necesidades del caso clínico */}
-                      <div className="my-2.5 px-3 py-2 bg-sky-50/70 border border-sky-200/90 rounded-xl flex items-start gap-2 text-[11px] text-slate-700 leading-snug">
-                        <span className="text-xs text-[#6F2BCC] mt-0.5 shrink-0">ℹ️</span>
-                        <span>
-                          <strong className="text-slate-900">Nota sobre matrices biológicas:</strong> Existe la posibilidad de utilizar diferentes tipos de matrices biológicas (sangre total con EDTA, hisopados mucosos/conjuntivales, aspirados de médula ósea, líquido cavitario/LCR o biopsias) según las características y necesidades específicas de cada caso clínico.
-                        </span>
+                      <div className="my-2.5 p-3 sm:p-3.5 rounded-2xl bg-gradient-to-r from-teal-500/10 via-sky-500/5 to-transparent dark:from-teal-950/40 dark:via-sky-950/20 dark:to-transparent border-l-4 border-l-teal-600 dark:border-l-teal-400 border border-teal-500/30 dark:border-teal-500/40 shadow-xs flex items-start gap-2.5">
+                        <span className="text-base text-teal-600 dark:text-teal-400 shrink-0">🔬</span>
+                        <div className="text-[11px] space-y-0.5">
+                          <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-teal-500/20 text-teal-900 dark:text-teal-200 border border-teal-500/30 inline-block mb-0.5">
+                            Anotación · Matrices Biológicas
+                          </span>
+                          <p className="text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
+                            <strong className="text-slate-900 dark:text-white">Flexibilidad de matriz:</strong> Existe la posibilidad de utilizar diferentes tipos de matrices biológicas (sangre total con EDTA, hisopados mucosos/conjuntivales, aspirados de médula ósea, líquido cavitario/LCR o biopsias) según las características y necesidades específicas de cada caso clínico.
+                          </p>
+                        </div>
                       </div>
 
                       {/* Pie de la tarjeta: Precio, Muestra y Botón */}
@@ -4537,6 +4858,16 @@ export default function RequestExamModal({
                               </span>
                             );
                           })}
+                          {(addedAgentsByProfile[profile.id] || []).map((extraAgent, extraIdx) => (
+                            <span
+                              key={`extra-${extraIdx}`}
+                              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-100 text-purple-900 border border-purple-300 flex items-center gap-1.5 shadow-2xs"
+                            >
+                              <span>✨</span>
+                              <span>+ {extraAgent}</span>
+                              <span className="text-[10px] text-purple-700 font-bold">(Adicional)</span>
+                            </span>
+                          ))}
                         </div>
                       </div>
 
@@ -4581,11 +4912,16 @@ export default function RequestExamModal({
                       )}
 
                       {/* Nota aclaratoria de matrices biológicas */}
-                      <div className="mt-2.5 px-3 py-2 bg-slate-50 border border-slate-200/90 rounded-xl flex items-start gap-2 text-[11px] text-slate-600 leading-snug">
-                        <span className="text-xs text-[#6F2BCC] mt-0.5 shrink-0">ℹ️</span>
-                        <span>
-                          <strong className="text-slate-800">Nota sobre matrices biológicas:</strong> Posibilidad de utilizar diferentes tipos de matrices biológicas según las características y necesidades de cada caso clínico.
-                        </span>
+                      <div className="mt-2.5 p-3 rounded-2xl bg-gradient-to-r from-teal-500/10 via-sky-500/5 to-transparent dark:from-teal-950/40 dark:via-sky-950/20 dark:to-transparent border-l-4 border-l-teal-600 dark:border-l-teal-400 border border-teal-500/30 dark:border-teal-500/40 shadow-xs flex items-start gap-2.5">
+                        <span className="text-base text-teal-600 dark:text-teal-400 shrink-0">🔬</span>
+                        <div className="text-[11px] space-y-0.5">
+                          <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-teal-500/20 text-teal-900 dark:text-teal-200 border border-teal-500/30 inline-block mb-0.5">
+                            Anotación · Matrices Biológicas
+                          </span>
+                          <p className="text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
+                            <strong className="text-slate-900 dark:text-white">Flexibilidad de matriz:</strong> Posibilidad de utilizar diferentes tipos de matrices biológicas según las características y necesidades de cada caso clínico.
+                          </p>
+                        </div>
                       </div>
                     </div>
 
@@ -4739,36 +5075,277 @@ export default function RequestExamModal({
                             );
                           })}
                         </div>
+
+                        {/* AGREGAR AGENTE ADICIONAL AL PERFIL qPCR (Requerimiento de Usuario) */}
+                        <div className="pt-4 border-t border-sky-200/80 space-y-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                            <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                              <span>➕</span> Agentes adicionales agregados al perfil ({profile.title}):
+                            </span>
+                            <span className="text-[11px] font-extrabold text-[#6F2BCC]">
+                              +$25.000 COP por cada agente adicional
+                            </span>
+                          </div>
+
+                          {(addedAgentsByProfile[profile.id] || []).length > 0 && (
+                            <div className="space-y-2">
+                              {(addedAgentsByProfile[profile.id] || []).map((extraAgent, eIdx) => (
+                                <div
+                                  key={eIdx}
+                                  className="p-3 bg-purple-50/90 border border-purple-200 rounded-xl flex items-center justify-between gap-2 text-xs"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-base">🧬</span>
+                                    <span className="font-extrabold text-[#2B017C]">{extraAgent}</span>
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-200 text-[#2B017C]">
+                                      + $25.000 COP
+                                    </span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveAddedAgent(profile.id, eIdx)}
+                                    className="px-2.5 py-1 text-xs font-bold text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg cursor-pointer transition-colors"
+                                  >
+                                    ✕ Quitar agente
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Control para agregar nuevo agente */}
+                          {isAddingAgentByProfile[profile.id] ? (
+                            <div className="p-3.5 bg-purple-50/50 border border-purple-300 rounded-2xl space-y-2.5 animate-in fade-in duration-150">
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="font-bold text-slate-800">
+                                  Ingresa el nombre del agente adicional a incorporar:
+                                </span>
+                                <span className="text-[10px] font-bold text-purple-700">+$25.000 COP</span>
+                              </div>
+
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  value={newAgentInputByProfile[profile.id] || ''}
+                                  onChange={(e) =>
+                                    setNewAgentInputByProfile((prev) => ({
+                                      ...prev,
+                                      [profile.id]: e.target.value,
+                                    }))
+                                  }
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      handleAddAgentToProfile(profile.id, newAgentInputByProfile[profile.id]);
+                                    }
+                                  }}
+                                  placeholder="Ej: Anaplasma phagocytophilum, Bartonella henselae..."
+                                  className="flex-1 px-3.5 py-2 bg-white border border-purple-300 rounded-xl text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
+                                  autoFocus
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleAddAgentToProfile(profile.id, newAgentInputByProfile[profile.id])
+                                  }
+                                  className="px-4 py-2 bg-[#6F2BCC] hover:bg-[#581ea3] text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+                                >
+                                  + Añadir al perfil
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setIsAddingAgentByProfile((prev) => ({
+                                      ...prev,
+                                      [profile.id]: false,
+                                    }))
+                                  }
+                                  className="px-3 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold hover:bg-white cursor-pointer"
+                                >
+                                  Cancelar
+                                </button>
+                              </div>
+
+                              {/* Sugerencias rápidas */}
+                              <div className="flex flex-wrap gap-1.5 pt-1">
+                                <span className="text-[10px] text-slate-500 uppercase font-bold mr-1 self-center">
+                                  Sugeridos:
+                                </span>
+                                {AVAILABLE_ALTERNATIVE_AGENTS.slice(0, 8).map((sug) => (
+                                  <button
+                                    key={sug}
+                                    type="button"
+                                    onClick={() =>
+                                      setNewAgentInputByProfile((prev) => ({
+                                        ...prev,
+                                        [profile.id]: sug,
+                                      }))
+                                    }
+                                    className="px-2.5 py-0.5 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-slate-700 hover:border-[#6F2BCC] hover:text-[#6F2BCC] cursor-pointer shadow-2xs"
+                                  >
+                                    + {sug}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setIsAddingAgentByProfile((prev) => ({
+                                  ...prev,
+                                  [profile.id]: true,
+                                }))
+                              }
+                              className="w-full py-2.5 px-4 bg-purple-50 hover:bg-purple-100 border border-dashed border-[#6F2BCC] text-[#6F2BCC] rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer transition-all shadow-2xs"
+                            >
+                              <span>➕</span>
+                              <span>Agregar un agente adicional a este perfil qPCR (+ $25.000 COP)</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
                 );
               })}
 
-              {/* 5.3 MUESTRAS REQUERIDAS (Exacto Figma Imagen 5) */}
-              <div className="space-y-3">
-                <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block">
-                  MUESTRAS REQUERIDAS
-                </span>
+              {/* 5.3 MUESTRAS REQUERIDAS (CHECKLIST OBLIGATORIO Y RESALTADO INTEGRADO A LA ESTÉTICA) */}
+              <div className="p-5 bg-gradient-to-br from-purple-50/70 via-white to-sky-50/30 rounded-2xl border-2 border-[#6F2BCC]/30 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-purple-100 pb-3.5">
+                  <div className="flex items-start sm:items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-100 text-[#6F2BCC] flex items-center justify-center text-xl shrink-0 shadow-2xs">
+                      🧪
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-xs sm:text-sm font-black tracking-wide uppercase text-[#2B017C]">
+                          Muestras Biológicas Requeridas · Checklist Obligatorio
+                        </h4>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-100 text-[#6F2BCC] border border-purple-200">
+                          Obligatorio
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        El médico veterinario debe confirmar la toma de cada muestra con sus recipientes correspondientes antes del envío.
+                      </p>
+                    </div>
+                  </div>
 
-                <div className="space-y-2.5">
-                  {consolidatedSamples.map((samp, idx) => (
-                    <div
-                      key={idx}
-                      className="p-4 bg-white border border-sky-200/90 rounded-2xl flex items-center gap-3.5 shadow-2xs"
-                    >
-                      <span className="w-10 h-10 rounded-xl bg-sky-50 text-[#6F2BCC] border border-sky-200 flex items-center justify-center text-lg shrink-0">
-                        🩺
-                      </span>
-                      <div>
-                        <h5 className="text-xs font-bold text-slate-900">{samp.name}</h5>
-                        <p className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
-                          <span>📦</span> {samp.desc}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`px-3 py-1.5 rounded-full text-xs font-black flex items-center gap-1.5 border shadow-2xs transition-all ${
+                      areAllSamplesConfirmed
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                        : 'bg-amber-50 text-amber-900 border-amber-300'
+                    }`}>
+                      <span>{areAllSamplesConfirmed ? '✓ Muestras Listas' : '⚠️ Confirmación Requerida'}</span>
+                      <span className="font-mono">({Object.values(confirmedSamplesChecklist).filter(Boolean).length} / {consolidatedSamples.length})</span>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-2.5">
+                  {consolidatedSamples.map((samp, idx) => {
+                    const isConfirmed = Boolean(confirmedSamplesChecklist[samp.name]);
+                    const meta = getSampleIconAndColor(samp.name);
+
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() =>
+                          setConfirmedSamplesChecklist((prev) => ({
+                            ...prev,
+                            [samp.name]: !prev[samp.name],
+                          }))
+                        }
+                        className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 group ${
+                          isConfirmed
+                            ? 'bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-400 dark:border-emerald-600 shadow-2xs'
+                            : 'bg-white dark:bg-[#181232] border-slate-200 dark:border-[#2f2257] hover:border-purple-300 dark:hover:border-purple-500 hover:bg-purple-50/30 dark:hover:bg-purple-950/30 shadow-2xs'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-2xl shrink-0 transition-transform group-hover:scale-105 ${
+                            isConfirmed
+                              ? 'bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300 shadow-2xs'
+                              : 'bg-slate-50 dark:bg-[#1c1636] border border-slate-200 dark:border-[#2f2257] text-slate-700 dark:text-slate-300 shadow-2xs'
+                          }`}>
+                            <span>{meta.icon}</span>
+                          </div>
+                          <div className="space-y-0.5 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h5 className={`text-xs font-black truncate ${isConfirmed ? 'text-emerald-950 dark:text-emerald-200' : 'text-slate-900 dark:text-white'}`}>
+                                {samp.name}
+                              </h5>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${meta.color}`}>
+                                {meta.badge}
+                              </span>
+                            </div>
+                            <p className={`text-[11px] flex items-center gap-1 truncate ${isConfirmed ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'}`}>
+                              <span>📦</span> {samp.desc}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2.5 self-end sm:self-auto shrink-0">
+                          <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                            isConfirmed
+                              ? 'bg-emerald-600 text-white shadow-xs'
+                              : 'bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 group-hover:border-[#6F2BCC] group-hover:text-[#6F2BCC] dark:group-hover:text-[#a78bfa] group-hover:bg-purple-50 dark:group-hover:bg-purple-950/40'
+                          }`}>
+                            <input
+                              type="checkbox"
+                              checked={isConfirmed}
+                              onChange={() => {}}
+                              className="w-4 h-4 rounded text-emerald-600 focus:ring-0 cursor-pointer accent-emerald-600"
+                            />
+                            <span>{isConfirmed ? '✓ Muestra Confirmada' : 'Marcar como recolectada'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {!areAllSamplesConfirmed ? (
+                  <div className="relative overflow-hidden p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-orange-500/5 dark:from-amber-950/40 dark:via-amber-900/30 dark:to-orange-950/20 border-l-4 border-l-amber-500 border border-amber-400/40 dark:border-amber-500/40 shadow-sm animate-in fade-in duration-200">
+                    <div className="flex items-start gap-3">
+                      <div className="relative shrink-0">
+                        <span className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                          ⚠️
+                        </span>
+                        <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                        </span>
+                      </div>
+                      <div className="space-y-0.5 text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-900 dark:text-amber-200 border border-amber-500/30">
+                            Requisito Obligatorio de Despacho
+                          </span>
+                        </div>
+                        <p className="text-slate-800 dark:text-amber-100 font-bold leading-relaxed">
+                          Debes marcar todas las muestras biológicas requeridas ({consolidatedSamples.length}) en este checklist para autorizar y despachar la solicitud de laboratorio.
                         </p>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ) : (
+                  <div className="relative overflow-hidden p-4 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-teal-500/5 dark:from-emerald-950/40 dark:via-emerald-900/30 dark:to-teal-950/20 border-l-4 border-l-emerald-500 border border-emerald-400/40 dark:border-emerald-500/40 shadow-sm flex items-center gap-3 animate-in fade-in duration-150">
+                    <span className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+                      ✓
+                    </span>
+                    <div className="space-y-0.5 text-xs">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-900 dark:text-emerald-200 border border-emerald-500/30">
+                        Checklist Completado
+                      </span>
+                      <p className="text-slate-800 dark:text-emerald-100 font-bold leading-relaxed">
+                        Todas las muestras biológicas requeridas ({consolidatedSamples.length}) han sido verificadas y marcadas para la recolección.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* 5.4 Resumen Financiero y Métricas de la Orden */}
@@ -4790,6 +5367,16 @@ export default function RequestExamModal({
                       {replacementMetrics.paidReplacements > 0
                         ? `+$${replacementMetrics.additionalCost.toLocaleString('es-CO')} COP`
                         : '$0 COP (1er cambio gratis)'}
+                    </span>
+                  </div>
+                )}
+                {orderFinancials.addedAgentsCount > 0 && (
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-purple-700">
+                    <span className="font-medium">
+                      Agentes adicionales agregados ({orderFinancials.addedAgentsCount} agente{orderFinancials.addedAgentsCount > 1 ? 's' : ''}):
+                    </span>
+                    <span className="font-bold">
+                      +${orderFinancials.addedAgentsCost.toLocaleString('es-CO')} COP
                     </span>
                   </div>
                 )}
@@ -4816,396 +5403,19 @@ export default function RequestExamModal({
           )}
 
           {/* ================================================================== */}
-          {/* SOLICITUD DE CLÍNICAS (PORTAFOLIO OFICIAL 2026 - 223 PRUEBAS)      */}
-          {/* SIN AYUDAS DIAGNÓSTICAS DE BIOLOGÍA MOLECULAR qPCR                 */}
+          {/* SOLICITUD DE CLÍNICAS (FORMULARIO OFICIAL INSTITUCIONAL OSD)       */}
           {/* ================================================================== */}
           {!isOrderSuccess && !isControlReviewOpen && requestCategory === 'clinicas' && (
-            <div className="space-y-6 animate-in fade-in duration-150">
-              
-              {/* PASO 1: SELECCIÓN DE PACIENTE Y PRUEBAS */}
-              {clinicalStep === 1 && (
-                <>
-                  {/* Encabezado informativo */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <h3 className="text-lg font-extrabold text-slate-900">
-                        Catálogo de Pruebas Diagnósticas Clínicas
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        Selecciona el paciente y las pruebas clínicas requeridas del portafolio oficial (223 pruebas). Sin ayudas diagnósticas.
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200">
-                        {selectedClinicalExams.length} prueba(s) seleccionada(s)
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Tarjeta de Paciente */}
-                  <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                        <span>🐾</span> Paciente para la orden clínica *
-                      </label>
-                      {activePatient && (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedPatientId('')}
-                          className="text-xs text-[#6F2BCC] hover:underline font-bold cursor-pointer"
-                        >
-                          Cambiar paciente
-                        </button>
-                      )}
-                    </div>
-
-                    {activePatient ? (
-                      <div className="p-4 bg-teal-50/50 border border-teal-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-3.5">
-                          <div className="w-12 h-12 rounded-2xl bg-white border border-teal-200 flex items-center justify-center text-2xl shrink-0 shadow-2xs">
-                            {activePatient.avatar || (activePatient.species?.toLowerCase().includes('felin') ? '🐱' : '🐶')}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h4 className="text-sm font-extrabold text-slate-900">
-                                {activePatient.name} {activePatient.lastName || ''}
-                              </h4>
-                              <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-md bg-white text-teal-800 border border-teal-200">
-                                {activePatient.id}
-                              </span>
-                              <span className="text-[11px] font-semibold text-slate-500">
-                                🏢 {activePatient.sedeName || 'Sede Principal - Calle 80'}
-                              </span>
-                            </div>
-                            <p className="text-xs text-slate-600 mt-0.5 break-words">
-                              {activePatient.species} · {activePatient.breed} · {getPatientAgeDisplay(activePatient)} · Peso: {activePatient.weight || 'N/R'} · Tutor: {activePatient.owner?.name || activePatient.owner?.firstName} ({activePatient.owner?.phone || 'Sin tel.'})
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          {isAlreadySterilized && (
-                            <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                              ✓ Esterilizado
-                            </span>
-                          )}
-                          {patientAllergiesList.length > 0 && (
-                            <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                              ⚠️ {patientAllergiesList.length} Alergia(s)
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            placeholder="Buscar paciente por nombre, ID o tutor..."
-                            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                          />
-                          {searchTerm && (
-                            <button
-                              type="button"
-                              onClick={() => setSearchTerm('')}
-                              className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-slate-600 cursor-pointer"
-                            >
-                              ✕
-                            </button>
-                          )}
-                        </div>
-
-                        {displayedPatients.length > 0 ? (
-                          <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-                            {displayedPatients.map((p) => (
-                              <div
-                                key={p.id}
-                                onClick={() => setSelectedPatientId(p.id)}
-                                className="p-3 rounded-xl border border-slate-200 hover:border-teal-500 hover:bg-teal-50/40 cursor-pointer transition-all flex items-center justify-between"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <span className="text-xl">{p.avatar || (p.species?.toLowerCase().includes('felin') ? '🐱' : '🐶')}</span>
-                                  <div>
-                                    <div className="font-bold text-xs text-slate-900">{p.name} {p.lastName || ''}</div>
-                                    <div className="text-[11px] text-slate-500">{p.species} · {p.breed} · Tutor: {p.owner?.name}</div>
-                                  </div>
-                                </div>
-                                <span className="text-xs text-teal-700 font-bold">Seleccionar →</span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-xs text-slate-400 italic text-center py-3">No se encontraron pacientes.</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Buscador & Selector de Pruebas Clínicas */}
-                  <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="relative flex-1">
-                        <input
-                          type="text"
-                          value={clinicalSearchTerm}
-                          onChange={(e) => setClinicalSearchTerm(e.target.value)}
-                          placeholder="Buscar por prueba o CUPS (ej: Hemograma, Perfil Renal, 902210)..."
-                          className="w-full pl-9 pr-8 py-2.5 border border-slate-200 rounded-xl text-xs placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                        />
-                        <span className="absolute left-3 top-2.5 text-xs text-slate-400">🔍</span>
-                        {clinicalSearchTerm && (
-                          <button
-                            type="button"
-                            onClick={() => setClinicalSearchTerm('')}
-                            className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-slate-600"
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Dropdown / Filtro de Categoría */}
-                      <select
-                        value={clinicalCategoryFilter}
-                        onChange={(e) => setClinicalCategoryFilter(e.target.value)}
-                        className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:ring-2 focus:ring-teal-500 focus:outline-none shrink-0"
-                      >
-                        <option value="all">Todas las Categorías ({CLINICAL_EXAMS.length})</option>
-                        {CLINICAL_CATEGORIES.map((cat) => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.icon} {cat.nombre} ({cat.totalPruebas})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Chips de Categorías Populares para acceso rápido */}
-                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-                      <button
-                        type="button"
-                        onClick={() => setClinicalCategoryFilter('all')}
-                        className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer ${
-                          clinicalCategoryFilter === 'all'
-                            ? 'bg-teal-600 text-white shadow-2xs'
-                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                        }`}
-                      >
-                        Todas ({CLINICAL_EXAMS.length})
-                      </button>
-                      {CLINICAL_CATEGORIES.slice(0, 8).map((cat) => (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => setClinicalCategoryFilter(cat.id)}
-                          className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 ${
-                            clinicalCategoryFilter === cat.id
-                              ? 'bg-teal-600 text-white shadow-2xs'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                          }`}
-                        >
-                          <span>{cat.icon}</span>
-                          <span>{cat.nombre}</span>
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Lista de Pruebas del Catálogo (Cards Limpias) */}
-                    <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
-                      {filteredClinicalExams.length > 0 ? (
-                        filteredClinicalExams.map((exam) => {
-                          const isSelected = selectedClinicalExams.some((e) => e.id === exam.id);
-                          return (
-                            <div
-                              key={exam.id}
-                              onClick={() => handleToggleSelectClinicalExam(exam)}
-                              className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 ${
-                                isSelected
-                                  ? 'bg-teal-50/70 border-teal-500 ring-1 ring-teal-500 shadow-2xs'
-                                  : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
-                              }`}
-                            >
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-extrabold text-xs text-slate-900">
-                                    {exam.nombre}
-                                  </span>
-                                  {exam.cups && (
-                                    <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                                      CUPS: {exam.cups}
-                                    </span>
-                                  )}
-                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                                    {exam.categoria}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-3 text-[11px] text-slate-500 flex-wrap">
-                                  <span>🩸 Muestra: <strong>{exam.matrizMuestra || 'Sangre total / Suero'}</strong></span>
-                                  <span>⏱️ Entrega: <strong>{exam.tiempoEntrega || '24h'}</strong></span>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                                <div className="text-right">
-                                  <span className="text-xs font-black text-teal-800 block">
-                                    ${(exam.precioIva || 0).toLocaleString('es-CO')} COP
-                                  </span>
-                                  <span className="text-[10px] text-slate-400 font-medium">IVA incluido</span>
-                                </div>
-                                <button
-                                  type="button"
-                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                    isSelected
-                                      ? 'bg-teal-600 text-white shadow-2xs'
-                                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                                  }`}
-                                >
-                                  {isSelected ? '✓ Agregada' : '+ Agregar'}
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div className="text-center py-8 text-slate-400 text-xs">
-                          No se encontraron pruebas clínicas con los filtros aplicados.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Resumen de Pruebas Seleccionadas (Bolsa de Pruebas) */}
-                  {selectedClinicalExams.length > 0 && (
-                    <div className="bg-white rounded-2xl border border-teal-200 p-5 shadow-2xs space-y-4">
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <span className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                          <span>📋</span> Resumen de Pruebas Seleccionadas ({selectedClinicalExams.length})
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedClinicalExams([])}
-                          className="text-xs text-rose-600 hover:underline font-bold cursor-pointer"
-                        >
-                          Vaciar selección
-                        </button>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        {selectedClinicalExams.map((exam) => (
-                          <span
-                            key={exam.id}
-                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-teal-50 border border-teal-200 text-teal-900 rounded-xl text-xs font-bold"
-                          >
-                            <span>{exam.nombre} (${(exam.precioIva || 0).toLocaleString('es-CO')})</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveClinicalExam(exam.id)}
-                              className="text-teal-700 hover:text-rose-600 font-bold"
-                            >
-                              ✕
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-
-                      {/* Matrices requeridas consolidadas */}
-                      {consolidatedClinicalMatrices.length > 0 && (
-                        <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-                          <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider block">
-                            Muestras biológicas que deberás tomar:
-                          </span>
-                          <div className="flex flex-wrap gap-2">
-                            {consolidatedClinicalMatrices.map((matrix, idx) => (
-                              <span key={idx} className="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold">
-                                🩸 {matrix}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Observaciones clínicas */}
-                      <div className="space-y-1.5 pt-1">
-                        <label className="text-xs font-bold text-slate-700">
-                          Observaciones clínicas / Motivo del examen (Opcional):
-                        </label>
-                        <textarea
-                          rows={2}
-                          value={clinicalObservations}
-                          onChange={(e) => setClinicalObservations(e.target.value)}
-                          placeholder="Indique sospecha clínica, tratamiento previo con antibióticos/corticoides o notas para el bacteriólogo..."
-                          className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                        />
-                      </div>
-
-                      {/* Total final */}
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                        <span className="text-xs font-extrabold text-slate-600">Total Orden Clínica:</span>
-                        <span className="text-lg font-black text-teal-800">
-                          ${totalClinicalPrice.toLocaleString('es-CO')} COP
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* PASO 2: REVISIÓN Y DESPACHO DE CLÍNICAS */}
-              {clinicalStep === 2 && (
-                <div className="space-y-5 animate-in fade-in duration-150">
-                  <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
-                    <h3 className="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-3">
-                      Revisión de Solicitud de Laboratorio Clínico
-                    </h3>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                        <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] block">Paciente:</span>
-                        <div className="font-extrabold text-slate-900 text-sm">{activePatient.name} {activePatient.lastName || ''} ({activePatient.id})</div>
-                        <div className="text-slate-600">{activePatient.species} · {activePatient.breed} · Tutor: {activePatient.owner?.name}</div>
-                      </div>
-
-                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                        <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] block">Sede & Profesional:</span>
-                        <div className="font-extrabold text-slate-900 text-sm">{activePatient.sedeName || 'Sede Principal - Calle 80'}</div>
-                        <div className="text-slate-600">{activePatient.attendingVet || 'Dr. Alejandro Morales'}</div>
-                      </div>
-                    </div>
-
-                    {/* Desglose de Pruebas */}
-                    <div className="border border-slate-200 rounded-xl overflow-hidden">
-                      <div className="bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-700 flex items-center justify-between">
-                        <span>Prueba Diagnóstica</span>
-                        <span>Precio (IVA incl.)</span>
-                      </div>
-                      <div className="divide-y divide-slate-100">
-                        {selectedClinicalExams.map((exam) => (
-                          <div key={exam.id} className="px-4 py-3 text-xs flex items-center justify-between">
-                            <div>
-                              <div className="font-bold text-slate-900">{exam.nombre}</div>
-                              <div className="text-[11px] text-slate-500">{exam.categoria} {exam.cups ? `· CUPS: ${exam.cups}` : ''} · Muestra: {exam.matrizMuestra}</div>
-                            </div>
-                            <span className="font-bold text-slate-800">${(exam.precioIva || 0).toLocaleString('es-CO')}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="bg-teal-50 px-4 py-3 border-t-2 border-teal-200 flex items-center justify-between text-sm font-extrabold">
-                        <span className="text-teal-950">Total a Facturar:</span>
-                        <span className="text-teal-800 font-black text-base">${totalClinicalPrice.toLocaleString('es-CO')} COP</span>
-                      </div>
-                    </div>
-
-                    {clinicalObservations && (
-                      <div className="p-3.5 bg-amber-50/60 border border-amber-200 rounded-xl text-xs space-y-1">
-                        <span className="font-bold text-amber-900">Observaciones registradas:</span>
-                        <p className="text-amber-800">{clinicalObservations}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+            <ClinicalOrderForm
+              activePatient={activePatient}
+              patients={patients}
+              initialClinicalExam={initialClinicalExam}
+              onSelectPatient={(id) => setSelectedPatientId(id)}
+              onSubmitOrder={(payload) => handleSubmitClinicalOrder(payload)}
+              isSubmitting={isSubmitting}
+              onClose={onClose}
+              isModal={isModal}
+            />
           )}
 
           {/* ================================================================== */}
@@ -5323,10 +5533,6 @@ export default function RequestExamModal({
                         setIsControlReviewOpen(true);
                         return;
                       }
-                      if (hasVetPlusInsurance && !vetPlusCode.trim()) {
-                        alert('Por favor ingresa el código de póliza / autorización de VetPlus o desmarca la opción.');
-                        return;
-                      }
                     }
                     if (currentStep === 3) {
                       if (!isAsymptomatic && selectedSyndromes.length === 0) {
@@ -5358,10 +5564,10 @@ export default function RequestExamModal({
               {currentStep === 5 && (
                 <button
                   type="button"
-                  disabled={!confirmedSamples || isSubmitting}
+                  disabled={!confirmedSamples || !areAllSamplesConfirmed || isSubmitting}
                   onClick={handleSubmitFinalOrder}
                   className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
-                    confirmedSamples && !isSubmitting
+                    confirmedSamples && areAllSamplesConfirmed && !isSubmitting
                       ? 'bg-[#6F2BCC] hover:bg-[#581ea3] text-white shadow-md cursor-pointer'
                       : 'bg-slate-200 text-slate-400 cursor-not-allowed select-none'
                   }`}
@@ -5373,57 +5579,6 @@ export default function RequestExamModal({
             </div>
           </div>
         )}
-
-        {/* Footer para Solicitud de Clínicas */}
-        {!isOrderSuccess && !isControlReviewOpen && requestCategory === 'clinicas' && (
-          <div className="bg-white px-6 sm:px-8 py-4 border-t border-slate-100 flex items-center justify-between shrink-0">
-            <div>
-              {clinicalStep === 1 ? (
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors cursor-pointer"
-                >
-                  {isModal ? 'Cancelar' : '← Volver a Pacientes'}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setClinicalStep(1)}
-                  className="px-4 py-2.5 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors cursor-pointer"
-                >
-                  ← Volver a Selección de Pruebas
-                </button>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              {clinicalStep === 1 ? (
-                <button
-                  type="button"
-                  disabled={!activePatient || selectedClinicalExams.length === 0}
-                  onClick={() => setClinicalStep(2)}
-                  className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span>Revisar Orden Clínica ({selectedClinicalExams.length})</span>
-                  <span>→</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={handleSubmitClinicalOrder}
-                  className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-md cursor-pointer disabled:opacity-50"
-                >
-                  <span>✓</span>
-                  <span>{isSubmitting ? 'Generando Orden Clínica...' : `Confirmar y Enviar Orden (${totalClinicalPrice ? `$${totalClinicalPrice.toLocaleString('es-CO')}` : '$0'})`}</span>
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-
 
       </div>
     </div>

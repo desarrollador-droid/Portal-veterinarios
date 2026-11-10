@@ -167,14 +167,14 @@ export default function PatientFichaModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-5xl w-full shadow-2xl border border-slate-100 overflow-hidden my-6 max-h-[94vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
-        <div className="px-6 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-xs text-slate-500 shrink-0">
+      <div className="bg-white dark:bg-[#120d24] rounded-3xl max-w-5xl w-full shadow-2xl border border-slate-100 dark:border-[#271d47] overflow-hidden my-6 max-h-[94vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
+        <div className="px-6 py-3 bg-slate-50 dark:bg-[#181230] border-b border-slate-100 dark:border-[#271d47] flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 shrink-0">
           <span className="font-semibold flex items-center gap-1.5">
             <span>🐾</span> Expediente Clínico Digital · Portal Veterinario
           </span>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer"
+            className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-bold text-lg cursor-pointer"
           >
             ✕
           </button>
@@ -187,30 +187,43 @@ export default function PatientFichaModal({
           {/* Estado muestra, Última visita) + PESO, EDAD + Opciones        */}
           {/* + LÍNEA DE TIEMPO TIPO DELIVERY COMPLETA                       */}
           {/* ============================================================== */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+          <div className="bg-white dark:bg-[#16102e] rounded-2xl border border-slate-200 dark:border-[#2a2048] p-6 shadow-xs">
             {/* Fila 1: Encabezado con Avatar, Nombre, ID, Estado y Botones de Acción */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 pb-5 border-b border-slate-100">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 pb-5 border-b border-slate-100 dark:border-[#281f47]">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center text-3xl shadow-xs shrink-0">
+                <div className="w-16 h-16 rounded-2xl bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800/60 flex items-center justify-center text-3xl shadow-xs shrink-0">
                   {patient.avatar || (patient.species?.toLowerCase().includes('felin') ? '🐱' : '🐶')}
                 </div>
 
                 <div>
-                  {/* ALERTA DE ALERGIA ENCIMA DEL NOMBRE DEL PACIENTE (TONO SUAVE Y CLÍNICO) */}
+                  {/* ALERTA CRÍTICA DE ALERGIA MÉDICA VETERINARIA */}
                   {((patient.hasAllergies && patient.allergies) || (patient.allergies && patient.allergies !== 'Ninguna' && patient.allergies !== 'Ninguna conocida' && patient.allergies !== 'Ninguna reportada' && patient.allergies.trim() !== '')) && (
-                    <div className="mb-2">
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200/80 shadow-2xs">
-                        <span>⚠️ Alergia reportada:</span>
-                        <span className="font-bold">{patient.allergies}</span>
+                    <div className="mb-2.5">
+                      <div className="relative overflow-hidden inline-flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-gradient-to-r from-rose-500/15 via-rose-500/10 to-transparent dark:from-rose-950/60 dark:via-rose-900/40 dark:to-transparent border-l-4 border-l-rose-500 border border-rose-300 dark:border-rose-500/60 shadow-md shadow-rose-500/10 text-xs">
+                        <div className="relative flex items-center justify-center shrink-0">
+                          <span className="text-sm">🚨</span>
+                          <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-black tracking-wider text-rose-900 dark:text-rose-200 uppercase text-[10px] bg-rose-500/20 px-2 py-0.5 rounded-full border border-rose-500/30">
+                            Alerta Médica · Alergia Registrada
+                          </span>
+                          <span className="font-extrabold text-rose-950 dark:text-rose-100 text-xs">
+                            {patient.allergies}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   )}
 
                   <div className="flex items-center gap-3 flex-wrap">
-                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                       {fullPatientName}
                     </h2>
-                    <span className="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                    <span className="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                       {patient.id}
                     </span>
                     <span
@@ -229,8 +242,8 @@ export default function PatientFichaModal({
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Médico tratante: <strong className="text-slate-900 font-bold">{patient.attendingVet || 'Dr. Alejandro Morales'}</strong>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Médico tratante: <strong className="text-slate-900 dark:text-white font-bold">{patient.attendingVet || 'Dr. Alejandro Morales'}</strong>
                   </p>
                 </div>
               </div>
@@ -240,7 +253,7 @@ export default function PatientFichaModal({
                 <button
                   onClick={handleDownloadHistory}
                   title="Descargar historia clínica completa con diseño visual oficial (Guardar como PDF o archivo HTML)"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
                 >
                   <span>📄</span> Descargar historia clínica
                 </button>
@@ -256,7 +269,7 @@ export default function PatientFichaModal({
                 ) : (
                   <button
                     onClick={() => setShowEditModal(true)}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#6F2BCC] text-[#6F2BCC] hover:bg-sky-50 font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#6F2BCC] text-[#6F2BCC] dark:text-[#a78bfa] hover:bg-sky-50 dark:hover:bg-purple-950/30 font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
                   >
                     <span>✏️</span> Editar información
                   </button>
@@ -281,53 +294,53 @@ export default function PatientFichaModal({
             </div>
 
             {/* Fila 2: Cuadro de Información General Integral (Campos de la tabla + Sede + Peso + Edad) */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 py-5 border-b border-slate-100 text-xs">
-              <div className="col-span-2 sm:col-span-1 lg:col-span-2 bg-purple-50/40 rounded-2xl p-4 border border-purple-100 shadow-2xs">
-                <span className="text-purple-600 block text-[10px] font-bold uppercase tracking-wider">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 py-5 border-b border-slate-100 dark:border-[#281f47] text-xs">
+              <div className="col-span-2 sm:col-span-1 lg:col-span-2 bg-purple-50/40 dark:bg-purple-950/40 rounded-2xl p-4 border border-purple-100 dark:border-purple-900/60 shadow-2xs">
+                <span className="text-purple-600 dark:text-purple-300 block text-[10px] font-bold uppercase tracking-wider">
                   🐾 Especie / Raza
                 </span>
-                <span className="font-extrabold text-slate-900 mt-1 block break-words text-sm leading-snug">
+                <span className="font-extrabold text-slate-900 dark:text-white mt-1 block break-words text-sm leading-snug">
                   {patient.species} · {patient.breed}
                 </span>
               </div>
 
-              <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80">
-                <span className="text-slate-400 block text-[10px] font-semibold uppercase tracking-wider">
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-700/80">
+                <span className="text-slate-400 dark:text-slate-400 block text-[10px] font-semibold uppercase tracking-wider">
                   👤 Propietario / Tutor
                 </span>
-                <span className="font-extrabold text-slate-900 mt-1 block break-words">
+                <span className="font-extrabold text-slate-900 dark:text-white mt-1 block break-words">
                   {patient.owner?.name}
                 </span>
               </div>
 
-              <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80">
-                <span className="text-slate-400 block text-[10px] font-semibold uppercase tracking-wider">
+              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-700/80">
+                <span className="text-slate-400 dark:text-slate-400 block text-[10px] font-semibold uppercase tracking-wider">
                   🏢 Sede de Atención
                 </span>
-                <span className="font-bold text-[#6F2BCC] mt-1 block break-words text-xs">
+                <span className="font-bold text-[#6F2BCC] dark:text-[#a78bfa] mt-1 block break-words text-xs">
                   {patient.sedeNombre || 'Sede Principal'}
                   {patient.codigoSedeNit && (
-                    <span className="ml-1 px-1.5 py-0.2 rounded bg-purple-100 text-[#2B017C] text-[10px] font-mono">
+                    <span className="ml-1 px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-900/60 text-[#2B017C] dark:text-purple-200 text-[10px] font-mono border dark:border-purple-800/80">
                       {patient.codigoSedeNit}
                     </span>
                   )}
                 </span>
               </div>
 
-              <div className="bg-sky-50/80 rounded-2xl p-4 border border-sky-200">
-                <span className="text-sky-700 block text-[10px] font-bold uppercase tracking-wider">
+              <div className="bg-sky-50/80 dark:bg-sky-950/40 rounded-2xl p-4 border border-sky-200 dark:border-sky-800/70">
+                <span className="text-sky-700 dark:text-sky-300 block text-[10px] font-bold uppercase tracking-wider">
                   ⚖️ Peso Actual
                 </span>
-                <span className="font-black text-sky-950 text-sm mt-1 block">
+                <span className="font-black text-sky-950 dark:text-sky-100 text-sm mt-1 block">
                   {patient.weight || 'N/A'}
                 </span>
               </div>
 
-              <div className="bg-indigo-50/80 rounded-2xl p-4 border border-indigo-200">
-                <span className="text-indigo-700 block text-[10px] font-bold uppercase tracking-wider">
+              <div className="bg-indigo-50/80 dark:bg-indigo-950/40 rounded-2xl p-4 border border-indigo-200 dark:border-indigo-800/70">
+                <span className="text-indigo-700 dark:text-indigo-300 block text-[10px] font-bold uppercase tracking-wider">
                   🎂 Edad Calculada
                 </span>
-                <span className="font-black text-indigo-950 text-sm mt-1 block">
+                <span className="font-black text-indigo-950 dark:text-indigo-100 text-sm mt-1 block">
                   {patient.age || 'No calculada'}
                 </span>
               </div>
@@ -335,11 +348,16 @@ export default function PatientFichaModal({
 
             {/* Alerta estricta de paciente fallecido */}
             {isDeceased && (
-              <div className="mt-4 p-3.5 bg-slate-900 text-white rounded-xl text-xs flex items-center gap-3">
-                <span className="text-xl">🔒</span>
-                <div>
-                  <p className="font-bold">Ficha de paciente archivada y bloqueada</p>
-                  <p className="text-slate-300 text-[11px]">
+              <div className="mt-4 p-4 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl border-l-4 border-l-rose-500 border border-slate-700 text-xs flex items-center gap-3.5 shadow-lg">
+                <span className="text-2xl shrink-0">🔒</span>
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                      Ficha Archivada
+                    </span>
+                    <p className="font-bold text-white">Paciente Fallecido · Edición Bloqueada</p>
+                  </div>
+                  <p className="text-slate-300 text-[11px] leading-relaxed">
                     Este paciente se encuentra marcado con estado <strong>fallecido</strong>. La edición de su ficha médica está terminantemente bloqueada para preservar la trazabilidad legal del historial.
                   </p>
                 </div>
@@ -821,13 +839,27 @@ export default function PatientFichaModal({
                   </div>
 
                   {/* Nota aclaratoria médica de razonamiento clínico y diagnósticos diferenciales */}
-                  <div className="bg-sky-50/80 border border-sky-200/90 rounded-2xl p-4 flex items-start gap-3 shadow-2xs">
-                    <span className="text-lg text-[#6F2BCC] mt-0.5 shrink-0">🩺</span>
-                    <div className="text-xs space-y-0.5">
-                      <strong className="text-slate-900 block font-bold">Nota Aclaratoria de Criterio Clínico:</strong>
-                      <p className="text-slate-700 leading-relaxed font-medium">
-                        Cuando el paciente haya sido evaluado mediante un proceso adecuado de razonamiento clínico y se hayan seleccionado las matrices biológicas pertinentes, se deben considerar otras alternativas diagnósticas diferentes a las enfermedades infecciosas hemotrópicas.
-                      </p>
+                  <div className="relative overflow-hidden p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-purple-500/15 via-[#6F2BCC]/10 to-sky-500/5 dark:from-purple-950/40 dark:via-[#6F2BCC]/20 dark:to-sky-950/20 border-l-4 border-l-[#6F2BCC] border border-[#6F2BCC]/30 dark:border-[#6F2BCC]/40 shadow-lg shadow-[#6F2BCC]/5">
+                    <div className="flex items-start gap-3.5">
+                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#6F2BCC] to-[#2B017C] text-white flex items-center justify-center text-lg shrink-0 shadow-md ring-4 ring-[#6F2BCC]/15">
+                        🩺
+                      </div>
+                      <div className="space-y-1 text-xs">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#6F2BCC]/15 text-[#6F2BCC] dark:text-[#01FADA] border border-[#6F2BCC]/30">
+                            Anotación Médica · Criterio Clínico
+                          </span>
+                          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                            Razonamiento Diagnóstico
+                          </span>
+                        </div>
+                        <h4 className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm">
+                          Nota Aclaratoria de Diagnósticos Diferenciales
+                        </h4>
+                        <p className="text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
+                          Cuando el paciente haya sido evaluado mediante un proceso adecuado de razonamiento clínico y se hayan seleccionado las matrices biológicas pertinentes, se deben considerar otras alternativas diagnósticas diferentes a las enfermedades infecciosas hemotrópicas.
+                        </p>
+                      </div>
                     </div>
                   </div>
 

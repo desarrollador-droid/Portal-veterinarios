@@ -96,8 +96,6 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
     ownerCity: '',
     ownerAddress: '',
     ownerStratum: '',
-    ownerHasVetPlus: false,
-    ownerVetPlusCode: '',
 
     // SEDE / SUCURSAL DE ADMISIÓN
     sedeId: '',
@@ -118,6 +116,8 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
     hasMicrochip: false,
     microchipNumber: '',
     medicalBackground: '',
+    coastalRescue: false,
+    coastalRescueLocation: '',
   });
 
   useEffect(() => {
@@ -191,79 +191,112 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
 
   const [formAlert, setFormAlert] = useState(null);
 
-  const triggerAlert = (message, fieldName = null) => {
-    setFormAlert({ message, fieldName });
+  const triggerAlert = (message, fieldName = null, title = 'Campo Requerido Pendiente') => {
+    setFormAlert({ message, fieldName, title });
     const modalContainer = document.getElementById('new-patient-modal-content');
     if (modalContainer) {
       modalContainer.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    // Enfoque visual suave y scroll hacia el campo requerido (sin popups invasivos)
+    if (fieldName) {
+      setTimeout(() => {
+        const el = document.querySelector(`[name="${fieldName}"]`);
+        if (el) {
+          el.focus();
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
+  };
+
+  const validateStep1 = () => {
+    if (!formData.ownerFirstName.trim()) {
+      triggerAlert('Por favor ingrese los nombres del tutor.', 'ownerFirstName');
+      return false;
+    }
+    if (!formData.ownerLastName.trim()) {
+      triggerAlert('Por favor ingrese los apellidos del tutor.', 'ownerLastName');
+      return false;
+    }
+    if (!formData.ownerDocumentType) {
+      triggerAlert('Por favor seleccione el tipo de documento del tutor.', 'ownerDocumentType');
+      return false;
+    }
+    if (!formData.ownerDocumentNumber.trim()) {
+      triggerAlert('Por favor ingrese el número de documento de identificación del tutor.', 'ownerDocumentNumber');
+      return false;
+    }
+    if (!formData.ownerPhone.trim()) {
+      triggerAlert('Por favor ingrese el número de teléfono celular principal del tutor.', 'ownerPhone');
+      return false;
+    }
+    return true;
+  };
+
+  const validateStep2 = () => {
+    if (!formData.name.trim()) {
+      triggerAlert('Por favor ingrese el nombre del paciente / mascota.', 'name');
+      return false;
+    }
+    if (!formData.species) {
+      triggerAlert('Por favor seleccione la especie (Canino, Felino u Otro).', 'species');
+      return false;
+    }
+    if (formData.species === 'Otro' && !formData.otherSpecies.trim()) {
+      triggerAlert('Por favor especifique la especie en el campo correspondiente.', 'otherSpecies');
+      return false;
+    }
+    if (!formData.breed.trim()) {
+      triggerAlert('Por favor seleccione o escriba la raza de la mascota.', 'breed');
+      return false;
+    }
+    if (!formData.sex) {
+      triggerAlert('Por favor seleccione el sexo del paciente (Hembra o Macho).', 'sex');
+      return false;
+    }
+    if (!formData.birthDate) {
+      triggerAlert('Por favor ingrese la fecha de nacimiento de la mascota.', 'birthDate');
+      return false;
+    }
+
+    // Validar fecha futura
+    const today = new Date().toISOString().split('T')[0];
+    if (formData.birthDate > today) {
+      triggerAlert('La fecha de nacimiento no puede ser una fecha futura.', 'birthDate');
+      return false;
+    }
+
+    if (formData.isSterilized === null || formData.isSterilized === undefined) {
+      triggerAlert('Por favor indique si el paciente se encuentra esterilizado (Sí o No).', 'isSterilized');
+      return false;
+    }
+
+    if (formData.hasAllergies && !formData.allergies.trim()) {
+      triggerAlert('Por favor describa las alergias conocidas del paciente.', 'allergies');
+      return false;
+    }
+
+    if (formData.hasMicrochip && !formData.microchipNumber.trim()) {
+      triggerAlert('Por favor ingrese el número del microchip (15 dígitos).', 'microchipNumber');
+      return false;
+    }
+
+    if (formData.coastalRescue && !formData.coastalRescueLocation.trim()) {
+      triggerAlert('Por favor indique de qué zona costera o municipio fue rescatado el paciente.', 'coastalRescueLocation');
+      return false;
+    }
+
+    return true;
   };
 
   const handleNext = () => {
     setFormAlert(null);
     if (currentStep === 1) {
-      if (!formData.ownerFirstName.trim() || !formData.ownerLastName.trim() || !formData.ownerPhone.trim()) {
-        triggerAlert('Por favor complete nombres, apellidos y teléfono principal del tutor.', 'ownerPhone');
-        return;
-      }
-      if (!formData.ownerDocumentType) {
-        triggerAlert('Por favor seleccione el tipo de documento del tutor.', 'ownerDocumentType');
-        return;
-      }
-      if (!formData.ownerDocumentNumber.trim()) {
-        triggerAlert('Por favor ingrese el número de documento del tutor.', 'ownerDocumentNumber');
-        return;
-      }
-      if (formData.ownerHasVetPlus && !formData.ownerVetPlusCode.trim()) {
-        triggerAlert('Por favor ingrese el código de póliza o autorización de VetPlus.', 'ownerVetPlusCode');
-        return;
-      }
+      if (!validateStep1()) return;
     }
-
     if (currentStep === 2) {
-      if (!formData.name.trim()) {
-        triggerAlert('Por favor ingrese el nombre del paciente.', 'name');
-        return;
-      }
-      if (!formData.species) {
-        triggerAlert('Por favor seleccione la especie (Canino, Felino u Otro).', 'species');
-        return;
-      }
-      if (formData.species === 'Otro' && !formData.otherSpecies.trim()) {
-        triggerAlert('Por favor especifique la especie en el campo correspondiente.', 'otherSpecies');
-        return;
-      }
-      if (!formData.breed.trim()) {
-        triggerAlert('Por favor seleccione o escriba la raza de la mascota.', 'breed');
-        return;
-      }
-      if (!formData.sex) {
-        triggerAlert('Por favor seleccione el sexo del paciente.', 'sex');
-        return;
-      }
-      if (!formData.birthDate) {
-        triggerAlert('Por favor ingrese la fecha de nacimiento de la mascota.', 'birthDate');
-        return;
-      }
-
-      // Validar fecha futura
-      const today = new Date().toISOString().split('T')[0];
-      if (formData.birthDate > today) {
-        triggerAlert('La fecha de nacimiento no puede ser una fecha futura.', 'birthDate');
-        return;
-      }
-
-      if (formData.hasAllergies && !formData.allergies.trim()) {
-        triggerAlert('Por favor describa las alergias conocidas del paciente.', 'allergies');
-        return;
-      }
-
-      if (formData.hasMicrochip && !formData.microchipNumber.trim()) {
-        triggerAlert('Por favor ingrese el número del microchip.', 'microchipNumber');
-        return;
-      }
+      if (!validateStep2()) return;
     }
-
     setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
   };
 
@@ -272,6 +305,14 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
   };
 
   const handleSubmit = async (requestExamDirectly = false) => {
+    if (!validateStep1()) {
+      setCurrentStep(1);
+      return;
+    }
+    if (!validateStep2()) {
+      setCurrentStep(2);
+      return;
+    }
     setSubmitting(true);
     try {
       const finalSpecies = formData.species === 'Otro' ? formData.otherSpecies.trim() : formData.species;
@@ -302,6 +343,14 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
         hasMicrochip: Boolean(formData.hasMicrochip),
         microchipNumber: formData.hasMicrochip ? formData.microchipNumber.trim() : '',
 
+        // Rescate costero (Historial epidemiológico inmutable)
+        coastalRescue: Boolean(formData.coastalRescue),
+        coastalRescueLocation: formData.coastalRescue ? formData.coastalRescueLocation.trim() : '',
+        riskFactors: {
+          coastalRescue: Boolean(formData.coastalRescue),
+          coastalRescueLocation: formData.coastalRescue ? formData.coastalRescueLocation.trim() : '',
+        },
+
         // Tutor
         ownerFirstName: formData.ownerFirstName.trim(),
         ownerLastName: formData.ownerLastName.trim(),
@@ -316,8 +365,8 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
         ownerCity: formData.ownerCity.trim(),
         ownerAddress: formData.ownerAddress.trim(),
         ownerStratum: formData.ownerStratum,
-        ownerHasVetPlus: Boolean(formData.ownerHasVetPlus),
-        ownerVetPlusCode: formData.ownerVetPlusCode.trim(),
+        ownerHasVetPlus: false,
+        ownerVetPlusCode: '',
 
         // Sede / Sucursal
         sedeId: formData.sedeId || (activeClinic?.sedes?.[0]?.id || 'sede-principal-80'),
@@ -402,30 +451,62 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
         <div id="new-patient-modal-content" className="p-6 sm:p-8 overflow-y-auto space-y-6 flex-1">
           {/* Banner de Alerta Visual Diseñada para Campos Pendientes */}
           {formAlert && (
-            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 shadow-sm flex items-start justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="flex items-start gap-3">
-                <span className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-base shrink-0 shadow-xs">
-                  ⚠️
-                </span>
-                <div>
-                  <h4 className="text-xs font-black uppercase tracking-wider text-amber-900">
-                    Campo Requerido Pendiente
-                  </h4>
-                  <p className="text-xs font-bold text-amber-950 mt-0.5">
-                    {formAlert.message}
-                  </p>
-                  <p className="text-[11px] text-amber-800/80 mt-0.5">
-                    Por favor complete esta información antes de avanzar a la siguiente etapa.
-                  </p>
+            <div className="relative overflow-hidden p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-orange-500/5 dark:from-amber-950/40 dark:via-amber-900/30 dark:to-orange-950/20 border-l-4 border-l-amber-500 border border-amber-400 dark:border-amber-500/60 shadow-xl shadow-amber-500/10 animate-in fade-in slide-in-from-top-3 duration-200">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3.5">
+                  <div className="relative shrink-0">
+                    <span className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg shadow-md ring-4 ring-amber-400/20">
+                      ⚠️
+                    </span>
+                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-900 dark:text-amber-200 border border-amber-500/30">
+                        {formAlert.title || 'Campo Requerido Pendiente'}
+                      </span>
+                      <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">
+                        Acción Necesaria
+                      </span>
+                    </div>
+                    <h4 className="text-sm font-black text-slate-900 dark:text-white leading-snug">
+                      {formAlert.message}
+                    </h4>
+                    <p className="text-xs text-slate-600 dark:text-slate-300">
+                      Por favor complete este campo obligatorio para garantizar la trazabilidad médica del paciente.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {formAlert.fieldName && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const el = document.querySelector(`[name="${formAlert.fieldName}"]`);
+                        if (el) {
+                          el.focus();
+                          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                      }}
+                      className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                    >
+                      <span>Ir al campo</span>
+                      <span>➜</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setFormAlert(null)}
+                    className="p-1.5 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 rounded-xl transition-all font-bold text-base cursor-pointer"
+                    title="Cerrar alerta"
+                  >
+                    ✕
+                  </button>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setFormAlert(null)}
-                className="text-amber-500 hover:text-amber-800 font-bold text-sm p-1 cursor-pointer"
-              >
-                ✕
-              </button>
             </div>
           )}
           {/* ==================================================================== */}
@@ -453,7 +534,11 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     value={formData.ownerFirstName}
                     onChange={handleChange}
                     placeholder="Ej. María Camila"
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none ${
+                      formAlert?.fieldName === 'ownerFirstName'
+                        ? 'border-rose-500 ring-2 ring-rose-300 bg-rose-50/30'
+                        : 'border-slate-200'
+                    }`}
                   />
                 </div>
 
@@ -467,7 +552,11 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     value={formData.ownerLastName}
                     onChange={handleChange}
                     placeholder="Ej. González Ruiz"
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none ${
+                      formAlert?.fieldName === 'ownerLastName'
+                        ? 'border-rose-500 ring-2 ring-rose-300 bg-rose-50/30'
+                        : 'border-slate-200'
+                    }`}
                   />
                   <span className="text-[10px] text-slate-400 mt-0.5 block">
                     (Este apellido será asignado a la mascota)
@@ -484,7 +573,11 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     name="ownerDocumentType"
                     value={formData.ownerDocumentType}
                     onChange={handleChange}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none bg-white cursor-pointer"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none bg-white cursor-pointer ${
+                      formAlert?.fieldName === 'ownerDocumentType'
+                        ? 'border-rose-500 ring-2 ring-rose-300 bg-rose-50/30'
+                        : 'border-slate-200'
+                    }`}
                   >
                     {DOCUMENT_TYPES.map((type) => (
                       <option key={type} value={type}>
@@ -504,7 +597,11 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     value={formData.ownerDocumentNumber}
                     onChange={handleNumericChange('ownerDocumentNumber', false)}
                     placeholder="Ej. 1020345678"
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none ${
+                      formAlert?.fieldName === 'ownerDocumentNumber'
+                        ? 'border-rose-500 ring-2 ring-rose-300 bg-rose-50/30'
+                        : 'border-slate-200'
+                    }`}
                   />
                 </div>
               </div>
@@ -520,7 +617,11 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     value={formData.ownerPhone}
                     onChange={handleNumericChange('ownerPhone', false)}
                     placeholder="Ej. 3101234567"
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none ${
+                      formAlert?.fieldName === 'ownerPhone'
+                        ? 'border-rose-500 ring-2 ring-rose-300 bg-rose-50/30'
+                        : 'border-slate-200'
+                    }`}
                   />
                 </div>
 
@@ -632,46 +733,6 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                   className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
                 />
               </div>
-
-              {/* Aseguramiento VetPlus */}
-              <div className="p-4 bg-sky-50 border border-sky-200 rounded-2xl space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-extrabold text-[#2B017C] flex items-center gap-1.5">
-                      <span>🛡️</span> Seguro Médico VetPlus
-                    </span>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      ¿El tutor cuenta con afiliación activa o convenio VetPlus?
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="ownerHasVetPlus"
-                      checked={formData.ownerHasVetPlus}
-                      onChange={handleChange}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#6F2BCC]" />
-                  </label>
-                </div>
-
-                {formData.ownerHasVetPlus && (
-                  <div className="pt-2 animate-in fade-in duration-150">
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Código de Póliza / Afiliación VetPlus *
-                    </label>
-                    <input
-                      type="text"
-                      name="ownerVetPlusCode"
-                      value={formData.ownerVetPlusCode}
-                      onChange={handleChange}
-                      placeholder="Ej. VP-90284-COL"
-                      className="w-full px-3.5 py-2 border border-sky-300 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none font-mono"
-                    />
-                  </div>
-                )}
-              </div>
             </div>
           )}
 
@@ -730,7 +791,11 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Ej. Bruno"
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none font-bold"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none font-bold ${
+                      formAlert?.fieldName === 'name'
+                        ? 'border-rose-500 ring-2 ring-rose-300 bg-rose-50/30'
+                        : 'border-slate-200'
+                    }`}
                   />
                 </div>
 
@@ -738,7 +803,9 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     Especie *
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className={`grid grid-cols-3 gap-2 p-1 rounded-2xl ${
+                    formAlert?.fieldName === 'species' ? 'ring-2 ring-rose-500 bg-rose-50/30' : ''
+                  }`}>
                     {['Canino', 'Felino', 'Otro'].map((sp) => (
                       <button
                         key={sp}
@@ -775,7 +842,9 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     value={formData.otherSpecies}
                     onChange={handleChange}
                     placeholder="Ej. Equino, Ave exótica, Cunícola, Hurón..."
-                    className="w-full px-3.5 py-2.5 border border-purple-300 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none ${
+                      formAlert?.fieldName === 'otherSpecies' ? 'border-rose-500 ring-2 ring-rose-300' : 'border-purple-300'
+                    }`}
                   />
                 </div>
               )}
@@ -796,7 +865,11 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     }}
                     onFocus={() => setShowBreedDropdown(true)}
                     placeholder="Escriba o seleccione una raza..."
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none ${
+                      formAlert?.fieldName === 'breed'
+                        ? 'border-rose-500 ring-2 ring-rose-300 bg-rose-50/30'
+                        : 'border-slate-200'
+                    }`}
                   />
                   {formData.breed && (
                     <button
@@ -845,7 +918,9 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     Sexo *
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className={`grid grid-cols-2 gap-2 p-1 rounded-2xl ${
+                    formAlert?.fieldName === 'sex' ? 'ring-2 ring-rose-500 bg-rose-50/30' : ''
+                  }`}>
                     {['Hembra', 'Macho'].map((sx) => (
                       <button
                         key={sx}
@@ -873,7 +948,11 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     value={formData.birthDate}
                     onChange={handleChange}
                     max={new Date().toISOString().split('T')[0]}
-                    className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none bg-white cursor-pointer"
+                    className={`w-full px-3.5 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none bg-white cursor-pointer ${
+                      formAlert?.fieldName === 'birthDate'
+                        ? 'border-rose-500 ring-2 ring-rose-300 bg-rose-50/30'
+                        : 'border-slate-200'
+                    }`}
                   />
                   {calculatedAge && (
                     <span className="text-[10px] text-emerald-700 font-semibold mt-0.5 block">
@@ -900,9 +979,13 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
               {/* Esterilización & Alergias iniciales */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 {/* Esterilización */}
-                <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                <div className={`p-4 rounded-2xl space-y-2 border ${
+                  formAlert?.fieldName === 'isSterilized'
+                    ? 'border-rose-500 ring-2 ring-rose-300 bg-rose-50/30'
+                    : 'bg-slate-50 border-slate-200'
+                }`}>
                   <label className="block text-xs font-bold text-slate-700">
-                    ¿El paciente está esterilizado?
+                    ¿El paciente está esterilizado? *
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
@@ -1030,6 +1113,56 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                 </div>
               )}
 
+              {/* Rescate costero (Información inmutable de la matrícula) */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 block">
+                      ¿Fue rescatado de zona costera o refugio costero?
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      Antecedente epidemiológico permanente para diagnósticos vectoriales
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, coastalRescue: false, coastalRescueLocation: '' }))}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
+                        !formData.coastalRescue ? 'bg-slate-700 text-white' : 'bg-white border border-slate-200 text-slate-600'
+                      }`}
+                    >
+                      No
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, coastalRescue: true }))}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
+                        formData.coastalRescue ? 'bg-[#6F2BCC] text-white' : 'bg-white border border-slate-200 text-slate-600'
+                      }`}
+                    >
+                      Sí
+                    </button>
+                  </div>
+                </div>
+
+                {formData.coastalRescue && (
+                  <div className="pt-2 border-t border-slate-200 animate-in fade-in duration-150">
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      ¿De qué zona costera o municipio fue rescatado? <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="coastalRescueLocation"
+                      value={formData.coastalRescueLocation}
+                      onChange={handleChange}
+                      placeholder="Ej. Santa Marta, Cartagena, Barranquilla, Buenaventura, Tumaco, San Andrés..."
+                      className="w-full px-3.5 py-2 bg-white border border-purple-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC]"
+                    />
+                  </div>
+                )}
+              </div>
+
               {/* Antecedentes generales / notas */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
@@ -1096,10 +1229,6 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     <span className="text-slate-400 block text-[11px]">Dirección</span>
                     <strong className="text-slate-800">{formData.ownerAddress || 'No especificada'}</strong>
                   </div>
-                  <div>
-                    <span className="text-slate-400 block text-[11px]">VetPlus</span>
-                    <strong className="text-slate-800">{formData.ownerHasVetPlus ? `Sí (${formData.ownerVetPlusCode})` : 'No'}</strong>
-                  </div>
                 </div>
               </div>
 
@@ -1156,6 +1285,12 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     <span className="text-slate-400 block text-[11px]">Microchip</span>
                     <strong className="text-slate-800">{formData.hasMicrochip ? formData.microchipNumber : 'No'}</strong>
                   </div>
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">Rescate costero</span>
+                    <strong className={formData.coastalRescue ? 'text-[#6F2BCC]' : 'text-slate-800'}>
+                      {formData.coastalRescue ? `Sí (${formData.coastalRescueLocation || 'Zona costera'})` : 'No'}
+                    </strong>
+                  </div>
                 </div>
               </div>
 
@@ -1164,10 +1299,10 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                 <span className="text-2xl shrink-0 mt-0.5">💡</span>
                 <div>
                   <strong className="font-extrabold text-[#2B017C] block mb-0.5">
-                    ¿Desea solicitar un examen qPCR ahora?
+                    ¿Desea solicitar un examen ahora?
                   </strong>
                   <p className="text-[11px] text-sky-800 leading-relaxed">
-                    Los factores de riesgo epidemiológicos, antecedentes clínicos, cuadro hemático y la historia clínica se registrarán de manera guiada en el <strong>formulario de solicitud de examen</strong> para diagnosticar y recomendar con máxima precisión el perfil molecular pertinente.
+                    Al confirmar, podrá seleccionar directamente el tipo de examen requerido (<strong>Portafolio Clínico, Biología Molecular qPCR o Microbiota</strong>) para registrar la orden diagnóstica pertinente.
                   </p>
                 </div>
               </div>
@@ -1225,7 +1360,7 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                   disabled={submitting}
                   className="px-5 py-2.5 bg-[#6F2BCC] hover:bg-[#581ea3] text-white rounded-xl text-xs font-black transition-all shadow-md cursor-pointer flex items-center gap-1.5"
                 >
-                  <span>{submitting ? 'Procesando...' : 'Guardar y Solicitar Examen qPCR'}</span>
+                  <span>{submitting ? 'Procesando...' : 'Guardar y Solicitar Examen'}</span>
                   <span>✨</span>
                 </button>
               </div>

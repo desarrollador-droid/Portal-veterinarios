@@ -36,6 +36,8 @@ export default function VeterinariansPortal() {
   const [activeClinic, setActiveClinic] = useState(null);
   const [examModulePatient, setExamModulePatient] = useState(null);
   const [examModuleType, setExamModuleType] = useState('nuevo');
+  const [examModuleCategory, setExamModuleCategory] = useState(null);
+  const [examModuleInitialExam, setExamModuleInitialExam] = useState(null);
   const [temporalEvolutionPatient, setTemporalEvolutionPatient] = useState(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
@@ -97,9 +99,11 @@ export default function VeterinariansPortal() {
   };
 
   // Apertura y gestión del Módulo "Nuevo Examen" desde el panel
-  const handleOpenExamModule = (patient = null, initialType = 'nuevo') => {
+  const handleOpenExamModule = (patient = null, initialType = 'nuevo', initialCategory = null, initialExam = null) => {
     setExamModulePatient(patient);
     setExamModuleType(initialType);
+    setExamModuleCategory(initialCategory);
+    setExamModuleInitialExam(initialExam);
     setSelectedPatient(null);
     setShowGeneralExamModal(false);
     setActiveModule('nuevo-examen');
@@ -109,6 +113,8 @@ export default function VeterinariansPortal() {
     setActiveModule('pacientes');
     setExamModulePatient(null);
     setExamModuleType('nuevo');
+    setExamModuleCategory(null);
+    setExamModuleInitialExam(null);
   };
 
   const handleNavigateToTracking = () => {
@@ -282,6 +288,8 @@ export default function VeterinariansPortal() {
             <NewExamModule
               patient={examModulePatient}
               initialExamType={examModuleType}
+              initialRequestCategory={examModuleCategory}
+              initialClinicalExam={examModuleInitialExam}
               patients={patients.filter((p) => p.status !== 'fallecido')}
               onClose={handleCloseExamModule}
               onNavigateToTracking={handleNavigateToTracking}
@@ -316,7 +324,10 @@ export default function VeterinariansPortal() {
 
           {/* MÓDULO 5B: CATÁLOGO CLÍNICAS (Portafolio Diagnóstico Clínico 2026) */}
           {activeModule === 'catalogo-clinicas' && (
-            <ClinicalCatalogView />
+            <ClinicalCatalogView
+              patients={patients}
+              onNavigateToRequestExam={(exam) => handleOpenExamModule(null, 'nuevo', 'clinicas', exam)}
+            />
           )}
 
           {/* MÓDULO 6: EVOLUCIÓN TEMPORAL & ANALÍTICAS LONGITUDINALES */}

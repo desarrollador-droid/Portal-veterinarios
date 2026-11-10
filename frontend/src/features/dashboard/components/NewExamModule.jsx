@@ -10,6 +10,8 @@ export default function NewExamModule({
   patient,
   patients = [],
   initialExamType = 'nuevo',
+  initialRequestCategory = null,
+  initialClinicalExam = null,
   onClose,
   onRequest,
   onNavigateToTracking,
@@ -21,6 +23,8 @@ export default function NewExamModule({
         patient={patient}
         patients={patients}
         initialExamType={initialExamType}
+        initialRequestCategory={initialRequestCategory}
+        initialClinicalExam={initialClinicalExam}
         onClose={onClose}
         onRequest={onRequest}
         onNavigateToTracking={onNavigateToTracking}
