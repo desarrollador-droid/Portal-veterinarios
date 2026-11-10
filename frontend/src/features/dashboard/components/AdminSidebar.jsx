@@ -132,6 +132,7 @@ function TeamPermissionsIcon({ className = "w-5 h-5 text-[#6F2BCC]" }) {
  * - Iconos: Alternados entre Morado (#6F2BCC) y Azul Menta (#01FADA / #009e8a)
  */
 export default function AdminSidebar({
+  currentUser = null,
   activeModule = 'pacientes',
   onSelectModule,
   onOpenNewPatientWizard,
@@ -139,6 +140,7 @@ export default function AdminSidebar({
   isCollapsed = false,
   onToggleCollapse,
   activeClinic = null,
+  onLogout = null,
 }) {
   const menuItems = [
     {
@@ -207,6 +209,13 @@ export default function AdminSidebar({
     },
   ];
 
+  const filteredMenuItems = menuItems.filter((item) => {
+    if (item.id === 'clinica-equipo' && currentUser?.isVeterinarioAsociado && !currentUser?.vetPermisos?.configuracion_clinica) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <aside
       className={`bg-[#eceff4] border-r border-slate-300/80 text-slate-800 h-screen sticky top-0 flex flex-col justify-between transition-all duration-300 select-none z-40 shrink-0 font-body ${
@@ -265,7 +274,7 @@ export default function AdminSidebar({
           )}
 
           <nav className="space-y-1.5">
-            {menuItems.map((item) => {
+            {filteredMenuItems.map((item) => {
               const isActive = activeModule === item.id;
               return (
                 <button
@@ -347,12 +356,12 @@ export default function AdminSidebar({
 
         <div
           onClick={() => onSelectModule('perfil-veterinaria')}
-          title="Ver y configurar perfil de la veterinaria"
+          title={currentUser?.isVeterinarioAsociado ? 'Ver perfil de médico veterinario' : 'Ver y configurar perfil de la veterinaria'}
           className="flex items-center gap-3 p-1.5 -mx-1.5 rounded-xl hover:bg-white/70 transition-all cursor-pointer group"
         >
           <div className="relative shrink-0">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#6F2BCC] to-[#01FADA] text-white font-black text-xs flex items-center justify-center shadow-sm border border-white group-hover:scale-105 transition-transform">
-              {activeClinic?.type === 'independiente' ? '🩺' : '🏥'}
+              {currentUser?.isVeterinarioAsociado ? '🩺' : ((currentUser?.type || activeClinic?.type) === 'independiente' ? '🩺' : '🏥')}
             </div>
             <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#01FADA] ring-2 ring-white" />
           </div>
@@ -360,26 +369,45 @@ export default function AdminSidebar({
           {!isCollapsed && (
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1">
-                <span className="text-xs font-bold text-[#2B017C] block truncate leading-tight group-hover:text-[#6F2BCC] transition-colors">
-                  {activeClinic?.type === 'independiente'
-                    ? (activeClinic.nombreMedico || 'Dr. Alejandro Morales')
-                    : (activeClinic?.nombreVeterinaria || 'Clínica Animal Health')}
+                <span className="text-xs font-bold text-[#2B017C] dark:text-white block truncate leading-tight group-hover:text-[#6F2BCC] dark:group-hover:text-[#01FADA] transition-colors">
+                  {currentUser?.isVeterinarioAsociado
+                    ? currentUser.vetNombre
+                    : (currentUser?.nombre || (activeClinic?.type === 'independiente' ? activeClinic?.nombreMedico : activeClinic?.nombreVeterinaria) || 'Mi Clínica')}
                 </span>
-                <span className="text-[10px]" title="Admin Principal">👑</span>
+                {currentUser?.isVeterinarioAsociado ? (
+                  <span className="text-[10px]" title="Médico Veterinario">🩺</span>
+                ) : (
+                  <span className="text-[10px]" title="Admin Principal">👑</span>
+                )}
               </div>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-[10px] text-[#6F2BCC] font-semibold block truncate leading-none">
-                  {activeClinic?.type === 'independiente'
-                    ? 'Médico Independiente'
-                    : (activeClinic?.directorMedico?.nombre || 'Dr. Alejandro Morales')}
+                <span className="text-[10px] text-[#6F2BCC] dark:text-[#01FADA] font-semibold block truncate leading-none">
+                  {currentUser?.isVeterinarioAsociado
+                    ? (currentUser.nombre || activeClinic?.nombreVeterinaria || 'Clínica Principal')
+                    : (currentUser?.director || activeClinic?.directorMedico?.nombre || ((currentUser?.type || activeClinic?.type) === 'independiente' ? 'Médico Independiente' : 'Director Médico'))}
                 </span>
                 <span className="text-[9px] bg-[#6F2BCC] text-white px-1 py-0.2 rounded font-black font-mono">
-                  Admin
+                  {currentUser?.isVeterinarioAsociado ? (currentUser.vetRolNombre || 'Médico') : 'Admin'}
                 </span>
               </div>
             </div>
           )}
         </div>
+
+        {/* Botón de Cerrar Sesión */}
+        {onLogout && (
+          <button
+            type="button"
+            onClick={onLogout}
+            title="Cerrar sesión activa"
+            className={`w-full mt-2.5 flex items-center justify-center gap-2 py-1.5 px-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 border border-slate-300 dark:border-slate-700 transition-all cursor-pointer ${
+              isCollapsed ? 'px-0' : ''
+            }`}
+          >
+            <span>🚪</span>
+            {!isCollapsed && <span>Cerrar sesión</span>}
+          </button>
+        )}
       </div>
     </aside>
   );

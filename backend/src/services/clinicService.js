@@ -1,4 +1,5 @@
 import { INITIAL_CLINICS, ROLE_PRESETS } from '../models/clinicModel.js';
+import { keaService } from './keaService.js';
 
 let clinics = [...INITIAL_CLINICS];
 
@@ -55,7 +56,20 @@ export const clinicService = {
   /**
    * Obtiene la clínica o médico marcado como actualmente activo en la sesión
    */
-  getActiveClinic() {
+  getActiveClinic({ clinicId, nit } = {}) {
+    const cleanNit = nit ? cleanNumber(nit) : '';
+    if (clinicId) {
+      const found = clinics.find((c) => c.id === clinicId);
+      if (found) return found;
+    }
+    if (cleanNit) {
+      const found = clinics.find((c) => {
+        const cNit = cleanNumber(c.nit);
+        const cCed = cleanNumber(c.cedula);
+        return (cNit && cNit === cleanNit) || (cCed && cCed === cleanNit);
+      });
+      if (found) return found;
+    }
     const active = clinics.find((c) => c.esClinicaActiva);
     return active || clinics[0] || null;
   },
@@ -78,58 +92,64 @@ export const clinicService = {
   },
 
   /**
-   * Registra una nueva veterinaria o médico independiente
+   * Registra una nueva veterinaria o médico independiente (en Kea Tools DB y local)
    */
-  create(data) {
+  async create(data) {
     const type = data.type === 'independiente' ? 'independiente' : 'veterinaria';
+    const nombreEntidad = (data.nombreVeterinaria || data.nombreEmpresa || data.nombreMedico || '').trim();
+    const nitOrCedula = (data.nit || data.cedula || '').trim();
 
-    // Validaciones estrictas según especificación de usuario
+    const directorNombre = (data.directorMedico?.nombre || data.nombreDirectorMedico || '').trim();
+    const directorTelefono = (data.directorMedico?.telefono || data.telefonoDirectorMedico || '').trim();
+    const adminNombre = (data.administrativa?.nombreResponsable || data.nombreResponsablePagos || '').trim();
+    const adminTelefono = (data.administrativa?.telefonoPagos || data.telefonoPagos || '').trim();
+    const ciudad = (data.recoleccion?.ciudad || data.ciudad || '').trim();
+    const direccion = (data.recoleccion?.direccionFisica || data.direccionFisica || '').trim();
+    const correoFact = (data.correos?.facturacion || data.correoFacturacion || '').trim().toLowerCase();
+    const correoRes = (data.correos?.resultados || correoFact).trim().toLowerCase();
+    const rutNum = (data.documentos?.rutNumero || data.rutNumero || nitOrCedula).trim();
+
+    // Validaciones según modalidad
     if (type === 'veterinaria') {
-      if (!data.nombreVeterinaria?.trim()) {
-        throw new Error('El nombre de la veterinaria es obligatorio');
+      if (!nombreEntidad) {
+        throw new Error('El nombre de la empresa o clínica veterinaria es obligatorio');
       }
-      if (!data.nit?.trim()) {
-        throw new Error('El NIT de la empresa es obligatorio (sin puntos ni guiones)');
+      if (!nitOrCedula) {
+        throw new Error('El NIT o Cédula de la empresa solicitante es obligatorio');
       }
-      if (!data.directorMedico?.nombre?.trim()) {
+      if (!directorNombre) {
         throw new Error('El nombre del director médico / responsable del área médica es obligatorio');
       }
-      if (!data.directorMedico?.telefono?.trim()) {
+      if (!directorTelefono) {
         throw new Error('El teléfono del director médico es obligatorio');
       }
     } else {
-      if (!data.nombreMedico?.trim()) {
+      if (!nombreEntidad) {
         throw new Error('El nombre completo del médico veterinario es obligatorio');
       }
-      if (!data.cedula?.trim()) {
+      if (!nitOrCedula) {
         throw new Error('La cédula del médico veterinario es obligatoria (sin puntos ni guiones)');
-      }
-      if (!data.tarjetaProfesional?.trim()) {
-        throw new Error('La tarjeta profesional del médico veterinario es obligatoria');
       }
     }
 
     // Validaciones comunes obligatorias
-    if (!data.administrativa?.nombreResponsable?.trim()) {
-      throw new Error('El nombre del responsable del área administrativa es obligatorio');
+    if (!adminNombre) {
+      throw new Error('El nombre del responsable del área administrativa o de facturación es obligatorio');
     }
-    if (!data.administrativa?.telefonoPagos?.trim()) {
+    if (!adminTelefono) {
       throw new Error('El teléfono del responsable de pagos es obligatorio');
     }
-    if (!data.recoleccion?.ciudad?.trim()) {
+    if (!ciudad) {
       throw new Error('La ciudad de recolección es obligatoria');
     }
-    if (!data.recoleccion?.direccionFisica?.trim()) {
+    if (!direccion) {
       throw new Error('La dirección física de recolección es obligatoria');
     }
-    if (!data.correos?.facturacion?.trim()) {
+    if (!correoFact) {
       throw new Error('El correo electrónico para facturación es obligatorio');
     }
-    if (!data.correos?.resultados?.trim()) {
-      throw new Error('El correo electrónico para reporte de resultados es obligatorio');
-    }
-    if (!data.documentos?.rutNumero?.trim()) {
-      throw new Error('El número de RUT es obligatorio (sin puntos ni guiones)');
+    if (!rutNum) {
+      throw new Error('El número de RUT o Cédula es obligatorio');
     }
 
     const id = `${type}-${Date.now().toString().slice(-6)}`;
@@ -140,45 +160,30 @@ export const clinicService = {
       {
         id: `sede-${Date.now().toString().slice(-4)}`,
         nombreSede: type === 'veterinaria'
-          ? (data.nombreVeterinaria ? `${data.nombreVeterinaria} - Sede Principal` : 'Sede Principal')
+          ? (nombreEntidad ? `${nombreEntidad} - Sede Principal` : 'Sede Principal')
           : 'Consultorio Particular',
         esPrincipal: true,
         consecutivoNit: type === 'veterinaria' ? 1 : null,
         codigoSedeNit: type === 'veterinaria' ? '#nit-1' : '',
         tipoPunto: type === 'veterinaria' ? 'sede_principal' : 'consultorio_independiente',
-        departamento: data.recoleccion.departamento?.trim() || 'Bogotá',
-        ciudad: data.recoleccion.ciudad.trim(),
-        direccionFisica: data.recoleccion.direccionFisica.trim(),
-        detallesAdicionales: data.recoleccion.detallesAdicionales?.trim() || '',
-        telefonoContacto: type === 'veterinaria' ? data.directorMedico?.telefono || '' : data.administrativa?.telefonoPagos || '',
-        responsableSede: type === 'veterinaria' ? data.directorMedico?.nombre || '' : data.nombreMedico || '',
-        indicacionesRuta: data.recoleccion.indicacionesRuta?.trim() || 'Donde el repartidor recogerá las muestras',
-        correoResultadosSede: data.correos.resultados?.trim() || '',
+        departamento: data.recoleccion?.departamento?.trim() || 'Colombia',
+        ciudad: ciudad,
+        direccionFisica: direccion,
+        detallesAdicionales: data.recoleccion?.detallesAdicionales?.trim() || '',
+        telefonoContacto: type === 'veterinaria' ? directorTelefono : adminTelefono,
+        responsableSede: type === 'veterinaria' ? directorNombre : nombreEntidad,
+        indicacionesRuta: data.recoleccion?.indicacionesRuta?.trim() || 'Donde el repartidor recogerá las muestras',
+        correoResultadosSede: correoRes,
       },
     ];
 
     // Veterinarios asociados iniciales:
-    // Si es veterinaria, registra su equipo médico inicial.
-    // Si es independiente, opera de forma autónoma sin veterinarios asociados a cargo.
-    const initialVets = type === 'veterinaria'
-      ? (Array.isArray(data.veterinariosAsociados) && data.veterinariosAsociados.length > 0
-          ? data.veterinariosAsociados
-          : [
-              {
-                id: `vet-${Date.now().toString().slice(-4)}`,
-                nombre: data.directorMedico?.nombre || 'Director Médico',
-                especialidad: 'Director Médico / Medicina General',
-                tarjetaProfesional: 'COMVEZCOL-REG',
-                email: data.correos.resultados || '',
-                telefono: data.directorMedico?.telefono || '',
-                sedeId: initialSedes[0]?.id || '',
-                sedeNombre: initialSedes[0]?.nombreSede || '',
-                estado: 'activo',
-                esDirector: true,
-                fechaVinculacion: now.slice(0, 10),
-              },
-            ])
+    // Una clínica nueva inicia con lista limpia [] de veterinarios hasta que vincule su propio equipo
+    const initialVets = Array.isArray(data.veterinariosAsociados) && data.veterinariosAsociados.length > 0
+      ? data.veterinariosAsociados
       : [];
+
+    const contrasena = (data.contrasena || data.password || data.pin || '').trim();
 
     const newClinic = {
       id,
@@ -187,38 +192,50 @@ export const clinicService = {
       asociadoVeterinaria: null, // Profesional independiente: no se encuentra asociado a ninguna veterinaria
       asociacionClinica: type === 'independiente' ? 'Sin asociación a clínica (Profesional Autónomo)' : null,
       especialidad: type === 'independiente' ? (data.especialidad || 'Medicina General') : '',
-      nit: type === 'veterinaria' ? cleanNumber(data.nit) : '',
-      nombreVeterinaria: type === 'veterinaria' ? data.nombreVeterinaria.trim() : '',
+      nit: cleanNumber(nitOrCedula),
+      contrasena: contrasena,
+      password: contrasena,
+      nombreVeterinaria: type === 'veterinaria' ? nombreEntidad : '',
       tieneMultiplesSedes: Boolean(data.tieneMultiplesSedes ?? (initialSedes.length > 1)),
       directorMedico: {
-        nombre: type === 'veterinaria' ? (data.directorMedico?.nombre || '').trim() : '',
-        telefono: type === 'veterinaria' ? (data.directorMedico?.telefono || '').trim() : '',
+        nombre: directorNombre,
+        telefono: directorTelefono,
       },
-      cedula: type === 'independiente' ? cleanNumber(data.cedula) : '',
-      nombreMedico: type === 'independiente' ? data.nombreMedico.trim() : '',
-      tarjetaProfesional: type === 'independiente' ? data.tarjetaProfesional.trim() : '',
+      cedula: type === 'independiente' ? cleanNumber(nitOrCedula) : '',
+      nombreMedico: type === 'independiente' ? nombreEntidad : '',
+      tarjetaProfesional: type === 'independiente' ? (data.tarjetaProfesional || '').trim() : '',
       administrativa: {
-        nombreResponsable: data.administrativa.nombreResponsable.trim(),
-        telefonoPagos: data.administrativa.telefonoPagos.trim(),
+        nombreResponsable: adminNombre,
+        telefonoPagos: adminTelefono,
       },
       recoleccion: {
-        departamento: data.recoleccion.departamento?.trim() || 'Bogotá',
-        ciudad: data.recoleccion.ciudad.trim(),
-        direccionFisica: data.recoleccion.direccionFisica.trim(),
-        detallesAdicionales: data.recoleccion.detallesAdicionales?.trim() || '',
-        indicacionesRuta: data.recoleccion.indicacionesRuta?.trim() || 'Donde el repartidor recogerá las muestras',
+        departamento: data.recoleccion?.departamento?.trim() || 'Colombia',
+        ciudad: ciudad,
+        direccionFisica: direccion,
+        detallesAdicionales: data.recoleccion?.detallesAdicionales?.trim() || '',
+        indicacionesRuta: data.recoleccion?.indicacionesRuta?.trim() || 'Donde el repartidor recogerá las muestras',
       },
       sedes: initialSedes,
       veterinariosAsociados: initialVets,
       correos: {
-        facturacion: data.correos.facturacion.trim().toLowerCase(),
-        resultados: data.correos.resultados.trim().toLowerCase(),
+        facturacion: correoFact,
+        resultados: correoRes,
       },
       documentos: {
-        rutNumero: cleanNumber(data.documentos.rutNumero),
-        rutArchivo: data.documentos.rutArchivo || 'RUT_Cargado.pdf',
-        tarjetaProfesionalArchivo: type === 'independiente' ? data.documentos.tarjetaProfesionalArchivo || 'TP_Documento.pdf' : null,
+        rutNumero: cleanNumber(rutNum),
+        rutArchivo: data.documentos?.rutArchivo || data.rutFileName || 'RUT_Cargado.pdf',
+        tarjetaProfesionalArchivo: type === 'independiente' ? data.documentos?.tarjetaProfesionalArchivo || null : null,
       },
+      // Campos de caracterización y bienvenida OSD
+      capacitacionOSD: data.capacitacionOSD || '',
+      capacitacionQpcr: data.capacitacionQpcr || '',
+      capacitacionQpcrOtro: data.capacitacionQpcrOtro || '',
+      cantidadVeterinarios: data.cantidadVeterinarios || '',
+      cuentaConEspecialistas: data.cuentaConEspecialistas || '',
+      especialistas: Array.isArray(data.especialistas) ? data.especialistas : [],
+      frecuenciaPcrMensual: data.frecuenciaPcrMensual || '',
+      medioConocisteOSD: data.medioConocisteOSD || '',
+      observaciones: data.observaciones || '',
       terminosAceptados: data.terminosAceptados ?? true,
       fechaAceptacionTerminos: now,
       estado: data.estado || 'activo',
@@ -228,12 +245,103 @@ export const clinicService = {
       updatedAt: now,
     };
 
+    // Persistir directamente en la tabla VETERINARIA de Kea Tools DB
+    try {
+      const keaCreated = await keaService.createVeterinariaInKea({
+        ...data,
+        type,
+        nit: nitOrCedula,
+        nombreEmpresa: nombreEntidad,
+        contrasena: contrasena,
+        correoFacturacion: correoFact,
+        ciudad: ciudad,
+        direccionFisica: direccion,
+        nombreDirectorMedico: directorNombre,
+        telefonoDirectorMedico: directorTelefono,
+        telefonoPagos: adminTelefono,
+      });
+      if (keaCreated) {
+        newClinic.keaRecordId = keaCreated.keaRecordId || keaCreated.id;
+        newClinic.id = `kea-vet-${keaCreated.keaRecordId || keaCreated.id}`;
+        console.log(`[Kea DB] Cliente/Veterinaria guardado con éxito en Kea Tools DB con ID: ${newClinic.id}`);
+      }
+    } catch (keaErr) {
+      console.warn(`[Kea DB] No se pudo guardar en Kea Tools DB (${keaErr.message}). Continuando con guardado local.`);
+    }
+
     if (newClinic.esClinicaActiva) {
       clinics = clinics.map((c) => ({ ...c, esClinicaActiva: false }));
     }
 
     clinics.unshift(newClinic);
     return newClinic;
+  },
+
+  /**
+   * Sincroniza la lista de veterinarias y clientes desde la tabla VETERINARIA de Kea Tools DB
+   * Trae los registros más recientes del final de la tabla y los iniciales
+   */
+  async syncFromKea() {
+    try {
+      const res = await keaService.fetchVeterinariasFromKea({ limit: 100, latestFirst: true });
+      if (res && Array.isArray(res.clinics)) {
+        res.clinics.forEach((kc) => {
+          const existingIdx = clinics.findIndex((c) => cleanNumber(c.nit) === cleanNumber(kc.nit));
+          if (existingIdx !== -1) {
+            clinics[existingIdx] = {
+              ...clinics[existingIdx],
+              ...kc,
+              contrasena: kc.contrasena || clinics[existingIdx].contrasena || '',
+              password: kc.contrasena || clinics[existingIdx].contrasena || '',
+            };
+          } else {
+            clinics.push(kc);
+          }
+        });
+
+        // Sincronizar también los médicos veterinarios de la tabla VETERINARIO de Kea
+        try {
+          const vetsRes = await keaService.fetchVeterinariosFromKea({ limit: 200 });
+          if (vetsRes?.veterinarians && Array.isArray(vetsRes.veterinarians)) {
+            vetsRes.veterinarians.forEach((kv) => {
+              const vetClinicNit = cleanNumber(kv.veterinariaNit);
+              if (!vetClinicNit) return;
+              const targetClinic = clinics.find((c) => cleanNumber(c.nit) === vetClinicNit);
+              if (targetClinic) {
+                if (!Array.isArray(targetClinic.veterinariosAsociados)) {
+                  targetClinic.veterinariosAsociados = [];
+                }
+                const existingVetIdx = targetClinic.veterinariosAsociados.findIndex(
+                  (v) => (v.keaId && v.keaId === kv.keaId) || (v.tarjetaProfesional && v.tarjetaProfesional === kv.tarjetaProfesional)
+                );
+                if (existingVetIdx !== -1) {
+                  targetClinic.veterinariosAsociados[existingVetIdx] = {
+                    ...targetClinic.veterinariosAsociados[existingVetIdx],
+                    ...kv,
+                    permisos: targetClinic.veterinariosAsociados[existingVetIdx].permisos || kv.permisos,
+                  };
+                } else {
+                  targetClinic.veterinariosAsociados.push(kv);
+                }
+              }
+            });
+          }
+        } catch (vetErr) {
+          console.warn('[Kea DB] No se pudieron sincronizar médicos veterinarios desde Kea:', vetErr.message);
+        }
+
+        return {
+          success: true,
+          syncedCount: res.clinics.length,
+          total: res.total,
+          clinics,
+        };
+      }
+    } catch (err) {
+      console.warn('[Kea DB] Error al sincronizar veterinarias desde Kea:', err.message);
+      return { success: false, message: err.message, clinics };
+    }
+    return { success: true, syncedCount: 0, clinics };
   },
 
   /**
@@ -413,28 +521,96 @@ export const clinicService = {
   },
 
   /**
-   * Añade un nuevo veterinario asociado
+   * Sincroniza médicos veterinarios asociados específicamente a una clínica desde Kea Tools DB
    */
-  addVeterinarian(clinicId, vetData) {
+  async syncVeterinariansForClinic(clinicId) {
+    const clinic = this.getById(clinicId);
+    if (!clinic) throw new Error('Veterinaria no encontrada');
+
+    const clinicNit = cleanNumber(clinic.nit || clinic.cedula);
+    if (!clinicNit) return { success: true, veterinarians: clinic.veterinariosAsociados || [], clinic };
+
+    try {
+      const res = await keaService.fetchVeterinariosFromKea({ limit: 100, clinicNit });
+      if (res?.veterinarians) {
+        if (!Array.isArray(clinic.veterinariosAsociados)) {
+          clinic.veterinariosAsociados = [];
+        }
+        res.veterinarians.forEach((kv) => {
+          const existingIdx = clinic.veterinariosAsociados.findIndex(
+            (v) => (v.keaId && v.keaId === kv.keaId) || (v.tarjetaProfesional && v.tarjetaProfesional === kv.tarjetaProfesional)
+          );
+          if (existingIdx !== -1) {
+            clinic.veterinariosAsociados[existingIdx] = {
+              ...clinic.veterinariosAsociados[existingIdx],
+              ...kv,
+              permisos: clinic.veterinariosAsociados[existingIdx].permisos || kv.permisos,
+            };
+          } else {
+            clinic.veterinariosAsociados.push(kv);
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('[Kea DB] Error al sincronizar veterinarios de la clínica:', err.message);
+    }
+
+    return {
+      success: true,
+      veterinarians: clinic.veterinariosAsociados,
+      clinic,
+    };
+  },
+
+  /**
+   * Añade un nuevo veterinario asociado y lo persiste en la BD Kea Tools asociándolo al NIT de la clínica
+   */
+  async addVeterinarian(clinicId, vetData) {
     const clinic = this.getById(clinicId);
     if (!clinic) throw new Error('Veterinaria no encontrada');
 
     if (!vetData.nombre?.trim()) throw new Error('El nombre completo del veterinario es obligatorio');
     if (!vetData.tarjetaProfesional?.trim()) throw new Error('El número de tarjeta profesional es obligatorio');
 
+    const contrasena = String(vetData.password || vetData.contrasena || vetData.pin || '').trim();
     const newVet = {
       id: `vet-${Date.now().toString().slice(-6)}`,
       nombre: vetData.nombre.trim(),
       especialidad: vetData.especialidad?.trim() || 'Medicina General',
       tarjetaProfesional: vetData.tarjetaProfesional.trim(),
-      email: vetData.email?.trim() || '',
-      telefono: vetData.telefono?.trim() || '',
+      cedula: (vetData.cedula || '').trim(),
+      email: (vetData.email || '').trim(),
+      telefono: (vetData.telefono || '').trim(),
+      contrasena: contrasena,
+      password: contrasena,
+      rol: vetData.rol || 'veterinario_planta',
+      rolNombre: ROLE_PRESETS[vetData.rol]?.nombre || 'Veterinario de Planta',
+      permisos: vetData.permisos || (ROLE_PRESETS[vetData.rol]?.permisos) || {},
+      tipoAsignacion: vetData.tipoAsignacion || 'fija',
+      sedesRotativas: vetData.sedesRotativas || [],
+      diasRotacion: vetData.diasRotacion || '',
+      ciudad: (vetData.ciudad || clinic.recoleccion?.ciudad || 'Medellín').trim(),
       sedeId: vetData.sedeId || (clinic.sedes?.[0]?.id || ''),
       sedeNombre: vetData.sedeNombre || (clinic.sedes?.[0]?.nombreSede || 'Sede Principal'),
-      estado: vetData.estado || 'activo', // 'activo' | 'inactivo'
-      esDirector: Boolean(vetData.esDirector),
+      estado: vetData.estado || 'activo', // 'activo' | 'inactivo' | 'bloqueado'
+      bloqueadoPorAdmin: vetData.estado === 'bloqueado',
+      motivoBloqueo: vetData.estado === 'bloqueado' ? (vetData.motivoBloqueo || 'Bloqueado por el Administrador') : '',
+      esDirector: Boolean(vetData.esDirector || vetData.rol === 'director_medico'),
       fechaVinculacion: new Date().toISOString().slice(0, 10),
+      veterinariaNit: clinic.nit || clinic.cedula || '',
     };
+
+    // Guardar directamente en la tabla VETERINARIO de Kea Tools DB
+    try {
+      const keaCreated = await keaService.createVeterinarioInKea(newVet, clinic.nit || clinic.cedula);
+      if (keaCreated) {
+        newVet.keaId = keaCreated.keaId;
+        newVet.id = keaCreated.id;
+        console.log(`[Kea DB] Médico veterinario asociado creado con éxito en Kea Tools DB: ${newVet.id} para clínica NIT ${clinic.nit}`);
+      }
+    } catch (keaErr) {
+      console.warn(`[Kea DB] No se pudo guardar veterinario en Kea Tools DB (${keaErr.message}). Continuando con guardado local.`);
+    }
 
     if (!clinic.veterinariosAsociados) clinic.veterinariosAsociados = [];
     clinic.veterinariosAsociados.push(newVet);
@@ -446,17 +622,29 @@ export const clinicService = {
   /**
    * Actualiza datos de un veterinario asociado
    */
-  updateVeterinarian(clinicId, vetId, updates) {
+  async updateVeterinarian(clinicId, vetId, updates) {
     const clinic = this.getById(clinicId);
     if (!clinic) throw new Error('Veterinaria no encontrada');
 
     const idx = (clinic.veterinariosAsociados || []).findIndex((v) => v.id === vetId);
     if (idx === -1) throw new Error('Veterinario asociado no encontrado');
 
-    clinic.veterinariosAsociados[idx] = {
-      ...clinic.veterinariosAsociados[idx],
+    const prevVet = clinic.veterinariosAsociados[idx];
+    const updatedVet = {
+      ...prevVet,
       ...updates,
     };
+
+    if (prevVet.keaId) {
+      try {
+        await keaService.updateVeterinarioInKea(prevVet.keaId, updates);
+        console.log(`[Kea DB] Veterinario ${prevVet.keaId} actualizado con éxito en Kea Tools DB.`);
+      } catch (keaErr) {
+        console.warn(`[Kea DB] No se pudo actualizar veterinario en Kea (${keaErr.message}).`);
+      }
+    }
+
+    clinic.veterinariosAsociados[idx] = updatedVet;
     clinic.updatedAt = new Date().toISOString();
     return clinic;
   },

@@ -444,6 +444,20 @@ export const patientApi = {
       return response.data.data;
     } catch {
       let list = [...localPatientsStore];
+      const targetNit = String(params.nit || params.clinicNit || '').replace(/[^0-9]/g, '').trim();
+      const targetClinicId = params.clinicId ? String(params.clinicId).trim().toLowerCase() : '';
+      if (targetNit || targetClinicId) {
+        list = list.filter((p) => {
+          if (targetNit) {
+            const pNit = String(p.clinicNit || p.nit || p.veterinaria || '').replace(/[^0-9]/g, '').trim();
+            if (pNit && pNit === targetNit) return true;
+            if (p.codigoSedeNit && String(p.codigoSedeNit).replace(/[^0-9]/g, '').trim() === targetNit) return true;
+          }
+          if (targetClinicId && p.clinicId && String(p.clinicId).toLowerCase() === targetClinicId) return true;
+          return false;
+        });
+      }
+
       if (params.sedeId && params.sedeId !== 'all' && params.sedeId !== 'Todas') {
         list = list.filter((p) => p.sedeId === params.sedeId);
       }
@@ -461,6 +475,20 @@ export const patientApi = {
       return response.data.data;
     } catch {
       let list = [...localPatientsStore];
+      const targetNit = String(filters.nit || filters.clinicNit || '').replace(/[^0-9]/g, '').trim();
+      const targetClinicId = filters.clinicId ? String(filters.clinicId).trim().toLowerCase() : '';
+      if (targetNit || targetClinicId) {
+        list = list.filter((p) => {
+          if (targetNit) {
+            const pNit = String(p.clinicNit || p.nit || p.veterinaria || '').replace(/[^0-9]/g, '').trim();
+            if (pNit && pNit === targetNit) return true;
+            if (p.codigoSedeNit && String(p.codigoSedeNit).replace(/[^0-9]/g, '').trim() === targetNit) return true;
+          }
+          if (targetClinicId && p.clinicId && String(p.clinicId).toLowerCase() === targetClinicId) return true;
+          return false;
+        });
+      }
+
       if (filters.sedeId && filters.sedeId !== 'all' && filters.sedeId !== 'Todas') {
         list = list.filter((p) => p.sedeId === filters.sedeId);
       }
@@ -931,9 +959,8 @@ export const patientApi = {
 
       // Guardar directamente en Kea Tools vía POST con sanitización de relaciones
       try {
-        const VALID_NITS = ['900000001', '900000002', '900949599', '1000087681'];
-        const rawNit = String(patientData.codigoSedeNit || '').replace(/[^0-9]/g, '');
-        const nit = VALID_NITS.includes(rawNit) ? rawNit : '900000001';
+        const rawNit = String(patientData.clinicNit || patientData.nit || patientData.codigoSedeNit || '').replace(/[^0-9]/g, '');
+        const nit = rawNit || '900000001';
 
         // Veterinario en Kea es relación en desuso que solo acepta códigos existentes o vacío
         const knownVets = ['TP-PRUEBA-01', 'TP-PRUEBA-02'];
@@ -1092,7 +1119,16 @@ export const patientApi = {
           lastDiagnosticScore: 'Sin registros previos',
         },
         activeExamOrder: null,
-        consultations: [],
+        consultations: [
+          {
+            id: `CON-${Date.now().toString().slice(-4)}`,
+            date: new Date().toLocaleDateString('es-ES'),
+            vet: patientData.attendingVet || 'Dr. Alejandro Morales',
+            reason: 'Apertura de expediente',
+            diagnosis: 'Evaluación inicial.',
+            treatment: 'Apertura de ficha clínica y anamnesis.',
+          },
+        ],
         qpcrExams: [],
         createdAt: new Date().toISOString(),
       };

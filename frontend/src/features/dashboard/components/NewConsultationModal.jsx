@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function NewConsultationModal({ patient, onClose, onConsultationSaved }) {
+export default function NewConsultationModal({ patient, onClose, onConsultationSaved, currentUser = null }) {
   if (!patient) return null;
 
   const now = new Date();
@@ -20,7 +20,7 @@ export default function NewConsultationModal({ patient, onClose, onConsultationS
   const [formData, setFormData] = useState({
     date: defaultDate,
     time: defaultTime,
-    vet: patient.attendingVet || 'Dr. Alejandro Morales',
+    vet: (currentUser?.isVeterinarioAsociado ? currentUser.vetNombre : '') || patient.attendingVet || 'Dr. Alejandro Morales',
     weight: cleanNumeric(patient.weight),
     clinicalStatus: 'Bueno', // bueno, regular, malo, critico, estable
     vitalSignsHeartRate: cleanInt(patient.healthMetrics?.vitalSigns?.heartRate),

@@ -698,8 +698,16 @@ export default function RequestExamModal({
   });
 
   // ============================================================================
-  // CUADRO HEMÁTICO (HEMOGRAMA) (Paso 3)
+  // CUADRO HEMÁTICO (HEMOGRAMA) Y EXAMEN CLÍNICO PREVIO (Paso 3)
   // ============================================================================
+  const [currentClinicalExam, setCurrentClinicalExam] = useState(initialClinicalExam || null);
+  const [hasPreviousClinicalExam, setHasPreviousClinicalExam] = useState(() => {
+    const ch = initialPatient?.cuadroHematico || initialPatient?.medicalAdmission?.cuadroHematico;
+    if (ch?.hasPreviousClinicalExam === false) return 'no';
+    if (ch?.hasCuadroHematico || ch?.fileName || ch?.hematocrito) return 'si';
+    return null;
+  });
+  const [clinicalRiskDisclaimerAccepted, setClinicalRiskDisclaimerAccepted] = useState(false);
   const [hasCuadroHematico, setHasCuadroHematico] = useState(false);
   const [cuadroHematicoFile, setCuadroHematicoFile] = useState(null);
   const [cuadroHematicoFileName, setCuadroHematicoFileName] = useState('');
@@ -960,6 +968,14 @@ export default function RequestExamModal({
       // 5. Cuadro hemático previo si lo tuviera (no volver a pedir)
       const ch = activePatient.cuadroHematico || activePatient.medicalAdmission?.cuadroHematico;
       if (ch) {
+        if (ch.hasPreviousClinicalExam !== undefined) {
+          setHasPreviousClinicalExam(ch.hasPreviousClinicalExam ? 'si' : 'no');
+        } else if (ch.hasCuadroHematico || ch.fileName || ch.hematocrito) {
+          setHasPreviousClinicalExam('si');
+        }
+        if (ch.clinicalRiskDisclaimerAccepted) {
+          setClinicalRiskDisclaimerAccepted(true);
+        }
         if (ch.hasCuadroHematico !== undefined) setHasCuadroHematico(Boolean(ch.hasCuadroHematico));
         if (ch.hematocrito) setCuadroHematicoHematocrito(String(ch.hematocrito));
         if (ch.hemoglobina) setCuadroHematicoHemoglobina(String(ch.hemoglobina));
@@ -980,6 +996,8 @@ export default function RequestExamModal({
       setExamIsSterilized(null);
       setPatientAllergiesList([]);
       setHasAllergiesOption(null);
+      setHasPreviousClinicalExam(null);
+      setClinicalRiskDisclaimerAccepted(false);
     }
   }, [activePatient?.id, activePatient?.isSterilized]);
 
@@ -1672,15 +1690,19 @@ export default function RequestExamModal({
 
         // Cuadro Hemático e Historia Clínica
         cuadroHematico: {
-          hasCuadroHematico,
-          file: cuadroHematicoFile,
-          fileName: cuadroHematicoFileName,
-          fileSize: cuadroHematicoFileSize,
-          hematocrito: cuadroHematicoHematocrito,
-          hemoglobina: cuadroHematicoHemoglobina,
-          leucocitos: cuadroHematicoLeucocitos,
-          plaquetas: cuadroHematicoPlaquetas,
-          observaciones: cuadroHematicoObservaciones.trim(),
+          hasPreviousClinicalExam: hasPreviousClinicalExam === 'si',
+          clinicalRiskDisclaimerAccepted: hasPreviousClinicalExam === 'no' ? Boolean(clinicalRiskDisclaimerAccepted) : null,
+          hasCuadroHematico: hasPreviousClinicalExam === 'si' ? hasCuadroHematico : false,
+          file: hasPreviousClinicalExam === 'si' ? cuadroHematicoFile : null,
+          fileName: hasPreviousClinicalExam === 'si' ? cuadroHematicoFileName : '',
+          fileSize: hasPreviousClinicalExam === 'si' ? cuadroHematicoFileSize : '',
+          hematocrito: hasPreviousClinicalExam === 'si' ? cuadroHematicoHematocrito : '',
+          hemoglobina: hasPreviousClinicalExam === 'si' ? cuadroHematicoHemoglobina : '',
+          leucocitos: hasPreviousClinicalExam === 'si' ? cuadroHematicoLeucocitos : '',
+          plaquetas: hasPreviousClinicalExam === 'si' ? cuadroHematicoPlaquetas : '',
+          observaciones: hasPreviousClinicalExam === 'si'
+            ? cuadroHematicoObservaciones.trim()
+            : (hasPreviousClinicalExam === 'no' ? 'Sin examen clínico previo (Continuó bajo criterio y responsabilidad médica)' : ''),
         },
         historiaClinica: {
           hasHistoriaClinica,
@@ -1758,15 +1780,19 @@ export default function RequestExamModal({
           otherRiskFactors: otherRiskFactorsList.join(', '),
         },
         cuadroHematico: {
-          hasCuadroHematico,
-          file: cuadroHematicoFile,
-          fileName: cuadroHematicoFileName,
-          fileSize: cuadroHematicoFileSize,
-          hematocrito: cuadroHematicoHematocrito,
-          hemoglobina: cuadroHematicoHemoglobina,
-          leucocitos: cuadroHematicoLeucocitos,
-          plaquetas: cuadroHematicoPlaquetas,
-          observaciones: cuadroHematicoObservaciones.trim(),
+          hasPreviousClinicalExam: hasPreviousClinicalExam === 'si',
+          clinicalRiskDisclaimerAccepted: hasPreviousClinicalExam === 'no' ? Boolean(clinicalRiskDisclaimerAccepted) : null,
+          hasCuadroHematico: hasPreviousClinicalExam === 'si' ? hasCuadroHematico : false,
+          file: hasPreviousClinicalExam === 'si' ? cuadroHematicoFile : null,
+          fileName: hasPreviousClinicalExam === 'si' ? cuadroHematicoFileName : '',
+          fileSize: hasPreviousClinicalExam === 'si' ? cuadroHematicoFileSize : '',
+          hematocrito: hasPreviousClinicalExam === 'si' ? cuadroHematicoHematocrito : '',
+          hemoglobina: hasPreviousClinicalExam === 'si' ? cuadroHematicoHemoglobina : '',
+          leucocitos: hasPreviousClinicalExam === 'si' ? cuadroHematicoLeucocitos : '',
+          plaquetas: hasPreviousClinicalExam === 'si' ? cuadroHematicoPlaquetas : '',
+          observaciones: hasPreviousClinicalExam === 'si'
+            ? cuadroHematicoObservaciones.trim()
+            : (hasPreviousClinicalExam === 'no' ? 'Sin examen clínico previo (Continuó bajo criterio y responsabilidad médica)' : ''),
         },
         historiaClinica: {
           hasHistoriaClinica,
@@ -4232,137 +4258,370 @@ export default function RequestExamModal({
                 </div>
               </div>
 
-              {/* 3.4 CUADRO HEMÁTICO (HEMOGRAMA) */}
+              {/* 3.4 EVALUACIÓN CLÍNICA PREVIA Y CUADRO HEMÁTICO (HEMOGRAMA) */}
               <div className="bg-white rounded-2xl border border-slate-200/90 p-5 space-y-4 shadow-2xs">
+                {/* Cabecera */}
                 <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">🩸</span>
                     <div>
                       <h4 className="text-xs font-extrabold text-[#2B017C] uppercase tracking-wider">
-                        Cuadro Hemático / Hemograma de Laboratorio
+                        Evaluación Clínica y Cuadro Hemático
                       </h4>
                       <p className="text-[11px] text-slate-500">
-                        Cargue el resultado del hemograma reciente o ingrese sus valores clave.
+                        Defina si el paciente cuenta con valoración clínica o hemograma de laboratorio previo al perfil molecular.
                       </p>
                     </div>
                   </div>
-                  {hasCuadroHematico && (
+                  {hasPreviousClinicalExam === 'si' && (
                     <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold rounded-lg flex items-center gap-1">
-                      <span>✓</span> Hemograma adjunto
+                      <span>✓</span> {hasCuadroHematico ? 'Hemograma adjunto' : 'Examen clínico previo'}
+                    </span>
+                  )}
+                  {hasPreviousClinicalExam === 'no' && clinicalRiskDisclaimerAccepted && (
+                    <span className="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold rounded-lg flex items-center gap-1">
+                      <span>⚠️</span> Sin examen clínico (Bajo riesgo médico)
                     </span>
                   )}
                 </div>
 
-                {/* Subir archivo de hemograma */}
-                {!hasCuadroHematico ? (
-                  <div className="border-2 border-dashed border-slate-200 hover:border-[#6F2BCC] rounded-2xl p-5 text-center transition-all bg-slate-50/50">
-                    <input
-                      type="file"
-                      id="cuadro-hematico-input"
-                      accept=".pdf,.png,.jpg,.jpeg"
-                      onChange={handleCuadroHematicoFileUpload}
-                      className="hidden"
-                    />
-                    <label htmlFor="cuadro-hematico-input" className="cursor-pointer block">
-                      <span className="text-2xl block mb-1">📄</span>
-                      <span className="text-xs font-bold text-slate-700 block">
-                        Cargar archivo de Cuadro Hemático (PDF o Imagen)
-                      </span>
-                      <span className="text-[10px] text-slate-400 mt-0.5 block">
-                        Formatos soportados: PDF, JPG, PNG (Máx. 15 MB)
-                      </span>
-                    </label>
-                  </div>
-                ) : (
-                  <div className="p-3.5 bg-sky-50/60 border border-sky-200 rounded-xl flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-xl">📊</span>
+                {/* Pregunta Inicial Obligatoria */}
+                <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-2.5">
+                      <span className="text-lg">❓</span>
                       <div>
-                        <span className="text-xs font-bold text-slate-800 block">
-                          {cuadroHematicoFileName}
-                        </span>
-                        <span className="text-[10px] text-slate-500 font-mono">
-                          {cuadroHematicoFileSize} · Archivo de hemograma cargado
-                        </span>
+                        <p className="text-xs font-black text-slate-800">
+                          ¿Ha realizado un examen clínico o hemograma de laboratorio a este paciente anteriormente? <span className="text-rose-500">*</span>
+                        </p>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Indique si cuenta con un reporte reciente para adjuntar o si el paciente aún no ha sido evaluado en clínica.
+                        </p>
                       </div>
                     </div>
+                    {hasPreviousClinicalExam !== null && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHasPreviousClinicalExam(null);
+                          setClinicalRiskDisclaimerAccepted(false);
+                        }}
+                        className="text-[11px] text-[#6F2BCC] hover:underline font-bold shrink-0 cursor-pointer"
+                      >
+                        Cambiar respuesta
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     <button
                       type="button"
-                      onClick={handleRemoveCuadroHematico}
-                      className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                      onClick={() => {
+                        setHasPreviousClinicalExam('si');
+                        setClinicalRiskDisclaimerAccepted(false);
+                      }}
+                      className={`flex items-start gap-3 p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                        hasPreviousClinicalExam === 'si'
+                          ? 'border-[#6F2BCC] bg-purple-50/60 ring-2 ring-[#6F2BCC]/30 shadow-xs'
+                          : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
+                      }`}
                     >
-                      <span>🗑️</span> Quitar
+                      <span className={`text-base p-1.5 rounded-lg shrink-0 ${hasPreviousClinicalExam === 'si' ? 'bg-[#6F2BCC] text-white' : 'bg-slate-100 text-slate-600'}`}>
+                        ✓
+                      </span>
+                      <div>
+                        <span className="text-xs font-bold text-slate-900 block">
+                          Sí, se ha realizado anteriormente
+                        </span>
+                        <span className="text-[10px] text-slate-500 leading-snug block mt-0.5">
+                          Tengo los resultados del cuadro hemático para adjuntarlos o registrar los valores cuantitativos.
+                        </span>
+                      </div>
                     </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHasPreviousClinicalExam('no');
+                        handleRemoveCuadroHematico();
+                        setClinicalRiskDisclaimerAccepted(false);
+                      }}
+                      className={`flex items-start gap-3 p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                        hasPreviousClinicalExam === 'no'
+                          ? 'border-amber-400 bg-amber-50/60 ring-2 ring-amber-400/30 shadow-xs'
+                          : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
+                      }`}
+                    >
+                      <span className={`text-base p-1.5 rounded-lg shrink-0 ${hasPreviousClinicalExam === 'no' ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                        ✕
+                      </span>
+                      <div>
+                        <span className="text-xs font-bold text-slate-900 block">
+                          No, no se ha realizado
+                        </span>
+                        <span className="text-[10px] text-slate-500 leading-snug block mt-0.5">
+                          El paciente no cuenta con examen clínico ni hemograma previo para este caso.
+                        </span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* CASO 1: SELECCIONÓ "SÍ" -> Desplegar carga de archivo y parámetros cuantitativos */}
+                {hasPreviousClinicalExam === 'si' && (
+                  <div className="space-y-4 pt-1 animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                      <span className="text-xs font-extrabold text-[#2B017C] flex items-center gap-1.5">
+                        <span>📎</span> Cargar Cuadro Hemático / Hemograma de Laboratorio
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        Cargue el resultado o ingrese los valores basales
+                      </span>
+                    </div>
+
+                    {/* Subir archivo de hemograma */}
+                    {!hasCuadroHematico ? (
+                      <div className="border-2 border-dashed border-slate-200 hover:border-[#6F2BCC] rounded-2xl p-5 text-center transition-all bg-slate-50/50">
+                        <input
+                          type="file"
+                          id="cuadro-hematico-input"
+                          accept=".pdf,.png,.jpg,.jpeg"
+                          onChange={handleCuadroHematicoFileUpload}
+                          className="hidden"
+                        />
+                        <label htmlFor="cuadro-hematico-input" className="cursor-pointer block">
+                          <span className="text-2xl block mb-1">📄</span>
+                          <span className="text-xs font-bold text-slate-700 block">
+                            Cargar archivo de Cuadro Hemático (PDF o Imagen)
+                          </span>
+                          <span className="text-[10px] text-slate-400 mt-0.5 block">
+                            Formatos soportados: PDF, JPG, PNG (Máx. 15 MB)
+                          </span>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="p-3.5 bg-sky-50/60 border border-sky-200 rounded-xl flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-xl">📊</span>
+                          <div>
+                            <span className="text-xs font-bold text-slate-800 block">
+                              {cuadroHematicoFileName}
+                            </span>
+                            <span className="text-[10px] text-slate-500 font-mono">
+                              {cuadroHematicoFileSize} · Archivo de hemograma cargado
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleRemoveCuadroHematico}
+                          className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                        >
+                          <span>🗑️</span> Quitar
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Parámetros cuantitativos rápidos */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Hematocrito (%)
+                        </label>
+                        <input
+                          type="text"
+                          value={cuadroHematicoHematocrito}
+                          onChange={(e) => setCuadroHematicoHematocrito(e.target.value.replace(/[^0-9.]/g, ''))}
+                          placeholder="Ej. 26.5"
+                          className="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Hemoglobina (g/dL)
+                        </label>
+                        <input
+                          type="text"
+                          value={cuadroHematicoHemoglobina}
+                          onChange={(e) => setCuadroHematicoHemoglobina(e.target.value.replace(/[^0-9.]/g, ''))}
+                          placeholder="Ej. 8.2"
+                          className="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Leucocitos (/µL)
+                        </label>
+                        <input
+                          type="text"
+                          value={cuadroHematicoLeucocitos}
+                          onChange={(e) => setCuadroHematicoLeucocitos(e.target.value.replace(/\D/g, ''))}
+                          placeholder="Ej. 18500"
+                          className="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Plaquetas (/µL)
+                        </label>
+                        <input
+                          type="text"
+                          value={cuadroHematicoPlaquetas}
+                          onChange={(e) => setCuadroHematicoPlaquetas(e.target.value.replace(/\D/g, ''))}
+                          placeholder="Ej. 95000"
+                          className="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                        Observaciones del Hemograma
+                      </label>
+                      <input
+                        type="text"
+                        value={cuadroHematicoObservaciones}
+                        onChange={(e) => setCuadroHematicoObservaciones(e.target.value)}
+                        placeholder="Ej. Trombocitopenia marcada, presencia de mórulas intraplaquetarias..."
+                        className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
+                      />
+                    </div>
                   </div>
                 )}
 
-                {/* Parámetros cuantitativos rápidos */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      Hematocrito (%)
-                    </label>
-                    <input
-                      type="text"
-                      value={cuadroHematicoHematocrito}
-                      onChange={(e) => setCuadroHematicoHematocrito(e.target.value.replace(/[^0-9.]/g, ''))}
-                      placeholder="Ej. 26.5"
-                      className="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
-                    />
-                  </div>
+                {/* CASO 2: SELECCIONÓ "NO" -> ALERTA CLÍNICA EDUCATIVA + OPCIÓN DE SOLICITAR EXAMEN CLÍNICO O DESCARGO */}
+                {hasPreviousClinicalExam === 'no' && (
+                  <div className="space-y-4 pt-1 animate-in fade-in duration-200">
+                    <div className="p-5 rounded-2xl bg-amber-50/90 border-2 border-amber-300 shadow-sm space-y-4">
+                      {/* Cabecera de Alerta */}
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center text-xl shrink-0">
+                          🩺
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="text-xs font-black text-amber-950 uppercase tracking-wider">
+                              Recomendación Médica de VetLab: Solicitud de Examen Clínico / Hemograma
+                            </h4>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200/80 text-amber-900 border border-amber-300">
+                              Importante para el diagnóstico
+                            </span>
+                          </div>
+                          <p className="text-xs text-amber-900 mt-1 font-medium leading-relaxed">
+                            Contar con un examen clínico o hemograma previo optimiza significativamente la precisión del diagnóstico y orienta el tratamiento inmediato del paciente.
+                          </p>
+                        </div>
+                      </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      Hemoglobina (g/dL)
-                    </label>
-                    <input
-                      type="text"
-                      value={cuadroHematicoHemoglobina}
-                      onChange={(e) => setCuadroHematicoHemoglobina(e.target.value.replace(/[^0-9.]/g, ''))}
-                      placeholder="Ej. 8.2"
-                      className="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
-                    />
-                  </div>
+                      {/* Explicación médica de por qué es importante */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                        <div className="p-3 bg-white/95 rounded-xl border border-amber-200/90 shadow-2xs space-y-1">
+                          <span className="text-base block">🔬</span>
+                          <h5 className="text-[11px] font-bold text-slate-800">
+                            Diagnóstico Integral vs Molecular
+                          </h5>
+                          <p className="text-[10px] text-slate-600 leading-relaxed">
+                            La qPCR detecta la presencia de ADN/ARN del patógeno con alta sensibilidad, pero <strong>no evalúa el impacto funcional, celular ni hemodinámico</strong> en el paciente.
+                          </p>
+                        </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      Leucocitos (/µL)
-                    </label>
-                    <input
-                      type="text"
-                      value={cuadroHematicoLeucocitos}
-                      onChange={(e) => setCuadroHematicoLeucocitos(e.target.value.replace(/\D/g, ''))}
-                      placeholder="Ej. 18500"
-                      className="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
-                    />
-                  </div>
+                        <div className="p-3 bg-white/95 rounded-xl border border-amber-200/90 shadow-2xs space-y-1">
+                          <span className="text-base block">🩸</span>
+                          <h5 className="text-[11px] font-bold text-slate-800">
+                            Correlación Fisiopatológica
+                          </h5>
+                          <p className="text-[10px] text-slate-600 leading-relaxed">
+                            Un hemograma permite correlacionar el patógeno con anemia regenerativa/arregenerativa, trombocitopenia, respuesta leucocitaria o inflamación sistémica para actuar a tiempo.
+                          </p>
+                        </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      Plaquetas (/µL)
-                    </label>
-                    <input
-                      type="text"
-                      value={cuadroHematicoPlaquetas}
-                      onChange={(e) => setCuadroHematicoPlaquetas(e.target.value.replace(/\D/g, ''))}
-                      placeholder="Ej. 95000"
-                      className="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
-                    />
-                  </div>
-                </div>
+                        <div className="p-3 bg-white/95 rounded-xl border border-amber-200/90 shadow-2xs space-y-1">
+                          <span className="text-base block">📈</span>
+                          <h5 className="text-[11px] font-bold text-slate-800">
+                            Línea Base y Pronóstico
+                          </h5>
+                          <p className="text-[10px] text-slate-600 leading-relaxed">
+                            Permite establecer valores basales indispensables para monitorear la respuesta terapéutica y evaluar el pronóstico de recuperación del paciente.
+                          </p>
+                        </div>
+                      </div>
 
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                    Observaciones del Hemograma
-                  </label>
-                  <input
-                    type="text"
-                    value={cuadroHematicoObservaciones}
-                    onChange={(e) => setCuadroHematicoObservaciones(e.target.value)}
-                    placeholder="Ej. Trombocitopenia marcada, presencia de mórulas intraplaquetarias..."
-                    className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
-                  />
-                </div>
+                      {/* Pregunta si desea solicitar examen clínico */}
+                      <div className="pt-2 border-t border-amber-200/80 space-y-3">
+                        <p className="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                          <span>💡</span> ¿Desea solicitar un examen clínico / hemograma para este paciente ahora?
+                        </p>
+
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          {/* Opción Sí: Ir al apartado de examen clínico */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const hemogramaExam = CLINICAL_EXAMS.find((e) => e.id === 'clin-001') || null;
+                              setCurrentClinicalExam(hemogramaExam);
+                              setRequestCategory('clinicas');
+                            }}
+                            className="flex-1 px-4 py-3 bg-[#6F2BCC] hover:bg-[#581ea3] text-white rounded-xl text-xs font-extrabold transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+                          >
+                            <span>🩺</span>
+                            <span>Sí, deseo solicitar el examen clínico ahora</span>
+                            <span>→</span>
+                          </button>
+
+                          {/* Opción No: Continuar solo con qPCR */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const el = document.getElementById('clinical-disclaimer-card');
+                              if (el) el.scrollIntoView({ behavior: 'smooth' });
+                            }}
+                            className="px-4 py-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2"
+                          >
+                            <span>✕</span>
+                            <span>No deseo solicitar examen clínico</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Descargo de Responsabilidad Médica ("Bajo su propio riesgo") */}
+                    <div id="clinical-disclaimer-card" className="p-4 rounded-2xl bg-rose-50/70 border-2 border-rose-200 space-y-3 animate-in fade-in duration-200">
+                      <div className="flex items-start gap-2.5">
+                        <span className="text-lg">⚠️</span>
+                        <div className="space-y-1">
+                          <h4 className="text-xs font-black text-rose-900 uppercase tracking-wider">
+                            Descargo de Responsabilidad Médica y Criterio Profesional
+                          </h4>
+                          <p className="text-[11px] text-rose-800 leading-relaxed font-medium">
+                            Al declinar la realización del examen clínico y hemograma previo, el médico veterinario tratante asume plenamente el criterio y la responsabilidad diagnóstica del caso. El laboratorio VetLab procesará el panel molecular qPCR solicitado reportando exclusivamente la amplificación génica del patógeno, dejando <strong>bajo exclusiva responsabilidad y riesgo del médico veterinario solicitante</strong> la evaluación de la estabilidad hemodinámica, soporte vital y manejo integral del paciente.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-rose-200/70">
+                        <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={clinicalRiskDisclaimerAccepted}
+                            onChange={(e) => setClinicalRiskDisclaimerAccepted(e.target.checked)}
+                            className="w-4 h-4 text-rose-600 rounded cursor-pointer mt-0.5 shrink-0 focus:ring-rose-500"
+                          />
+                          <span className="text-xs font-bold text-rose-900 leading-snug">
+                            Entiendo y acepto los riesgos clínicos. Declaro que bajo mi propio criterio y responsabilidad médica solicito procesar el panel molecular qPCR sin contar con examen clínico ni hemograma previo. <span className="text-rose-600">*</span>
+                          </span>
+                        </label>
+                        {clinicalRiskDisclaimerAccepted && (
+                          <div className="mt-2 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 flex items-center gap-1.5">
+                            <span>✓</span> Consentimiento y descargo de responsabilidad médica registrado. Puede continuar al Paso 4.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* 3.5 HISTORIA CLÍNICA (DIRECTAMENTE ABAJO DEL CUADRO HEMÁTICO) */}
@@ -4910,6 +5169,20 @@ export default function RequestExamModal({
                       ))}
                     </div>
                   )}
+
+                  {/* Estado de evaluación clínica / hemograma */}
+                  <div className="flex items-center gap-1.5 flex-wrap pt-0.5 border-t border-slate-100">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase mr-1">Evaluación Clínica:</span>
+                    {hasPreviousClinicalExam === 'si' ? (
+                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                        <span>🩸</span> {hasCuadroHematico ? `Hemograma adjunto (${cuadroHematicoFileName || 'Archivo'})` : 'Examen clínico previo registrado'}
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-800 border border-rose-200 flex items-center gap-1">
+                        <span>⚠️</span> Sin examen clínico previo (Bajo responsabilidad médica)
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -5536,9 +5809,10 @@ export default function RequestExamModal({
           {/* ================================================================== */}
           {!isOrderSuccess && !isControlReviewOpen && requestCategory === 'clinicas' && (
             <ClinicalOrderForm
+              key={currentClinicalExam?.id || 'clinical-form'}
               activePatient={activePatient}
               patients={patients}
-              initialClinicalExam={initialClinicalExam}
+              initialClinicalExam={currentClinicalExam || initialClinicalExam}
               onSelectPatient={(id) => setSelectedPatientId(id)}
               onSubmitOrder={(payload) => handleSubmitClinicalOrder(payload)}
               isSubmitting={isSubmitting}
@@ -5631,7 +5905,17 @@ export default function RequestExamModal({
                   {currentStep === 3 && isAsymptomatic && (
                     <button
                       type="button"
-                      onClick={() => setCurrentStep(4)}
+                      onClick={() => {
+                        if (!hasPreviousClinicalExam) {
+                          alert('Por favor indique en la Sección 3.4 si ha realizado un examen clínico o hemograma al paciente anteriormente.');
+                          return;
+                        }
+                        if (hasPreviousClinicalExam === 'no' && !clinicalRiskDisclaimerAccepted) {
+                          alert('Para continuar la solicitud de qPCR sin examen clínico previo, debe confirmar que acepta el descargo de responsabilidad médica bajo su propio criterio profesional.');
+                          return;
+                        }
+                        setCurrentStep(4);
+                      }}
                       className="text-xs text-slate-500 hover:text-slate-800 underline font-semibold cursor-pointer"
                     >
                       Omitir este paso
@@ -5666,6 +5950,14 @@ export default function RequestExamModal({
                     if (currentStep === 3) {
                       if (!isAsymptomatic && selectedSyndromes.length === 0) {
                         alert('Debes seleccionar al menos un síndrome clínico, o marcar al paciente como asintomático.');
+                        return;
+                      }
+                      if (!hasPreviousClinicalExam) {
+                        alert('Por favor indique en la Sección 3.4 si ha realizado un examen clínico o hemograma al paciente anteriormente.');
+                        return;
+                      }
+                      if (hasPreviousClinicalExam === 'no' && !clinicalRiskDisclaimerAccepted) {
+                        alert('Para continuar la solicitud de qPCR sin examen clínico previo, debe confirmar que acepta el descargo de responsabilidad médica bajo su propio criterio profesional.');
                         return;
                       }
                     }

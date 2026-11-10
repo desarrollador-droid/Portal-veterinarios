@@ -44,7 +44,9 @@ export const clinicController = {
 
   getActive(req, res) {
     try {
-      const clinic = clinicService.getActiveClinic();
+      const clinicId = req.query.clinicId || req.headers['x-clinic-id'];
+      const nit = req.query.nit || req.headers['x-clinic-nit'];
+      const clinic = clinicService.getActiveClinic({ clinicId, nit });
       res.json({
         success: true,
         data: clinic,
@@ -75,18 +77,35 @@ export const clinicController = {
     }
   },
 
-  create(req, res) {
+  async create(req, res) {
     try {
-      const created = clinicService.create(req.body);
+      const created = await clinicService.create(req.body);
       res.status(201).json({
         success: true,
-        message: 'Perfil de veterinaria registrado exitosamente',
+        message: 'Cliente / Veterinaria registrado exitosamente en la base de datos de Kea Tools',
         data: created,
       });
     } catch (error) {
       res.status(400).json({
         success: false,
         message: error.message,
+      });
+    }
+  },
+
+  async syncKea(req, res) {
+    try {
+      const result = await clinicService.syncFromKea();
+      res.json({
+        success: true,
+        message: `Sincronización con Kea Tools DB completada.`,
+        data: result,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Error al sincronizar veterinarias desde Kea Tools',
+        error: error.message,
       });
     }
   },
@@ -177,10 +196,10 @@ export const clinicController = {
   },
 
   // --- GESTIÓN DE VETERINARIOS ASOCIADOS ---
-  addVeterinarian(req, res) {
+  async addVeterinarian(req, res) {
     try {
       const { id } = req.params;
-      const updated = clinicService.addVeterinarian(id, req.body);
+      const updated = await clinicService.addVeterinarian(id, req.body);
       res.status(201).json({
         success: true,
         message: 'Veterinario asociado agregado exitosamente',
@@ -194,14 +213,31 @@ export const clinicController = {
     }
   },
 
-  updateVeterinarian(req, res) {
+  async updateVeterinarian(req, res) {
     try {
       const { id, vetId } = req.params;
-      const updated = clinicService.updateVeterinarian(id, vetId, req.body);
+      const updated = await clinicService.updateVeterinarian(id, vetId, req.body);
       res.json({
         success: true,
         message: 'Veterinario asociado actualizado exitosamente',
         data: updated,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  },
+
+  async syncVeterinarians(req, res) {
+    try {
+      const { id } = req.params;
+      const result = await clinicService.syncVeterinariansForClinic(id);
+      res.json({
+        success: true,
+        message: 'Veterinarios sincronizados exitosamente desde Kea Tools DB',
+        data: result,
       });
     } catch (error) {
       res.status(400).json({

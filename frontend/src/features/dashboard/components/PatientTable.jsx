@@ -238,10 +238,23 @@ export default function PatientTable({
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="py-12 text-center text-slate-400 dark:text-slate-500">
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <span className="text-3xl">🐾</span>
-                    <p className="text-sm font-medium">No se encontraron pacientes con los filtros seleccionados.</p>
+                <td colSpan="6" className="py-16 text-center text-slate-400 dark:text-slate-500">
+                  <div className="flex flex-col items-center justify-center gap-3 max-w-md mx-auto px-4">
+                    <div className="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-[#281f47] text-[#6F2BCC] dark:text-[#01FADA] flex items-center justify-center text-2xl shadow-inner">
+                      🐾
+                    </div>
+                    <div>
+                      <h4 className="text-base font-bold text-slate-700 dark:text-slate-200">
+                        {filters?.search || (filters?.species && filters.species !== 'all') || (filters?.breed && filters.breed !== 'all') || (filters?.sampleStatus && filters.sampleStatus !== 'all')
+                          ? 'No se encontraron pacientes con los filtros seleccionados'
+                          : 'Aún no tienes pacientes asociados a esta clínica'}
+                      </h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+                        {filters?.search || (filters?.species && filters.species !== 'all') || (filters?.breed && filters.breed !== 'all') || (filters?.sampleStatus && filters.sampleStatus !== 'all')
+                          ? 'Intenta restablecer los filtros de búsqueda para consultar todos los registros.'
+                          : 'Como es una clínica nueva, registra tu primer paciente haciendo clic en el botón "+ Nuevo Paciente" en la esquina superior.'}
+                      </p>
+                    </div>
                   </div>
                 </td>
               </tr>

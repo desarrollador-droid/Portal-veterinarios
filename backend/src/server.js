@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import patientRoutes from './routes/patientRoutes.js';
 import qpcrRoutes from './routes/qpcrRoutes.js';
 import clinicRoutes from './routes/clinicRoutes.js';
+import { clinicService } from './services/clinicService.js';
 
 dotenv.config();
 
@@ -34,4 +35,11 @@ app.listen(PORT, () => {
   console.log(`🚀 VetLab Backend corriendo en http://localhost:${PORT}`);
   console.log(`📊 Pacientes API: http://localhost:${PORT}/api/patients`);
   console.log(`📈 Stats API: http://localhost:${PORT}/api/patients/stats`);
+
+  // Sincronización inicial automática desde Kea Tools DB
+  clinicService.syncFromKea().then((res) => {
+    console.log(`[Kea DB] Sincronización inicial completada: ${res?.clinics?.length} clínicas/médicos y equipo.`);
+  }).catch((err) => {
+    console.warn('[Kea DB] Aviso en sincronización inicial:', err.message);
+  });
 });

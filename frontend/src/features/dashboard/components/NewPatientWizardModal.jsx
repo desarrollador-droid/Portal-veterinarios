@@ -74,14 +74,19 @@ export const CAT_BREEDS = [
   'Sin raza definida',
 ];
 
-export default function NewPatientWizardModal({ onClose, onCreated }) {
+export default function NewPatientWizardModal({
+  onClose,
+  onCreated,
+  activeClinic: initialActiveClinic = null,
+  currentUser = null,
+}) {
   // Wizard simplificado de 3 etapas:
   // 1: Registro del tutor / propietario
   // 2: Información básica de la mascota
   // 3: Resumen y confirmación (Guardar o Guardar y Solicitar Muestra qPCR)
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
-  const [activeClinic, setActiveClinic] = useState(null);
+  const [activeClinic, setActiveClinic] = useState(initialActiveClinic);
 
   const [formData, setFormData] = useState({
     // ETAPA 1: DATOS DEL TUTOR / PROPIETARIO
@@ -118,21 +123,81 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
     medicalBackground: '',
     coastalRescue: false,
     coastalRescueLocation: '',
+
+    // MÉDICO VETERINARIO TRATANTE
+    attendingVet: '',
+    customAttendingVet: '',
   });
 
+  const defaultAttendingVet = useMemo(() => {
+    if (currentUser?.isVeterinarioAsociado && currentUser?.vetNombre) {
+      return currentUser.vetNombre;
+    }
+    if (currentUser?.type === 'independiente' && (currentUser?.nombre || currentUser?.nombreMedico)) {
+      return currentUser.nombre || currentUser.nombreMedico;
+    }
+    if (activeClinic?.type === 'independiente' && (activeClinic?.nombreMedico || activeClinic?.directorMedico?.nombre)) {
+      return activeClinic.nombreMedico || activeClinic.directorMedico?.nombre;
+    }
+    if (activeClinic?.directorMedico?.nombre) {
+      return activeClinic.directorMedico.nombre;
+    }
+    if (currentUser?.director) {
+      return currentUser.director;
+    }
+    return '';
+  }, [currentUser, activeClinic]);
+
+  const clinicVetsList = useMemo(() => {
+    const list = [];
+    if (currentUser?.isVeterinarioAsociado && currentUser?.vetNombre) {
+      list.push(currentUser.vetNombre);
+    }
+    if (activeClinic?.directorMedico?.nombre && !list.includes(activeClinic.directorMedico.nombre)) {
+      list.push(activeClinic.directorMedico.nombre);
+    }
+    if (activeClinic?.nombreMedico && !list.includes(activeClinic.nombreMedico)) {
+      list.push(activeClinic.nombreMedico);
+    }
+    if (Array.isArray(activeClinic?.veterinariosAsociados)) {
+      activeClinic.veterinariosAsociados.forEach((v) => {
+        if (v.nombre && !list.includes(v.nombre)) {
+          list.push(v.nombre);
+        }
+      });
+    }
+    return list;
+  }, [currentUser, activeClinic]);
+
   useEffect(() => {
-    clinicApi.getActiveClinic().then((c) => {
-      setActiveClinic(c);
-      if (c?.sedes?.length > 0) {
+    if (initialActiveClinic) {
+      setActiveClinic(initialActiveClinic);
+      const cleanNit = String(initialActiveClinic.nit || initialActiveClinic.cedula || currentUser?.nit || '').replace(/[^0-9]/g, '');
+      setFormData((prev) => ({
+        ...prev,
+        attendingVet: prev.attendingVet || defaultAttendingVet,
+        ...(initialActiveClinic.sedes?.length > 0 ? {
+          sedeId: prev.sedeId || initialActiveClinic.sedes[0].id,
+          sedeNombre: prev.sedeNombre || initialActiveClinic.sedes[0].nombreSede,
+          codigoSedeNit: prev.codigoSedeNit || initialActiveClinic.sedes[0].codigoSedeNit || (cleanNit ? `#nit-${cleanNit}` : '#nit-1'),
+        } : {}),
+      }));
+    } else {
+      clinicApi.getActiveClinic().then((c) => {
+        setActiveClinic(c);
+        const cleanNit = String(c?.nit || c?.cedula || currentUser?.nit || '').replace(/[^0-9]/g, '');
         setFormData((prev) => ({
           ...prev,
-          sedeId: prev.sedeId || c.sedes[0].id,
-          sedeNombre: prev.sedeNombre || c.sedes[0].nombreSede,
-          codigoSedeNit: prev.codigoSedeNit || c.sedes[0].codigoSedeNit || '#nit-1',
+          attendingVet: prev.attendingVet || defaultAttendingVet,
+          ...(c?.sedes?.length > 0 ? {
+            sedeId: prev.sedeId || c.sedes[0].id,
+            sedeNombre: prev.sedeNombre || c.sedes[0].nombreSede,
+            codigoSedeNit: prev.codigoSedeNit || c.sedes[0].codigoSedeNit || (cleanNit ? `#nit-${cleanNit}` : '#nit-1'),
+          } : {}),
         }));
-      }
-    }).catch(() => {});
-  }, []);
+      }).catch(() => {});
+    }
+  }, [initialActiveClinic, currentUser, defaultAttendingVet]);
 
   const [submitting, setSubmitting] = useState(false);
   const [showBreedDropdown, setShowBreedDropdown] = useState(false);
@@ -368,10 +433,19 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
         ownerHasVetPlus: false,
         ownerVetPlusCode: '',
 
-        // Sede / Sucursal
+        // Sede / Sucursal y Clínica
+        clinicId: activeClinic?.id || currentUser?.clinicId || '',
+        clinicNit: String(activeClinic?.nit || activeClinic?.cedula || currentUser?.nit || '').replace(/[^0-9]/g, ''),
         sedeId: formData.sedeId || (activeClinic?.sedes?.[0]?.id || 'sede-principal-80'),
         sedeNombre: formData.sedeNombre || (activeClinic?.sedes?.[0]?.nombreSede || 'Sede Principal'),
-        codigoSedeNit: formData.codigoSedeNit || (activeClinic?.sedes?.[0]?.codigoSedeNit || '#nit-1'),
+        codigoSedeNit: formData.codigoSedeNit || (activeClinic?.sedes?.[0]?.codigoSedeNit || (activeClinic?.nit ? `#nit-${String(activeClinic.nit).replace(/[^0-9]/g, '')}` : '#nit-1')),
+
+        // Médico Veterinario Tratante / Asignado
+        attendingVet: (
+          (formData.attendingVet === 'otro' ? formData.customAttendingVet : formData.attendingVet) ||
+          defaultAttendingVet ||
+          (currentUser?.isVeterinarioAsociado ? currentUser.vetNombre : 'Dr. Asignado')
+        ).trim(),
 
         status: 'activo',
         requestExam: requestExamDirectly,
@@ -778,6 +852,62 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     ✓ Heredado
                   </span>
                 </div>
+              </div>
+
+              {/* Asignación del Médico Veterinario Tratante */}
+              <div className="p-4 bg-purple-50/70 border border-purple-200/90 rounded-2xl space-y-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                  <div>
+                    <label className="block text-xs font-bold text-[#2B017C] uppercase tracking-wider">
+                      🩺 Médico Veterinario Tratante / Responsable *
+                    </label>
+                    <span className="text-[11px] text-slate-500">
+                      Profesional médico veterinario que suscribe el ingreso clínico del paciente
+                    </span>
+                  </div>
+                  {currentUser?.isVeterinarioAsociado && (
+                    <span className="self-start sm:self-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#01FADA]/25 text-[#007a6a] border border-[#01FADA]/60">
+                      Sesión Activa: {currentUser.vetNombre}
+                    </span>
+                  )}
+                </div>
+
+                {clinicVetsList.length > 0 ? (
+                  <div className="space-y-2">
+                    <select
+                      name="attendingVet"
+                      value={formData.attendingVet || defaultAttendingVet}
+                      onChange={handleChange}
+                      className="w-full px-3.5 py-2.5 border border-purple-200 rounded-xl text-xs font-bold text-slate-800 bg-white focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none cursor-pointer"
+                    >
+                      {clinicVetsList.map((vetName) => (
+                        <option key={vetName} value={vetName}>
+                          {vetName} {currentUser?.isVeterinarioAsociado && currentUser?.vetNombre === vetName ? '(Tú - Sesión actual)' : ''}
+                        </option>
+                      ))}
+                      <option value="otro">Otro médico (Especificar manual)...</option>
+                    </select>
+
+                    {formData.attendingVet === 'otro' && (
+                      <input
+                        type="text"
+                        placeholder="Escriba el nombre completo del médico tratante"
+                        value={formData.customAttendingVet || ''}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, customAttendingVet: e.target.value }))}
+                        className="w-full px-3.5 py-2.5 border border-purple-300 rounded-xl text-xs bg-white focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none animate-in fade-in duration-150"
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    name="attendingVet"
+                    value={formData.attendingVet || defaultAttendingVet}
+                    onChange={handleChange}
+                    placeholder="Ej. Dra. Valentina Gómez"
+                    className="w-full px-3.5 py-2.5 border border-purple-200 rounded-xl text-xs font-bold text-slate-800 bg-white focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
+                  />
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1289,6 +1419,12 @@ export default function NewPatientWizardModal({ onClose, onCreated }) {
                     <span className="text-slate-400 block text-[11px]">Rescate costero</span>
                     <strong className={formData.coastalRescue ? 'text-[#6F2BCC]' : 'text-slate-800'}>
                       {formData.coastalRescue ? `Sí (${formData.coastalRescueLocation || 'Zona costera'})` : 'No'}
+                    </strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">Médico tratante</span>
+                    <strong className="text-[#6F2BCC] font-bold">
+                      {(formData.attendingVet === 'otro' ? formData.customAttendingVet : formData.attendingVet) || defaultAttendingVet || (currentUser?.isVeterinarioAsociado ? currentUser.vetNombre : 'Dr. Asignado')}
                     </strong>
                   </div>
                 </div>

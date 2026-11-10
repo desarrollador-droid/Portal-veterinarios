@@ -180,29 +180,116 @@ export const clinicApi = {
   },
 
   /**
-   * Obtiene la clínica actualmente activa
+   * Obtiene la clínica actualmente activa para la sesión
    */
-  async getActiveClinic() {
+  async getActiveClinic(preferredClinicId = null, preferredNit = null) {
+    let targetId = preferredClinicId;
+    let targetNit = preferredNit;
+
+    // Si no se pasaron explícitamente, recuperar de la sesión autenticada
+    if (!targetId && !targetNit) {
+      try {
+        const rawSession = localStorage.getItem('osd_auth_session') || sessionStorage.getItem('osd_auth_session');
+        if (rawSession) {
+          const session = JSON.parse(rawSession);
+          targetId = session.clinicId || null;
+          targetNit = session.nit || null;
+        }
+      } catch (_) {}
+    }
+
+    if (!targetId) {
+      try {
+        targetId = localStorage.getItem(ACTIVE_STORAGE_KEY) || sessionStorage.getItem(ACTIVE_STORAGE_KEY);
+      } catch (_) {}
+    }
+
+    const cleanTargetNit = targetNit ? String(targetNit).replace(/[^0-9]/g, '').trim() : '';
+
+    // Consultar al backend pasando los identificadores
     try {
-      const res = await axios.get(`${API_BASE_URL}/active`, { timeout: 3000 });
+      const res = await axios.get(`${API_BASE_URL}/active`, {
+        params: { clinicId: targetId, nit: cleanTargetNit },
+        timeout: 3000,
+      });
       if (res.data?.success && res.data?.data) {
-        return res.data.data;
+        // Verificar que coincida si teníamos sesión activa
+        if (!cleanTargetNit && !targetId) {
+          return res.data.data;
+        }
+        const resNit = String(res.data.data.nit || res.data.data.cedula || '').replace(/[^0-9]/g, '').trim();
+        if ((cleanTargetNit && resNit === cleanTargetNit) || (targetId && res.data.data.id === targetId)) {
+          return res.data.data;
+        }
       }
     } catch (_) {}
 
+    // Buscar en el almacén local
     const list = getStoredClinics();
-    let activeId = null;
-    try {
-      activeId = localStorage.getItem(ACTIVE_STORAGE_KEY);
-    } catch (_) {}
-
-    if (activeId) {
-      const found = list.find((c) => c.id === activeId);
+    if (targetId) {
+      const found = list.find((c) => c.id === targetId);
       if (found) return found;
     }
 
-    const foundActive = list.find((c) => c.esClinicaActiva);
-    return foundActive || list[0] || INITIAL_CLINICS[0];
+    if (cleanTargetNit) {
+      const found = list.find((c) => {
+        const cNit = String(c.nit || c.cedula || '').replace(/[^0-9]/g, '').trim();
+        return cNit && cNit === cleanTargetNit;
+      });
+      if (found) return found;
+
+      // Intentar sincronizar con Kea Tools DB para traerla en caliente
+      try {
+        const syncRes = await this.syncKea();
+        if (syncRes?.clinics && Array.isArray(syncRes.clinics)) {
+          const syncedFound = syncRes.clinics.find((c) => {
+            const cNit = String(c.nit || c.cedula || '').replace(/[^0-9]/g, '').trim();
+            return cNit && cNit === cleanTargetNit;
+          });
+          if (syncedFound) return syncedFound;
+        }
+      } catch (_) {}
+    }
+
+    // Solo si NO hay ningún usuario autenticado en sesión, se usa fallback
+    if (!targetId && !cleanTargetNit) {
+      const foundActive = list.find((c) => c.esClinicaActiva);
+      return foundActive || list[0] || INITIAL_CLINICS[0];
+    }
+
+    // Si había sesión pero no está en backend/local, sintetizar estructura segura sin filtrar datos ajenos
+    try {
+      const rawSession = localStorage.getItem('osd_auth_session') || sessionStorage.getItem('osd_auth_session');
+      if (rawSession) {
+        const session = JSON.parse(rawSession);
+        return {
+          id: session.clinicId || `clinic-${Date.now()}`,
+          nit: session.nit || cleanTargetNit,
+          cedula: session.nit || cleanTargetNit,
+          nombreVeterinaria: session.nombre || 'Mi Clínica',
+          nombreMedico: session.nombre || 'Mi Clínica',
+          type: session.type || 'veterinaria',
+          directorMedico: { nombre: session.director || 'Director Médico', telefono: session.telefono || '' },
+          recoleccion: { ciudad: session.ciudad || 'Bogotá D.C.', direccionFisica: '' },
+          correos: { facturacion: session.email || '', resultados: session.email || '' },
+          sedes: [
+            {
+              id: 'sede-principal-1',
+              nombreSede: `${session.nombre || 'Sede Principal'} - Sede Principal`,
+              esPrincipal: true,
+              consecutivoNit: 1,
+              codigoSedeNit: '#nit-1',
+              ciudad: session.ciudad || 'Bogotá D.C.',
+              direccionFisica: '',
+            },
+          ],
+          veterinariosAsociados: [],
+          esClinicaActiva: true,
+        };
+      }
+    } catch (_) {}
+
+    return list[0] || INITIAL_CLINICS[0];
   },
 
   /**
@@ -231,7 +318,21 @@ export const clinicApi = {
   },
 
   /**
-   * Registra una nueva veterinaria o médico independiente
+   * Sincroniza la lista de veterinarias y clientes desde la tabla VETERINARIA de Kea Tools DB
+   */
+  async syncKea() {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/sync-kea`, { timeout: 8000 });
+      if (res.data?.success && res.data?.data?.clinics) {
+        saveStoredClinics(res.data.data.clinics);
+        return res.data.data;
+      }
+    } catch (_) {}
+    return { success: false, clinics: getStoredClinics() };
+  },
+
+  /**
+   * Registra una nueva veterinaria o médico independiente (en Kea Tools DB y local)
    */
   async createClinic(clinicData) {
     try {
@@ -276,24 +377,8 @@ export const clinicApi = {
       },
     ];
 
-    const initialVets = type === 'veterinaria'
-      ? (Array.isArray(clinicData.veterinariosAsociados) && clinicData.veterinariosAsociados.length > 0
-          ? clinicData.veterinariosAsociados
-          : [
-              {
-                id: `vet-${Date.now().toString().slice(-4)}`,
-                nombre: clinicData.directorMedico?.nombre || 'Director Médico',
-                especialidad: 'Director Médico / Medicina General',
-                tarjetaProfesional: 'COMVEZCOL-REG',
-                email: clinicData.correos?.resultados || '',
-                telefono: clinicData.directorMedico?.telefono || '',
-                sedeId: initialSedes[0]?.id || '',
-                sedeNombre: initialSedes[0]?.nombreSede || '',
-                estado: 'activo',
-                esDirector: true,
-                fechaVinculacion: new Date().toISOString().slice(0, 10),
-              },
-            ])
+    const initialVets = Array.isArray(clinicData.veterinariosAsociados) && clinicData.veterinariosAsociados.length > 0
+      ? clinicData.veterinariosAsociados
       : [];
 
     const newClinic = {
@@ -304,6 +389,8 @@ export const clinicApi = {
       asociacionClinica: type === 'independiente' ? 'Sin asociación a clínica (Profesional Autónomo)' : null,
       especialidad: type === 'independiente' ? (clinicData.especialidad || 'Medicina General') : '',
       nit: type === 'veterinaria' ? cleanNumber(clinicData.nit) : '',
+      contrasena: clinicData.contrasena || clinicData.password || '',
+      password: clinicData.contrasena || clinicData.password || '',
       nombreVeterinaria: type === 'veterinaria' ? clinicData.nombreVeterinaria?.trim() : '',
       tieneMultiplesSedes: Boolean(clinicData.tieneMultiplesSedes ?? (initialSedes.length > 1)),
       directorMedico: {
@@ -328,13 +415,23 @@ export const clinicApi = {
       veterinariosAsociados: initialVets,
       correos: {
         facturacion: (clinicData.correos?.facturacion || '').trim().toLowerCase(),
-        resultados: (clinicData.correos?.resultados || '').trim().toLowerCase(),
+        resultados: (clinicData.correos?.resultados || clinicData.correos?.facturacion || '').trim().toLowerCase(),
       },
       documentos: {
-        rutNumero: cleanNumber(clinicData.documentos?.rutNumero),
+        rutNumero: cleanNumber(clinicData.documentos?.rutNumero || clinicData.nit || clinicData.cedula),
         rutArchivo: clinicData.documentos?.rutArchivo || 'RUT_Cargado.pdf',
         tarjetaProfesionalArchivo: type === 'independiente' ? clinicData.documentos?.tarjetaProfesionalArchivo || 'TP_Documento.pdf' : null,
       },
+      // Campos de caracterización y bienvenida OSD
+      capacitacionOSD: clinicData.capacitacionOSD || '',
+      capacitacionQpcr: clinicData.capacitacionQpcr || '',
+      capacitacionQpcrOtro: clinicData.capacitacionQpcrOtro || '',
+      cantidadVeterinarios: clinicData.cantidadVeterinarios || '',
+      cuentaConEspecialistas: clinicData.cuentaConEspecialistas || '',
+      especialistas: Array.isArray(clinicData.especialistas) ? clinicData.especialistas : [],
+      frecuenciaPcrMensual: clinicData.frecuenciaPcrMensual || '',
+      medioConocisteOSD: clinicData.medioConocisteOSD || '',
+      observaciones: clinicData.observaciones || '',
       terminosAceptados: clinicData.terminosAceptados ?? true,
       fechaAceptacionTerminos: new Date().toISOString(),
       estado: clinicData.estado || 'activo',
@@ -544,17 +641,29 @@ export const clinicApi = {
     const clinic = list.find((c) => c.id === clinicId);
     if (!clinic) throw new Error('Veterinaria no encontrada');
 
+    const contrasena = String(vetData.password || vetData.contrasena || vetData.pin || '').trim();
     const newVet = {
       id: `vet-${Date.now().toString().slice(-6)}`,
       nombre: vetData.nombre.trim(),
       especialidad: vetData.especialidad?.trim() || 'Medicina General',
       tarjetaProfesional: vetData.tarjetaProfesional.trim(),
+      cedula: (vetData.cedula || '').trim(),
       email: vetData.email?.trim() || '',
       telefono: vetData.telefono?.trim() || '',
+      contrasena: contrasena,
+      password: contrasena,
+      rol: vetData.rol || 'veterinario_planta',
+      rolNombre: ROLE_PRESETS[vetData.rol]?.nombre || 'Veterinario de Planta',
+      permisos: vetData.permisos || (ROLE_PRESETS[vetData.rol]?.permisos) || {},
+      tipoAsignacion: vetData.tipoAsignacion || 'fija',
+      sedesRotativas: vetData.sedesRotativas || [],
+      diasRotacion: vetData.diasRotacion || '',
       sedeId: vetData.sedeId || (clinic.sedes?.[0]?.id || ''),
       sedeNombre: vetData.sedeNombre || (clinic.sedes?.[0]?.nombreSede || 'Sede Principal'),
       estado: vetData.estado || 'activo',
-      esDirector: Boolean(vetData.esDirector),
+      bloqueadoPorAdmin: vetData.estado === 'bloqueado',
+      motivoBloqueo: vetData.estado === 'bloqueado' ? (vetData.motivoBloqueo || 'Bloqueado por el Administrador') : '',
+      esDirector: Boolean(vetData.esDirector || vetData.rol === 'director_medico'),
       fechaVinculacion: new Date().toISOString().slice(0, 10),
     };
 
@@ -786,6 +895,20 @@ export const clinicApi = {
     clinic.updatedAt = new Date().toISOString();
     saveStoredClinics(list);
     return { clinic, vet };
+  },
+
+  /**
+   * Sincroniza en vivo los veterinarios asociados a una clínica desde la base de datos Kea Tools
+   */
+  async syncVeterinarians(clinicId) {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/${clinicId}/veterinarians/sync-kea`, { timeout: 6000 });
+      if (res.data?.success && res.data?.data?.clinic) {
+        this._updateLocalClinic(clinicId, res.data.data.clinic);
+        return res.data.data;
+      }
+    } catch (_) {}
+    return { success: false };
   },
 
   _updateLocalClinic(clinicId, updatedClinic) {

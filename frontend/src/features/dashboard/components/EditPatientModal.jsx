@@ -6,7 +6,7 @@ import { hasReportedAllergy, getAllergyDisplay } from '../utils/allergyHelpers.j
 
 const COLOMBIA_DEPARTMENTS = colombiaGeoApi.getDepartmentsSync().map((d) => d.name);
 
-export default function EditPatientModal({ patient, onClose, onSave }) {
+export default function EditPatientModal({ patient, onClose, onSave, currentUser = null, activeClinic: initialActiveClinic = null }) {
   if (!patient) return null;
 
   const isDeceased = patient.status === 'fallecido';
@@ -16,6 +16,7 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
     // Parámetros clínicos editables
     weight: patient.weight || '',
     status: patient.status || 'activo',
+    attendingVet: patient.attendingVet || (currentUser?.isVeterinarioAsociado ? currentUser.vetNombre : ''),
     isSterilized: isAlreadySterilized || Boolean(patient.isSterilized),
     hasAllergies: hasReportedAllergy(patient),
     allergies: hasReportedAllergy(patient) ? getAllergyDisplay(patient, '') : '',
@@ -58,15 +59,19 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
     lastDewormingDate: patient.medicalAdmission?.lastDewormingDate || '',
   });
 
-  const [activeClinic, setActiveClinic] = useState(null);
+  const [activeClinic, setActiveClinic] = useState(initialActiveClinic);
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
-    clinicApi.getActiveClinic().then((c) => {
-      setActiveClinic(c);
-    }).catch(() => {});
-  }, []);
+    if (initialActiveClinic) {
+      setActiveClinic(initialActiveClinic);
+    } else {
+      clinicApi.getActiveClinic().then((c) => {
+        setActiveClinic(c);
+      }).catch(() => {});
+    }
+  }, [initialActiveClinic]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -108,6 +113,7 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
         sedeId: formData.sedeId,
         sedeNombre: formData.sedeNombre,
         codigoSedeNit: formData.codigoSedeNit,
+        attendingVet: formData.attendingVet ? formData.attendingVet.trim() : patient.attendingVet,
         isSterilized: isAlreadySterilized ? true : formData.isSterilized,
         hasAllergies: formData.hasAllergies,
         allergies: formData.hasAllergies ? formData.allergies.trim() : '',
@@ -281,7 +287,21 @@ export default function EditPatientModal({ patient, onClose, onSave }) {
               <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
                 Parámetros Clínicos Actualizables
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Médico Tratante
+                  </label>
+                  <input
+                    type="text"
+                    name="attendingVet"
+                    value={formData.attendingVet}
+                    onChange={handleChange}
+                    placeholder="Ej. Dra. Valentina Gómez"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-1 focus:ring-[#6F2BCC] font-bold text-slate-800"
+                  />
+                </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Peso Actualizado *

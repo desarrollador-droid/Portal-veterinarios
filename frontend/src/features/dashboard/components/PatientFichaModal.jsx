@@ -148,6 +148,8 @@ export function getExamAgentsList(exam) {
 
 export default function PatientFichaModal({
   patient,
+  currentUser = null,
+  activeClinic = null,
   onClose,
   onUpdatePatient,
   onRequestExam,
@@ -328,7 +330,7 @@ export default function PatientFichaModal({
                     )}
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
-                    Médico tratante: <strong className="text-slate-900 dark:text-white font-bold">{patient.attendingVet || 'Dr. Alejandro Morales'}</strong>
+                    Médico tratante: <strong className="text-slate-900 dark:text-white font-bold">{patient.attendingVet || (currentUser?.isVeterinarioAsociado ? currentUser.vetNombre : 'Dr. Alejandro Morales')}</strong>
                   </p>
                 </div>
               </div>
@@ -595,7 +597,7 @@ export default function PatientFichaModal({
                         <span className="text-xs text-slate-600 font-medium">Consultas registradas</span>
                       </div>
                       <p className="text-[11px] text-slate-500 mt-2">
-                        Veterinario: {patient.attendingVet || 'Dr. Alejandro Morales'}
+                        Veterinario: {patient.attendingVet || (currentUser?.isVeterinarioAsociado ? currentUser.vetNombre : 'Dr. Alejandro Morales')}
                       </p>
                     </div>
                   </div>
@@ -1606,6 +1608,8 @@ export default function PatientFichaModal({
       {showEditModal && (
         <EditPatientModal
           patient={patient}
+          currentUser={currentUser}
+          activeClinic={activeClinic}
           onClose={() => setShowEditModal(false)}
           onSave={async (updatedData) => {
             await onUpdatePatient(patient.id, updatedData);
@@ -1630,6 +1634,8 @@ export default function PatientFichaModal({
       {showConsultationModal && (
         <NewConsultationModal
           patient={patient}
+          currentUser={currentUser}
+          activeClinic={activeClinic}
           onClose={() => setShowConsultationModal(false)}
           onConsultationSaved={handleSaveConsultation}
         />

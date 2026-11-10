@@ -8,22 +8,22 @@ import React from 'react';
 export default function MiniDashboards({ stats }) {
   const cards = [
     {
-      value: stats?.activePatients ?? 5,
+      value: stats?.activePatients ?? 0,
       title: 'Pacientes activos',
       colorClass: 'text-[#2B017C]',
     },
     {
-      value: stats?.ordersInProgress ?? 6,
+      value: stats?.ordersInProgress ?? 0,
       title: 'Órdenes en curso',
       colorClass: 'text-[#6F2BCC]',
     },
     {
-      value: stats?.resultsReady ?? 1,
+      value: stats?.resultsReady ?? 0,
       title: 'Resultados listos',
       colorClass: 'text-[#059669]',
     },
     {
-      value: stats?.hospitalized ?? 1,
+      value: stats?.hospitalized ?? 0,
       title: 'Internados',
       colorClass: 'text-[#2B017C]',
     },

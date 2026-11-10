@@ -520,7 +520,7 @@ export const INITIAL_CLINICS = [
     terminosAceptados: true,
     fechaAceptacionTerminos: '2026-01-15T09:00:00Z',
     estado: 'activo',
-    esClinicaActiva: true,
+    esClinicaActiva: false,
     totalMuestrasHistoricas: 142,
     createdAt: '2026-01-15T09:00:00Z',
     updatedAt: '2026-10-27T10:00:00Z',

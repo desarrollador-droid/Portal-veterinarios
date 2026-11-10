@@ -19,7 +19,7 @@ import TeamPermissionsView from '../components/TeamPermissionsView.jsx';
 import UnifiedClinicManagementView from '../components/UnifiedClinicManagementView.jsx';
 import ThemeToggle from '../components/ThemeToggle.jsx';
 
-export default function VeterinariansPortal() {
+export default function VeterinariansPortal({ currentUser = null, onLogout = null }) {
   const [stats, setStats] = useState(null);
   const [patients, setPatients] = useState([]);
   const [filterOptions, setFilterOptions] = useState({ species: [], breeds: [], sampleStatuses: [] });
@@ -51,23 +51,26 @@ export default function VeterinariansPortal() {
     setTimeout(() => setToastMessage(''), 4000);
   };
 
+  const getActiveClinicNit = () => {
+    return currentUser?.nit || activeClinic?.nit || activeClinic?.cedula || '';
+  };
+
+  const getActiveClinicId = () => {
+    return currentUser?.clinicId || activeClinic?.id || '';
+  };
+
   useEffect(() => {
     loadPatients();
     loadStats(filters.sedeId);
-  }, [filters]);
+  }, [filters, activeClinic]);
 
   useEffect(() => {
     loadInitialStats();
 
-    // Sincronización 100% automática en segundo plano:
-    // 1. Al volver a enfocar la ventana / pestaña del navegador
-    // 2. Periódicamente cada 45 segundos para detectar cambios externos en Kea
+    // Sincronización automática periódica en segundo plano respetando la clínica activa:
     const doAutoSync = () => {
-      patientApi.syncKea().then((res) => {
-        if (res?.data?.patients) {
-          setPatients(res.data.patients);
-        }
-      }).catch(() => {});
+      loadPatients();
+      loadStats(filters.sedeId);
     };
 
     window.addEventListener('focus', doAutoSync);
@@ -81,36 +84,52 @@ export default function VeterinariansPortal() {
 
   const loadInitialStats = async () => {
     try {
-      const [s, f, clinic] = await Promise.all([
-        patientApi.getStats({ sedeId: filters.sedeId }),
+      const activeNit = currentUser?.nit || '';
+      const activeId = currentUser?.clinicId || '';
+
+      const clinic = await clinicApi.getActiveClinic(activeId, activeNit);
+      if (clinic) {
+        setActiveClinic(clinic);
+      }
+
+      const resolvedNit = currentUser?.nit || clinic?.nit || clinic?.cedula || '';
+      const resolvedId = currentUser?.clinicId || clinic?.id || '';
+
+      const [s, f, patientList] = await Promise.all([
+        patientApi.getStats({ sedeId: filters.sedeId, nit: resolvedNit, clinicId: resolvedId }),
         patientApi.getFilters(),
-        clinicApi.getActiveClinic(),
+        patientApi.getPatients({ ...filters, nit: resolvedNit, clinicId: resolvedId }),
       ]);
       setStats(s);
       setFilterOptions(f);
-      setActiveClinic(clinic);
-
-      // Auto-sincronizar con Kea Tools en segundo plano
-      patientApi.syncKea().then((res) => {
-        if (res && res.data && res.data.patients) {
-          setPatients(res.data.patients);
-        }
-      }).catch(() => {});
+      setPatients(patientList);
     } catch (err) {
       console.error('Error cargando datos iniciales:', err);
     }
   };
 
-  const loadStats = async (sedeId) => {
+  const loadStats = async (sedeId, overrideNit, overrideId) => {
     try {
-      const s = await patientApi.getStats({ sedeId });
+      const nit = overrideNit !== undefined ? overrideNit : getActiveClinicNit();
+      const clinicId = overrideId !== undefined ? overrideId : getActiveClinicId();
+      const s = await patientApi.getStats({
+        sedeId,
+        nit,
+        clinicId,
+      });
       setStats(s);
     } catch (_) {}
   };
 
-  const loadPatients = async () => {
+  const loadPatients = async (overrideNit, overrideId) => {
     try {
-      const list = await patientApi.getPatients(filters);
+      const nit = overrideNit !== undefined ? overrideNit : getActiveClinicNit();
+      const clinicId = overrideId !== undefined ? overrideId : getActiveClinicId();
+      const list = await patientApi.getPatients({
+        ...filters,
+        nit,
+        clinicId,
+      });
       setPatients(list);
     } catch (error) {
       console.error('Error cargando pacientes:', error);
@@ -150,9 +169,28 @@ export default function VeterinariansPortal() {
   // Crear paciente desde Wizard
   const handleCreatePatient = async (patientData) => {
     try {
-      const created = await patientApi.createPatient(patientData);
-      await loadPatients();
-      await loadInitialStats();
+      const activeNit = getActiveClinicNit();
+      const activeId = getActiveClinicId();
+      const resolvedAttendingVet = patientData.attendingVet ||
+        (currentUser?.isVeterinarioAsociado ? currentUser.vetNombre : '') ||
+        activeClinic?.directorMedico?.nombre ||
+        activeClinic?.nombreMedico ||
+        currentUser?.director ||
+        currentUser?.nombre ||
+        'Dr. Alejandro Morales';
+
+      const payload = {
+        ...patientData,
+        attendingVet: resolvedAttendingVet,
+        clinicNit: patientData.clinicNit || activeNit,
+        clinicId: patientData.clinicId || activeId,
+      };
+      const created = await patientApi.createPatient(payload);
+      if (created && !created.attendingVet) {
+        created.attendingVet = resolvedAttendingVet;
+      }
+      await loadPatients(activeNit, activeId);
+      await loadStats(filters.sedeId, activeNit, activeId);
 
       if (patientData.requestExam) {
         showToast(`¡Paciente ${created.name} (${created.id}) registrado con éxito! Redirigiendo a solicitud de examen qPCR...`);
@@ -237,6 +275,7 @@ export default function VeterinariansPortal() {
 
       {/* 1. PANEL LATERAL ADMINISTRATIVO A LA IZQUIERDA */}
       <AdminSidebar
+        currentUser={currentUser}
         activeModule={activeModule}
         activeClinic={activeClinic}
         onSelectModule={(mod) => {
@@ -254,6 +293,7 @@ export default function VeterinariansPortal() {
         patientCount={patients.length}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        onLogout={onLogout}
       />
 
       {/* 2. CONTENEDOR PRINCIPAL DERECHO */}
@@ -374,6 +414,8 @@ export default function VeterinariansPortal() {
           {/* MÓDULO 8: GESTIÓN INTEGRAL DE CLÍNICA, SEDES & EQUIPO */}
           {(activeModule === 'clinica-equipo' || activeModule === 'perfil-veterinaria' || activeModule === 'equipo-permisos') && (
             <UnifiedClinicManagementView
+              currentUser={currentUser}
+              activeClinic={activeClinic}
               onNotify={showToast}
             />
           )}
@@ -384,6 +426,8 @@ export default function VeterinariansPortal() {
       {selectedPatient && (
         <PatientFichaModal
           patient={selectedPatient}
+          currentUser={currentUser}
+          activeClinic={activeClinic}
           onClose={() => setSelectedPatient(null)}
           onUpdatePatient={handleUpdatePatient}
           onRequestExam={handleRequestExam}
@@ -399,6 +443,8 @@ export default function VeterinariansPortal() {
       {/* Modal Wizard de Registro de Paciente */}
       {showNewPatientWizard && (
         <NewPatientWizardModal
+          activeClinic={activeClinic}
+          currentUser={currentUser}
           onClose={() => setShowNewPatientWizard(false)}
           onCreated={handleCreatePatient}
         />

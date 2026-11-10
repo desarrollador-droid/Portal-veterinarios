@@ -7,7 +7,13 @@ import { calculateAgeFromBirthDate } from '../models/patientModel.js';
 dotenv.config();
 
 const DEFAULT_KEA_URL = process.env.KEA_BASE_URL || 'https://osd.kea.tools/api/v1/databases/PACIENTE';
-const DEFAULT_KEA_TOKEN = process.env.KEA_API_TOKEN || '';
+const DEFAULT_KEA_TOKEN = process.env.KEA_API_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiMzQ4NzBlMGU3YTU2ZjFmZjE0ODk2YWFmMjg0NzZjNzBkNjM3ZDc5MmMyOTY4ZjQ4YjZhODBjYjg3NTc1MjcwMjg0YWVjNjQwMzA2ODk4ZWEiLCJpYXQiOjE3OTQyNTU2MzEuMTIyMDA2LCJuYmYiOjE3OTQyNTU2MzEuMTIyMDA5LCJleHAiOjE4MjU3OTE2MzEuMTE1OTk3LCJzdWIiOiI0Iiwic2NvcGVzIjpbImtlYS5kYXRhYmFzZSJdfQ.Lxhv0uyiWUR5RBTia3TIFj0zrF2ZzMsIsVUGEmToW9A6atSKyShg10ODTLs8-gf9ovA4RZpldXDKcqkh5-GbTnnWKzl4ltCFMCN_TolNQnYWHnXPX7PtJhprvzojtg8Ue_ovffXzMS4EVlFl40HG3AJokfw8ZeOv4RRdSn2hA9vfhNBBNKEvQQgWpY6KVobTlpgrGAe7bI5YJFq0yG0Nu3uziE1dXTacVrGxgmMj45dFMR_y9vLIN-rhQBuJWmTl6e1GuzSCnS41JiWXktbHIJKEFCEGtK6P6Hb-XhFscnfrBAxr_-Mh1R3yTrRgYhhpBB4C5Afo9ZcH1j-_3FGFdBHa0P71_sjuw8lPIz6BR9FpybY_tnEV6IlP1e94K2CExS7OvVCc9yFyGPLj18FhICQzQWr9scXCpUMa0WkXiqbgDhgywnTrEvoWHcbWF4iEdNgKGra1u_A3lQlctN6-5GE0fb91qI2gLkXIzLgVkSjEhT3Xi_YNeWfUO3njUuPWZGxcQbAp3InnNiFjIwP27FBORkjAPdaGlouU91w2EE87fEwnpKgQ9fcxeQMLOxQDEiYOHe_uvxDwTgMmqCpEtkuxrZGKw3_ZIiVz2IHSzjSWh-89Xb9cr0kyVrBGIiFlVRLgc1Q3FZuhwG87pjS3Tk4cD6akblkyusWgTxCYiVc';
+
+const DEFAULT_KEA_VET_URL = process.env.KEA_VETERINARIA_URL || 'https://osd.kea.tools/api/v1/databases/VETERINARIA';
+const DEFAULT_KEA_VET_TOKEN = process.env.KEA_VETERINARIA_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiMDliOTRmMzA0Y2Y3MDY0NjI5YTdhZjZmNTYwY2VmNmQxNWZhY2U2YzYwNmRmODg5YmU0NDIzNDJkMmYwMjQ0ZDg3ZjMyMWUxYzdkOWY3NmMiLCJpYXQiOjE3OTQzMjY0OTAuMDU4NzE3LCJuYmYiOjE3OTQzMjY0OTAuMDU4NzIsImV4cCI6MTgyNTg2MjQ5MC4wNTA0Niwic3ViIjoiNCIsInNjb3BlcyI6WyJrZWEuZGF0YWJhc2UiXX0.r6qf2I7oC5LAGX88xIgzgBrO7PcJ9hGBjzaWMoTZixQh-C1eI8UUXLlavrbwSonRWw2RtKMsyr6hORqG93a4G8t3VGoD0m1u7anebHcvXvXE_nkayVCtchMoWZmf6Hdj1poOMsLzwbKggyCiIsL1MPc0P0CsVWUh-lp1Te8-f_5PsmJAb9Kzf4uiPPf8cc-zcwdJ-UUebWpLqW4xks_JFmpcrIwZ-OOBE_xSwe46sTMMuYRi7VMTTs_jFXEi0x-1MSSdoWBq4c9L6nxfN-RKod78MSms7ugPZT-J1D2fAHCMT-hGtci34lAtiOCXJTSlhEw-KlDk2R21UKZkafSlRenPvYj8oICdiepzT5qjlE21L1jmjsoqQTUJhGINzN-FO9RC8KYYtbmoKpsE_03lsQVffFrZ4FVjho5F-B36pN8ydm7DncwfhJxqPbGFRNcd4c-nJbaJZTHs_M7hWX1ppC7VNh6JkLGnPpt-PKWM-Etod7m6hFX6_sn9AebL5WhfFj3rw2xsIkJtgyMw8Z6GHTZ64SWbRn4LwxizSp-Bp9sczQHyt0F3bOddG0-4W-2bxow4kAiaySqTSLIFRo_EuY6aUZOsQ0g_c1YjPU80dYdN6QGF83_8sz3zTEta80gjeu7BRhyVKHxqz3In80QAb8xiWV4hChYZjUqscLEpIGg';
+
+const DEFAULT_KEA_MEDICOS_URL = process.env.KEA_MEDICOS_URL || 'https://osd.kea.tools/api/v1/databases/VETERINARIO';
+const DEFAULT_KEA_MEDICOS_TOKEN = process.env.KEA_MEDICOS_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiYjdhOGUxOGFmMTAwMzVhNDQxNzcyMjAwNjdmMzNhMWQ2ZjRhZTQ0ZWI3YzY3ODQ4YzdiZmRlZDhhYjEwYTQyZTRmNDY0YjZmMTE5ZmI2YWMiLCJpYXQiOjE3OTQzMzE4OTMuMzE5Mjg0LCJuYmYiOjE3OTQzMzE4OTMuMzE5Mjg3LCJleHAiOjE4MjU4Njc4OTMuMzEyOTQsInN1YiI6IjQiLCJzY29wZXMiOlsia2VhLmRhdGFiYXNlIl19.fAz5YBAaHnHVu9hiHcLnpf-JGuHu4FXcPcphRJ0ZrP3TKmPN06EjRVJs_-49T1wPJOqztJhy7bEOyC6pTobFuVBV8o1eTYdAlbSBiLxzlg-3D6uO3t1TM1RQ9Ekr-i9thZeBt6ddWDdEupC0Z22G21f37Wj_XRIso4sXGXN0k281lLXqHDdoU8sxXRVYk8xZsZ0HlDqB4GqhZPaKveiFALoa8wagoLj9920Uzov_8t6xDVLjXo048_mT-lQPHMk7oXF7E5q9hNXe7oH54o3vFnqmc2AXd-kRaFeLmIFxkFZ2ec2mATbpnc-DLdlx19-cXyVruXRXPvBucBKzxj5VMFM2BQBao4N71Z10nMHACdg37tC_iuYA3tyd0JyARWWJ5PF5k_OSEIwgL2IaLo2vlPIkqYLH6S5ZHF3P6bWbjEPPuepfcem2QwreONdML6yXu94UOsrzSrVZG8Z6zDWB97PRHBPjeIVWrdDShDAhycJBY3H1zJcrKZ73CEXzbFY4EUjUOPv4vk-S_o4MJS9XsxDrKre1PdQacKjTmqAMGAymKti9-LYBBwxnxpkGXcTlmstXv9igoTs0AkZAvzDOl3NiNYhgkFMlpWZY7toGw8C1j_203ebdMyWaQdV3qlrzgDHq7lZw3_-uZXI1sWGmyr3-5UYpWE1kjLYJWg3xN38';
 
 /**
  * Normaliza nombres de campo para búsqueda flexible (sin tildes, minúsculas, sin espacios ni guiones)
@@ -143,6 +149,9 @@ export const mapKeaRecordToPatient = (record, index = 0) => {
     birthDate,
     age,
     weight,
+    clinicNit: String(rawVeterinariaNit || '').replace(/[^0-9]/g, '').trim(),
+    nit: String(rawVeterinariaNit || '').replace(/[^0-9]/g, '').trim(),
+    clinicId: rawVeterinariaNit ? `kea-vet-${String(rawVeterinariaNit).replace(/[^0-9]/g, '').trim()}` : null,
     sedeId: 'sede-principal-80',
     sedeNombre: 'Sede Principal - Calle 80',
     codigoSedeNit: rawVeterinariaNit.startsWith('#') ? rawVeterinariaNit : `#nit-${rawVeterinariaNit}`,
@@ -176,6 +185,169 @@ export const mapKeaRecordToPatient = (record, index = 0) => {
     attendingVet: rawVet || 'Dr. Asignado',
     lastVisit: new Date().toLocaleDateString('es-CO'),
     source: 'Kea Tools DB',
+  };
+};
+
+/**
+ * Mapea un registro de la tabla VETERINARIA de Kea Tools al formato estándar de Clínica / Médico del Portal
+ */
+export const mapKeaRecordToClinic = (record, index = 0) => {
+  const nit = String(record.NIT || '').trim();
+  const nombre = String(record.NOMBRE || 'Clínica Veterinaria').trim();
+  const isIndependiente = record.TIPO === 'independiente' || nombre.toLowerCase().startsWith('dr');
+  const type = isIndependiente ? 'independiente' : 'veterinaria';
+  const contrasena = String(
+    record.contrasena ||
+    record.CONTRASENA ||
+    record.password ||
+    record.PASSWORD ||
+    record.pin ||
+    record.PIN ||
+    record.CLAVE ||
+    record.clave ||
+    ''
+  ).trim();
+
+  return {
+    id: `kea-vet-${record.id || index + 1}`,
+    keaRecordId: record.id || null,
+    type,
+    esIndependiente: isIndependiente,
+    nit: nit,
+    cedula: nit,
+    contrasena: contrasena,
+    password: contrasena,
+    nombreVeterinaria: !isIndependiente ? nombre : '',
+    nombreMedico: isIndependiente ? nombre : '',
+    directorMedico: {
+      nombre: record.NOMBRE_DIRECTOR || (isIndependiente ? nombre : 'Director Médico'),
+      telefono: record.TELEFONO_DIRECTOR || record.TELEFONO || '',
+    },
+    administrativa: {
+      nombreResponsable: 'Responsable Administrativo',
+      telefonoPagos: record.TELEFONO || '',
+    },
+    recoleccion: {
+      departamento: 'Colombia',
+      ciudad: record.CIUDAD || 'Bogotá',
+      direccionFisica: record.DIRECCION || '',
+      detallesAdicionales: '',
+      indicacionesRuta: 'Donde el repartidor recogerá las muestras',
+    },
+    correos: {
+      facturacion: (record.CORREO_FACTURACION || record.EMAIL || '').toLowerCase(),
+      resultados: (record.EMAIL || record.CORREO_FACTURACION || '').toLowerCase(),
+    },
+    documentos: {
+      rutNumero: nit,
+      rutArchivo: 'RUT_KeaTools.pdf',
+    },
+    capacitacionOSD: record.CAPACITADO_OSD || 'No',
+    capacitacionQpcr: record.CAPACITACION_QPCR || '',
+    cantidadVeterinarios: record.NUM_VETERINARIOS || '',
+    cuentaConEspecialistas: record.TIENE_ESPECIALISTAS || 'No',
+    especialidad: record.ESPECIALIDAD || '',
+    especialistas: record.ESPECIALIDAD ? record.ESPECIALIDAD.split(',').map(s => s.trim()) : [],
+    frecuenciaPcrMensual: record.FRECUENCIA_PCR_MENSUAL || '',
+    medioConocisteOSD: record.MEDIO_CONOCIO_OSD || '',
+    observaciones: record.OBSERVACIONES || '',
+    estado: record.ESTADO || 'activo',
+    estadoCartera: record.ESTADO_CARTERA || 'Habilitado',
+    tipoPago: record.TIPO_PAGO || 'contado',
+    sedes: [
+      {
+        id: `sede-kea-${record.id || 1}`,
+        nombreSede: `${nombre} - Sede Principal`,
+        esPrincipal: true,
+        consecutivoNit: 1,
+        codigoSedeNit: `#nit-1`,
+        departamento: 'Colombia',
+        ciudad: record.CIUDAD || 'Bogotá',
+        direccionFisica: record.DIRECCION || 'Dirección principal',
+        telefonoContacto: record.TELEFONO || '',
+        responsableSede: record.NOMBRE_DIRECTOR || nombre,
+      }
+    ],
+    veterinariosAsociados: [],
+    source: 'Kea Tools DB',
+  };
+};
+
+export const KNOWN_KEA_CITIES = [
+  'Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Bucaramanga',
+  'Cartagena', 'Pereira', 'Manizales', 'Armenia', 'Pasto',
+  'Cúcuta', 'Ibagué', 'Villavicencio', 'Montería', 'Santa Marta',
+  'Neiva', 'Popayán', 'Valledupar', 'Tunja', 'Sincelejo',
+  'Riohacha', 'Florencia', 'Yopal', 'Quibdó', 'Chía', 'Zipaquirá',
+  'Sabaneta', 'Bello', 'Itagüí', 'Envigado', 'Rionegro', 'Girón',
+  'Piedecuesta', 'Floridablanca', 'Palmira', 'Soacha', 'Facatativá',
+  'Bojacá', 'Caldas', 'Cajicá', 'Pitalito', 'Supía', 'Carmen de Viboral',
+  'Pamplona', 'Segovia'
+];
+
+export const normalizeCityForKea = (cityName) => {
+  if (!cityName) return 'Bogotá';
+  const clean = String(cityName)
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
+  const found = KNOWN_KEA_CITIES.find((c) => {
+    const cClean = c.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    return cClean === clean || clean.startsWith(cClean) || clean.includes(cClean);
+  });
+
+  return found || 'Bogotá';
+};
+
+/**
+ * Mapea un registro de la tabla VETERINARIO de Kea Tools al formato estándar de Profesional Asociado
+ */
+export const mapKeaRecordToVeterinarian = (record, index = 0) => {
+  const keaId = record.id || index + 1;
+  const nombre = String(record.NOMBRE || record.nombre || 'Médico Veterinario').trim();
+  const tarjetaProfesional = String(record.TARJETA_PROFESIONAL || record.tarjetaProfesional || '').trim();
+  const cedula = String(record.NIT_CEDULA || record.cedula || '').trim();
+  const clinicaNit = String(record.VETERINARIA || record.veterinaria || '').trim();
+  const sede = String(record.SEDE || record.sede || 'Sede Principal').trim();
+  const email = String(record.EMAIL || record.email || record.CORREO_FACTURACION || '').trim();
+  const telefono = String(record.TELEFONO || record.telefono || '').trim();
+  const ciudad = String(record.CIUDAD || record.ciudad || '').trim();
+  const especialidad = String(record.ESPECIALIDAD || record.especialidad || 'Medicina General').trim();
+  const estado = String(record.ESTADO || record.estado || 'activo').toLowerCase();
+  const contrasena = String(
+    record.contrasena ||
+    record.CONTRASENA ||
+    record.password ||
+    record.PASSWORD ||
+    record.pin ||
+    record.PIN ||
+    record.CLAVE ||
+    record.clave ||
+    ''
+  ).trim();
+
+  return {
+    id: `kea-mv-${keaId}`,
+    keaId: keaId,
+    nombre,
+    tarjetaProfesional,
+    cedula,
+    contrasena,
+    password: contrasena,
+    veterinariaNit: clinicaNit,
+    sedeId: 'sede-principal',
+    sedeNombre: sede || 'Sede Principal',
+    email,
+    telefono,
+    ciudad,
+    especialidad,
+    estado: estado === 'inactivo' ? 'inactivo' : (estado === 'bloqueado' ? 'bloqueado' : 'activo'),
+    rol: 'veterinario_planta',
+    rolNombre: 'Veterinario de Planta',
+    esDirector: false,
+    fechaVinculacion: record.FECHA_REGISTRO || new Date().toISOString().slice(0, 10),
   };
 };
 
@@ -304,9 +476,8 @@ export const keaService = {
       ? (String(patientData.birthDate).includes('T') ? patientData.birthDate : `${patientData.birthDate}T00:00:00-05:00`)
       : new Date().toISOString();
 
-    const VALID_NITS = ['900000001', '900000002', '900949599', '1000087681'];
-    const rawNit = String(patientData.codigoSedeNit || '').replace(/[^0-9]/g, '');
-    const nit = VALID_NITS.includes(rawNit) ? rawNit : '900000001';
+    const rawNit = String(patientData.clinicNit || patientData.nit || patientData.codigoSedeNit || '').replace(/[^0-9]/g, '');
+    const nit = rawNit || '900000001';
 
     // En Kea Tools, 'VETERINARIO' es un campo de relación en desuso que solo acepta IDs específicos (o vacío)
     const knownVets = ['TP-PRUEBA-01', 'TP-PRUEBA-02'];
@@ -380,7 +551,11 @@ export const keaService = {
     }
 
     const createdRecord = data.data || data;
-    return mapKeaRecordToPatient(createdRecord);
+    const mapped = mapKeaRecordToPatient(createdRecord);
+    if (patientData.attendingVet) {
+      mapped.attendingVet = patientData.attendingVet;
+    }
+    return mapped;
   },
 
   /**
@@ -475,5 +650,307 @@ export const keaService = {
     }
 
     return { success: true, message: 'Registro eliminado con éxito en Kea Tools' };
+  },
+
+  /**
+   * Obtiene la lista de veterinarias y clientes registrados en Kea Tools DB
+   * Por defecto obtiene los registros más recientes (al final de la tabla) y los iniciales
+   */
+  async fetchVeterinariasFromKea({ limit = 100, offset = null, latestFirst = true } = {}) {
+    const baseUrl = (process.env.KEA_VETERINARIA_URL || DEFAULT_KEA_VET_URL).replace(/\/$/, '');
+    const token = process.env.KEA_VETERINARIA_TOKEN || DEFAULT_KEA_VET_TOKEN;
+
+    if (!token) {
+      throw new Error('No se ha configurado el KEA_VETERINARIA_TOKEN.');
+    }
+
+    // 1. Obtener primero el total de registros en la base de datos
+    let total = 0;
+    try {
+      const metaRes = await fetch(`${baseUrl}/records?limit=1`, {
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+      });
+      const metaData = await metaRes.json();
+      total = metaData.meta?.total || 0;
+    } catch (_) {}
+
+    // 2. Si latestFirst es true y no se pasó offset, traer los registros más recientes del final de la tabla
+    let resolvedOffset = offset;
+    if (resolvedOffset === null || resolvedOffset === undefined) {
+      if (latestFirst && total > 0) {
+        resolvedOffset = Math.max(0, total - limit);
+      } else {
+        resolvedOffset = 0;
+      }
+    }
+
+    const url = `${baseUrl}/records?limit=${limit}&offset=${resolvedOffset}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || data.status === 'error') {
+      const err = new Error(data.message || `Error HTTP ${response.status} de Kea Tools VETERINARIA`);
+      err.status = response.status;
+      throw err;
+    }
+
+    let rawRecords = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
+
+    // Traer también la primera página para combinar clientes iniciales y evitar omisiones
+    if (latestFirst && resolvedOffset > 0) {
+      try {
+        const firstRes = await fetch(`${baseUrl}/records?limit=100&offset=0`, {
+          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+        });
+        const firstData = await firstRes.json();
+        const firstRecs = Array.isArray(firstData.data) ? firstData.data : [];
+        const seenIds = new Set(rawRecords.map((r) => r.id));
+        for (const fr of firstRecs) {
+          if (!seenIds.has(fr.id)) {
+            rawRecords.push(fr);
+            seenIds.add(fr.id);
+          }
+        }
+      } catch (_) {}
+    }
+
+    const mappedClinics = rawRecords.map((rec, i) => mapKeaRecordToClinic(rec, i));
+
+    return {
+      success: true,
+      count: mappedClinics.length,
+      total: total || data.meta?.total || mappedClinics.length,
+      clinics: mappedClinics,
+      raw: data,
+    };
+  },
+
+  /**
+   * Crea un nuevo registro de Veterinaria / Cliente directamente en la BD Kea Tools vía POST /records
+   */
+  async createVeterinariaInKea(clinicData) {
+    const url = `${(process.env.KEA_VETERINARIA_URL || DEFAULT_KEA_VET_URL).replace(/\/$/, '')}/records`;
+    const token = process.env.KEA_VETERINARIA_TOKEN || DEFAULT_KEA_VET_TOKEN;
+
+    if (!token) {
+      throw new Error('No se ha configurado el KEA_VETERINARIA_TOKEN.');
+    }
+
+    const isIndep = Boolean(
+      clinicData.type === 'independiente' ||
+      clinicData.nombreEmpresa?.toLowerCase().startsWith('dr') ||
+      clinicData.nombreVeterinaria?.toLowerCase().startsWith('dr')
+    );
+
+    const cleanNit = String(clinicData.nit || clinicData.cedula || '').replace(/[^0-9]/g, '').trim();
+    const nombre = (clinicData.nombreEmpresa || clinicData.nombreVeterinaria || clinicData.nombreMedico || '').trim();
+    const contrasena = (clinicData.contrasena || clinicData.password || clinicData.pin || '').trim();
+    const email = (clinicData.correoFacturacion || clinicData.correos?.facturacion || clinicData.correos?.resultados || '').trim().toLowerCase();
+    const telefono = (clinicData.telefonoPagos || clinicData.administrativa?.telefonoPagos || clinicData.telefonoDirectorMedico || clinicData.directorMedico?.telefono || '').trim();
+    const keaCiudad = normalizeCityForKea(clinicData.ciudad || clinicData.recoleccion?.ciudad);
+    const direccion = (clinicData.direccionFisica || clinicData.recoleccion?.direccionFisica || '').trim();
+    const nombreDirector = (clinicData.nombreDirectorMedico || clinicData.directorMedico?.nombre || nombre).trim();
+    const telefonoDirector = (clinicData.telefonoDirectorMedico || clinicData.directorMedico?.telefono || telefono).trim();
+
+    const payload = {
+      NIT: cleanNit,
+      NOMBRE: nombre,
+      contrasena: contrasena,
+      EMAIL: email,
+      CORREO_FACTURACION: email,
+      TELEFONO: telefono,
+      CIUDAD: keaCiudad,
+      DIRECCION: direccion,
+      NOMBRE_DIRECTOR: nombreDirector,
+      TELEFONO_DIRECTOR: telefonoDirector,
+      CAPACITADO_OSD: clinicData.capacitacionOSD || 'No',
+      CAPACITACION_QPCR: clinicData.capacitacionQpcr === 'Otro' ? `Otro: ${clinicData.capacitacionQpcrOtro || ''}` : (clinicData.capacitacionQpcr || ''),
+      NUM_VETERINARIOS: clinicData.cantidadVeterinarios || '',
+      TIENE_ESPECIALISTAS: clinicData.cuentaConEspecialistas || (Array.isArray(clinicData.especialistas) && clinicData.especialistas.length > 0 ? 'Sí' : 'No'),
+      ESPECIALIDAD: Array.isArray(clinicData.especialistas) ? clinicData.especialistas.join(', ') : (clinicData.especialistas || ''),
+      FRECUENCIA_PCR_MENSUAL: clinicData.frecuenciaPcrMensual || '',
+      MEDIO_CONOCIO_OSD: clinicData.medioConocisteOSD || '',
+      OBSERVACIONES: clinicData.observaciones || '',
+      ESTADO: 'activo',
+      TIPO: isIndep ? 'independiente' : 'clinica',
+      ESTADO_CARTERA: 'Habilitado',
+      TIPO_PAGO: 'contado',
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || data.status === 'error' || data.status === 'fail') {
+      const msg = data.data?.message || data.message || `Error al crear veterinaria en Kea Tools (HTTP ${response.status})`;
+      const err = new Error(msg);
+      err.status = response.status;
+      err.details = data;
+      throw err;
+    }
+
+    const createdRecord = data.data || data;
+    return mapKeaRecordToClinic(createdRecord);
+  },
+
+  /**
+   * Obtiene la lista de médicos veterinarios registrados en la tabla VETERINARIO de Kea Tools DB
+   * Opcionalmente filtrados por la clínica (NIT)
+   */
+  async fetchVeterinariosFromKea({ limit = 100, offset = 0, clinicNit = null } = {}) {
+    const baseUrl = (process.env.KEA_MEDICOS_URL || DEFAULT_KEA_MEDICOS_URL).replace(/\/$/, '');
+    const token = process.env.KEA_MEDICOS_TOKEN || DEFAULT_KEA_MEDICOS_TOKEN;
+
+    if (!token) {
+      throw new Error('No se ha configurado el KEA_MEDICOS_TOKEN.');
+    }
+
+    const url = `${baseUrl}/records?limit=${limit}&offset=${offset}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || data.status === 'error') {
+      const err = new Error(data.message || `Error HTTP ${response.status} de Kea Tools VETERINARIO`);
+      err.status = response.status;
+      throw err;
+    }
+
+    const rawRecords = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
+    let mapped = rawRecords.map((rec, i) => mapKeaRecordToVeterinarian(rec, i));
+
+    if (clinicNit) {
+      const cleanTargetNit = String(clinicNit).replace(/[^0-9]/g, '');
+      mapped = mapped.filter((v) => {
+        const vNit = String(v.veterinariaNit || '').replace(/[^0-9]/g, '');
+        return vNit && vNit === cleanTargetNit;
+      });
+    }
+
+    return {
+      success: true,
+      count: mapped.length,
+      total: data.meta?.total || mapped.length,
+      veterinarians: mapped,
+      raw: data,
+    };
+  },
+
+  /**
+   * Registra un nuevo médico veterinario en la tabla VETERINARIO de Kea Tools DB y lo asocia al NIT de la clínica
+   */
+  async createVeterinarioInKea(vetData, clinicNit) {
+    const url = `${(process.env.KEA_MEDICOS_URL || DEFAULT_KEA_MEDICOS_URL).replace(/\/$/, '')}/records`;
+    const token = process.env.KEA_MEDICOS_TOKEN || DEFAULT_KEA_MEDICOS_TOKEN;
+
+    if (!token) {
+      throw new Error('No se ha configurado el KEA_MEDICOS_TOKEN.');
+    }
+
+    const cleanNit = String(clinicNit || vetData.veterinariaNit || '').replace(/[^0-9]/g, '').trim();
+
+    const payload = {
+      NOMBRE: (vetData.nombre || '').trim(),
+      TARJETA_PROFESIONAL: (vetData.tarjetaProfesional || '').trim(),
+      NIT_CEDULA: String(vetData.cedula || '').replace(/[^0-9]/g, '').trim(),
+      VETERINARIA: cleanNit,
+      SEDE: '', // Omitido/vacío para cumplir restricción FK de Kea
+      TELEFONO: String(vetData.telefono || '').trim(),
+      EMAIL: (vetData.email || '').trim().toLowerCase(),
+      CORREO_FACTURACION: (vetData.correoFacturacion || vetData.email || '').trim().toLowerCase(),
+      CIUDAD: (vetData.ciudad || '').trim(),
+      ESPECIALIDAD: (vetData.especialidad || 'Medicina General').trim(),
+      ESTADO: vetData.estado || 'activo',
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || data.status === 'error' || data.status === 'fail') {
+      const msg = data.data?.message || data.message || `Error al crear veterinario en Kea Tools (HTTP ${response.status})`;
+      const err = new Error(msg);
+      err.status = response.status;
+      err.details = data;
+      throw err;
+    }
+
+    const createdRecord = data.data || data;
+    return mapKeaRecordToVeterinarian(createdRecord);
+  },
+
+  /**
+   * Actualiza los datos de un médico veterinario en Kea Tools DB vía PATCH /records/{id}
+   */
+  async updateVeterinarioInKea(keaId, vetData) {
+    if (!keaId) {
+      throw new Error('Se requiere el ID de registro de Kea Tools para actualizar.');
+    }
+
+    const url = `${(process.env.KEA_MEDICOS_URL || DEFAULT_KEA_MEDICOS_URL).replace(/\/$/, '')}/records/${keaId}`;
+    const token = process.env.KEA_MEDICOS_TOKEN || DEFAULT_KEA_MEDICOS_TOKEN;
+
+    const payload = {};
+    if (vetData.nombre) payload.NOMBRE = vetData.nombre.trim();
+    if (vetData.tarjetaProfesional) payload.TARJETA_PROFESIONAL = vetData.tarjetaProfesional.trim();
+    if (vetData.cedula) payload.NIT_CEDULA = String(vetData.cedula).replace(/[^0-9]/g, '').trim();
+    if (vetData.veterinariaNit) payload.VETERINARIA = String(vetData.veterinariaNit).replace(/[^0-9]/g, '').trim();
+    if (vetData.telefono) payload.TELEFONO = String(vetData.telefono).trim();
+    if (vetData.email) payload.EMAIL = vetData.email.trim().toLowerCase();
+    if (vetData.ciudad) payload.CIUDAD = vetData.ciudad.trim();
+    if (vetData.especialidad) payload.ESPECIALIDAD = vetData.especialidad.trim();
+    if (vetData.estado) payload.ESTADO = vetData.estado.toLowerCase();
+
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || data.status === 'error' || data.status === 'fail') {
+      const msg = data.data?.message || data.message || `Error al actualizar veterinario en Kea (HTTP ${response.status})`;
+      const err = new Error(msg);
+      err.status = response.status;
+      err.details = data;
+      throw err;
+    }
+
+    const updatedRecord = data.data || data;
+    return mapKeaRecordToVeterinarian(updatedRecord);
   },
 };

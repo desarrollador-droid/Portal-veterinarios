@@ -1,9 +1,69 @@
 import { patientsStore, PATIENT_STATUSES, calculateAgeFromBirthDate } from '../models/patientModel.js';
 import { keaService } from './keaService.js';
+import { clinicService } from './clinicService.js';
+
+function cleanNumber(val) {
+  if (!val) return '';
+  return String(val).replace(/[^0-9]/g, '').trim();
+}
+
+/**
+ * Determina con precisión si un paciente pertenece a la clínica o médico actual
+ */
+function isPatientAssociatedWithClinic(patient, targetNit, targetClinicId) {
+  if (!targetNit && !targetClinicId) return true;
+
+  // 1. Coincidencia por NIT o código de sede / consecutivo NIT
+  if (targetNit) {
+    const pClinicNit = cleanNumber(patient.clinicNit);
+    if (pClinicNit && pClinicNit === targetNit) return true;
+
+    const pNit = cleanNumber(patient.nit);
+    if (pNit && pNit === targetNit) return true;
+
+    if (patient.codigoSedeNit) {
+      const pSedeNit = cleanNumber(patient.codigoSedeNit);
+      if (pSedeNit && pSedeNit === targetNit) return true;
+    }
+
+    if (patient.veterinaria) {
+      const pVet = cleanNumber(patient.veterinaria);
+      if (pVet && pVet === targetNit) return true;
+    }
+  }
+
+  // 2. Coincidencia por ID de la clínica
+  if (targetClinicId) {
+    const pClinicId = patient.clinicId ? String(patient.clinicId).toLowerCase().trim() : '';
+    if (pClinicId && pClinicId === targetClinicId) return true;
+
+    if (patient.keaClinicId && String(patient.keaClinicId).toLowerCase().trim() === targetClinicId) return true;
+  }
+
+  return false;
+}
 
 export const patientService = {
-  getDashboardStats({ sedeId } = {}) {
+  getDashboardStats({ sedeId, clinicId, nit, clinicNit } = {}) {
     let list = patientsStore;
+
+    let targetNit = cleanNumber(nit || clinicNit);
+    let targetClinicId = clinicId ? String(clinicId).trim().toLowerCase() : '';
+
+    if (!targetNit && !targetClinicId) {
+      try {
+        const active = clinicService.getActiveClinic();
+        if (active) {
+          targetNit = cleanNumber(active.nit || active.cedula);
+          targetClinicId = active.id ? String(active.id).trim().toLowerCase() : '';
+        }
+      } catch (_) {}
+    }
+
+    if (targetNit || targetClinicId) {
+      list = list.filter((p) => isPatientAssociatedWithClinic(p, targetNit, targetClinicId));
+    }
+
     if (sedeId && sedeId !== 'all' && sedeId !== 'Todas') {
       list = list.filter((p) => p.sedeId === sedeId);
     }
@@ -26,12 +86,29 @@ export const patientService = {
   },
 
   getPatients(filters = {}) {
-    const { search, species, breed, sampleStatus, sedeId } = filters;
+    const { search, species, breed, sampleStatus, sedeId, clinicId, nit, clinicNit } = filters;
+
+    let targetNit = cleanNumber(nit || clinicNit);
+    let targetClinicId = clinicId ? String(clinicId).trim().toLowerCase() : '';
+
+    if (!targetNit && !targetClinicId) {
+      try {
+        const active = clinicService.getActiveClinic();
+        if (active) {
+          targetNit = cleanNumber(active.nit || active.cedula);
+          targetClinicId = active.id ? String(active.id).trim().toLowerCase() : '';
+        }
+      } catch (_) {}
+    }
 
     let result = patientsStore.map((p) => ({
       ...p,
       age: calculateAgeFromBirthDate(p.birthDate),
     }));
+
+    if (targetNit || targetClinicId) {
+      result = result.filter((p) => isPatientAssociatedWithClinic(p, targetNit, targetClinicId));
+    }
 
     if (sedeId && sedeId !== 'all' && sedeId !== 'Todas') {
       result = result.filter((p) => p.sedeId === sedeId);
@@ -491,9 +568,13 @@ export const patientService = {
       sex: data.sex || 'Hembra',
       birthDate: birthDate,
       weight: data.weight || '4.0 kg',
+      clinicId: data.clinicId || (data.clinicNit ? `kea-vet-${cleanNumber(data.clinicNit)}` : null),
+      clinicNit: cleanNumber(data.clinicNit || data.nit || data.codigoSedeNit),
+      nit: cleanNumber(data.clinicNit || data.nit || data.codigoSedeNit),
+      veterinaria: cleanNumber(data.clinicNit || data.nit || data.codigoSedeNit),
+      codigoSedeNit: data.codigoSedeNit || (data.clinicNit ? `#nit-${cleanNumber(data.clinicNit)}` : '#nit-1'),
       sedeId: data.sedeId || 'sede-principal-80',
       sedeNombre: data.sedeNombre || 'Sede Principal - Calle 80',
-      codigoSedeNit: data.codigoSedeNit || '#nit-1',
       owner: {
         firstName: ownerFirstName,
         lastName: ownerLastName,
@@ -556,7 +637,7 @@ export const patientService = {
       allergies: data.hasAllergies ? (data.allergies || 'Alergia reportada') : '',
       medicalBackground: data.medicalBackground || 'Sin antecedentes médicos previos reportados.',
       lastVisit: new Date().toLocaleDateString('es-ES'),
-      attendingVet: data.attendingVet || 'Dr. Alejandro Morales',
+      attendingVet: data.attendingVet || (keaPatient?.attendingVet && keaPatient.attendingVet !== 'Dr. Asignado' ? keaPatient.attendingVet : 'Dr. Alejandro Morales'),
       notes: data.notes || '',
       healthMetrics: {
         weightHistory: [{ date: new Date().toLocaleDateString('es-ES'), weight: data.weight || '4.0 kg' }],
@@ -574,7 +655,7 @@ export const patientService = {
         {
           id: `CON-${Date.now().toString().slice(-4)}`,
           date: new Date().toLocaleDateString('es-ES'),
-          vet: 'Dr. Alejandro Morales',
+          vet: data.attendingVet || (keaPatient?.attendingVet && keaPatient.attendingVet !== 'Dr. Asignado' ? keaPatient.attendingVet : 'Dr. Alejandro Morales'),
           reason: data.consultationType ? `Ingreso por ${data.consultationType}` : 'Apertura de expediente',
           diagnosis: data.physicalFindings || 'Evaluación inicial.',
           treatment: 'Apertura de ficha clínica y anamnesis.',
@@ -628,9 +709,16 @@ export const patientService = {
           )
         );
         if (existingIdx !== -1) {
+          const currentAttending = patientsStore[existingIdx].attendingVet;
+          const keaAttending = keaPat.attendingVet;
+          const resolvedAttending = (currentAttending && currentAttending !== 'Dr. Asignado')
+            ? currentAttending
+            : (keaAttending || currentAttending);
+
           patientsStore[existingIdx] = {
             ...patientsStore[existingIdx],
             ...keaPat,
+            attendingVet: resolvedAttending,
             activeExamOrder: patientsStore[existingIdx].activeExamOrder || keaPat.activeExamOrder,
             consultations: patientsStore[existingIdx].consultations || keaPat.consultations,
             documents: patientsStore[existingIdx].documents || [],
