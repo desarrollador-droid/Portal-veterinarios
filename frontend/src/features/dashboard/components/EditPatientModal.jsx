@@ -76,11 +76,10 @@ export default function EditPatientModal({ patient, onClose, onSave, currentUser
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (name === 'ownerDepartment') {
-      const citiesInDept = colombiaGeoApi.getCitiesByDepartmentSync(value);
       setFormData((prev) => ({
         ...prev,
         ownerDepartment: value,
-        ownerCity: citiesInDept[0]?.name || '',
+        ownerCity: '',
       }));
       return;
     }

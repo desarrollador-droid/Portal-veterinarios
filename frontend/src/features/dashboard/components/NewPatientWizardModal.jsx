@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { colombiaGeoApi } from '../services/colombiaGeoApi.js';
+import { colombiaGeoApi, FALLBACK_DEPARTMENTS } from '../services/colombiaGeoApi.js';
 import { clinicApi } from '../services/clinicApi.js';
 
 export const calculateAgeFromBirthDate = (birthDateString) => {
@@ -220,16 +220,94 @@ export default function NewPatientWizardModal({
     ? `${formData.name.trim()} ${formData.ownerLastName.trim()}`.trim()
     : '';
 
+  const [departmentsList, setDepartmentsList] = useState(() => {
+    const syncDepts = colombiaGeoApi.getDepartmentsSync();
+    return syncDepts.length > 0 ? syncDepts : FALLBACK_DEPARTMENTS;
+  });
+  const [citiesList, setCitiesList] = useState(() => {
+    return formData.ownerDepartment ? colombiaGeoApi.getCitiesByDepartmentSync(formData.ownerDepartment) : [];
+  });
+  const [loadingCities, setLoadingCities] = useState(false);
+
+  // Carga asíncrona de departamentos desde la API oficial de Colombia
+  useEffect(() => {
+    let isMounted = true;
+    colombiaGeoApi
+      .getDepartments()
+      .then((depts) => {
+        if (isMounted && Array.isArray(depts) && depts.length > 0) {
+          setDepartmentsList(depts);
+        }
+      })
+      .catch((err) => {
+        console.warn('ColombiaGeoApi: Error al obtener departamentos:', err?.message);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Carga dinámica de municipios en tiempo real desde la API al cambiar de departamento
+  useEffect(() => {
+    let isMounted = true;
+    const dept = formData.ownerDepartment;
+    if (!dept) {
+      setCitiesList([]);
+      return;
+    }
+
+    // Inicializar de inmediato con datos síncronos de respaldo / caché local
+    const syncCities = colombiaGeoApi.getCitiesByDepartmentSync(dept);
+    if (syncCities && syncCities.length > 0) {
+      setCitiesList(syncCities);
+    }
+
+    // Consultar API oficial de Colombia
+    setLoadingCities(true);
+    colombiaGeoApi
+      .getCitiesByDepartment(dept)
+      .then((apiCities) => {
+        if (isMounted && Array.isArray(apiCities) && apiCities.length > 0) {
+          setCitiesList(apiCities);
+        }
+      })
+      .catch((err) => {
+        console.warn('ColombiaGeoApi: Error al obtener municipios:', err?.message);
+      })
+      .finally(() => {
+        if (isMounted) setLoadingCities(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [formData.ownerDepartment]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (name === 'ownerDepartment') {
-      const citiesInDept = colombiaGeoApi.getCitiesByDepartmentSync(value);
       setFormData((prev) => ({
         ...prev,
         ownerDepartment: value,
-        ownerCity: citiesInDept[0]?.name || '',
+        ownerCity: '', // El usuario debe seleccionar explícitamente su ciudad / municipio
       }));
+      if (formAlert?.fieldName === 'ownerDepartment' || formAlert?.fieldName === 'ownerCity') {
+        setFormAlert(null);
+      }
       return;
+    }
+    if (name === 'ownerCity') {
+      setFormData((prev) => ({
+        ...prev,
+        ownerCity: value,
+      }));
+      if (formAlert?.fieldName === 'ownerCity') {
+        setFormAlert(null);
+      }
+      return;
+    }
+    if (formAlert?.fieldName === name) {
+      setFormAlert(null);
     }
     setFormData((prev) => ({
       ...prev,
@@ -293,6 +371,14 @@ export default function NewPatientWizardModal({
     }
     if (!formData.ownerPhone.trim()) {
       triggerAlert('Por favor ingrese el número de teléfono celular principal del tutor.', 'ownerPhone');
+      return false;
+    }
+    if (!formData.ownerDepartment || !formData.ownerDepartment.trim()) {
+      triggerAlert('Por favor seleccione el departamento de residencia del tutor.', 'ownerDepartment');
+      return false;
+    }
+    if (!formData.ownerCity || !formData.ownerCity.trim()) {
+      triggerAlert('Por favor seleccione la ciudad o municipio del tutor.', 'ownerCity');
       return false;
     }
     return true;
@@ -731,44 +817,73 @@ export default function NewPatientWizardModal({
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Departamento
+                    Departamento *
                   </label>
                   <select
                     name="ownerDepartment"
                     value={formData.ownerDepartment}
                     onChange={handleChange}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none bg-white cursor-pointer"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none bg-white cursor-pointer ${
+                      formAlert?.fieldName === 'ownerDepartment'
+                        ? 'border-rose-500 ring-2 ring-rose-300 bg-rose-50/30'
+                        : 'border-slate-200'
+                    }`}
                   >
                     <option value="">Seleccione departamento...</option>
-                    {COLOMBIA_DEPARTMENTS.map((dept) => (
-                      <option key={dept} value={dept}>
-                        {dept}
-                      </option>
-                    ))}
+                    {departmentsList.map((dept) => {
+                      const name = typeof dept === 'string' ? dept : dept.name;
+                      const id = typeof dept === 'string' ? dept : dept.id;
+                      return (
+                        <option key={id} value={name}>
+                          {name}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Ciudad / Municipio
+                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
+                    <span>Ciudad / Municipio *</span>
+                    {loadingCities && (
+                      <span className="text-[10px] text-purple-600 font-normal animate-pulse">
+                        Cargando...
+                      </span>
+                    )}
                   </label>
                   <select
                     name="ownerCity"
                     value={formData.ownerCity}
                     onChange={handleChange}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none bg-white cursor-pointer"
+                    disabled={!formData.ownerDepartment}
+                    className={`w-full px-3.5 py-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none bg-white cursor-pointer disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed ${
+                      formAlert?.fieldName === 'ownerCity'
+                        ? 'border-rose-500 ring-2 ring-rose-300 bg-rose-50/30'
+                        : 'border-slate-200'
+                    }`}
                   >
                     <option value="">
-                      {formData.ownerDepartment ? 'Seleccione ciudad / municipio...' : 'Primero elija departamento'}
+                      {!formData.ownerDepartment
+                        ? 'Primero elija departamento'
+                        : loadingCities
+                        ? 'Cargando ciudades de la API...'
+                        : 'Seleccione ciudad / municipio...'}
                     </option>
-                    {colombiaGeoApi.getCitiesByDepartmentSync(formData.ownerDepartment).map((city) => (
-                      <option key={city.id} value={city.name}>
-                        {city.name}
-                      </option>
-                    ))}
-                    {formData.ownerCity && !colombiaGeoApi.getCitiesByDepartmentSync(formData.ownerDepartment).some(c => c.name.toLowerCase() === formData.ownerCity.toLowerCase()) && (
-                      <option value={formData.ownerCity}>{formData.ownerCity}</option>
-                    )}
+                    {citiesList.map((city) => {
+                      const cityName = typeof city === 'string' ? city : city.name;
+                      const cityId = typeof city === 'string' ? city : (city.id || cityName);
+                      return (
+                        <option key={cityId} value={cityName}>
+                          {cityName}
+                        </option>
+                      );
+                    })}
+                    {formData.ownerCity &&
+                      !citiesList.some(
+                        (c) => (typeof c === 'string' ? c : c.name).toLowerCase() === formData.ownerCity.toLowerCase()
+                      ) && (
+                        <option value={formData.ownerCity}>{formData.ownerCity}</option>
+                      )}
                   </select>
                 </div>
 
@@ -782,14 +897,14 @@ export default function NewPatientWizardModal({
                     onChange={handleChange}
                     className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none bg-white cursor-pointer"
                   >
-                    <option value="">Sin especificar</option>
+                    <option value="">Seleccione estrato...</option>
                     <option value="Estrato 1">Estrato 1</option>
                     <option value="Estrato 2">Estrato 2</option>
                     <option value="Estrato 3">Estrato 3</option>
                     <option value="Estrato 4">Estrato 4</option>
                     <option value="Estrato 5">Estrato 5</option>
                     <option value="Estrato 6">Estrato 6</option>
-                    <option value="Comercial / Rural">Comercial / Rural</option>
+                    <option value="Rural / Finca">Rural / Finca</option>
                   </select>
                 </div>
               </div>
@@ -1352,8 +1467,12 @@ export default function NewPatientWizardModal({
                     <strong className="text-slate-800">{formData.ownerPhone}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[11px]">Ciudad</span>
-                    <strong className="text-slate-800">{formData.ownerCity || 'No especificada'}</strong>
+                    <span className="text-slate-400 block text-[11px]">Ubicación (Depto / Ciudad)</span>
+                    <strong className="text-slate-800">
+                      {formData.ownerCity && formData.ownerDepartment
+                        ? `${formData.ownerCity}, ${formData.ownerDepartment}`
+                        : formData.ownerCity || formData.ownerDepartment || 'No especificada'}
+                    </strong>
                   </div>
                   <div>
                     <span className="text-slate-400 block text-[11px]">Dirección</span>
