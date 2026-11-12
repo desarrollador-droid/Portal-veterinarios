@@ -4770,7 +4770,7 @@ export default function RequestExamModal({
                   <div className="space-y-1">
                     <span className="font-extrabold text-[#2B017C]">Comentario para el registro del expediente:</span>
                     <p className="text-[11px] text-purple-900 leading-relaxed font-medium">
-                      En este espacio se deben de subir todos los exámenes anteriores que se ha realizado el paciente (cuadros hemáticos y hemogramas previos, ecografías, radiografías, coprológicos, perfiles bioquímicos, urianálisis, citologías, biopsias o reportes externos de otros laboratorios), así como notas de evolución médica, tratamientos previos y antecedentes patológicos relevantes para una correlación clínica completa.
+                      En este espacio se deben de subir todos los exámenes anteriores que se ha realizado el paciente (ecografías, radiografías, coprológicos, perfiles bioquímicos, urianálisis, citologías, biopsias o reportes externos de otros laboratorios), así como notas de evolución médica, tratamientos previos y antecedentes patológicos relevantes para una correlación clínica completa.
                     </p>
                   </div>
                 </div>
