@@ -119,21 +119,27 @@ export default function ClinicalOrderForm({
   // Estado para la Alerta Visual Diseñada en el Formulario Clínico
   const [formAlert, setFormAlert] = useState(null);
 
+    const scrollToField = (fieldId) => {
+    if (!fieldId) return;
+    const el = document.getElementById(fieldId) || document.querySelector(`[name="${fieldId}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (typeof el.focus === 'function') {
+        el.focus();
+      } else {
+        const firstFocusable = el.querySelector('button, input, select, textarea');
+        if (firstFocusable && typeof firstFocusable.focus === 'function') {
+          firstFocusable.focus();
+        }
+      }
+    }
+  };
+
   const triggerFormAlert = (message, fieldId = null, title = 'Campo Obligatorio Pendiente') => {
     setFormAlert({ message, fieldId, title });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    if (fieldId) {
-      setTimeout(() => {
-        const el = document.getElementById(fieldId) || document.querySelector(`[name="${fieldId}"]`);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          if (typeof el.focus === 'function') {
-            el.focus();
-          }
-        }
-      }, 120);
-    }
+    setTimeout(() => {
+      scrollToField(fieldId);
+    }, 60);
   };
 
   // Estados del Buscador & Filtro Inteligente de Exámenes Clínicos
@@ -843,13 +849,25 @@ export default function ClinicalOrderForm({
           <div className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs space-y-6 animate-in fade-in duration-150">
             
             {/* 1.1 ASEGURADORA VETPLUS (ÚNICA VINCULACIÓN) */}
-            <div id="vetplus-insurance-section" className="bg-gradient-to-r from-teal-50/80 to-purple-50/40 border-2 border-teal-300 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-2xs">
+            <div
+              id="vetplus-insurance-section"
+              className={`rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-2xs transition-all ${
+                formAlert?.fieldId === 'vetplus-insurance-section'
+                  ? 'bg-gradient-to-r from-rose-50 to-amber-50 border-2 border-rose-500 ring-4 ring-rose-400/30'
+                  : 'bg-gradient-to-r from-teal-50/80 to-purple-50/40 border-2 border-teal-300'
+              }`}
+            >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-teal-200 pb-3">
                 <div className="flex items-center gap-2.5">
                   <span className="text-2xl">🛡️</span>
                   <div>
-                    <h4 className="text-xs sm:text-sm font-black text-teal-950 uppercase tracking-wider">
-                      ¿El paciente está asegurado con VetPlus? *
+                    <h4 className="text-xs sm:text-sm font-black text-teal-950 uppercase tracking-wider flex items-center gap-2 flex-wrap">
+                      <span>¿El paciente está asegurado con VetPlus? *</span>
+                      {formAlert?.fieldId === 'vetplus-insurance-section' && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white animate-pulse">
+                          ⚠️ Falta marcar esta opción
+                        </span>
+                      )}
                     </h4>
                     <p className="text-[11px] text-teal-800 mt-0.5">
                       Indique si la mascota cuenta con cobertura activa del seguro VetPlus para aplicar convenio directo.
@@ -870,6 +888,7 @@ export default function ClinicalOrderForm({
                     onClick={() => {
                       setIsVetPlusInsured(opt);
                       if (opt === 'No') setVetPlusAuthCode('');
+                      if (formAlert?.fieldId === 'vetplus-insurance-section') setFormAlert(null);
                     }}
                     className={`py-3 px-4 rounded-xl border-2 font-bold text-xs transition-all cursor-pointer flex items-center justify-center gap-2 ${
                       isVetPlusInsured === opt
@@ -908,11 +927,25 @@ export default function ClinicalOrderForm({
             </div>
 
             {/* 1.2 EVALUACIÓN CLÍNICA: ¿SINTOMÁTICO O ASINTOMÁTICO? */}
-            <div id="symptomatic-status-section" className="space-y-3 pt-2 border-t border-slate-100">
+            <div
+              id="symptomatic-status-section"
+              className={`space-y-3 pt-2 border-t border-slate-100 rounded-2xl p-2.5 transition-all ${
+                formAlert?.fieldId === 'symptomatic-status-section'
+                  ? 'border-2 border-rose-500 ring-4 ring-rose-400/30 bg-rose-50/20'
+                  : ''
+              }`}
+            >
               <div className="space-y-1">
-                <label className="text-xs font-black text-slate-900 uppercase tracking-wider block">
-                  ¿El paciente se encuentra Sintomático o Asintomático? *
-                </label>
+                <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                  <label className="text-xs font-black text-slate-900 uppercase tracking-wider block">
+                    ¿El paciente se encuentra Sintomático o Asintomático? *
+                  </label>
+                  {formAlert?.fieldId === 'symptomatic-status-section' && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white animate-pulse">
+                      ⚠️ Falta marcar esta opción
+                    </span>
+                  )}
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
@@ -933,7 +966,12 @@ export default function ClinicalOrderForm({
 
                   <button
                     type="button"
-                    onClick={() => setIsSymptomatic('Sintomático')}
+                    onClick={() => {
+                      setIsSymptomatic('Sintomático');
+                      if (formAlert?.fieldId === 'symptomatic-status-section') {
+                        setFormAlert(null);
+                      }
+                    }}
                     className={`p-3 rounded-2xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
                       isSymptomatic === 'Sintomático'
                         ? 'bg-amber-600 text-white border-amber-700 shadow-xs'
@@ -948,10 +986,24 @@ export default function ClinicalOrderForm({
 
               {/* Checklist oficial de sintomatología si es Sintomático */}
               {isSymptomatic === 'Sintomático' && (
-                <div id="symptoms-list-section" className="space-y-3 pt-2 animate-in fade-in duration-200">
-                  <label className="text-xs font-bold text-slate-800 block">
-                    Seleccione la sintomatología observada: *
-                  </label>
+                <div
+                  id="symptoms-list-section"
+                  className={`space-y-3 pt-2 animate-in fade-in duration-200 rounded-2xl p-2.5 transition-all ${
+                    formAlert?.fieldId === 'symptoms-list-section'
+                      ? 'border-2 border-rose-500 ring-4 ring-rose-400/30 bg-rose-50/20'
+                      : ''
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                    <label className="text-xs font-bold text-slate-800 block">
+                      Seleccione la sintomatología observada: *
+                    </label>
+                    {formAlert?.fieldId === 'symptoms-list-section' && (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white animate-pulse">
+                        ⚠️ Seleccione al menos un síntoma
+                      </span>
+                    )}
+                  </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                     {SYMPTOMS_OPTIONS.map((sym) => {
                       const isChecked = selectedSymptoms.includes(sym);
@@ -1037,14 +1089,28 @@ export default function ClinicalOrderForm({
               </div>
 
               {/* Selector de Tubos / Tipos de Muestra (NADA PREMARCADO) */}
-              <div id="sample-types-section" className="space-y-2 pt-1">
-                <div className="flex items-center justify-between">
+              <div
+                id="sample-types-section"
+                className={`space-y-2 pt-1 rounded-2xl p-2.5 transition-all ${
+                  formAlert?.fieldId === 'sample-types-section'
+                    ? 'border-2 border-rose-500 ring-4 ring-rose-400/30 bg-rose-50/20'
+                    : ''
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2 flex-wrap">
                   <label className="text-xs font-black text-slate-900 uppercase tracking-wider block">
                     Tipo de Muestra / Tubo Requerido *
                   </label>
-                  <span className="text-[11px] font-bold text-teal-700">
-                    {selectedSampleTypes.length} seleccionada(s)
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {formAlert?.fieldId === 'sample-types-section' && (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white animate-pulse">
+                        ⚠️ Seleccione al menos un tipo de muestra
+                      </span>
+                    )}
+                    <span className="text-[11px] font-bold text-teal-700">
+                      {selectedSampleTypes.length} seleccionada(s)
+                    </span>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {SAMPLE_TYPE_OPTIONS.map((st) => {
@@ -1154,12 +1220,26 @@ export default function ClinicalOrderForm({
             </div>
 
             {/* 1.5 TRATAMIENTO ACTUAL (NADA PREMARCADO) */}
-            <div id="treatment-status-section" className="space-y-3 pt-2 border-t border-slate-100">
+            <div
+              id="treatment-status-section"
+              className={`space-y-3 pt-2 border-t border-slate-100 rounded-2xl p-2.5 transition-all ${
+                formAlert?.fieldId === 'treatment-status-section'
+                  ? 'border-2 border-rose-500 ring-4 ring-rose-400/30 bg-rose-50/20'
+                  : ''
+              }`}
+            >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <label className="text-xs font-black text-slate-900 uppercase tracking-wider block">
-                    ¿Se encuentra actualmente en tratamiento médico? *
-                  </label>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <label className="text-xs font-black text-slate-900 uppercase tracking-wider block">
+                      ¿Se encuentra actualmente en tratamiento médico? *
+                    </label>
+                    {formAlert?.fieldId === 'treatment-status-section' && (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white animate-pulse">
+                        ⚠️ Falta marcar Sí o No
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[11px] text-slate-500">
                     Antibióticos, antiparasitarios, corticoides o quimioterápicos administrados.
                   </p>
@@ -1170,7 +1250,13 @@ export default function ClinicalOrderForm({
                     <button
                       key={tr}
                       type="button"
-                      onClick={() => setIsInTreatment(tr)}
+                      onClick={() => {
+                        setIsInTreatment(tr);
+                        if (tr === 'No') setTreatmentDetails('');
+                        if (formAlert?.fieldId === 'treatment-status-section' || formAlert?.fieldId === 'treatment-details-input') {
+                          setFormAlert(null);
+                        }
+                      }}
                       className={`px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         isInTreatment === tr
                           ? 'bg-teal-700 text-white shadow-xs'
@@ -1201,20 +1287,70 @@ export default function ClinicalOrderForm({
               )}
             </div>
 
-            {/* Botón de continuación */}
-            <div className="flex justify-end pt-3 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => {
-                  if (validateStep1()) {
-                    setActiveStep(2);
-                  }
-                }}
-                className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-2"
-              >
-                <span>Continuar a Pruebas Diagnósticas & Pago</span>
-                <span>→</span>
-              </button>
+            {/* Botón de continuación con Alerta Directa */}
+            <div className="pt-4 border-t border-slate-100 space-y-3">
+              {formAlert && (
+                <div
+                  id="bottom-step1-alert-banner"
+                  className="p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-500 shadow-lg shadow-amber-500/5 flex items-start justify-between gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200"
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl shrink-0 mt-0.5">⚠️</span>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500 text-white shadow-xs">
+                          {formAlert.title || 'Campo pendiente por marcar'}
+                        </span>
+                        <span className="text-xs font-bold text-amber-900 dark:text-amber-200">
+                          Acción requerida para avanzar
+                        </span>
+                      </div>
+                      <p className="text-xs font-black text-slate-900 dark:text-white leading-snug">
+                        {formAlert.message}
+                      </p>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                        No se ha podido continuar porque este campo es obligatorio. Por favor márquelo para habilitar el paso a Pruebas Diagnósticas y Pago.
+                      </p>
+                    </div>
+                  </div>
+                  {formAlert.fieldId && (
+                    <button
+                      type="button"
+                      onClick={() => scrollToField(formAlert.fieldId)}
+                      className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shrink-0 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                    >
+                      <span>Completar campo</span>
+                      <span>↑</span>
+                    </button>
+                  )}
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                {formAlert ? (
+                  <span className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5 animate-pulse">
+                    <span>⚠️</span>
+                    <span>Complete el campo marcado con borde rojo para continuar</span>
+                  </span>
+                ) : (
+                  <span className="text-xs text-slate-400">
+                    Paso 1 de 2: Muestras, VetPlus y Antecedentes Clínicos
+                  </span>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (validateStep1()) {
+                      setActiveStep(2);
+                    }
+                  }}
+                  className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>Continuar a Pruebas Diagnósticas & Pago</span>
+                  <span>→</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -1550,6 +1686,40 @@ export default function ClinicalOrderForm({
             </div>
 
             {/* RESUMEN FINAL Y BOTONES */}
+            {formAlert && (
+              <div
+                id="bottom-step2-alert-banner"
+                className="p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-500 shadow-lg shadow-amber-500/5 flex items-start justify-between gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl shrink-0 mt-0.5">⚠️</span>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500 text-white shadow-xs">
+                        {formAlert.title || 'Campo pendiente por marcar'}
+                      </span>
+                      <span className="text-xs font-bold text-amber-900 dark:text-amber-200">
+                        Acción requerida para finalizar
+                      </span>
+                    </div>
+                    <p className="text-xs font-black text-slate-900 dark:text-white leading-snug">
+                      {formAlert.message}
+                    </p>
+                  </div>
+                </div>
+                {formAlert.fieldId && (
+                  <button
+                    type="button"
+                    onClick={() => scrollToField(formAlert.fieldId)}
+                    className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shrink-0 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>Ir al campo</span>
+                    <span>↑</span>
+                  </button>
+                )}
+              </div>
+            )}
+
             <div className="pt-4 border-t border-slate-200 dark:border-[#2f2257] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <button
                 type="button"
@@ -1582,6 +1752,37 @@ export default function ClinicalOrderForm({
       </form>
     </>
   )}
-</div>
+      {/* Toast Flotante Fijo para garantizar visibilidad total sin importar el scroll */}
+      {formAlert && (
+        <div className="fixed bottom-6 right-6 z-50 max-w-sm p-4 bg-slate-900 text-white rounded-2xl shadow-2xl border-2 border-amber-400 flex items-start gap-3 animate-in slide-in-from-bottom-5 duration-200">
+          <span className="text-xl shrink-0 mt-0.5">⚠️</span>
+          <div className="space-y-1 flex-1">
+            <span className="text-[10px] uppercase font-black tracking-wider text-amber-400 block">
+              {formAlert.title || 'Campo pendiente por marcar'}
+            </span>
+            <p className="text-xs font-bold text-slate-100 leading-snug">
+              {formAlert.message}
+            </p>
+          </div>
+          {formAlert.fieldId && (
+            <button
+              type="button"
+              onClick={() => scrollToField(formAlert.fieldId)}
+              className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-lg text-[11px] shrink-0 transition-all cursor-pointer"
+            >
+              Ir ↑
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setFormAlert(null)}
+            className="text-slate-400 hover:text-white text-xs font-bold p-1 cursor-pointer"
+            title="Cerrar aviso"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
