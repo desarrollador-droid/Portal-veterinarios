@@ -1,4 +1,5 @@
 import { clinicApi } from '../../dashboard/services/clinicApi.js';
+import { patientApi } from '../../dashboard/services/patientApi.js';
 
 const AUTH_STORAGE_KEY = 'osd_auth_session';
 
@@ -202,6 +203,9 @@ export const authService = {
 
         this.saveSession(session);
 
+        // Sincronizar pacientes en segundo plano para asegurar que la clínica tenga sus pacientes actualizados
+        patientApi.syncKea().catch(() => {});
+
         return {
           success: true,
           session,
@@ -254,6 +258,9 @@ export const authService = {
       };
 
       this.saveSession(session);
+
+      // Sincronizar pacientes en segundo plano para asegurar que la clínica tenga sus pacientes actualizados
+      patientApi.syncKea().catch(() => {});
 
       return {
         success: true,

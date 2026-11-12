@@ -9,6 +9,7 @@ import RequestExamModal from './RequestExamModal.jsx';
 export default function NewExamModule({
   patient,
   patients = [],
+  currentUser = null,
   initialExamType = 'nuevo',
   initialRequestCategory = null,
   initialClinicalExam = null,
@@ -22,6 +23,7 @@ export default function NewExamModule({
         isModal={false}
         patient={patient}
         patients={patients}
+        currentUser={currentUser}
         initialExamType={initialExamType}
         initialRequestCategory={initialRequestCategory}
         initialClinicalExam={initialClinicalExam}

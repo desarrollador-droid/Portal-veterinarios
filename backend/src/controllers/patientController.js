@@ -1,19 +1,19 @@
 import { patientService } from '../services/patientService.js';
 
-export const getDashboardStats = (req, res) => {
+export const getDashboardStats = async (req, res) => {
   try {
     const { sedeId, clinicId, nit, clinicNit } = req.query;
-    const stats = patientService.getDashboardStats({ sedeId, clinicId, nit, clinicNit });
+    const stats = await patientService.getDashboardStats({ sedeId, clinicId, nit, clinicNit });
     return res.json({ success: true, data: stats });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
 
-export const getPatients = (req, res) => {
+export const getPatients = async (req, res) => {
   try {
     const { search, species, breed, sampleStatus, sedeId, clinicId, nit, clinicNit } = req.query;
-    const patients = patientService.getPatients({ search, species, breed, sampleStatus, sedeId, clinicId, nit, clinicNit });
+    const patients = await patientService.getPatients({ search, species, breed, sampleStatus, sedeId, clinicId, nit, clinicNit });
     return res.json({ success: true, data: patients, total: patients.length });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

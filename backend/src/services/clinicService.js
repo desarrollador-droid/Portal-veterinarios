@@ -1,7 +1,41 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { INITIAL_CLINICS, ROLE_PRESETS } from '../models/clinicModel.js';
 import { keaService } from './keaService.js';
 
-let clinics = [...INITIAL_CLINICS];
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DATA_DIR = path.resolve(__dirname, '../data');
+const CLINICS_CACHE_FILE = path.join(DATA_DIR, 'clinics_cache.json');
+
+const saveClinicsToDisk = () => {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(CLINICS_CACHE_FILE, JSON.stringify(clinics, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('[Storage] Error al guardar clínicas en disco:', err.message);
+  }
+};
+
+const loadClinicsFromDisk = () => {
+  try {
+    if (fs.existsSync(CLINICS_CACHE_FILE)) {
+      const data = fs.readFileSync(CLINICS_CACHE_FILE, 'utf-8');
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.warn('[Storage] Error al leer clínicas desde disco:', err.message);
+  }
+  return [...INITIAL_CLINICS];
+};
+
+let clinics = loadClinicsFromDisk();
 
 function cleanNumber(val) {
   if (!val) return '';
@@ -87,6 +121,7 @@ export const clinicService = {
       ...c,
       esClinicaActiva: c.id === id,
     }));
+    saveClinicsToDisk();
 
     return clinics.find((c) => c.id === id);
   },
@@ -274,6 +309,7 @@ export const clinicService = {
     }
 
     clinics.unshift(newClinic);
+    saveClinicsToDisk();
     return newClinic;
   },
 
@@ -288,11 +324,13 @@ export const clinicService = {
         res.clinics.forEach((kc) => {
           const existingIdx = clinics.findIndex((c) => cleanNumber(c.nit) === cleanNumber(kc.nit));
           if (existingIdx !== -1) {
+            const prevVets = clinics[existingIdx].veterinariosAsociados || [];
             clinics[existingIdx] = {
               ...clinics[existingIdx],
               ...kc,
               contrasena: kc.contrasena || clinics[existingIdx].contrasena || '',
               password: kc.contrasena || clinics[existingIdx].contrasena || '',
+              veterinariosAsociados: prevVets.length > 0 ? prevVets : (kc.veterinariosAsociados || []),
             };
           } else {
             clinics.push(kc);
@@ -318,6 +356,8 @@ export const clinicService = {
                   targetClinic.veterinariosAsociados[existingVetIdx] = {
                     ...targetClinic.veterinariosAsociados[existingVetIdx],
                     ...kv,
+                    password: kv.password || targetClinic.veterinariosAsociados[existingVetIdx].password,
+                    contrasena: kv.contrasena || targetClinic.veterinariosAsociados[existingVetIdx].contrasena,
                     permisos: targetClinic.veterinariosAsociados[existingVetIdx].permisos || kv.permisos,
                   };
                 } else {
@@ -329,6 +369,8 @@ export const clinicService = {
         } catch (vetErr) {
           console.warn('[Kea DB] No se pudieron sincronizar médicos veterinarios desde Kea:', vetErr.message);
         }
+
+        saveClinicsToDisk();
 
         return {
           success: true,
@@ -401,6 +443,7 @@ export const clinicService = {
     }
 
     clinics[idx] = updated;
+    saveClinicsToDisk();
     return updated;
   },
 
@@ -544,12 +587,15 @@ export const clinicService = {
             clinic.veterinariosAsociados[existingIdx] = {
               ...clinic.veterinariosAsociados[existingIdx],
               ...kv,
+              password: kv.password || clinic.veterinariosAsociados[existingIdx].password,
+              contrasena: kv.contrasena || clinic.veterinariosAsociados[existingIdx].contrasena,
               permisos: clinic.veterinariosAsociados[existingIdx].permisos || kv.permisos,
             };
           } else {
             clinic.veterinariosAsociados.push(kv);
           }
         });
+        saveClinicsToDisk();
       }
     } catch (err) {
       console.warn('[Kea DB] Error al sincronizar veterinarios de la clínica:', err.message);
@@ -573,6 +619,11 @@ export const clinicService = {
     if (!vetData.tarjetaProfesional?.trim()) throw new Error('El número de tarjeta profesional es obligatorio');
 
     const contrasena = String(vetData.password || vetData.contrasena || vetData.pin || '').trim();
+    const initialObs = String(vetData.observaciones || '').trim();
+    const obsWithPwd = contrasena 
+      ? (initialObs.includes('[PWD:') ? initialObs.replace(/\[PWD:[^\]]+\]/i, `[PWD:${contrasena}]`) : (initialObs ? `[PWD:${contrasena}] ${initialObs}` : `[PWD:${contrasena}]`))
+      : initialObs;
+
     const newVet = {
       id: `vet-${Date.now().toString().slice(-6)}`,
       nombre: vetData.nombre.trim(),
@@ -583,6 +634,7 @@ export const clinicService = {
       telefono: (vetData.telefono || '').trim(),
       contrasena: contrasena,
       password: contrasena,
+      observaciones: obsWithPwd,
       rol: vetData.rol || 'veterinario_planta',
       rolNombre: ROLE_PRESETS[vetData.rol]?.nombre || 'Veterinario de Planta',
       permisos: vetData.permisos || (ROLE_PRESETS[vetData.rol]?.permisos) || {},
@@ -615,6 +667,7 @@ export const clinicService = {
     if (!clinic.veterinariosAsociados) clinic.veterinariosAsociados = [];
     clinic.veterinariosAsociados.push(newVet);
     clinic.updatedAt = new Date().toISOString();
+    saveClinicsToDisk();
 
     return clinic;
   },
@@ -630,14 +683,31 @@ export const clinicService = {
     if (idx === -1) throw new Error('Veterinario asociado no encontrado');
 
     const prevVet = clinic.veterinariosAsociados[idx];
+    const newPassword = String(updates.password || updates.contrasena || updates.newPassword || '').trim();
     const updatedVet = {
       ...prevVet,
       ...updates,
     };
 
+    if (newPassword) {
+      updatedVet.password = newPassword;
+      updatedVet.contrasena = newPassword;
+      const rawObs = String(updatedVet.observaciones || prevVet.observaciones || '').trim();
+      if (rawObs.includes('[PWD:')) {
+        updatedVet.observaciones = rawObs.replace(/\[PWD:[^\]]+\]/i, `[PWD:${newPassword}]`);
+      } else {
+        updatedVet.observaciones = rawObs ? `[PWD:${newPassword}] ${rawObs}` : `[PWD:${newPassword}]`;
+      }
+    }
+
     if (prevVet.keaId) {
       try {
-        await keaService.updateVeterinarioInKea(prevVet.keaId, updates);
+        await keaService.updateVeterinarioInKea(prevVet.keaId, {
+          ...updates,
+          password: newPassword || prevVet.password,
+          contrasena: newPassword || prevVet.contrasena,
+          observaciones: updatedVet.observaciones,
+        });
         console.log(`[Kea DB] Veterinario ${prevVet.keaId} actualizado con éxito en Kea Tools DB.`);
       } catch (keaErr) {
         console.warn(`[Kea DB] No se pudo actualizar veterinario en Kea (${keaErr.message}).`);
@@ -646,6 +716,7 @@ export const clinicService = {
 
     clinic.veterinariosAsociados[idx] = updatedVet;
     clinic.updatedAt = new Date().toISOString();
+    saveClinicsToDisk();
     return clinic;
   },
 

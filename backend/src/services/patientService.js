@@ -1,6 +1,11 @@
-import { patientsStore, PATIENT_STATUSES, calculateAgeFromBirthDate } from '../models/patientModel.js';
+import { patientsStore, PATIENT_STATUSES, calculateAgeFromBirthDate, savePatientsToDisk } from '../models/patientModel.js';
 import { keaService } from './keaService.js';
 import { clinicService } from './clinicService.js';
+
+export const PAUSE_DATABASE_CONNECTION = true;
+
+let hasInitialKeaSyncCompleted = false;
+let initialSyncPromise = null;
 
 function cleanNumber(val) {
   if (!val) return '';
@@ -44,7 +49,18 @@ function isPatientAssociatedWithClinic(patient, targetNit, targetClinicId) {
 }
 
 export const patientService = {
-  getDashboardStats({ sedeId, clinicId, nit, clinicNit } = {}) {
+  async getDashboardStats({ sedeId, clinicId, nit, clinicNit } = {}) {
+    if (!hasInitialKeaSyncCompleted) {
+      if (!initialSyncPromise) {
+        initialSyncPromise = this.syncPatientsWithKea().catch((err) => {
+          console.warn('[Kea DB] Error en sync inicial de pacientes:', err.message);
+        }).finally(() => {
+          hasInitialKeaSyncCompleted = true;
+        });
+      }
+      await initialSyncPromise;
+    }
+
     let list = patientsStore;
 
     let targetNit = cleanNumber(nit || clinicNit);
@@ -60,7 +76,7 @@ export const patientService = {
       } catch (_) {}
     }
 
-    if (targetNit || targetClinicId) {
+    if (!PAUSE_DATABASE_CONNECTION && (targetNit || targetClinicId)) {
       list = list.filter((p) => isPatientAssociatedWithClinic(p, targetNit, targetClinicId));
     }
 
@@ -72,10 +88,8 @@ export const patientService = {
     const ordersInProgress = list.filter(
       (p) => p.activeExamOrder && p.activeExamOrder.currentStep < 4
     ).length;
-    const resultsReady = list.filter(
-      (p) => p.activeExamOrder && p.activeExamOrder.currentStep === 4
-    ).length;
-    const hospitalized = list.filter((p) => p.status === 'internado').length;
+    const resultsReady = list.filter((p) => (p.activeExamOrder && p.activeExamOrder.currentStep === 4) || (p.qpcrExams && p.qpcrExams.length > 0) || (p.clinicalExams && p.clinicalExams.length > 0)).length;
+    const hospitalized = list.filter((p) => p.status === 'internado' || p.status === 'critico').length;
 
     return {
       activePatients,
@@ -85,7 +99,18 @@ export const patientService = {
     };
   },
 
-  getPatients(filters = {}) {
+  async getPatients(filters = {}) {
+    if (!hasInitialKeaSyncCompleted) {
+      if (!initialSyncPromise) {
+        initialSyncPromise = this.syncPatientsWithKea().catch((err) => {
+          console.warn('[Kea DB] Error en sync inicial de pacientes:', err.message);
+        }).finally(() => {
+          hasInitialKeaSyncCompleted = true;
+        });
+      }
+      await initialSyncPromise;
+    }
+
     const { search, species, breed, sampleStatus, sedeId, clinicId, nit, clinicNit } = filters;
 
     let targetNit = cleanNumber(nit || clinicNit);
@@ -106,7 +131,7 @@ export const patientService = {
       age: calculateAgeFromBirthDate(p.birthDate),
     }));
 
-    if (targetNit || targetClinicId) {
+    if (!PAUSE_DATABASE_CONNECTION && (targetNit || targetClinicId)) {
       result = result.filter((p) => isPatientAssociatedWithClinic(p, targetNit, targetClinicId));
     }
 
@@ -327,6 +352,7 @@ export const patientService = {
     };
 
     patientsStore[index] = updated;
+    savePatientsToDisk();
 
     return {
       ...updated,
@@ -390,6 +416,7 @@ export const patientService = {
 
     // Actualizar última visita
     patient.lastVisit = formattedDate;
+    savePatientsToDisk();
 
     return {
       consultation: newConsultation,
@@ -413,18 +440,57 @@ export const patientService = {
     const now = new Date();
     const formattedDate = `${now.toLocaleDateString('es-ES')} - ${now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
 
+    // Resolver responsable médico respetando sesión autenticada y descartando 'Dr. Asignado'
+    const resolvedDoctor = (examData.requestedBy && examData.requestedBy !== 'Dr. Asignado')
+      ? examData.requestedBy
+      : (patient.attendingVet && patient.attendingVet !== 'Dr. Asignado' ? patient.attendingVet : 'Dr. Alejandro Morales');
+
+    if ((!patient.attendingVet || patient.attendingVet === 'Dr. Asignado') && resolvedDoctor && resolvedDoctor !== 'Dr. Asignado') {
+      patient.attendingVet = resolvedDoctor;
+    }
+
+    // Determinar categoría exacta del examen
+    let reqCat = (examData.requestCategory || '').toLowerCase().trim();
+    if (!reqCat) {
+      if (examData.selectedClinicalExams && examData.selectedClinicalExams.length > 0) {
+        reqCat = 'clinicas';
+      } else if (examData.microbiotaSubtype || (examData.category && examData.category.toLowerCase().includes('microbiota'))) {
+        reqCat = 'microbiota';
+      } else if (examData.category && (examData.category.toLowerCase().includes('portafolio') || examData.category.toLowerCase() === 'clinicas')) {
+        reqCat = 'clinicas';
+      } else {
+        reqCat = 'qpcr';
+      }
+    }
+    const isClinicas = reqCat === 'clinicas';
+    const isMicrobiota = reqCat === 'microbiota';
+
+    const orderCategory = isClinicas
+      ? 'Portafolio Clínico de Laboratorio'
+      : isMicrobiota
+      ? 'Microbiota Gastrointestinal (16S rRNA NGS)'
+      : (examData.category || 'Biología Molecular Cuantitativa (qPCR)');
+
+    const randomNum = Math.floor(100 + Math.random() * 900);
+    const orderPrefix = isClinicas ? 'CLN' : isMicrobiota ? 'MIC' : 'ORD';
+    const orderId = examData.id || `${orderPrefix}-2026-${randomNum}`;
+    const examCode = isClinicas ? `CLN-2026-${randomNum}` : isMicrobiota ? `MIC-2026-${randomNum}` : `QPCR-2026-${randomNum}`;
+
     const newOrder = {
-      id: `ORD-2026-${Math.floor(100 + Math.random() * 900)}`,
-      testName: examData.testName || 'qPCR Panel Diagnóstico Molecular',
-      category: 'Biología Molecular Cuantitativa (qPCR)',
-      sampleType: examData.sampleType || 'Hisopado / Muestra biológica',
+      id: orderId,
+      examCode,
+      testName: examData.testName || (isClinicas ? 'Pruebas Diagnósticas Clínicas' : isMicrobiota ? 'Microbiota Gastrointestinal' : 'qPCR Panel Diagnóstico Molecular'),
+      category: orderCategory,
+      requestCategory: reqCat,
+      sampleType: examData.sampleType || (isClinicas ? 'Muestra biológica de laboratorio clínico' : isMicrobiota ? 'Muestra fecal en tubo estabilizador' : 'Hisopado / Muestra biológica'),
       priority: examData.urgency || 'Normal (24-48h)',
-      requestedBy: examData.requestedBy || 'Dr. Alejandro Morales',
-      laboratory: 'VetLab Central - Unidad de Genómica',
-      targets: examData.targets || 'Patógenos moleculares específicos del panel',
+      requestedBy: resolvedDoctor,
+      doctor: resolvedDoctor,
+      laboratory: isClinicas ? 'VetLab Central - Laboratorio Clínico y Hematología' : isMicrobiota ? 'VetLab Central - Plataforma Metagenómica' : 'VetLab Central - Unidad de Genómica',
+      targets: examData.targets || (isClinicas ? 'Parámetros de laboratorio clínico' : isMicrobiota ? 'Perfil taxonómico bacteriano' : 'Patógenos moleculares específicos del panel'),
       syndromes: examData.syndromes || [],
       findings: examData.findings || [],
-      totalPrice: examData.totalPrice || '$145.000',
+      totalPrice: examData.totalPrice || (isClinicas ? '$45.000' : '$145.000'),
       examType: examData.examType || 'nuevo',
       previousExamCode: examData.previousExamCode || null,
       replacementCount: examData.replacementCount || 0,
@@ -433,7 +499,19 @@ export const patientService = {
       historiaClinica: examData.historiaClinica || null,
       requestedAt: formattedDate,
       currentStep: 0,
-      steps: [
+      steps: isClinicas ? [
+        { label: 'Solicitud creada', desc: 'Orden médica generada en clínica', date: formattedDate, completed: true },
+        { label: 'Muestra recibida', desc: 'Ingreso al laboratorio clínico y código de barras', date: 'Pendiente', completed: false },
+        { label: 'En análisis clínico', desc: 'Procesamiento en analizador hematológico / químico / coagulación', date: 'Pendiente', completed: false },
+        { label: 'Validación médica', desc: 'Resultados validados por bacteriólogo y patólogo clínico', date: 'Pendiente', completed: false },
+        { label: 'Resultado enviado', desc: 'Informe clínico emitido y disponible para descarga', date: 'Pendiente', completed: false },
+      ] : isMicrobiota ? [
+        { label: 'Solicitud creada', desc: 'Orden médica generada en clínica', date: formattedDate, completed: true },
+        { label: 'Muestra recibida', desc: 'Recepción del tubo estabilizador en laboratorio', date: 'Pendiente', completed: false },
+        { label: 'En secuenciación NGS', desc: 'Extracción metagenómica y secuenciación masiva 16S rRNA', date: 'Pendiente', completed: false },
+        { label: 'Bioinformática médica', desc: 'Perfil taxonómico y cálculo del índice de disbiosis', date: 'Pendiente', completed: false },
+        { label: 'Resultado enviado', desc: 'Informe metagenómico emitido', date: 'Pendiente', completed: false },
+      ] : [
         { label: 'Solicitud creada', desc: 'Orden médica generada en clínica', date: formattedDate, completed: true },
         { label: 'Muestra recibida', desc: 'Recepción y código de barras en laboratorio', date: 'Pendiente', completed: false },
         { label: 'En análisis qPCR', desc: 'Extracción de ácidos nucleicos y amplificación en termociclador', date: 'Pendiente', completed: false },
@@ -476,7 +554,16 @@ export const patientService = {
     patient.activeExamOrder = newOrder;
 
     let examAgents = [];
-    if (examData.profiles && Array.isArray(examData.profiles)) {
+    if (isClinicas && examData.selectedClinicalExams && Array.isArray(examData.selectedClinicalExams) && examData.selectedClinicalExams.length > 0) {
+      examAgents = examData.selectedClinicalExams.map((e) => ({
+        name: e.nombre || e.name,
+        isPositive: false,
+        isAltered: false,
+        result: 'Normal / En rango',
+        ct: '',
+        load: 'En análisis de laboratorio',
+      }));
+    } else if (examData.profiles && Array.isArray(examData.profiles)) {
       examData.profiles.forEach((p) => {
         if (p.agents && Array.isArray(p.agents)) {
           p.agents.forEach((agentName) => {
@@ -498,27 +585,65 @@ export const patientService = {
         .map((agentName) => ({
           name: agentName,
           isPositive: false,
-          result: 'En análisis molecular',
-          ct: 'Pendiente',
-          load: 'En cola',
+          result: isClinicas ? 'Normal / En rango' : 'En análisis molecular',
+          ct: isClinicas ? '' : 'Pendiente',
+          load: isClinicas ? 'En análisis' : 'En cola',
         }));
     }
 
-    if (!patient.qpcrExams) patient.qpcrExams = [];
-    patient.qpcrExams.unshift({
-      id: `QPCR-${newOrder.id.replace('ORD-', '')}`,
+    if (examAgents.length === 0) {
+      examAgents = [
+        {
+          name: newOrder.testName,
+          isPositive: false,
+          isAltered: false,
+          result: isClinicas ? 'Normal / En rango' : 'Negativo / En análisis',
+          ct: '',
+          load: isClinicas ? 'Parámetros esperados' : 'En cola',
+        }
+      ];
+    }
+
+    const examEntry = {
+      id: examCode,
+      examCode,
+      orderId,
       testName: newOrder.testName,
+      category: reqCat,
+      requestCategory: reqCat,
       date: now.toLocaleDateString('es-ES'),
       requestedAt: formattedDate,
       receivedAt: 'Pendiente (en recepción)',
       status: 'Solicitud creada',
       sampleType: newOrder.sampleType,
-      resultSummary: 'En cola de procesamiento molecular',
-      methodology: 'qPCR TaqMan multiplex en tiempo real',
+      doctor: resolvedDoctor,
+      requestedBy: resolvedDoctor,
+      resultSummary: isClinicas
+        ? 'En procesamiento de laboratorio clínico'
+        : isMicrobiota
+        ? 'En secuenciación metagenómica 16S'
+        : 'En cola de procesamiento molecular',
+      methodology: isClinicas
+        ? 'Analítica clínica / Bioquímica / Coagulación / Hematología'
+        : isMicrobiota
+        ? 'Secuenciación masiva 16S rRNA (NGS)'
+        : 'qPCR TaqMan multiplex en tiempo real',
       agents: examAgents,
       reportUrl: '#',
-    });
+    };
 
+    if (isClinicas) {
+      if (!patient.clinicalExams) patient.clinicalExams = [];
+      patient.clinicalExams.unshift(examEntry);
+    } else if (isMicrobiota) {
+      if (!patient.microbiotaExams) patient.microbiotaExams = [];
+      patient.microbiotaExams.unshift(examEntry);
+    } else {
+      if (!patient.qpcrExams) patient.qpcrExams = [];
+      patient.qpcrExams.unshift(examEntry);
+    }
+
+    savePatientsToDisk();
     return newOrder;
   },
 
@@ -668,6 +793,7 @@ export const patientService = {
     };
 
     patientsStore.unshift(newPatient);
+    savePatientsToDisk();
 
     return {
       ...newPatient,
@@ -689,6 +815,7 @@ export const patientService = {
       }
     }
     patientsStore.splice(index, 1);
+    savePatientsToDisk();
     return { success: true, message: 'Paciente eliminado exitosamente' };
   },
 
@@ -697,6 +824,21 @@ export const patientService = {
   },
 
   async syncPatientsWithKea() {
+    if (PAUSE_DATABASE_CONNECTION) {
+      console.log('[Kea DB] Conexión a base de datos externa pausada temporalmente (PAUSE_DATABASE_CONNECTION = true). Usando datos quemados de demostración.');
+      hasInitialKeaSyncCompleted = true;
+      return {
+        success: true,
+        totalInKea: 0,
+        added: 0,
+        updated: 0,
+        totalLocal: patientsStore.length,
+        patients: patientsStore.map((p) => ({
+          ...p,
+          age: calculateAgeFromBirthDate(p.birthDate),
+        })),
+      };
+    }
     const result = await keaService.fetchPatientsFromKea();
     if (result && result.patients && result.patients.length > 0) {
       let added = 0;
@@ -729,6 +871,10 @@ export const patientService = {
           added++;
         }
       });
+
+      savePatientsToDisk();
+      hasInitialKeaSyncCompleted = true;
+
       return {
         success: true,
         totalInKea: result.count,
@@ -741,6 +887,10 @@ export const patientService = {
         })),
       };
     }
+
+    savePatientsToDisk();
+    hasInitialKeaSyncCompleted = true;
+
     return {
       success: true,
       totalInKea: 0,

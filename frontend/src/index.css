@@ -282,7 +282,8 @@ html.dark {
 .dark .from-purple-50\/60,
 .dark .from-slate-50,
 .dark .from-amber-50,
-.dark .from-teal-50 {
+.dark .from-teal-50,
+.dark .from-white {
   --tw-gradient-from: #1c1538 var(--tw-gradient-from-position) !important;
   --tw-gradient-to: rgb(28 21 56 / 0) var(--tw-gradient-to-position) !important;
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;

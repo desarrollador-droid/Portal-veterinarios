@@ -372,6 +372,8 @@ export default function UnifiedClinicManagementView({ currentUser = null, active
 
       if (editVetForm.newPassword.trim()) {
         updatedVetPayload.password = editVetForm.newPassword.trim();
+        updatedVetPayload.contrasena = editVetForm.newPassword.trim();
+        updatedVetPayload.newPassword = editVetForm.newPassword.trim();
         updatedVetPayload.passwordUpdatedAt = new Date().toISOString();
       }
 

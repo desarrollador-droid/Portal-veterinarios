@@ -5,6 +5,7 @@ import patientRoutes from './routes/patientRoutes.js';
 import qpcrRoutes from './routes/qpcrRoutes.js';
 import clinicRoutes from './routes/clinicRoutes.js';
 import { clinicService } from './services/clinicService.js';
+import { patientService } from './services/patientService.js';
 
 dotenv.config();
 
@@ -38,8 +39,14 @@ app.listen(PORT, () => {
 
   // Sincronización inicial automática desde Kea Tools DB
   clinicService.syncFromKea().then((res) => {
-    console.log(`[Kea DB] Sincronización inicial completada: ${res?.clinics?.length} clínicas/médicos y equipo.`);
+    console.log(`[Kea DB] Sincronización inicial de clínicas completada: ${res?.clinics?.length} clínicas/médicos y equipo.`);
   }).catch((err) => {
-    console.warn('[Kea DB] Aviso en sincronización inicial:', err.message);
+    console.warn('[Kea DB] Aviso en sincronización inicial de clínicas:', err.message);
+  });
+
+  patientService.syncPatientsWithKea().then((res) => {
+    console.log(`[Kea DB] Sincronización inicial de pacientes completada: ${res?.totalLocal} pacientes cargados.`);
+  }).catch((err) => {
+    console.warn('[Kea DB] Aviso en sincronización inicial de pacientes:', err.message);
   });
 });

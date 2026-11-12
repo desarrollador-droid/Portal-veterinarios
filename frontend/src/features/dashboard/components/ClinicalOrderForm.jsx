@@ -331,7 +331,7 @@ export default function ClinicalOrderForm({
 
   // Total acumulado de pruebas seleccionadas
   const totalCatalogPrice = useMemo(() => {
-    return selectedCatalogExams.reduce((sum, e) => sum + (e.precioIva || 0), 0);
+    return selectedCatalogExams.reduce((sum, e) => sum + (e.precio || e.precioIva || 0), 0);
   }, [selectedCatalogExams]);
 
   // ============================================================================
@@ -435,7 +435,7 @@ export default function ClinicalOrderForm({
       cups: e.cups || null,
       sampleMatrix: e.matrizMuestra || e.muestra || 'Sangre total / Suero',
       deliveryTime: e.tiempoEntrega || e.tiempoResultado || '24h',
-      price: e.precioIva || 0,
+      price: e.precio || e.precioIva || 0,
       hasVetPlus: isVetPlusInsured === 'Sí' || Boolean(examVetPlusCodes[e.id]?.hasVetPlus),
       vetPlusCode: (isVetPlusInsured === 'Sí' ? vetPlusAuthCode.trim() : null) || examVetPlusCodes[e.id]?.code || '',
     }));
@@ -1317,7 +1317,7 @@ export default function ClinicalOrderForm({
                     className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer ${
                       examQuickFilterTag === tag.id
                         ? 'bg-teal-700 text-white shadow-2xs'
-                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                        : 'bg-white dark:bg-[#181232] border border-slate-200 dark:border-[#2f2257] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#221a46]'
                     }`}
                   >
                     {tag.label}
@@ -1326,9 +1326,9 @@ export default function ClinicalOrderForm({
               </div>
 
               {/* Contador en vivo */}
-              <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-200/60">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/60 dark:border-[#2f2257]">
                 <span>
-                  Mostrando <strong className="text-teal-900">{filteredClinicalExams.length}</strong> de 223 pruebas disponibles
+                  Mostrando <strong className="text-teal-900 dark:text-[#01FADA]">{filteredClinicalExams.length}</strong> de 223 pruebas disponibles
                 </span>
                 {(examSearchQuery || examCategoryFilter !== 'all' || examMatrixFilter !== 'all' || examQuickFilterTag !== 'all') && (
                   <button
@@ -1339,7 +1339,7 @@ export default function ClinicalOrderForm({
                       setExamMatrixFilter('all');
                       setExamQuickFilterTag('all');
                     }}
-                    className="text-teal-700 hover:text-teal-900 font-bold underline cursor-pointer"
+                    className="text-teal-700 dark:text-[#01FADA] hover:text-teal-900 font-bold underline cursor-pointer"
                   >
                     Restablecer filtros
                   </button>
@@ -1350,6 +1350,7 @@ export default function ClinicalOrderForm({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-72 overflow-y-auto pr-1">
                 {filteredClinicalExams.slice(0, 48).map((exam) => {
                   const isSelected = selectedCatalogExams.some((e) => e.id === exam.id);
+                  const examPrice = exam.precio || exam.precioIva || 0;
                   return (
                     <div
                       key={exam.id}
@@ -1357,32 +1358,34 @@ export default function ClinicalOrderForm({
                       className={`p-3 rounded-2xl border text-xs cursor-pointer transition-all flex flex-col justify-between ${
                         isSelected
                           ? 'bg-teal-700 text-white border-teal-800 shadow-md ring-2 ring-teal-500/20'
-                          : 'bg-white border-slate-200 text-slate-800 hover:border-teal-300 hover:bg-teal-50/40'
+                          : 'bg-white dark:bg-[#181232] border-slate-200 dark:border-[#2f2257] text-slate-800 dark:text-slate-100 hover:border-teal-400 dark:hover:border-teal-500 hover:bg-teal-50/40 dark:hover:bg-[#221a46]'
                       }`}
                     >
                       <div>
                         <div className="flex items-start justify-between gap-2">
                           <h5 className="font-extrabold text-xs leading-snug">{exam.nombre}</h5>
                           <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold shrink-0 ${
-                            isSelected ? 'bg-teal-800 text-teal-200' : 'bg-slate-100 text-slate-500'
+                            isSelected ? 'bg-teal-800 text-teal-200' : 'bg-slate-100 dark:bg-[#261d47] text-slate-500 dark:text-purple-300'
                           }`}>
                             {exam.cups || exam.id}
                           </span>
                         </div>
-                        <div className={`text-[11px] mt-1 ${isSelected ? 'text-teal-100' : 'text-slate-500'}`}>
+                        <div className={`text-[11px] mt-1 ${isSelected ? 'text-teal-100' : 'text-slate-500 dark:text-slate-400'}`}>
                           {exam.categoria}
                         </div>
-                        <div className={`text-[10px] mt-0.5 truncate ${isSelected ? 'text-teal-200' : 'text-slate-400'}`}>
+                        <div className={`text-[10px] mt-0.5 truncate ${isSelected ? 'text-teal-200' : 'text-slate-400 dark:text-slate-400'}`}>
                           🧪 {exam.muestra || exam.matrizMuestra || 'Sangre'} · ⏱️ {exam.tiempoResultado || exam.tiempoEntrega}
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-100/30">
-                        <span className={`font-black text-xs ${isSelected ? 'text-white' : 'text-teal-900'}`}>
-                          ${(exam.precioIva || 0).toLocaleString('es-CO')} COP
+                      <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-100/30 dark:border-[#2f2257]/60">
+                        <span className={`font-black text-xs ${isSelected ? 'text-white' : 'text-teal-700 dark:text-[#01FADA]'}`}>
+                          ${examPrice.toLocaleString('es-CO')} COP
                         </span>
                         <span className={`text-[11px] font-bold px-2 py-0.5 rounded-lg ${
-                          isSelected ? 'bg-white text-teal-900' : 'bg-teal-50 text-teal-700'
+                          isSelected
+                            ? 'bg-white text-teal-900'
+                            : 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-[#01FADA] border border-transparent dark:border-teal-800/60'
                         }`}>
                           {isSelected ? '✓ Agregada' : '+ Añadir'}
                         </span>
@@ -1415,11 +1418,11 @@ export default function ClinicalOrderForm({
             {/* 2.2 BANDEJA DE PRUEBAS SELECCIONADAS & CÓDIGO VETPLUS */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-black text-slate-900 uppercase tracking-wider block">
+                <label className="text-xs font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider block">
                   Pruebas Configuradas para la Orden ({selectedCatalogExams.length}) *
                 </label>
                 {selectedCatalogExams.length > 0 && (
-                  <span className="text-xs font-bold text-teal-800">
+                  <span className="text-xs font-bold text-teal-800 dark:text-[#01FADA]">
                     Subtotal: ${totalCatalogPrice.toLocaleString('es-CO')} COP
                   </span>
                 )}
@@ -1429,33 +1432,34 @@ export default function ClinicalOrderForm({
                 <div className="space-y-2">
                   {selectedCatalogExams.map((exam) => {
                     const vp = examVetPlusCodes[exam.id] || { hasVetPlus: isVetPlusInsured === 'Sí', code: isVetPlusInsured === 'Sí' ? vetPlusAuthCode : '' };
+                    const examPrice = exam.precio || exam.precioIva || 0;
                     return (
                       <div
                         key={exam.id}
-                        className="p-3.5 bg-teal-50/70 border border-teal-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs"
+                        className="p-3.5 bg-teal-50/70 dark:bg-[#181232] border border-teal-200 dark:border-[#2f2257] rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs"
                       >
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-extrabold text-slate-900 text-xs sm:text-sm">{exam.nombre}</span>
-                            <span className="text-[10px] bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full font-bold">
+                            <span className="font-extrabold text-slate-900 dark:text-slate-100 text-xs sm:text-sm">{exam.nombre}</span>
+                            <span className="text-[10px] bg-teal-100 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 px-2 py-0.5 rounded-full font-bold">
                               {exam.categoria}
                             </span>
                           </div>
-                          <span className="text-[11px] text-slate-500 block">
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
                             Muestra: {exam.matrizMuestra || exam.muestra} · Entrega: {exam.tiempoEntrega || exam.tiempoResultado}
                           </span>
                         </div>
 
                         {/* Código VetPlus para esta prueba */}
                         <div className="flex items-center gap-2.5 flex-wrap">
-                          <span className="font-black text-teal-950 text-xs sm:text-sm">
-                            ${(exam.precioIva || 0).toLocaleString('es-CO')}
+                          <span className="font-black text-teal-950 dark:text-[#01FADA] text-xs sm:text-sm">
+                            ${examPrice.toLocaleString('es-CO')} COP
                           </span>
 
                           <button
                             type="button"
                             onClick={() => handleRemoveCatalogExam(exam.id)}
-                            className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg font-bold text-xs cursor-pointer"
+                            className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg font-bold text-xs cursor-pointer"
                             title="Quitar prueba"
                           >
                             ✕
@@ -1466,7 +1470,7 @@ export default function ClinicalOrderForm({
                   })}
                 </div>
               ) : (
-                <div className="p-4 bg-slate-50 border border-dashed border-slate-300 rounded-2xl text-center text-xs text-slate-500">
+                <div className="p-4 bg-slate-50 dark:bg-[#16102c]/50 border border-dashed border-slate-300 dark:border-[#2f2257] rounded-2xl text-center text-xs text-slate-500 dark:text-slate-400">
                   No ha seleccionado ninguna prueba del catálogo aún. Utilice el buscador superior o especifique una prueba manual abajo.
                 </div>
               )}
@@ -1546,11 +1550,11 @@ export default function ClinicalOrderForm({
             </div>
 
             {/* RESUMEN FINAL Y BOTONES */}
-            <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="pt-4 border-t border-slate-200 dark:border-[#2f2257] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => setActiveStep(1)}
-                className="px-4 py-2 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                className="px-4 py-2 border border-slate-200 dark:border-[#2f2257] text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-50 dark:hover:bg-[#1b1433] cursor-pointer"
               >
                 ← Volver a Muestras & Antecedentes
               </button>
@@ -1558,7 +1562,7 @@ export default function ClinicalOrderForm({
               <div className="flex items-center gap-3">
                 <div className="text-right">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block">Total a Facturar</span>
-                  <span className="text-base sm:text-lg font-black text-teal-800">
+                  <span className="text-base sm:text-lg font-black text-teal-800 dark:text-[#01FADA]">
                     ${totalCatalogPrice.toLocaleString('es-CO')} COP
                   </span>
                 </div>

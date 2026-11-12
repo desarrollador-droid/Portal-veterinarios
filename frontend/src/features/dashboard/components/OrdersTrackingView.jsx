@@ -47,6 +47,72 @@ export default function OrdersTrackingView({
           }
         });
       }
+
+      // 3. Exámenes clínicos completados en historial
+      if (patient.clinicalExams && Array.isArray(patient.clinicalExams)) {
+        patient.clinicalExams.forEach((exam) => {
+          if (!patient.activeExamOrder || patient.activeExamOrder.id !== exam.id) {
+            const examId = exam.id || exam.examCode || 'CLN-2026-HIST';
+            const alreadyInList = list.some((item) => item.order.id === examId);
+            if (!alreadyInList) {
+              list.push({
+                order: {
+                  id: examId,
+                  testName: exam.testName || exam.name || 'Prueba Clínica de Laboratorio',
+                  category: 'Portafolio Clínico de Laboratorio',
+                  sampleType: exam.sampleType || 'Muestra biológica de laboratorio clínico',
+                  priority: 'Normal',
+                  requestedAt: exam.requestedAt || exam.date || 'Reciente',
+                  currentStep: 4,
+                  steps: [
+                    { label: 'Solicitud creada', desc: 'Orden médica generada en clínica', date: exam.requestedAt || exam.date, completed: true },
+                    { label: 'Muestra recibida', desc: 'Ingreso al laboratorio clínico', date: 'Completado', completed: true },
+                    { label: 'En análisis clínico', desc: 'Procesamiento en analizador', date: 'Completado', completed: true },
+                    { label: 'Validación médica', desc: 'Validado por bacteriólogo', date: 'Completado', completed: true },
+                    { label: 'Resultado enviado', desc: 'Informe emitido a clínica', date: exam.receivedAt || exam.date, completed: true },
+                  ],
+                  targets: exam.targets || 'Parámetros analíticos',
+                },
+                patient,
+                isRecent: false,
+              });
+            }
+          }
+        });
+      }
+
+      // 4. Exámenes de microbiota completados en historial
+      if (patient.microbiotaExams && Array.isArray(patient.microbiotaExams)) {
+        patient.microbiotaExams.forEach((exam) => {
+          if (!patient.activeExamOrder || patient.activeExamOrder.id !== exam.id) {
+            const examId = exam.id || exam.examCode || 'MIC-2026-HIST';
+            const alreadyInList = list.some((item) => item.order.id === examId);
+            if (!alreadyInList) {
+              list.push({
+                order: {
+                  id: examId,
+                  testName: exam.testName || exam.name || 'Microbiota Gastrointestinal 16S',
+                  category: 'Microbiota Gastrointestinal (16S rRNA NGS)',
+                  sampleType: exam.sampleType || 'Muestra fecal en tubo estabilizador',
+                  priority: 'Normal',
+                  requestedAt: exam.requestedAt || exam.date || 'Reciente',
+                  currentStep: 4,
+                  steps: [
+                    { label: 'Solicitud creada', desc: 'Orden médica generada en clínica', date: exam.requestedAt || exam.date, completed: true },
+                    { label: 'Muestra recibida', desc: 'Ingreso al laboratorio', date: 'Completado', completed: true },
+                    { label: 'En secuenciación NGS', desc: 'Extracción metagenómica y secuenciación', date: 'Completado', completed: true },
+                    { label: 'Bioinformática médica', desc: 'Perfil taxonómico y cálculo índice de disbiosis', date: 'Completado', completed: true },
+                    { label: 'Resultado enviado', desc: 'Informe emitido a clínica', date: exam.receivedAt || exam.date, completed: true },
+                  ],
+                  targets: exam.targets || 'Perfil taxonómico bacteriano',
+                },
+                patient,
+                isRecent: false,
+              });
+            }
+          }
+        });
+      }
     });
     return list;
   }, [patients]);

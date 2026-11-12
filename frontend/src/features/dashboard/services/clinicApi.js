@@ -690,10 +690,17 @@ export const clinicApi = {
 
     const vIdx = (clinic.veterinariosAsociados || []).findIndex((v) => v.id === vetId);
     if (vIdx !== -1) {
-      clinic.veterinariosAsociados[vIdx] = {
-        ...clinic.veterinariosAsociados[vIdx],
+      const prevVet = clinic.veterinariosAsociados[vIdx];
+      const newPass = String(updates.password || updates.contrasena || updates.newPassword || '').trim();
+      const updatedVet = {
+        ...prevVet,
         ...updates,
       };
+      if (newPass) {
+        updatedVet.password = newPass;
+        updatedVet.contrasena = newPass;
+      }
+      clinic.veterinariosAsociados[vIdx] = updatedVet;
       clinic.updatedAt = new Date().toISOString();
       saveStoredClinics(list);
     }

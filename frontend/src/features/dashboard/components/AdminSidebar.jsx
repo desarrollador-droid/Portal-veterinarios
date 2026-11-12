@@ -166,7 +166,7 @@ export default function AdminSidebar({
     },
     {
       id: 'resultados',
-      label: 'Resultados qPCR',
+      label: 'Resultados',
       iconColor: 'text-[#009e8a]',
       iconBg: 'bg-[#01FADA]/25 border border-[#01FADA]/60',
       renderIcon: () => <ResultsIcon className="w-5 h-5 text-[#009e8a]" />,

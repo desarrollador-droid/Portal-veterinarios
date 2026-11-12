@@ -98,7 +98,8 @@ export const mapKeaRecordToPatient = (record, index = 0) => {
     age = typeof rawAge === 'number' ? `${rawAge} ${rawAge === 1 ? 'año' : 'años'}` : String(rawAge);
   }
 
-  const rawVet = String(getFieldValue(record, 'VETERINARIO', 'VETERINARIO_ACTUAL', 'Veterinario actual', 'Veterinario', 'veterinario_actual', 'veterinario') || 'Dr. Asignado').trim();
+  const rawVetParsed = String(getFieldValue(record, 'VETERINARIO', 'VETERINARIO_ACTUAL', 'Veterinario actual', 'Veterinario', 'veterinario_actual', 'veterinario') || '').trim();
+  const rawVet = (rawVetParsed && rawVetParsed !== 'Dr. Asignado') ? rawVetParsed : 'Dr. Alejandro Morales';
   const rawVeterinariaNit = String(getFieldValue(record, 'VETERINARIA', 'Veterinaria', 'veterinaria', 'nit') || '#nit-1').trim();
   const rawOwner = getFieldValue(record, 'PROPIETARIO', 'Propietario', 'propietario', 'tutor');
   const ownerName = rawOwner !== undefined && rawOwner !== null && rawOwner !== '' ? String(rawOwner).trim() : 'Tutor no registrado';
@@ -165,10 +166,10 @@ export const mapKeaRecordToPatient = (record, index = 0) => {
       city: 'Bogotá',
     },
     riskFactors: {
-      habitat: 'Interiores / Mixto',
+      habitat: '',
       recentTravel,
       lastVisitedCountry: lastVisitedCountry || 'Ninguno',
-      livesWithOtherAnimals: true,
+      livesWithOtherAnimals: null,
       ruralAccess: false,
     },
     medicalAdmission: {
@@ -196,6 +197,10 @@ export const mapKeaRecordToClinic = (record, index = 0) => {
   const nombre = String(record.NOMBRE || 'Clínica Veterinaria').trim();
   const isIndependiente = record.TIPO === 'independiente' || nombre.toLowerCase().startsWith('dr');
   const type = isIndependiente ? 'independiente' : 'veterinaria';
+  const obs = String(record.OBSERVACIONES || record.observaciones || '').trim();
+  const pwdMatch = obs.match(/\[PWD:([^\]]+)\]/i);
+  const contrasenaFromObs = pwdMatch ? pwdMatch[1].trim() : '';
+
   const contrasena = String(
     record.contrasena ||
     record.CONTRASENA ||
@@ -205,6 +210,7 @@ export const mapKeaRecordToClinic = (record, index = 0) => {
     record.PIN ||
     record.CLAVE ||
     record.clave ||
+    contrasenaFromObs ||
     ''
   ).trim();
 
@@ -316,6 +322,10 @@ export const mapKeaRecordToVeterinarian = (record, index = 0) => {
   const ciudad = String(record.CIUDAD || record.ciudad || '').trim();
   const especialidad = String(record.ESPECIALIDAD || record.especialidad || 'Medicina General').trim();
   const estado = String(record.ESTADO || record.estado || 'activo').toLowerCase();
+  const obs = String(record.OBSERVACIONES || record.observaciones || '').trim();
+  const pwdMatch = obs.match(/\[PWD:([^\]]+)\]/i);
+  const contrasenaFromObs = pwdMatch ? pwdMatch[1].trim() : '';
+
   const contrasena = String(
     record.contrasena ||
     record.CONTRASENA ||
@@ -325,6 +335,7 @@ export const mapKeaRecordToVeterinarian = (record, index = 0) => {
     record.PIN ||
     record.CLAVE ||
     record.clave ||
+    contrasenaFromObs ||
     ''
   ).trim();
 
@@ -336,6 +347,7 @@ export const mapKeaRecordToVeterinarian = (record, index = 0) => {
     cedula,
     contrasena,
     password: contrasena,
+    observaciones: obs,
     veterinariaNit: clinicaNit,
     sedeId: 'sede-principal',
     sedeNombre: sede || 'Sede Principal',
@@ -759,10 +771,14 @@ export const keaService = {
     const nombreDirector = (clinicData.nombreDirectorMedico || clinicData.directorMedico?.nombre || nombre).trim();
     const telefonoDirector = (clinicData.telefonoDirectorMedico || clinicData.directorMedico?.telefono || telefono).trim();
 
+    const rawObs = String(clinicData.observaciones || '').trim();
+    const obsWithPwd = contrasena 
+      ? (rawObs.includes('[PWD:') ? rawObs.replace(/\[PWD:[^\]]+\]/i, `[PWD:${contrasena}]`) : (rawObs ? `[PWD:${contrasena}] ${rawObs}` : `[PWD:${contrasena}]`))
+      : rawObs;
+
     const payload = {
       NIT: cleanNit,
       NOMBRE: nombre,
-      contrasena: contrasena,
       EMAIL: email,
       CORREO_FACTURACION: email,
       TELEFONO: telefono,
@@ -777,7 +793,7 @@ export const keaService = {
       ESPECIALIDAD: Array.isArray(clinicData.especialistas) ? clinicData.especialistas.join(', ') : (clinicData.especialistas || ''),
       FRECUENCIA_PCR_MENSUAL: clinicData.frecuenciaPcrMensual || '',
       MEDIO_CONOCIO_OSD: clinicData.medioConocisteOSD || '',
-      OBSERVACIONES: clinicData.observaciones || '',
+      OBSERVACIONES: obsWithPwd,
       ESTADO: 'activo',
       TIPO: isIndep ? 'independiente' : 'clinica',
       ESTADO_CARTERA: 'Habilitado',
@@ -869,6 +885,11 @@ export const keaService = {
     }
 
     const cleanNit = String(clinicNit || vetData.veterinariaNit || '').replace(/[^0-9]/g, '').trim();
+    const rawPass = String(vetData.password || vetData.contrasena || vetData.pin || '').trim();
+    const rawObs = String(vetData.observaciones || '').trim();
+    const observacionesWithPwd = rawPass 
+      ? (rawObs.includes('[PWD:') ? rawObs.replace(/\[PWD:[^\]]+\]/i, `[PWD:${rawPass}]`) : (rawObs ? `[PWD:${rawPass}] ${rawObs}` : `[PWD:${rawPass}]`))
+      : rawObs;
 
     const payload = {
       NOMBRE: (vetData.nombre || '').trim(),
@@ -882,6 +903,7 @@ export const keaService = {
       CIUDAD: (vetData.ciudad || '').trim(),
       ESPECIALIDAD: (vetData.especialidad || 'Medicina General').trim(),
       ESTADO: vetData.estado || 'activo',
+      OBSERVACIONES: observacionesWithPwd,
     };
 
     const response = await fetch(url, {
@@ -929,6 +951,18 @@ export const keaService = {
     if (vetData.ciudad) payload.CIUDAD = vetData.ciudad.trim();
     if (vetData.especialidad) payload.ESPECIALIDAD = vetData.especialidad.trim();
     if (vetData.estado) payload.ESTADO = vetData.estado.toLowerCase();
+
+    const newPass = String(vetData.password || vetData.contrasena || vetData.newPassword || '').trim();
+    if (newPass) {
+      const rawObs = String(vetData.observaciones || '').trim();
+      if (rawObs.includes('[PWD:')) {
+        payload.OBSERVACIONES = rawObs.replace(/\[PWD:[^\]]+\]/i, `[PWD:${newPass}]`);
+      } else {
+        payload.OBSERVACIONES = rawObs ? `[PWD:${newPass}] ${rawObs}` : `[PWD:${newPass}]`;
+      }
+    } else if (vetData.observaciones !== undefined) {
+      payload.OBSERVACIONES = String(vetData.observaciones).trim();
+    }
 
     const response = await fetch(url, {
       method: 'PATCH',

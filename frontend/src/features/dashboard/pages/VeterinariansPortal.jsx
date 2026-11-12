@@ -103,6 +103,19 @@ export default function VeterinariansPortal({ currentUser = null, onLogout = nul
       setStats(s);
       setFilterOptions(f);
       setPatients(patientList);
+
+      // Si la lista está vacía pero la clínica tiene NIT, asegurar verificación con Kea Tools
+      if ((!patientList || patientList.length === 0) && resolvedNit) {
+        try {
+          await patientApi.syncKea();
+          const refreshed = await patientApi.getPatients({ ...filters, nit: resolvedNit, clinicId: resolvedId });
+          if (refreshed && refreshed.length > 0) {
+            setPatients(refreshed);
+            const refreshedStats = await patientApi.getStats({ sedeId: filters.sedeId, nit: resolvedNit, clinicId: resolvedId });
+            setStats(refreshedStats);
+          }
+        } catch (_) {}
+      }
     } catch (err) {
       console.error('Error cargando datos iniciales:', err);
     }
@@ -223,9 +236,27 @@ export default function VeterinariansPortal({ currentUser = null, onLogout = nul
   // Solicitar examen (persistencia API)
   const handleRequestExam = async (id, examData) => {
     try {
-      const newOrder = await patientApi.requestExam(id, examData);
+      const activeNit = getActiveClinicNit();
+      const activeId = getActiveClinicId();
+      const resolvedDoctor = (examData.requestedBy && examData.requestedBy !== 'Dr. Asignado')
+        ? examData.requestedBy
+        : (currentUser?.isVeterinarioAsociado ? currentUser.vetNombre : '') ||
+          activeClinic?.directorMedico?.nombre ||
+          activeClinic?.nombreMedico ||
+          currentUser?.director ||
+          currentUser?.nombre ||
+          'Dr. Alejandro Morales';
+
+      const enrichedExamData = {
+        ...examData,
+        requestedBy: resolvedDoctor,
+        clinicNit: activeNit,
+        clinicId: activeId,
+      };
+
+      const newOrder = await patientApi.requestExam(id, enrichedExamData);
       showToast(`Orden ${newOrder.id} generada con éxito.`);
-      await loadPatients();
+      await loadPatients(activeNit, activeId);
       await loadInitialStats();
       return newOrder;
     } catch (err) {
@@ -242,7 +273,7 @@ export default function VeterinariansPortal({ currentUser = null, onLogout = nul
       case 'seguimiento':
         return { section: 'Logística', title: 'Seguimiento de Órdenes & Muestras', icon: '🚚' };
       case 'resultados':
-        return { section: 'Laboratorio', title: 'Resultados Diagnósticos qPCR', icon: '🔬' };
+        return { section: 'Laboratorio', title: 'Resultados Diagnósticos', icon: '🔬' };
       case 'catalogo':
         return { section: 'Base de Datos', title: 'Catálogo de Perfiles qPCR', icon: '📖' };
       case 'catalogo-clinicas':
@@ -353,6 +384,7 @@ export default function VeterinariansPortal({ currentUser = null, onLogout = nul
           {activeModule === 'nuevo-examen' && (
             <NewExamModule
               patient={examModulePatient}
+              currentUser={currentUser}
               initialExamType={examModuleType}
               initialRequestCategory={examModuleCategory}
               initialClinicalExam={examModuleInitialExam}
@@ -374,10 +406,11 @@ export default function VeterinariansPortal({ currentUser = null, onLogout = nul
             />
           )}
 
-          {/* MÓDULO 4: RESULTADOS DIAGNÓSTICOS qPCR */}
+          {/* MÓDULO 4: RESULTADOS DIAGNÓSTICOS qPCR & CLÍNICAS */}
           {activeModule === 'resultados' && (
             <ResultadosView
               patients={patients}
+              currentUser={currentUser}
               onSelectPatient={(p) => setSelectedPatient(p)}
               onNavigateToNewExam={(p, type) => handleOpenExamModule(p || null, type || 'nuevo')}
             />
@@ -454,6 +487,7 @@ export default function VeterinariansPortal({ currentUser = null, onLogout = nul
       {showGeneralExamModal && (
         <RequestExamModal
           isModal={true}
+          currentUser={currentUser}
           patients={patients.filter((p) => p.status !== 'fallecido')}
           onClose={() => setShowGeneralExamModal(false)}
           onRequest={async (patientId, examData) => {

@@ -13,6 +13,7 @@ import {
 import MicrobiotaOrderForm from './MicrobiotaOrderForm.jsx';
 import { hasReportedAllergy, isNegativeAllergyText } from '../utils/allergyHelpers.js';
 import ClinicalOrderForm from './ClinicalOrderForm.jsx';
+import { authService } from '../../auth/services/authService.js';
 
 
 // ============================================================================
@@ -518,6 +519,7 @@ export const getSampleIconAndColor = (sampleName = '') => {
 export default function RequestExamModal({
   patient: initialPatient,
   patients = [],
+  currentUser = null,
   initialExamType = 'nuevo',
   initialRequestCategory = null,
   initialClinicalExam = null,
@@ -526,6 +528,26 @@ export default function RequestExamModal({
   isModal = true,
   onNavigateToTracking,
 }) {
+  // Función para resolver el nombre del doctor autenticado desde la sesión actual
+  const getLoggedInDoctorName = () => {
+    const user = currentUser || authService.getCurrentUser();
+    if (user) {
+      if (user.isVeterinarioAsociado && user.vetNombre) return user.vetNombre;
+      if (user.nombreMedico) return user.nombreMedico;
+      if (user.director && user.director !== 'Responsable Médico') return user.director;
+      if (user.directorMedico?.nombre) return user.directorMedico.nombre;
+      if (user.nombreCompleto) return user.nombreCompleto;
+      if (user.nombre && !user.nombre.toLowerCase().includes('clinica') && !user.nombre.toLowerCase().includes('veterinaria')) {
+        return user.nombre;
+      }
+      if (user.director) return user.director;
+    }
+    if (activePatient?.attendingVet && activePatient.attendingVet !== 'Dr. Asignado') {
+      return activePatient.attendingVet;
+    }
+    return 'Dr. Alejandro Morales';
+  };
+
   // Estado de paso actual (Inicia en 1 para validar paciente, esterilización y alergias)
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -614,7 +636,9 @@ export default function RequestExamModal({
 
   // Estado Clínico del paciente: Asintomático vs Sintomático
   const [isAsymptomatic, setIsAsymptomatic] = useState(() => {
-    return Boolean(initialPatient?.isAsymptomatic ?? initialPatient?.medicalAdmission?.isAsymptomatic);
+    const val = initialPatient?.isAsymptomatic ?? initialPatient?.medicalAdmission?.isAsymptomatic;
+    if (typeof val === 'boolean') return val;
+    return null;
   });
 
   // ============================================================================
@@ -653,9 +677,9 @@ export default function RequestExamModal({
       housingArea: rf.housingArea || '',
       housingType: rf.housingType || '',
       otherHousingType: rf.otherHousingType || '',
-      livesWithOtherAnimals: Boolean(rf.livesWithOtherAnimals),
+      livesWithOtherAnimals: typeof rf.livesWithOtherAnimals === 'boolean' ? rf.livesWithOtherAnimals : null,
       cohabitingSpecies: Array.isArray(rf.cohabitingSpecies) ? rf.cohabitingSpecies : [],
-      recentTravel: Boolean(rf.recentTravel),
+      recentTravel: typeof rf.recentTravel === 'boolean' ? rf.recentTravel : null,
       recentTravelDetails: rf.recentTravelDetails || '',
       ruralAccess: Boolean(rf.ruralAccess),
       parasiteExposure: Boolean(rf.parasiteExposure),
@@ -708,6 +732,7 @@ export default function RequestExamModal({
     return null;
   });
   const [clinicalRiskDisclaimerAccepted, setClinicalRiskDisclaimerAccepted] = useState(false);
+  const [isClinicalDeclinedConfirmed, setIsClinicalDeclinedConfirmed] = useState(false);
   const [hasCuadroHematico, setHasCuadroHematico] = useState(false);
   const [cuadroHematicoFile, setCuadroHematicoFile] = useState(null);
   const [cuadroHematicoFileName, setCuadroHematicoFileName] = useState('');
@@ -903,9 +928,14 @@ export default function RequestExamModal({
         setHasVetPlusInsurance(Boolean(activePatient.owner.hasVetPlus));
         setVetPlusCode(activePatient.owner.vetPlusCode || '');
       }
-      if (activePatient.isAsymptomatic !== undefined) {
-        setIsAsymptomatic(Boolean(activePatient.isAsymptomatic));
+      if (typeof activePatient.isAsymptomatic === 'boolean') {
+        setIsAsymptomatic(activePatient.isAsymptomatic);
+      } else if (typeof activePatient.medicalAdmission?.isAsymptomatic === 'boolean') {
+        setIsAsymptomatic(activePatient.medicalAdmission.isAsymptomatic);
+      } else {
+        setIsAsymptomatic(null);
       }
+      setIsClinicalDeclinedConfirmed(false);
 
       // 1. Estado de esterilización
       if (activePatient.isSterilized === true) {
@@ -939,9 +969,9 @@ export default function RequestExamModal({
           habitat: rf.habitat || prev.habitat,
           housingArea: rf.housingArea || prev.housingArea,
           housingType: rf.housingType || prev.housingType,
-          livesWithOtherAnimals: Boolean(rf.livesWithOtherAnimals ?? prev.livesWithOtherAnimals),
+          livesWithOtherAnimals: typeof rf.livesWithOtherAnimals === 'boolean' ? rf.livesWithOtherAnimals : null,
           cohabitingSpecies: Array.isArray(rf.cohabitingSpecies) ? rf.cohabitingSpecies : prev.cohabitingSpecies,
-          recentTravel: Boolean(rf.recentTravel ?? prev.recentTravel),
+          recentTravel: typeof rf.recentTravel === 'boolean' ? rf.recentTravel : null,
           recentTravelDetails: rf.recentTravelDetails || prev.recentTravelDetails,
           ruralAccess: Boolean(rf.ruralAccess ?? prev.ruralAccess),
           parasiteExposure: Boolean(rf.parasiteExposure ?? prev.parasiteExposure),
@@ -998,6 +1028,7 @@ export default function RequestExamModal({
       setHasAllergiesOption(null);
       setHasPreviousClinicalExam(null);
       setClinicalRiskDisclaimerAccepted(false);
+      setIsClinicalDeclinedConfirmed(false);
     }
   }, [activePatient?.id, activePatient?.isSterilized]);
 
@@ -1287,15 +1318,9 @@ export default function RequestExamModal({
     return Array.from(synMap.values());
   }, [recommendedProfiles]);
 
-  // Perfiles recomendados filtrados por el síndrome clínico seleccionado en el Paso 4
   const displayedRecommendedProfiles = useMemo(() => {
-    if (step4SyndromeFilter === 'all') {
-      return recommendedProfiles;
-    }
-    return recommendedProfiles.filter((p) => {
-      return (p.syndromes || []).some((s) => matchSyndromeTokens(s, step4SyndromeFilter));
-    });
-  }, [recommendedProfiles, step4SyndromeFilter]);
+    return recommendedProfiles;
+  }, [recommendedProfiles]);
 
   // Perfiles actualmente añadidos a la orden
   const selectedProfiles = useMemo(() => {
@@ -1407,6 +1432,10 @@ export default function RequestExamModal({
 
   // REQUERIMIENTO: Solo se selecciona 1 paciente. Clic resalta borde; volver a hacer clic deselecciona.
   const handleTogglePatientSelection = (p) => {
+    if (p.status === 'fallecido') {
+      alert('Acceso denegado: El paciente ' + (p.name || '') + ' se encuentra registrado como fallecido y su ficha médica no admite nuevas solicitudes de examen.');
+      return;
+    }
     if (selectedPatientId === p.id) {
       setSelectedPatientId('');
       if (examType === 'control') {
@@ -1645,6 +1674,8 @@ export default function RequestExamModal({
       });
 
       const payload = {
+        requestCategory: 'qpcr',
+        category: 'Biología Molecular Cuantitativa (qPCR)',
         examType,
         previousExamCode: examType === 'control' ? previousExamCode : null,
         testName: selectedProfiles.map((p) => p.title).join(' + '),
@@ -1663,7 +1694,7 @@ export default function RequestExamModal({
         isAsymptomatic: Boolean(isAsymptomatic),
         urgency: 'Normal (24-48h)',
         logistics: 'Toma en clínica',
-        requestedBy: activePatient.attendingVet || 'Dr. Alejandro Morales',
+        requestedBy: getLoggedInDoctorName(),
         targets: profilesData.flatMap((p) => p.agents).join(', '),
 
         // Actualizaciones de esterilización y alergias
@@ -1750,6 +1781,8 @@ export default function RequestExamModal({
       const examDate = controlHistoryInfo.lastExamDate || '03/09/2026';
 
       const payload = {
+        requestCategory: 'qpcr',
+        category: 'Biología Molecular Cuantitativa (qPCR)',
         examType: 'control',
         previousExamCode: code,
         previousExamName: examName,
@@ -1770,7 +1803,7 @@ export default function RequestExamModal({
         isAsymptomatic: Boolean(isAsymptomatic),
         urgency: 'Control ambulatorio (24-48h)',
         logistics: 'Toma en clínica',
-        requestedBy: activePatient.attendingVet || 'Dr. Alejandro Morales',
+        requestedBy: getLoggedInDoctorName(),
         targets: activeControlAgents.map((a) => a.name).join(', '),
         isSterilized: isAlreadySterilized ? true : (examIsSterilized !== null ? examIsSterilized : activePatient.isSterilized),
         allergies: patientAllergiesList.join(', '),
@@ -1937,7 +1970,7 @@ export default function RequestExamModal({
             : 'Tarifa oficial OSD',
           urgency: 'Normal (según catálogo)',
           logistics: customPayload.billingCompany?.collectionAddress || 'Toma en clínica',
-          requestedBy: customPayload.billingCompany?.solicitingVetName || activePatient?.attendingVet || 'Dr. Alejandro Morales',
+          requestedBy: customPayload.billingCompany?.solicitingVetName || getLoggedInDoctorName(),
           targets: (customPayload.testDetails?.catalogExams || []).map((e) => `${e.cups ? `[${e.cups}] ` : ''}${e.name}`).join(', ') || customPayload.testDetails?.customTestName || 'Pruebas diagnósticas clínicas',
           clinicalObservations: customPayload.testDetails?.observations || '',
         };
@@ -1978,7 +2011,7 @@ export default function RequestExamModal({
           totalPrice: `$${totalClinicalPrice.toLocaleString('es-CO')}`,
           urgency: 'Normal (según catálogo)',
           logistics: 'Toma en clínica',
-          requestedBy: activePatient.attendingVet || 'Dr. Alejandro Morales',
+          requestedBy: getLoggedInDoctorName(),
           targets: selectedClinicalExams.map((e) => `${e.cups ? `[${e.cups}] ` : ''}${e.nombre}`).join(', '),
           isSterilized: isAlreadySterilized ? true : (examIsSterilized !== null ? examIsSterilized : activePatient.isSterilized),
           allergies: patientAllergiesList.join(', '),
@@ -1988,7 +2021,9 @@ export default function RequestExamModal({
       }
 
       const resultOrder = await onRequest(targetPatientId, payload);
-      const generatedCode = resultOrder?.id || `CLN-2026-${Math.floor(100 + Math.random() * 900)}`;
+      const generatedCode = resultOrder?.id
+        ? (resultOrder.id.startsWith('CLN') ? resultOrder.id : `CLN-${resultOrder.id.replace('ORD-', '')}`)
+        : `CLN-2026-${Math.floor(100 + Math.random() * 900)}`;
 
       setSubmittedOrderData({
         ...payload,
@@ -2035,7 +2070,7 @@ export default function RequestExamModal({
             sampleType: 'Kit estéril con tubo estabilizador ADN fecal',
             totalPrice: 'Incluido en convenio de secuenciación',
             urgency: 'Envío estándar 24h',
-            requestedBy: microbiotaRecipientContact || 'Dr. Alejandro Morales',
+            requestedBy: microbiotaRecipientContact || getLoggedInDoctorName(),
             targets: 'Kit de secuenciación masiva 16S rRNA',
           };
         } else {
@@ -2056,7 +2091,7 @@ export default function RequestExamModal({
             sampleType: 'Muestra fecal refrigerada (4°C) en vial conservante',
             totalPrice: '$285.000',
             urgency: 'Programada',
-            requestedBy: activePatient.attendingVet || 'Dr. Alejandro Morales',
+            requestedBy: getLoggedInDoctorName(),
             targets: 'Secuenciación metagenómica 16S rRNA V3-V4',
             isSterilized: isAlreadySterilized ? true : (examIsSterilized !== null ? examIsSterilized : activePatient.isSterilized),
             allergies: patientAllergiesList.join(', '),
@@ -2099,8 +2134,8 @@ export default function RequestExamModal({
     : "w-full max-w-4xl mx-auto py-4 px-2 sm:px-4 animate-in fade-in duration-200";
 
   const cardClasses = isModal
-    ? "bg-[#f8fafc] rounded-3xl max-w-4xl w-full shadow-2xl border border-slate-100 overflow-hidden my-4 max-h-[95vh] flex flex-col animate-in fade-in zoom-in-95 duration-150"
-    : "bg-[#f8fafc] rounded-3xl w-full shadow-md border border-slate-200/90 overflow-hidden flex flex-col";
+    ? "bg-[#f8fafc] dark:bg-[#0e091d] rounded-3xl max-w-4xl w-full shadow-2xl border border-slate-100 dark:border-[#2f2257] overflow-hidden my-4 max-h-[95vh] flex flex-col animate-in fade-in zoom-in-95 duration-150"
+    : "bg-[#f8fafc] dark:bg-[#0e091d] rounded-3xl w-full shadow-md border border-slate-200/90 dark:border-[#2f2257] overflow-hidden flex flex-col";
 
   const scrollBodyClasses = isModal
     ? "flex-1 overflow-y-auto p-6 sm:p-8 space-y-6"
@@ -2113,7 +2148,7 @@ export default function RequestExamModal({
         {/* ==================================================================== */}
         {/* CABECERA                                                            */}
         {/* ==================================================================== */}
-        <div className="bg-white px-6 sm:px-8 pt-5 pb-4 border-b border-slate-100 shrink-0">
+        <div className="bg-white dark:bg-[#150f28] px-6 sm:px-8 pt-5 pb-4 border-b border-slate-100 dark:border-[#2f2257] shrink-0">
           {isOrderSuccess ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -2122,7 +2157,7 @@ export default function RequestExamModal({
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-base font-extrabold text-slate-900 tracking-tight">
+                    <h2 className="text-base font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
                       Orden confirmada
                     </h2>
                     <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -2383,27 +2418,30 @@ export default function RequestExamModal({
                       </span>
                     </div>
 
-                    <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
-                      <div className="bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 flex items-center justify-between">
+                    <div className="border border-slate-200 dark:border-[#2f2257] rounded-xl overflow-hidden bg-white dark:bg-[#150f28]">
+                      <div className="bg-slate-50 dark:bg-[#1a1232] px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center justify-between border-b border-slate-100 dark:border-[#2f2257]">
                         <span>Prueba / Categoría</span>
                         <span>Precio IVA incluido</span>
                       </div>
-                      <div className="divide-y divide-slate-100 text-xs">
-                        {(submittedOrderData.selectedClinicalExams || []).map((exam, idx) => (
-                          <div key={idx} className="px-4 py-3 flex items-center justify-between">
-                            <div>
-                              <div className="font-extrabold text-slate-900">{exam.nombre}</div>
-                              <div className="text-[11px] text-slate-500 mt-0.5">
-                                {exam.categoria} {exam.cups ? `· CUPS: ${exam.cups}` : ''} · Muestra: <strong>{exam.matrizMuestra}</strong> · Entrega: {exam.tiempoEntrega}
+                      <div className="divide-y divide-slate-100 dark:divide-[#2f2257]/40 text-xs">
+                        {(submittedOrderData.selectedClinicalExams || []).map((exam, idx) => {
+                          const itemPrice = exam.precio || exam.precioIva || 0;
+                          return (
+                            <div key={idx} className="px-4 py-3 flex items-center justify-between">
+                              <div>
+                                <div className="font-extrabold text-slate-900 dark:text-slate-100">{exam.nombre}</div>
+                                <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                  {exam.categoria} {exam.cups ? `· CUPS: ${exam.cups}` : ''} · Muestra: <strong>{exam.matrizMuestra}</strong> · Entrega: {exam.tiempoEntrega}
+                                </div>
                               </div>
+                              <span className="font-bold text-slate-800 dark:text-[#01FADA]">${itemPrice.toLocaleString('es-CO')}</span>
                             </div>
-                            <span className="font-bold text-slate-800">${(exam.precioIva || 0).toLocaleString('es-CO')}</span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
-                      <div className="bg-teal-50/80 px-4 py-3.5 border-t-2 border-teal-200 flex items-center justify-between text-sm font-extrabold">
-                        <span className="text-teal-950">Total Facturado:</span>
-                        <span className="text-teal-800 font-black text-base">{submittedOrderData.totalPrice}</span>
+                      <div className="bg-teal-50/80 dark:bg-teal-950/40 px-4 py-3.5 border-t-2 border-teal-200 dark:border-teal-800 flex items-center justify-between text-sm font-extrabold">
+                        <span className="text-teal-950 dark:text-teal-200">Total Facturado:</span>
+                        <span className="text-teal-800 dark:text-[#01FADA] font-black text-base">{submittedOrderData.totalPrice}</span>
                       </div>
                     </div>
 
@@ -3048,13 +3086,13 @@ export default function RequestExamModal({
           {!isOrderSuccess && !isControlReviewOpen && requestCategory === null && (
             <div className="py-6 sm:py-10 px-2 sm:px-6 space-y-8 animate-in fade-in duration-200">
               <div className="text-center max-w-xl mx-auto space-y-2.5">
-                <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-purple-100 text-[#6F2BCC] inline-block shadow-2xs">
+                <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-purple-100 text-[#6F2BCC] dark:bg-purple-950/70 dark:text-[#a78bfa] dark:border dark:border-purple-800/50 inline-block shadow-2xs">
                   Nuevo Examen Diagnóstico
                 </span>
-                <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                   ¿Qué tipo de examen desea solicitar?
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                   Seleccione el catálogo o modalidad requerida para desplegar el formulario correspondiente.
                 </p>
               </div>
@@ -3064,25 +3102,25 @@ export default function RequestExamModal({
                 <button
                   type="button"
                   onClick={() => setRequestCategory('clinicas')}
-                  className="p-6 rounded-3xl border-2 border-teal-200 bg-gradient-to-b from-white via-white to-teal-50/50 hover:border-teal-500 hover:shadow-xl transition-all text-left flex flex-col justify-between group cursor-pointer relative overflow-hidden"
+                  className="p-6 rounded-3xl border-2 border-teal-200 dark:border-teal-800/60 bg-gradient-to-b from-teal-50/50 via-white to-teal-50/20 dark:from-[#1b1433] dark:via-[#16102c] dark:to-[#120d26] hover:border-teal-500 dark:hover:border-teal-400 hover:shadow-xl dark:hover:shadow-teal-950/40 transition-all text-left flex flex-col justify-between group cursor-pointer relative overflow-hidden"
                 >
                   <div className="space-y-4">
-                    <div className="w-14 h-14 rounded-2xl bg-teal-100 text-teal-800 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-2xs">
+                    <div className="w-14 h-14 rounded-2xl bg-teal-100 text-teal-800 dark:bg-teal-950/70 dark:text-teal-300 border border-teal-200 dark:border-teal-800/50 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-2xs">
                       🏥
                     </div>
                     <div>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-teal-700 bg-teal-100/80 px-2.5 py-0.5 rounded-md inline-block mb-1.5">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-teal-700 bg-teal-100/80 dark:bg-teal-950/80 dark:text-teal-300 dark:border dark:border-teal-800/60 px-2.5 py-0.5 rounded-md inline-block mb-1.5">
                         1. Portafolio Clínico
                       </span>
-                      <h4 className="text-base font-black text-slate-900 group-hover:text-teal-900">
+                      <h4 className="text-base font-black text-slate-900 dark:text-white group-hover:text-teal-900 dark:group-hover:text-teal-300 transition-colors">
                         Solicitud de Clínicas
                       </h4>
-                      <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
                         Portafolio oficial de 223 pruebas de laboratorio clínico (Hematología, Química, Uroanálisis, Hormonas, Citología).
                       </p>
                     </div>
                   </div>
-                  <div className="pt-4 mt-4 border-t border-teal-100 flex items-center justify-between text-xs font-black text-teal-700">
+                  <div className="pt-4 mt-4 border-t border-teal-100 dark:border-teal-900/40 flex items-center justify-between text-xs font-black text-teal-700 dark:text-[#01FADA]">
                     <span>Tramitar Clínicas</span>
                     <span className="text-base group-hover:translate-x-1.5 transition-transform">➔</span>
                   </div>
@@ -3092,25 +3130,25 @@ export default function RequestExamModal({
                 <button
                   type="button"
                   onClick={() => setRequestCategory('qpcr')}
-                  className="p-6 rounded-3xl border-2 border-purple-200 bg-gradient-to-b from-white via-white to-purple-50/50 hover:border-[#6F2BCC] hover:shadow-xl transition-all text-left flex flex-col justify-between group cursor-pointer relative overflow-hidden"
+                  className="p-6 rounded-3xl border-2 border-purple-200 dark:border-purple-800/60 bg-gradient-to-b from-purple-50/50 via-white to-purple-50/20 dark:from-[#1d1436] dark:via-[#16102c] dark:to-[#120d26] hover:border-[#6F2BCC] dark:hover:border-[#9333ea] hover:shadow-xl dark:hover:shadow-purple-950/40 transition-all text-left flex flex-col justify-between group cursor-pointer relative overflow-hidden"
                 >
                   <div className="space-y-4">
-                    <div className="w-14 h-14 rounded-2xl bg-purple-100 text-[#6F2BCC] flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-2xs">
+                    <div className="w-14 h-14 rounded-2xl bg-purple-100 text-[#6F2BCC] dark:bg-purple-950/70 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-2xs">
                       🧬
                     </div>
                     <div>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-[#6F2BCC] bg-purple-100/80 px-2.5 py-0.5 rounded-md inline-block mb-1.5">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[#6F2BCC] bg-purple-100/80 dark:bg-purple-950/80 dark:text-purple-300 dark:border dark:border-purple-800/60 px-2.5 py-0.5 rounded-md inline-block mb-1.5">
                         2. Biología Molecular
                       </span>
-                      <h4 className="text-base font-black text-slate-900 group-hover:text-[#2B017C]">
+                      <h4 className="text-base font-black text-slate-900 dark:text-white group-hover:text-[#2B017C] dark:group-hover:text-purple-300 transition-colors">
                         Biología Molecular (qPCR)
                       </h4>
-                      <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
                         Detección cuantitativa de patógenos con motor de recomendación sindrómica y personalización de agentes.
                       </p>
                     </div>
                   </div>
-                  <div className="pt-4 mt-4 border-t border-purple-100 flex items-center justify-between text-xs font-black text-[#6F2BCC]">
+                  <div className="pt-4 mt-4 border-t border-purple-100 dark:border-purple-900/40 flex items-center justify-between text-xs font-black text-[#6F2BCC] dark:text-[#c084fc]">
                     <span>Tramitar qPCR</span>
                     <span className="text-base group-hover:translate-x-1.5 transition-transform">➔</span>
                   </div>
@@ -3120,25 +3158,25 @@ export default function RequestExamModal({
                 <button
                   type="button"
                   onClick={() => setRequestCategory('microbiota')}
-                  className="p-6 rounded-3xl border-2 border-emerald-200 bg-gradient-to-b from-white via-white to-emerald-50/50 hover:border-emerald-500 hover:shadow-xl transition-all text-left flex flex-col justify-between group cursor-pointer relative overflow-hidden"
+                  className="p-6 rounded-3xl border-2 border-emerald-200 dark:border-emerald-800/60 bg-gradient-to-b from-emerald-50/50 via-white to-emerald-50/20 dark:from-[#16242c] dark:via-[#151c2e] dark:to-[#120d26] hover:border-emerald-500 dark:hover:border-emerald-400 hover:shadow-xl dark:hover:shadow-emerald-950/40 transition-all text-left flex flex-col justify-between group cursor-pointer relative overflow-hidden"
                 >
                   <div className="space-y-4">
-                    <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-2xs">
+                    <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-2xs">
                       🦠
                     </div>
                     <div>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-md inline-block mb-1.5">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-100/80 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border dark:border-emerald-800/60 px-2.5 py-0.5 rounded-md inline-block mb-1.5">
                         3. Secuenciación 16S
                       </span>
-                      <h4 className="text-base font-black text-slate-900 group-hover:text-emerald-950">
+                      <h4 className="text-base font-black text-slate-900 dark:text-white group-hover:text-emerald-950 dark:group-hover:text-emerald-300 transition-colors">
                         Solicitud de Microbiota
                       </h4>
-                      <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
                         Solicitud de kits o programación de recolección de muestra fecal con anamnesis oficial OSD+LIFE.
                       </p>
                     </div>
                   </div>
-                  <div className="pt-4 mt-4 border-t border-emerald-100 flex items-center justify-between text-xs font-black text-emerald-700">
+                  <div className="pt-4 mt-4 border-t border-emerald-100 dark:border-emerald-900/40 flex items-center justify-between text-xs font-black text-emerald-700 dark:text-[#34d399]">
                     <span>Tramitar Microbiota</span>
                     <span className="text-base group-hover:translate-x-1.5 transition-transform">➔</span>
                   </div>
@@ -3257,21 +3295,29 @@ export default function RequestExamModal({
                     <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                       {displayedPatients.map((p) => {
                         const isSelected = p.id === selectedPatientId;
+                        const isDeceased = p.status === 'fallecido';
                         return (
                           <div
                             key={p.id}
-                            onClick={() => handleTogglePatientSelection(p)}
-                            className={`flex items-center justify-between p-3.5 rounded-xl transition-all cursor-pointer ${
-                              isSelected
-                                ? 'border-2 border-[#6F2BCC] bg-sky-50/40 shadow-xs'
-                                : 'border border-slate-200 hover:border-slate-300 bg-white'
+                            onClick={() => !isDeceased && handleTogglePatientSelection(p)}
+                            className={`flex items-center justify-between p-3.5 rounded-xl transition-all ${
+                              isDeceased
+                                ? 'border border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed'
+                                : isSelected
+                                ? 'border-2 border-[#6F2BCC] bg-sky-50/40 shadow-xs cursor-pointer'
+                                : 'border border-slate-200 hover:border-slate-300 bg-white cursor-pointer'
                             }`}
                           >
                             <div className="flex items-center gap-3">
                               <span className="text-2xl">{p.avatar || (p.species?.toLowerCase().includes('felin') ? '🐱' : '🐶')}</span>
                               <div>
-                                <div className="text-xs font-bold text-slate-900">
-                                  {p.name} {p.lastName || ''}
+                                <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                                  <span>{p.name} {p.lastName || ''}</span>
+                                  {isDeceased && (
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-900 text-white">
+                                      Fallecido 🔒
+                                    </span>
+                                  )}
                                 </div>
                                 <div className="text-[11px] text-slate-500">
                                   {p.species} · {p.breed} · {p.owner?.name || 'Tutor registrado'}
@@ -3279,7 +3325,11 @@ export default function RequestExamModal({
                               </div>
                             </div>
 
-                            {isSelected && (
+                            {isDeceased ? (
+                              <span className="text-[11px] font-bold text-slate-400 bg-slate-200/80 px-2.5 py-1 rounded-lg select-none">
+                                Solicitud Bloqueada
+                              </span>
+                            ) : isSelected ? (
                               <div className="flex items-center gap-2">
                                 <span className="text-xs font-bold text-[#6F2BCC] bg-sky-100 px-2.5 py-1 rounded-lg flex items-center gap-1">
                                   <span>✓</span> Seleccionado {initialPatient && initialPatient.id === p.id ? '(Dato preguardado)' : ''}
@@ -3288,7 +3338,7 @@ export default function RequestExamModal({
                                   (Clic para deseleccionar)
                                 </span>
                               </div>
-                            )}
+                            ) : null}
                           </div>
                         );
                       })}
@@ -3344,17 +3394,7 @@ export default function RequestExamModal({
                     </div>
                   )}
 
-                  {activePatient && !controlHistoryInfo.canRequestControl && (
-                    <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-2.5 text-xs text-slate-600">
-                      <span className="text-base shrink-0 mt-0.5">ℹ️</span>
-                      <div>
-                        <div className="font-bold text-slate-800">Sin período de control activo</div>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
-                          {controlHistoryInfo.reason}. Solo está disponible la modalidad "Examen nuevo".
-                        </p>
-                      </div>
-                    </div>
-                  )}
+
 
                   {/* ================================================================ */}
                   {/* CONFIGURACIÓN CLÍNICA DEL PACIENTE SELECCIONADO (PASO 1)          */}
@@ -3366,8 +3406,8 @@ export default function RequestExamModal({
                       {/* 1. ESTADO DE ESTERILIZACIÓN */}
                       <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                            <span>🩺</span> ¿El paciente está esterilizado? *
+                          <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                            <span>🩺</span> ¿El paciente está esterilizado? <span className="text-rose-500 font-bold">*</span>
                           </span>
                           {isAlreadySterilized && (
                             <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 text-[11px] font-bold rounded-lg border border-emerald-300 flex items-center gap-1">
@@ -3508,13 +3548,17 @@ export default function RequestExamModal({
                       {/* 3. CONDICIÓN CLÍNICA DEL PACIENTE */}
                       <div className="p-4 bg-emerald-50/60 border border-emerald-200/90 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
-                          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                            <span>🩺</span> Condición clínica actual del paciente:
-                          </span>
-                          <p className="text-[11px] text-slate-500 mt-0.5">
-                            {isAsymptomatic
+                          <div className="mb-0.5">
+                            <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                              <span>🩺</span> Condición clínica actual del paciente <span className="text-rose-500 font-bold">*</span>
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500">
+                            {isAsymptomatic === true
                               ? '🌿 Tamizaje molecular o chequeo preventivo general (sin sintomatología evidente).'
-                              : '⚠️ Paciente con signología clínica activa o sospecha de patología.'}
+                              : isAsymptomatic === false
+                              ? '⚠️ Paciente con signología clínica activa o sospecha de patología.'
+                              : 'Seleccione si el paciente presenta signos clínicos activos o es un chequeo asintomático.'}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
@@ -3522,7 +3566,7 @@ export default function RequestExamModal({
                             type="button"
                             onClick={() => setIsAsymptomatic(false)}
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                              !isAsymptomatic
+                              isAsymptomatic === false
                                 ? 'bg-slate-800 text-white shadow-xs'
                                 : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                             }`}
@@ -3533,7 +3577,7 @@ export default function RequestExamModal({
                             type="button"
                             onClick={() => setIsAsymptomatic(true)}
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                              isAsymptomatic
+                              isAsymptomatic === true
                                 ? 'bg-emerald-600 text-white shadow-xs'
                                 : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                             }`}
@@ -3604,64 +3648,80 @@ export default function RequestExamModal({
               {/* Formulario de Factores de Riesgo */}
               <div className="bg-white rounded-2xl border border-slate-200/90 p-5 space-y-6 shadow-2xs">
                 
-                {/* 2.1 Hábitat y Tipo de Residencia */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Hábitat principal de la mascota
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
+                {/* 2.1 Hábitat principal y Área de residencia (Separados con tarjetas independientes y obligatorios) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Tarjeta 1: Hábitat principal */}
+                  <div className="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/90 space-y-2.5 shadow-2xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                        <span>🏡</span> Hábitat principal <span className="text-rose-500 font-bold">*</span>
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      Nivel de permanencia habitual en interiores o exteriores
+                    </p>
+                    <div className="grid grid-cols-3 gap-2 pt-1">
                       {['Interiores', 'Exterior', 'Mixto'].map((hab) => (
                         <button
                           key={hab}
                           type="button"
                           onClick={() => handleRiskChange('habitat', hab)}
-                          className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          className={`py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 ${
                             riskFactors.habitat === hab
                               ? 'bg-[#6F2BCC] text-white shadow-xs'
-                              : 'bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100'
+                              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
                           }`}
                         >
-                          {hab === 'Interiores' ? '🏠 Interiores' : hab === 'Exterior' ? '🌳 Exterior' : '🏡 Mixto'}
+                          <span>{hab === 'Interiores' ? '🏠' : hab === 'Exterior' ? '🌳' : '🏡'}</span>
+                          <span>{hab}</span>
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Área de vivienda
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
+                  {/* Tarjeta 2: Área de residencia / vivienda */}
+                  <div className="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/90 space-y-2.5 shadow-2xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                        <span>📍</span> Área de residencia <span className="text-rose-500 font-bold">*</span>
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      Clasificación del entorno demográfico del paciente
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 pt-1">
                       {['Urbana', 'Rural'].map((area) => (
                         <button
                           key={area}
                           type="button"
                           onClick={() => handleRiskChange('housingArea', area)}
-                          className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                             riskFactors.housingArea === area
-                              ? 'bg-[#6F2BCC] text-white shadow-xs'
-                              : 'bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100'
+                              ? 'bg-teal-700 text-white shadow-xs'
+                              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
                           }`}
                         >
-                          {area === 'Urbana' ? '🏙️ Urbana' : '🌾 Rural / Campestre'}
+                          <span>{area === 'Urbana' ? '🏙️' : '🌾'}</span>
+                          <span>{area === 'Urbana' ? 'Urbana' : 'Rural / Campestre'}</span>
                         </button>
                       ))}
                     </div>
                   </div>
                 </div>
 
-                {/* Tipo de vivienda */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Tipo de residencia
-                  </label>
+                {/* Tarjeta 3: Tipo de residencia */}
+                <div className="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/90 space-y-2 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                      <span>🏢</span> Tipo de residencia / vivienda <span className="text-rose-500 font-bold">*</span>
+                    </span>
+                  </div>
                   <select
                     value={riskFactors.housingType}
                     onChange={(e) => handleRiskChange('housingType', e.target.value)}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none bg-white cursor-pointer"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none bg-white cursor-pointer font-medium text-slate-800"
                   >
-                    <option value="">Seleccione tipo de residencia...</option>
+                    <option value="">-- Seleccione tipo de residencia --</option>
                     <option value="Casa con jardín / patio">Casa con jardín / patio</option>
                     <option value="Casa cerrada (sin patio)">Casa cerrada (sin patio)</option>
                     <option value="Apartamento">Apartamento</option>
@@ -3675,9 +3735,11 @@ export default function RequestExamModal({
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-xs font-bold text-slate-800 block">
-                        ¿Convive con otros animales en el hogar o entorno?
-                      </span>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                          <span>🐾</span> ¿Convive con otros animales en el hogar o entorno? <span className="text-rose-500 font-bold">*</span>
+                        </span>
+                      </div>
                       <span className="text-[11px] text-slate-500">
                         Aumenta probabilidad de transmisión horizontal de patógenos
                       </span>
@@ -3686,8 +3748,10 @@ export default function RequestExamModal({
                       <button
                         type="button"
                         onClick={() => handleRiskChange('livesWithOtherAnimals', false)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
-                          !riskFactors.livesWithOtherAnimals ? 'bg-slate-700 text-white' : 'bg-white border border-slate-200 text-slate-600'
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
+                          riskFactors.livesWithOtherAnimals === false
+                            ? 'bg-slate-700 text-white shadow-2xs'
+                            : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                         }`}
                       >
                         No
@@ -3695,8 +3759,10 @@ export default function RequestExamModal({
                       <button
                         type="button"
                         onClick={() => handleRiskChange('livesWithOtherAnimals', true)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
-                          riskFactors.livesWithOtherAnimals ? 'bg-[#6F2BCC] text-white' : 'bg-white border border-slate-200 text-slate-600'
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
+                          riskFactors.livesWithOtherAnimals === true
+                            ? 'bg-[#6F2BCC] text-white shadow-2xs'
+                            : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                         }`}
                       >
                         Sí
@@ -3760,9 +3826,11 @@ export default function RequestExamModal({
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-xs font-bold text-slate-800 block">
-                        ¿Ha viajado recientemente fuera del departamento o del país?
-                      </span>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                          <span>✈️</span> ¿Ha viajado recientemente fuera del departamento o del país? <span className="text-rose-500 font-bold">*</span>
+                        </span>
+                      </div>
                       <span className="text-[11px] text-slate-500">
                         Zonas de clima cálido, cuencas fluviales, costa o áreas endémicas
                       </span>
@@ -3771,8 +3839,10 @@ export default function RequestExamModal({
                       <button
                         type="button"
                         onClick={() => handleRiskChange('recentTravel', false)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
-                          !riskFactors.recentTravel ? 'bg-slate-700 text-white' : 'bg-white border border-slate-200 text-slate-600'
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
+                          riskFactors.recentTravel === false
+                            ? 'bg-slate-700 text-white shadow-2xs'
+                            : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                         }`}
                       >
                         No
@@ -3780,8 +3850,10 @@ export default function RequestExamModal({
                       <button
                         type="button"
                         onClick={() => handleRiskChange('recentTravel', true)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
-                          riskFactors.recentTravel ? 'bg-[#6F2BCC] text-white' : 'bg-white border border-slate-200 text-slate-600'
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
+                          riskFactors.recentTravel === true
+                            ? 'bg-[#6F2BCC] text-white shadow-2xs'
+                            : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                         }`}
                       >
                         Sí
@@ -4291,9 +4363,11 @@ export default function RequestExamModal({
                     <div className="flex items-start gap-2.5">
                       <span className="text-lg">❓</span>
                       <div>
-                        <p className="text-xs font-black text-slate-800">
-                          ¿Ha realizado un examen clínico o hemograma de laboratorio a este paciente anteriormente? <span className="text-rose-500">*</span>
-                        </p>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <p className="text-xs font-black text-slate-800">
+                            ¿Ha realizado un examen clínico o hemograma de laboratorio a este paciente anteriormente? <span className="text-rose-500 font-bold">*</span>
+                          </p>
+                        </div>
                         <p className="text-[11px] text-slate-500 mt-0.5">
                           Indique si cuenta con un reporte reciente para adjuntar o si el paciente aún no ha sido evaluado en clínica.
                         </p>
@@ -4305,6 +4379,7 @@ export default function RequestExamModal({
                         onClick={() => {
                           setHasPreviousClinicalExam(null);
                           setClinicalRiskDisclaimerAccepted(false);
+                          setIsClinicalDeclinedConfirmed(false);
                         }}
                         className="text-[11px] text-[#6F2BCC] hover:underline font-bold shrink-0 cursor-pointer"
                       >
@@ -4319,6 +4394,7 @@ export default function RequestExamModal({
                       onClick={() => {
                         setHasPreviousClinicalExam('si');
                         setClinicalRiskDisclaimerAccepted(false);
+                        setIsClinicalDeclinedConfirmed(false);
                       }}
                       className={`flex items-start gap-3 p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                         hasPreviousClinicalExam === 'si'
@@ -4345,6 +4421,7 @@ export default function RequestExamModal({
                         setHasPreviousClinicalExam('no');
                         handleRemoveCuadroHematico();
                         setClinicalRiskDisclaimerAccepted(false);
+                        setIsClinicalDeclinedConfirmed(false);
                       }}
                       className={`flex items-start gap-3 p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                         hasPreviousClinicalExam === 'no'
@@ -4495,131 +4572,173 @@ export default function RequestExamModal({
                 {/* CASO 2: SELECCIONÓ "NO" -> ALERTA CLÍNICA EDUCATIVA + OPCIÓN DE SOLICITAR EXAMEN CLÍNICO O DESCARGO */}
                 {hasPreviousClinicalExam === 'no' && (
                   <div className="space-y-4 pt-1 animate-in fade-in duration-200">
-                    <div className="p-5 rounded-2xl bg-amber-50/90 border-2 border-amber-300 shadow-sm space-y-4">
-                      {/* Cabecera de Alerta */}
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center text-xl shrink-0">
-                          🩺
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="text-xs font-black text-amber-950 uppercase tracking-wider">
-                              Recomendación Médica de VetLab: Solicitud de Examen Clínico / Hemograma
-                            </h4>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200/80 text-amber-900 border border-amber-300">
-                              Importante para el diagnóstico
-                            </span>
+                    {isClinicalDeclinedConfirmed ? (
+                      /* Vista Recogida / Colapsada tras confirmar declinar examen clínico */
+                      <div className="p-4 rounded-2xl bg-amber-50/80 border-2 border-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                        <div className="flex items-start sm:items-center gap-3">
+                          <div className="w-8 h-8 rounded-xl bg-amber-200 text-amber-900 flex items-center justify-center text-sm font-black shrink-0">
+                            ✓
                           </div>
-                          <p className="text-xs text-amber-900 mt-1 font-medium leading-relaxed">
-                            Contar con un examen clínico o hemograma previo optimiza significativamente la precisión del diagnóstico y orienta el tratamiento inmediato del paciente.
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Explicación médica de por qué es importante */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
-                        <div className="p-3 bg-white/95 rounded-xl border border-amber-200/90 shadow-2xs space-y-1">
-                          <span className="text-base block">🔬</span>
-                          <h5 className="text-[11px] font-bold text-slate-800">
-                            Diagnóstico Integral vs Molecular
-                          </h5>
-                          <p className="text-[10px] text-slate-600 leading-relaxed">
-                            La qPCR detecta la presencia de ADN/ARN del patógeno con alta sensibilidad, pero <strong>no evalúa el impacto funcional, celular ni hemodinámico</strong> en el paciente.
-                          </p>
-                        </div>
-
-                        <div className="p-3 bg-white/95 rounded-xl border border-amber-200/90 shadow-2xs space-y-1">
-                          <span className="text-base block">🩸</span>
-                          <h5 className="text-[11px] font-bold text-slate-800">
-                            Correlación Fisiopatológica
-                          </h5>
-                          <p className="text-[10px] text-slate-600 leading-relaxed">
-                            Un hemograma permite correlacionar el patógeno con anemia regenerativa/arregenerativa, trombocitopenia, respuesta leucocitaria o inflamación sistémica para actuar a tiempo.
-                          </p>
-                        </div>
-
-                        <div className="p-3 bg-white/95 rounded-xl border border-amber-200/90 shadow-2xs space-y-1">
-                          <span className="text-base block">📈</span>
-                          <h5 className="text-[11px] font-bold text-slate-800">
-                            Línea Base y Pronóstico
-                          </h5>
-                          <p className="text-[10px] text-slate-600 leading-relaxed">
-                            Permite establecer valores basales indispensables para monitorear la respuesta terapéutica y evaluar el pronóstico de recuperación del paciente.
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Pregunta si desea solicitar examen clínico */}
-                      <div className="pt-2 border-t border-amber-200/80 space-y-3">
-                        <p className="text-xs font-black text-amber-950 flex items-center gap-1.5">
-                          <span>💡</span> ¿Desea solicitar un examen clínico / hemograma para este paciente ahora?
-                        </p>
-
-                        <div className="flex flex-col sm:flex-row gap-3">
-                          {/* Opción Sí: Ir al apartado de examen clínico */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const hemogramaExam = CLINICAL_EXAMS.find((e) => e.id === 'clin-001') || null;
-                              setCurrentClinicalExam(hemogramaExam);
-                              setRequestCategory('clinicas');
-                            }}
-                            className="flex-1 px-4 py-3 bg-[#6F2BCC] hover:bg-[#581ea3] text-white rounded-xl text-xs font-extrabold transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
-                          >
-                            <span>🩺</span>
-                            <span>Sí, deseo solicitar el examen clínico ahora</span>
-                            <span>→</span>
-                          </button>
-
-                          {/* Opción No: Continuar solo con qPCR */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const el = document.getElementById('clinical-disclaimer-card');
-                              if (el) el.scrollIntoView({ behavior: 'smooth' });
-                            }}
-                            className="px-4 py-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2"
-                          >
-                            <span>✕</span>
-                            <span>No deseo solicitar examen clínico</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Descargo de Responsabilidad Médica ("Bajo su propio riesgo") */}
-                    <div id="clinical-disclaimer-card" className="p-4 rounded-2xl bg-rose-50/70 border-2 border-rose-200 space-y-3 animate-in fade-in duration-200">
-                      <div className="flex items-start gap-2.5">
-                        <span className="text-lg">⚠️</span>
-                        <div className="space-y-1">
-                          <h4 className="text-xs font-black text-rose-900 uppercase tracking-wider">
-                            Descargo de Responsabilidad Médica y Criterio Profesional
-                          </h4>
-                          <p className="text-[11px] text-rose-800 leading-relaxed font-medium">
-                            Al declinar la realización del examen clínico y hemograma previo, el médico veterinario tratante asume plenamente el criterio y la responsabilidad diagnóstica del caso. El laboratorio VetLab procesará el panel molecular qPCR solicitado reportando exclusivamente la amplificación génica del patógeno, dejando <strong>bajo exclusiva responsabilidad y riesgo del médico veterinario solicitante</strong> la evaluación de la estabilidad hemodinámica, soporte vital y manejo integral del paciente.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="pt-2 border-t border-rose-200/70">
-                        <label className="flex items-start gap-2.5 cursor-pointer select-none">
-                          <input
-                            type="checkbox"
-                            checked={clinicalRiskDisclaimerAccepted}
-                            onChange={(e) => setClinicalRiskDisclaimerAccepted(e.target.checked)}
-                            className="w-4 h-4 text-rose-600 rounded cursor-pointer mt-0.5 shrink-0 focus:ring-rose-500"
-                          />
-                          <span className="text-xs font-bold text-rose-900 leading-snug">
-                            Entiendo y acepto los riesgos clínicos. Declaro que bajo mi propio criterio y responsabilidad médica solicito procesar el panel molecular qPCR sin contar con examen clínico ni hemograma previo. <span className="text-rose-600">*</span>
-                          </span>
-                        </label>
-                        {clinicalRiskDisclaimerAccepted && (
-                          <div className="mt-2 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 flex items-center gap-1.5">
-                            <span>✓</span> Consentimiento y descargo de responsabilidad médica registrado. Puede continuar al Paso 4.
+                          <div>
+                            <p className="text-xs font-bold text-amber-950">
+                              Continuar sin examen clínico ni hemograma previo
+                            </p>
+                            <p className="text-[11px] text-amber-800">
+                              Confirmado bajo criterio y responsabilidad médica del veterinario tratante. Advertencias y riesgos aceptados.
+                            </p>
                           </div>
-                        )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setIsClinicalDeclinedConfirmed(false)}
+                          className="px-3.5 py-1.5 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 self-start sm:self-auto"
+                        >
+                          Ver advertencias / Modificar
+                        </button>
                       </div>
-                    </div>
+                    ) : (
+                      <>
+                        <div className="p-5 rounded-2xl bg-amber-50/90 border-2 border-amber-300 shadow-sm space-y-4">
+                          {/* Cabecera de Alerta */}
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center text-xl shrink-0">
+                              🩺
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="text-xs font-black text-amber-950 uppercase tracking-wider">
+                                  Recomendación Médica de VetLab: Solicitud de Examen Clínico / Hemograma
+                                </h4>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200/80 text-amber-900 border border-amber-300">
+                                  Importante para el diagnóstico
+                                </span>
+                              </div>
+                              <p className="text-xs text-amber-900 mt-1 font-medium leading-relaxed">
+                                Contar con un examen clínico o hemograma previo optimiza significativamente la precisión del diagnóstico y orienta el tratamiento inmediato del paciente.
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Explicación médica de por qué es importante */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                            <div className="p-3 bg-white/95 rounded-xl border border-amber-200/90 shadow-2xs space-y-1">
+                              <span className="text-base block">🔬</span>
+                              <h5 className="text-[11px] font-bold text-slate-800">
+                                Diagnóstico Integral vs Molecular
+                              </h5>
+                              <p className="text-[10px] text-slate-600 leading-relaxed">
+                                La qPCR detecta la presencia de ADN/ARN del patógeno con alta sensibilidad, pero <strong>no evalúa el impacto funcional, celular ni hemodinámico</strong> en el paciente.
+                              </p>
+                            </div>
+
+                            <div className="p-3 bg-white/95 rounded-xl border border-amber-200/90 shadow-2xs space-y-1">
+                              <span className="text-base block">🩸</span>
+                              <h5 className="text-[11px] font-bold text-slate-800">
+                                Correlación Fisiopatológica
+                              </h5>
+                              <p className="text-[10px] text-slate-600 leading-relaxed">
+                                Un hemograma permite correlacionar el patógeno con anemia regenerativa/arregenerativa, trombocitopenia, respuesta leucocitaria o inflamación sistémica para actuar a tiempo.
+                              </p>
+                            </div>
+
+                            <div className="p-3 bg-white/95 rounded-xl border border-amber-200/90 shadow-2xs space-y-1">
+                              <span className="text-base block">📈</span>
+                              <h5 className="text-[11px] font-bold text-slate-800">
+                                Línea Base y Pronóstico
+                              </h5>
+                              <p className="text-[10px] text-slate-600 leading-relaxed">
+                                Permite establecer valores basales indispensables para monitorear la respuesta terapéutica y evaluar el pronóstico de recuperación del paciente.
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Pregunta si desea solicitar examen clínico */}
+                          <div className="pt-2 border-t border-amber-200/80 space-y-3">
+                            <p className="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                              <span>💡</span> ¿Desea solicitar un examen clínico / hemograma para este paciente ahora?
+                            </p>
+
+                            <div className="flex flex-col sm:flex-row gap-3">
+                              {/* Opción Sí: Ir al apartado de examen clínico */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const hemogramaExam = CLINICAL_EXAMS.find((e) => e.id === 'clin-001') || null;
+                                  setCurrentClinicalExam(hemogramaExam);
+                                  setRequestCategory('clinicas');
+                                }}
+                                className="flex-1 px-4 py-3 bg-[#6F2BCC] hover:bg-[#581ea3] text-white rounded-xl text-xs font-extrabold transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+                              >
+                                <span>🩺</span>
+                                <span>Sí, deseo solicitar el examen clínico ahora</span>
+                                <span>→</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Descargo de Responsabilidad Médica ("Bajo su propio riesgo") */}
+                        <div id="clinical-disclaimer-card" className="p-4 rounded-2xl bg-rose-50/70 border-2 border-rose-200 space-y-3 animate-in fade-in duration-200">
+                          <div className="flex items-start gap-2.5">
+                            <span className="text-lg">⚠️</span>
+                            <div className="space-y-1">
+                              <h4 className="text-xs font-black text-rose-900 uppercase tracking-wider">
+                                Descargo de Responsabilidad Médica y Criterio Profesional
+                              </h4>
+                              <p className="text-[11px] text-rose-800 leading-relaxed font-medium">
+                                Al declinar la realización del examen clínico y hemograma previo, el médico veterinario tratante asume plenamente el criterio y la responsabilidad diagnóstica del caso. El laboratorio VetLab procesará el panel molecular qPCR solicitado reportando exclusivamente la amplificación génica del patógeno, dejando <strong>bajo exclusiva responsabilidad y riesgo del médico veterinario solicitante</strong> la evaluación de la estabilidad hemodinámica, soporte vital y manejo integral del paciente.
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="pt-2 border-t border-rose-200/70 space-y-3">
+                            <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={clinicalRiskDisclaimerAccepted}
+                                onChange={(e) => {
+                                  setClinicalRiskDisclaimerAccepted(e.target.checked);
+                                  if (!e.target.checked) {
+                                    setIsClinicalDeclinedConfirmed(false);
+                                  }
+                                }}
+                                className="w-4 h-4 text-rose-600 rounded cursor-pointer mt-0.5 shrink-0 focus:ring-rose-500"
+                              />
+                              <span className="text-xs font-bold text-rose-900 leading-snug">
+                                Entiendo y acepto los riesgos clínicos. Declaro que bajo mi propio criterio y responsabilidad médica solicito procesar el panel molecular qPCR sin contar con examen clínico ni hemograma previo. <span className="text-rose-600">*</span>
+                              </span>
+                            </label>
+
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 border-t border-rose-200/50">
+                              <span className="text-[11px] text-rose-800 font-medium">
+                                {clinicalRiskDisclaimerAccepted
+                                  ? '✓ Casilla marcada. Haga clic en el botón para confirmar y recoger las advertencias.'
+                                  : 'Marque la casilla anterior para habilitar la confirmación y recoger las advertencias.'}
+                              </span>
+
+                              <button
+                                type="button"
+                                disabled={!clinicalRiskDisclaimerAccepted}
+                                onClick={() => {
+                                  if (clinicalRiskDisclaimerAccepted) {
+                                    setIsClinicalDeclinedConfirmed(true);
+                                  }
+                                }}
+                                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                                  clinicalRiskDisclaimerAccepted
+                                    ? 'bg-rose-700 hover:bg-rose-800 text-white shadow-sm ring-2 ring-rose-500/30 cursor-pointer'
+                                    : 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                                }`}
+                              >
+                                <span>✕</span>
+                                <span>No deseo solicitar examen clínico</span>
+                                <span>✓</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -4631,10 +4750,10 @@ export default function RequestExamModal({
                     <span className="text-xl">📁</span>
                     <div>
                       <h4 className="text-xs font-extrabold text-[#2B017C] uppercase tracking-wider">
-                        Historia Clínica del Paciente
+                        Historia Clínica y Exámenes Previos del Paciente
                       </h4>
                       <p className="text-[11px] text-slate-500">
-                        Adjunte el documento de historia clínica previa, evolución o notas de antecedentes.
+                        Espacio destinado para subir todos los exámenes anteriores y paraclínicos que se ha realizado el paciente, evoluciones y antecedentes clínicos.
                       </p>
                     </div>
                   </div>
@@ -4643,6 +4762,17 @@ export default function RequestExamModal({
                       <span>✓</span> Historia adjunta
                     </span>
                   )}
+                </div>
+
+                {/* Comentario y Guía Orientativa para el Médico Veterinario */}
+                <div className="p-3.5 bg-purple-50/80 border border-purple-200/90 rounded-2xl flex items-start gap-3 text-xs text-[#2B017C]">
+                  <span className="text-lg shrink-0 mt-0.5">💡</span>
+                  <div className="space-y-1">
+                    <span className="font-extrabold text-[#2B017C]">Comentario para el registro del expediente:</span>
+                    <p className="text-[11px] text-purple-900 leading-relaxed font-medium">
+                      En este espacio se deben de subir todos los exámenes anteriores que se ha realizado el paciente (cuadros hemáticos y hemogramas previos, ecografías, radiografías, coprológicos, perfiles bioquímicos, urianálisis, citologías, biopsias o reportes externos de otros laboratorios), así como notas de evolución médica, tratamientos previos y antecedentes patológicos relevantes para una correlación clínica completa.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Subir archivo de historia clínica */}
@@ -4658,10 +4788,10 @@ export default function RequestExamModal({
                     <label htmlFor="historia-clinica-file-input" className="cursor-pointer block">
                       <span className="text-3xl block mb-2">📋</span>
                       <span className="text-xs font-bold text-slate-700 block">
-                        Haz clic aquí para seleccionar o arrastra el archivo de la historia clínica
+                        Haz clic aquí para seleccionar o arrastra la historia clínica y los exámenes previos
                       </span>
                       <span className="text-[11px] text-slate-400 mt-1 block">
-                        Formatos soportados: PDF, JPG, PNG, DOCX (Máx. 25 MB)
+                        Formatos soportados: PDF, JPG, PNG, DOCX (Máx. 25 MB) · Puede consolidar múltiples exámenes en un archivo
                       </span>
                     </label>
                   </div>
@@ -4674,7 +4804,7 @@ export default function RequestExamModal({
                           {historiaClinicaFileName}
                         </span>
                         <span className="text-[11px] text-slate-500 font-mono">
-                          {historiaClinicaFileSize} · Documento de historia clínica adjunto
+                          {historiaClinicaFileSize} · Documento de historia clínica y exámenes previos adjunto
                         </span>
                       </div>
                     </div>
@@ -4691,13 +4821,13 @@ export default function RequestExamModal({
                 {/* Notas / Resumen de la historia clínica */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Resumen o Notas Relevantes de la Historia Clínica (Opcional)
+                    Comentarios sobre exámenes previos, evolución y antecedentes (Opcional)
                   </label>
                   <textarea
                     value={historiaClinicaNotes}
                     onChange={(e) => setHistoriaClinicaNotes(e.target.value)}
                     rows={3}
-                    placeholder="Escriba antecedentes patológicos, tratamientos previos administrados, diagnósticos anteriores relevantes..."
+                    placeholder="Escriba comentarios sobre exámenes anteriores realizados, antecedentes patológicos, tratamientos previos administrados, diagnósticos anteriores relevantes..."
                     className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
                   />
                 </div>
@@ -4750,61 +4880,7 @@ export default function RequestExamModal({
                 </div>
               )}
 
-              {/* Barra de Filtro Interactivo por Síndrome Clínico en Paso 4 (Lista Desplegable) */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-8 h-8 rounded-xl bg-purple-50 text-[#6F2BCC] flex items-center justify-center text-sm font-bold border border-purple-100 shrink-0">
-                    🩺
-                  </span>
-                  <div>
-                    <label htmlFor="step4-syndrome-select" className="text-xs font-extrabold text-[#2B017C] block">
-                      Filtrar perfiles por síndrome clínico:
-                    </label>
-                    <span className="text-[11px] text-slate-500">
-                      {displayedRecommendedProfiles.length} perfiles disponibles según el criterio seleccionado
-                    </span>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <div className="relative flex-1 sm:w-72">
-                    <select
-                      id="step4-syndrome-select"
-                      value={step4SyndromeFilter}
-                      onChange={(e) => setStep4SyndromeFilter(e.target.value)}
-                      className="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 hover:bg-slate-100/90 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none cursor-pointer appearance-none transition-all shadow-2xs"
-                    >
-                      <option value="all">
-                        ✨ Todos los perfiles ({recommendedProfiles.length})
-                      </option>
-                      {availableStep4Syndromes.map((syn) => {
-                        const isPatientClinicalSuspect = selectedSyndromes.some((s) =>
-                          matchSyndromeTokens(s, syn.id)
-                        );
-                        return (
-                          <option key={syn.id} value={syn.id}>
-                            {syn.icon} {syn.label} ({syn.count} {syn.count === 1 ? 'perfil' : 'perfiles'}){isPatientClinicalSuspect ? ' 🎯' : ''}
-                          </option>
-                        );
-                      })}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
-                      <span className="text-xs">▼</span>
-                    </div>
-                  </div>
-
-                  {step4SyndromeFilter !== 'all' && (
-                    <button
-                      type="button"
-                      onClick={() => setStep4SyndromeFilter('all')}
-                      title="Mostrar todos los perfiles recomendados"
-                      className="px-3.5 py-2.5 bg-slate-100 hover:bg-purple-100 text-slate-700 hover:text-[#6F2BCC] border border-slate-200 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0"
-                    >
-                      ✕ Limpiar
-                    </button>
-                  )}
-                </div>
-              </div>
 
               {/* Lista de perfiles qPCR recomendados */}
               <div className="space-y-4">
@@ -5622,11 +5698,8 @@ export default function RequestExamModal({
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="text-xs sm:text-sm font-black tracking-wide uppercase text-[#2B017C]">
-                          Muestras Biológicas Requeridas · Checklist Obligatorio
+                          Muestras Biológicas Requeridas · Checklist de Confirmación <span className="text-rose-500 font-bold">*</span>
                         </h4>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-100 text-[#6F2BCC] border border-purple-200">
-                          Obligatorio
-                        </span>
                       </div>
                       <p className="text-xs text-slate-500 mt-0.5">
                         El médico veterinario debe confirmar la toma de cada muestra con sus recipientes correspondientes antes del envío.
@@ -5724,7 +5797,7 @@ export default function RequestExamModal({
                       <div className="space-y-0.5 text-xs">
                         <div className="flex items-center gap-2">
                           <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-900 dark:text-amber-200 border border-amber-500/30">
-                            Requisito Obligatorio de Despacho
+                            Requisito de Despacho
                           </span>
                         </div>
                         <p className="text-slate-800 dark:text-amber-100 font-bold leading-relaxed">
@@ -5935,6 +6008,14 @@ export default function RequestExamModal({
                         alert('Por favor busca y selecciona un paciente para continuar.');
                         return;
                       }
+                      if (!isAlreadySterilized && examIsSterilized === null) {
+                        alert('Por favor indique en la Sección 1 si el paciente se encuentra esterilizado.');
+                        return;
+                      }
+                      if (isAsymptomatic === null) {
+                        alert('Por favor indique la condición clínica actual del paciente (Sintomático o Asintomático).');
+                        return;
+                      }
                       if (examType === 'control') {
                         if (!controlHistoryInfo.canRequestControl) {
                           alert(`Este paciente no tiene habilitada la opción de seguimiento / control.\n\nMotivo: ${controlHistoryInfo.reason}.\nDebe solicitar un "Examen nuevo".`);
@@ -5944,6 +6025,28 @@ export default function RequestExamModal({
                           setPreviousExamCode(controlHistoryInfo.lastExamId);
                         }
                         setIsControlReviewOpen(true);
+                        return;
+                      }
+                    }
+                    if (currentStep === 2) {
+                      if (!riskFactors.habitat) {
+                        alert('Por favor seleccione el hábitat principal de la mascota (Interiores, Exterior o Mixto).');
+                        return;
+                      }
+                      if (!riskFactors.housingArea) {
+                        alert('Por favor seleccione el área de residencia (Urbana o Rural / Campestre).');
+                        return;
+                      }
+                      if (!riskFactors.housingType) {
+                        alert('Por favor seleccione el tipo de residencia del paciente.');
+                        return;
+                      }
+                      if (riskFactors.livesWithOtherAnimals === null) {
+                        alert('Por favor indique si el paciente convive con otros animales en el hogar o entorno.');
+                        return;
+                      }
+                      if (riskFactors.recentTravel === null) {
+                        alert('Por favor indique si el paciente ha realizado viajes recientes fuera del departamento o país.');
                         return;
                       }
                     }

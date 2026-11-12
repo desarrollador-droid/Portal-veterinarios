@@ -1,7 +1,11 @@
-/**
- * Modelo de Pacientes sincronizado con Kea Tools
- * Documentación de referencia: https://docs.kea.tools/docs/databases/api/
- */
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DATA_DIR = path.resolve(__dirname, '../data');
+const PATIENTS_CACHE_FILE = path.join(DATA_DIR, 'patients_cache.json');
 
 export const PATIENT_STATUSES = [
   'activo',
@@ -39,293 +43,1444 @@ export const calculateAgeFromBirthDate = (birthDateString) => {
 
 export const initialPatients = [
   {
-    id: "PAC-PRUEBA-01",
-    keaRecordId: 1,
-    name: "Luna",
-    lastName: "(PRUEBA)",
-    fullName: "Luna (PRUEBA)",
-    avatar: "🐕",
-    species: "Canino",
-    otherSpecies: "",
-    breed: "Mestizo",
-    sex: "Hembra",
-    birthDate: "2022-03-01",
-    age: "4 años, 9 meses",
-    weight: "18 kg",
-    sedeId: "sede-principal-80",
-    sedeNombre: "Sede Principal - Calle 80",
-    codigoSedeNit: "#nit-900000001",
-    microchip: "Sin microchip",
-    owner: {
-      name: "PROP-PRUEBA-01",
-      firstName: "PROP-PRUEBA-01",
-      lastName: "",
-      phone: "+57 300 000 0000",
-      email: "tutor@ejemplo.com",
-      city: "Bogotá"
+    "id": "PAC-PRUEBA-01",
+    "keaRecordId": 1,
+    "name": "Luna",
+    "lastName": "Morales",
+    "fullName": "Luna Morales",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "Mestizo",
+    "sex": "Hembra",
+    "birthDate": "2022-03-01",
+    "age": "4 años, 8 meses",
+    "weight": "18 kg",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-900000001",
+    "clinicNit": "900000001",
+    "clinicId": "cli-001",
+    "microchip": "981098104523001",
+    "owner": {
+      "name": "Carlos Mendoza",
+      "firstName": "Carlos",
+      "lastName": "Mendoza",
+      "phone": "+57 310 892 4512",
+      "email": "carlos.mendoza@email.com",
+      "city": "Bogotá",
+      "address": "Carrera 15 # 85-30"
     },
-    riskFactors: {
-      habitat: "Interiores / Mixto",
-      recentTravel: false,
-      lastVisitedCountry: "Ninguno",
-      livesWithOtherAnimals: true,
-      ruralAccess: false
+    "riskFactors": {
+      "habitat": "Interiores / Mixto",
+      "housingType": "Casa con jardín / patio",
+      "recentTravel": true,
+      "lastVisitedCountry": "Melgar, Tolima (Zona cálida)",
+      "livesWithOtherAnimals": true,
+      "ruralAccess": true,
+      "coastalRescue": false,
+      "parasiteExposure": true,
+      "otherRiskFactors": "Presencia previa de garrapatas Rhipicephalus sanguineus"
     },
-    medicalAdmission: {
-      isAsymptomatic: false,
-      symptoms: [],
-      bodyCondition: "3/5",
-      generalCondition: "Estable",
-      physicalFindings: "Condición corporal 3/5, Estable."
+    "medicalAdmission": {
+      "isAsymptomatic": false,
+      "symptoms": [
+        "Letargia marcada",
+        "Palidez de mucosas",
+        "Fiebre intermitente"
+      ],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable con monitoreo",
+      "physicalFindings": "Condición corporal 3/5. Mucosas pálidas, TLLC 3 seg, ganglios poplíteos reactivos.",
+      "cuadroHematico": {
+        "hasPreviousClinicalExam": true,
+        "hasCuadroHematico": true,
+        "fileName": "Hemograma_Completo_Luna_Nov2026.pdf",
+        "fileSize": "1.4 MB",
+        "hematocrito": "29",
+        "hemoglobina": "9.8",
+        "leucocitos": "11200",
+        "plaquetas": "155000",
+        "observaciones": "Anemia normocítica normocrómica y trombocitopenia leve."
+      },
+      "historiaClinica": {
+        "hasHistoriaClinica": true,
+        "fileName": "Historia_Clinica_Completa_Luna.pdf",
+        "fileSize": "2.8 MB",
+        "notes": "Remisión desde clínica sede norte para confirmación molecular de hemotrópicos y analítica de control."
+      }
     },
-    status: "activo",
-    isSterilized: false,
-    hasAllergies: false,
-    allergies: "",
-    attendingVet: "TP-PRUEBA-01",
-    lastVisit: "09/11/2026",
-    source: "Kea Tools DB"
+    "status": "activo",
+    "isSterilized": true,
+    "hasAllergies": true,
+    "allergies": "Dipirona, Cefalexina",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "12/11/2026",
+    "source": "VetLab Demostración",
+    "sampleStatus": "En análisis qPCR",
+    "activeExamOrder": {
+      "id": "QPCR-2026-784",
+      "examCode": "QPCR-2026-784",
+      "testName": "Panel Hemotrópico Canino (Multiplex qPCR)",
+      "category": "Biología Molecular Cuantitativa (qPCR)",
+      "requestCategory": "qpcr",
+      "sampleType": "Sangre total con EDTA (2 ml)",
+      "priority": "Urgente (Misma jornada)",
+      "requestedBy": "Dr. Alejandro Morales",
+      "doctor": "Dr. Alejandro Morales",
+      "laboratory": "VetLab Central - Unidad de Genómica",
+      "targets": "Mycoplasma haemocanis, Ehrlichia canis, Babesia vogeli, Anaplasma platys",
+      "syndromes": [
+        "Anemia / Trombocitopenia",
+        "Fiebre de origen desconocido"
+      ],
+      "findings": [
+        "Letargia marcada",
+        "Palidez de mucosas"
+      ],
+      "totalPrice": "$145.000",
+      "examType": "nuevo",
+      "requestedAt": "12/11/2026 - 08:30 AM",
+      "currentStep": 2,
+      "steps": [
+        {
+          "label": "Solicitud creada",
+          "desc": "Orden médica generada en clínica",
+          "date": "12/11/2026 - 08:30 AM",
+          "completed": true
+        },
+        {
+          "label": "Muestra recibida",
+          "desc": "Recepción y código de barras en laboratorio",
+          "date": "12/11/2026 - 10:15 AM",
+          "completed": true
+        },
+        {
+          "label": "En análisis qPCR",
+          "desc": "Extracción de ácidos nucleicos y amplificación en termociclador",
+          "date": "Hoy - En curso",
+          "completed": false
+        },
+        {
+          "label": "Validación médica",
+          "desc": "Curvas de amplificación verificadas por patólogo molecular",
+          "date": "Pendiente",
+          "completed": false
+        },
+        {
+          "label": "Resultado enviado",
+          "desc": "Informe emitido y disponible para descarga",
+          "date": "Pendiente",
+          "completed": false
+        }
+      ]
+    },
+    "qpcrExams": [
+      {
+        "id": "QPCR-2026-341",
+        "examCode": "QPCR-2026-341",
+        "orderId": "ORD-2026-341",
+        "testName": "Perfil Gastrointestinal Canino",
+        "category": "Biología Molecular Cuantitativa (qPCR)",
+        "requestCategory": "qpcr",
+        "date": "10/11/2026",
+        "requestedAt": "10/11/2026 - 09:15 AM",
+        "receivedAt": "11/11/2026 - 04:45 PM",
+        "status": "Emitido",
+        "sampleType": "Hisopado rectal / Heces (tubo estéril)",
+        "doctor": "Dr. Alejandro Morales",
+        "requestedBy": "Dr. Alejandro Morales",
+        "resultSummary": "Giardia duodenalis detectada con carga moderada",
+        "methodology": "qPCR TaqMan multiplex en tiempo real",
+        "agents": [
+          {
+            "name": "Giardia duodenalis",
+            "isPositive": true,
+            "isAltered": true,
+            "result": "Positivo (+)",
+            "ct": "24.1",
+            "load": "8.5e4 copias/µL"
+          },
+          {
+            "name": "Cryptosporidium canis",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "Negativo (-)",
+            "ct": "N/D",
+            "load": "No detectado"
+          },
+          {
+            "name": "Campylobacter jejuni",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "Negativo (-)",
+            "ct": "N/D",
+            "load": "No detectado"
+          },
+          {
+            "name": "Salmonella enterica",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "Negativo (-)",
+            "ct": "N/D",
+            "load": "No detectado"
+          }
+        ],
+        "observations": "Curva de amplificación positiva para Giardia duodenalis con señal exponencial definida. Se sugiere desparasitación dirigida.",
+        "reportUrl": "#"
+      }
+    ],
+    "clinicalExams": [
+      {
+        "id": "CLN-2026-842",
+        "examCode": "CLN-2026-842",
+        "orderId": "CLN-2026-842",
+        "testName": "Cuadro Hemático Completo + Bioquímica Hepática",
+        "category": "Portafolio Clínico de Laboratorio",
+        "requestCategory": "clinicas",
+        "date": "09/11/2026",
+        "requestedAt": "09/11/2026 - 10:00 AM",
+        "receivedAt": "09/11/2026 - 03:30 PM",
+        "status": "Emitido",
+        "sampleType": "Sangre total con EDTA (2 ml) + Suero seco (3 ml)",
+        "doctor": "Dr. Alejandro Morales",
+        "requestedBy": "Dr. Alejandro Morales",
+        "resultSummary": "Anemia normocítica y trombocitopenia leve",
+        "methodology": "Analítica clínica / Bioquímica automatizada / Hematología láser",
+        "agents": [
+          {
+            "name": "Hematocrito",
+            "isPositive": false,
+            "isAltered": true,
+            "result": "29.0 %",
+            "ct": "Bajo",
+            "load": "Ref: 37 - 55 %"
+          },
+          {
+            "name": "Hemoglobina",
+            "isPositive": false,
+            "isAltered": true,
+            "result": "9.8 g/dL",
+            "ct": "Baja",
+            "load": "Ref: 12 - 18 g/dL"
+          },
+          {
+            "name": "Leucocitos Totales",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "11.200 /µL",
+            "ct": "Normal",
+            "load": "Ref: 6.000 - 17.000 /µL"
+          },
+          {
+            "name": "Plaquetas",
+            "isPositive": false,
+            "isAltered": true,
+            "result": "155.000 /µL",
+            "ct": "Trombocitopenia",
+            "load": "Ref: 200.000 - 500.000 /µL"
+          },
+          {
+            "name": "ALT / TGP",
+            "isPositive": false,
+            "isAltered": true,
+            "result": "128 U/L",
+            "ct": "Elevado",
+            "load": "Ref: 10 - 100 U/L"
+          },
+          {
+            "name": "AST / TGO",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "42 U/L",
+            "ct": "Normal",
+            "load": "Ref: 10 - 50 U/L"
+          },
+          {
+            "name": "Creatinina",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "1.1 mg/dL",
+            "ct": "Normal",
+            "load": "Ref: 0.5 - 1.5 mg/dL"
+          }
+        ],
+        "observations": "Serie roja con anisocitosis moderada. Serie plaquetaria con macroplaquetas visibles en frotis.",
+        "reportUrl": "#"
+      }
+    ],
+    "microbiotaExams": [],
+    "consultations": [
+      {
+        "id": "CONS-101",
+        "date": "09/11/2026 - 10:30 AM",
+        "veterinario": "Dr. Alejandro Morales",
+        "motivo": "Control médico por decaimiento y baja ingesta de alimento",
+        "diagnostico": "Sospecha de hemoparasitosis canina vs gastroenteritis parasitaria.",
+        "tratamiento": "Toma de muestras para laboratorio clínico y qPCR.",
+        "notas": "Paciente tranquila al manejo. Hidratación adecuada."
+      }
+    ],
+    "auditHistory": [
+      {
+        "id": "AUD-1",
+        "fecha": "09/11/2026 10:45 AM",
+        "timestamp": "2026-11-09T10:45:00.000Z",
+        "veterinario": "Dr. Alejandro Morales",
+        "rol": "Director Médico",
+        "accion": "Apertura y registro de orden qPCR",
+        "cambios": [
+          {
+            "campo": "Orden qPCR",
+            "categoria": "Laboratorio",
+            "anterior": "Sin orden",
+            "nuevo": "QPCR-2026-784"
+          }
+        ]
+      }
+    ],
+    "clinicalDocuments": []
   },
   {
-    id: "PAC-PRUEBA-02",
-    keaRecordId: 2,
-    name: "Michi",
-    lastName: "(PRUEBA)",
-    fullName: "Michi (PRUEBA)",
-    avatar: "🐱",
-    species: "Felino",
-    otherSpecies: "",
-    breed: "Mestizo",
-    sex: "Macho",
-    birthDate: "2022-03-01",
-    age: "4 años, 9 meses",
-    weight: "4 kg",
-    sedeId: "sede-principal-80",
-    sedeNombre: "Sede Principal - Calle 80",
-    codigoSedeNit: "#nit-900000001",
-    microchip: "Sin microchip",
-    owner: {
-      name: "PROP-PRUEBA-01",
-      firstName: "PROP-PRUEBA-01",
-      lastName: "",
-      phone: "+57 300 000 0000",
-      email: "tutor@ejemplo.com",
-      city: "Bogotá"
+    "id": "PAC-PRUEBA-02",
+    "keaRecordId": 2,
+    "name": "Michi",
+    "lastName": "Morales",
+    "fullName": "Michi Morales",
+    "avatar": "🐱",
+    "species": "Felino",
+    "otherSpecies": "",
+    "breed": "Mestizo",
+    "sex": "Macho",
+    "birthDate": "2023-01-15",
+    "age": "3 años, 9 meses",
+    "weight": "4.2 kg",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-900000001",
+    "clinicNit": "900000001",
+    "clinicId": "cli-001",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "Carlos Mendoza",
+      "firstName": "Carlos",
+      "lastName": "Mendoza",
+      "phone": "+57 310 892 4512",
+      "email": "carlos.mendoza@email.com",
+      "city": "Bogotá",
+      "address": "Carrera 15 # 85-30"
     },
-    riskFactors: {
-      habitat: "Interiores / Mixto",
-      recentTravel: false,
-      lastVisitedCountry: "Ninguno",
-      livesWithOtherAnimals: true,
-      ruralAccess: false
+    "riskFactors": {
+      "habitat": "Exclusivo interior",
+      "housingType": "Apartamento",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": true,
+      "ruralAccess": false
     },
-    medicalAdmission: {
-      isAsymptomatic: false,
-      symptoms: [],
-      bodyCondition: "3/5",
-      generalCondition: "Estable",
-      physicalFindings: "Condición corporal 3/5, Estable."
+    "medicalAdmission": {
+      "isAsymptomatic": false,
+      "symptoms": [
+        "Estornudos frecuentes",
+        "Secreción nasal serosa"
+      ],
+      "bodyCondition": "3/5",
+      "generalCondition": "En tratamiento",
+      "physicalFindings": "Condición 3/5. Faringe ligeramente hiperémica."
     },
-    status: "activo",
-    isSterilized: false,
-    hasAllergies: false,
-    allergies: "",
-    attendingVet: "TP-PRUEBA-01",
-    lastVisit: "09/11/2026",
-    source: "Kea Tools DB"
+    "status": "en tratamiento",
+    "isSterilized": true,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "12/11/2026",
+    "source": "VetLab Demostración",
+    "sampleStatus": "Muestra recibida",
+    "activeExamOrder": {
+      "id": "QPCR-2026-512",
+      "examCode": "QPCR-2026-512",
+      "testName": "Panel Respiratorio Felino (qPCR TaqMan)",
+      "category": "Biología Molecular Cuantitativa (qPCR)",
+      "requestCategory": "qpcr",
+      "sampleType": "Hisopado orofaríngeo / conjuntival en tubo estéril",
+      "priority": "Normal (24-48h)",
+      "requestedBy": "Dr. Alejandro Morales",
+      "doctor": "Dr. Alejandro Morales",
+      "laboratory": "VetLab Central - Unidad de Genómica",
+      "targets": "Calicivirus felino, Herpesvirus felino tipo 1, Chlamydia felis, Bordetella bronchiseptica",
+      "syndromes": [
+        "Complejo respiratorio felino"
+      ],
+      "findings": [
+        "Descarga ocular",
+        "Estornudos en salvas"
+      ],
+      "totalPrice": "$135.000",
+      "examType": "nuevo",
+      "requestedAt": "12/11/2026 - 09:00 AM",
+      "currentStep": 1,
+      "steps": [
+        {
+          "label": "Solicitud creada",
+          "desc": "Orden médica generada en clínica",
+          "date": "12/11/2026 - 09:00 AM",
+          "completed": true
+        },
+        {
+          "label": "Muestra recibida",
+          "desc": "Recepción y código de barras en laboratorio",
+          "date": "12/11/2026 - 11:20 AM",
+          "completed": true
+        },
+        {
+          "label": "En análisis qPCR",
+          "desc": "Extracción de ácidos nucleicos y amplificación en termociclador",
+          "date": "Pendiente",
+          "completed": false
+        },
+        {
+          "label": "Validación médica",
+          "desc": "Curvas de amplificación verificadas por patólogo molecular",
+          "date": "Pendiente",
+          "completed": false
+        },
+        {
+          "label": "Resultado enviado",
+          "desc": "Informe emitido y disponible para descarga",
+          "date": "Pendiente",
+          "completed": false
+        }
+      ]
+    },
+    "qpcrExams": [
+      {
+        "id": "QPCR-2026-218",
+        "examCode": "QPCR-2026-218",
+        "orderId": "ORD-2026-218",
+        "testName": "Panel Vectorial Felino",
+        "category": "Biología Molecular Cuantitativa (qPCR)",
+        "requestCategory": "qpcr",
+        "date": "04/11/2026",
+        "requestedAt": "04/11/2026 - 08:30 AM",
+        "receivedAt": "05/11/2026 - 03:15 PM",
+        "status": "Emitido",
+        "sampleType": "Sangre total con EDTA (2 ml)",
+        "doctor": "Dr. Alejandro Morales",
+        "requestedBy": "Dr. Alejandro Morales",
+        "resultSummary": "Mycoplasma haemofelis detectado",
+        "methodology": "qPCR TaqMan multiplex en tiempo real",
+        "agents": [
+          {
+            "name": "Mycoplasma haemofelis",
+            "isPositive": true,
+            "isAltered": true,
+            "result": "Positivo (+)",
+            "ct": "21.8",
+            "load": "2.1e5 copias/µL"
+          },
+          {
+            "name": "Candidatus M. haemominutum",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "Negativo (-)",
+            "ct": "N/D",
+            "load": "No detectado"
+          },
+          {
+            "name": "Bartonella henselae",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "Negativo (-)",
+            "ct": "N/D",
+            "load": "No detectado"
+          }
+        ],
+        "observations": "Paciente en tratamiento con Doxiciclina 10 mg/kg cada 12h. Control programado a las 3 semanas.",
+        "reportUrl": "#"
+      }
+    ],
+    "clinicalExams": [
+      {
+        "id": "CLN-2026-419",
+        "examCode": "CLN-2026-419",
+        "orderId": "CLN-2026-419",
+        "testName": "Perfil Renal Felino (SDMA + Creatinina + Urianálisis)",
+        "category": "Portafolio Clínico de Laboratorio",
+        "requestCategory": "clinicas",
+        "date": "03/11/2026",
+        "requestedAt": "03/11/2026 - 11:30 AM",
+        "receivedAt": "03/11/2026 - 05:00 PM",
+        "status": "Emitido",
+        "sampleType": "Suero seco (2 ml) + Orina por cistocentesis (3 ml)",
+        "doctor": "Dr. Alejandro Morales",
+        "requestedBy": "Dr. Alejandro Morales",
+        "resultSummary": "Función renal conservada sin proteinuria patológica",
+        "methodology": "Analítica clínica / Enzimoinmunoensayo / Química seca",
+        "agents": [
+          {
+            "name": "SDMA",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "12.0 µg/dL",
+            "ct": "Normal",
+            "load": "Ref: 0 - 14 µg/dL"
+          },
+          {
+            "name": "Creatinina",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "1.4 mg/dL",
+            "ct": "Normal",
+            "load": "Ref: 0.8 - 2.4 mg/dL"
+          },
+          {
+            "name": "BUN",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "24.0 mg/dL",
+            "ct": "Normal",
+            "load": "Ref: 16 - 36 mg/dL"
+          },
+          {
+            "name": "Densidad Urinaria",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "1.042",
+            "ct": "Adecuada",
+            "load": "Ref: > 1.035"
+          }
+        ],
+        "observations": "Capacidad de concentración urinaria conservada. Sin evidencia de nefropatía activa.",
+        "reportUrl": "#"
+      }
+    ],
+    "microbiotaExams": [],
+    "consultations": [],
+    "auditHistory": [],
+    "clinicalDocuments": []
   },
   {
-    id: "PAC-PRUEBA-03",
-    keaRecordId: 3,
-    name: "Rocky",
-    lastName: "(PRUEBA)",
-    fullName: "Rocky (PRUEBA)",
-    avatar: "🐕",
-    species: "Canino",
-    otherSpecies: "",
-    breed: "Mestizo",
-    sex: "Macho",
-    birthDate: "2022-03-01",
-    age: "4 años, 9 meses",
-    weight: "30 kg",
-    sedeId: "sede-principal-80",
-    sedeNombre: "Sede Principal - Calle 80",
-    codigoSedeNit: "#nit-900000002",
-    microchip: "Sin microchip",
-    owner: {
-      name: "PROP-PRUEBA-02",
-      firstName: "PROP-PRUEBA-02",
-      lastName: "",
-      phone: "+57 300 000 0000",
-      email: "tutor@ejemplo.com",
-      city: "Bogotá"
+    "id": "PAC-PRUEBA-03",
+    "keaRecordId": 3,
+    "name": "Rocky",
+    "lastName": "Gómez",
+    "fullName": "Rocky Gómez",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "Boxer",
+    "sex": "Macho",
+    "birthDate": "2021-06-20",
+    "age": "5 años, 5 meses",
+    "weight": "31 kg",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-900000001",
+    "clinicNit": "900000001",
+    "clinicId": "cli-001",
+    "microchip": "981098104523003",
+    "owner": {
+      "name": "Marcela Gómez",
+      "firstName": "Marcela",
+      "lastName": "Gómez",
+      "phone": "+57 320 654 9871",
+      "email": "marcela.gomez@email.com",
+      "city": "Bogotá"
     },
-    riskFactors: {
-      habitat: "Interiores / Mixto",
-      recentTravel: false,
-      lastVisitedCountry: "Ninguno",
-      livesWithOtherAnimals: true,
-      ruralAccess: false
+    "riskFactors": {
+      "habitat": "Casa cerrada (sin patio)",
+      "housingType": "Casa cerrada (sin patio)",
+      "recentTravel": true,
+      "lastVisitedCountry": "Villeta, Cundinamarca",
+      "livesWithOtherAnimals": false,
+      "ruralAccess": true
     },
-    medicalAdmission: {
-      isAsymptomatic: false,
-      symptoms: [],
-      bodyCondition: "3/5",
-      generalCondition: "Estable",
-      physicalFindings: "Condición corporal 3/5, Estable."
+    "medicalAdmission": {
+      "isAsymptomatic": false,
+      "symptoms": [
+        "Poliuria / Polidipsia leve",
+        "Mialgia"
+      ],
+      "bodyCondition": "3/5",
+      "generalCondition": "En observación"
     },
-    status: "activo",
-    isSterilized: false,
-    hasAllergies: false,
-    allergies: "",
-    attendingVet: "TP-PRUEBA-02",
-    lastVisit: "09/11/2026",
-    source: "Kea Tools DB"
+    "status": "en observación",
+    "isSterilized": true,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "12/11/2026",
+    "source": "VetLab Demostración",
+    "sampleStatus": "Validación médica",
+    "activeExamOrder": {
+      "id": "QPCR-2026-903",
+      "examCode": "QPCR-2026-903",
+      "testName": "Panel Leptospira TaqMan (Sangre + Orina)",
+      "category": "Biología Molecular Cuantitativa (qPCR)",
+      "requestCategory": "qpcr",
+      "sampleType": "Sangre total con EDTA (2 ml) + Orina en tubo estéril (3 ml)",
+      "priority": "Normal (24-48h)",
+      "requestedBy": "Dr. Alejandro Morales",
+      "doctor": "Dr. Alejandro Morales",
+      "laboratory": "VetLab Central - Unidad de Genómica",
+      "targets": "Leptospira interrogans (lipL32)",
+      "syndromes": [
+        "Fiebre de origen desconocido",
+        "Ictericia / Falla renal aguda"
+      ],
+      "findings": [
+        "Dolor renal a la palpación"
+      ],
+      "totalPrice": "$160.000",
+      "examType": "nuevo",
+      "requestedAt": "11/11/2026 - 02:00 PM",
+      "currentStep": 3,
+      "steps": [
+        {
+          "label": "Solicitud creada",
+          "desc": "Orden médica generada en clínica",
+          "date": "11/11/2026 - 02:00 PM",
+          "completed": true
+        },
+        {
+          "label": "Muestra recibida",
+          "desc": "Recepción y código de barras en laboratorio",
+          "date": "11/11/2026 - 04:30 PM",
+          "completed": true
+        },
+        {
+          "label": "En análisis qPCR",
+          "desc": "Extracción de ácidos nucleicos y amplificación en termociclador",
+          "date": "12/11/2026 - 09:00 AM",
+          "completed": true
+        },
+        {
+          "label": "Validación médica",
+          "desc": "Curvas de amplificación verificadas por patólogo molecular",
+          "date": "Hoy - En verificación",
+          "completed": false
+        },
+        {
+          "label": "Resultado enviado",
+          "desc": "Informe emitido y disponible para descarga",
+          "date": "Pendiente",
+          "completed": false
+        }
+      ]
+    },
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [
+      {
+        "id": "MIC-2026-319",
+        "examCode": "MIC-2026-319",
+        "orderId": "MIC-2026-319",
+        "testName": "Microbiota Gastrointestinal (16S rRNA NGS)",
+        "category": "Microbiota Gastrointestinal (16S rRNA NGS)",
+        "requestCategory": "microbiota",
+        "date": "08/11/2026",
+        "requestedAt": "05/11/2026 - 11:00 AM",
+        "receivedAt": "08/11/2026 - 05:00 PM",
+        "status": "Emitido",
+        "sampleType": "Muestra fecal en tubo estabilizador de ADN",
+        "doctor": "Dr. Alejandro Morales",
+        "requestedBy": "Dr. Alejandro Morales",
+        "resultSummary": "Microbiota equilibrada (Eubiosis) con alta biodiversidad alfa",
+        "methodology": "Secuenciación masiva 16S rRNA (NGS Illumina)",
+        "agents": [
+          {
+            "name": "Índice de Disbiosis Fecal",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "1.4",
+            "ct": "Normal",
+            "load": "Eubiosis (Rango normal: < 2.0)"
+          },
+          {
+            "name": "Phylum Firmicutes",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "58.2 %",
+            "ct": "Equilibrado",
+            "load": "Ref: 45 - 65 %"
+          },
+          {
+            "name": "Phylum Bacteroidetes",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "32.1 %",
+            "ct": "Equilibrado",
+            "load": "Ref: 25 - 40 %"
+          },
+          {
+            "name": "Phylum Proteobacteria",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "2.4 %",
+            "ct": "Saludable",
+            "load": "Baja abundancia (< 5 %)"
+          }
+        ],
+        "observations": "Perfil metagenómico saludable con excelente diversidad taxonómica y ausencia de disbiosis.",
+        "reportUrl": "#"
+      }
+    ],
+    "consultations": [],
+    "auditHistory": [],
+    "clinicalDocuments": []
   },
   {
-    id: "PAC-R01",
-    keaRecordId: 4,
-    name: "Sotia",
-    lastName: "",
-    fullName: "Sotia",
-    avatar: "🐕",
-    species: "Canino",
-    otherSpecies: "",
-    breed: "Labrador",
-    sex: "Macho",
-    birthDate: "2026-08-04",
-    age: "3 meses",
-    weight: "Sin registrar",
-    sedeId: "sede-principal-80",
-    sedeNombre: "Sede Principal - Calle 80",
-    codigoSedeNit: "#nit-900949599",
-    microchip: "Sin microchip",
-    owner: {
-      name: "001",
-      firstName: "001",
-      lastName: "",
-      phone: "+57 300 000 0000",
-      email: "tutor@ejemplo.com",
-      city: "Bogotá"
+    "id": "PAC-542133",
+    "keaRecordId": 6,
+    "name": "Lucas",
+    "lastName": "Rincón",
+    "fullName": "Lucas Rincón",
+    "avatar": "🐱",
+    "species": "Felino",
+    "otherSpecies": "",
+    "breed": "Siamés Cruce",
+    "sex": "Macho",
+    "birthDate": "2024-05-10",
+    "age": "2 años, 6 meses",
+    "weight": "3.8 kg",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-900000001",
+    "clinicNit": "900000001",
+    "clinicId": "cli-001",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "Andrea Rincón",
+      "firstName": "Andrea",
+      "lastName": "Rincón",
+      "phone": "+57 315 789 1234",
+      "email": "andrea.rincon@email.com",
+      "city": "Bogotá"
     },
-    riskFactors: {
-      habitat: "Interiores / Mixto",
-      recentTravel: false,
-      lastVisitedCountry: "Ninguno",
-      livesWithOtherAnimals: true,
-      ruralAccess: false
+    "riskFactors": {
+      "habitat": "Exclusivo interior",
+      "housingType": "Apartamento",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": false,
+      "ruralAccess": false
     },
-    medicalAdmission: {
-      isAsymptomatic: false,
-      symptoms: [],
-      bodyCondition: "3/5",
-      generalCondition: "Estable",
-      physicalFindings: "Condición corporal 3/5, Estable."
+    "medicalAdmission": {
+      "isAsymptomatic": true,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable"
     },
-    status: "activo",
-    isSterilized: false,
-    hasAllergies: false,
-    allergies: "",
-    attendingVet: "Dr. Asignado",
-    lastVisit: "09/11/2026",
-    source: "Kea Tools DB"
+    "status": "activo",
+    "isSterilized": true,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "12/11/2026",
+    "source": "VetLab Demostración",
+    "sampleStatus": "Solicitud creada",
+    "activeExamOrder": {
+      "id": "CLN-2026-620",
+      "examCode": "CLN-2026-620",
+      "testName": "Cuadro Hemático Completo + Tromboplastina + PT",
+      "category": "Portafolio Clínico de Laboratorio",
+      "requestCategory": "clinicas",
+      "sampleType": "Sangre total con EDTA (2 ml) + Citrato de Sodio (1 ml)",
+      "priority": "Normal (24-48h)",
+      "requestedBy": "Dr. Alejandro Morales",
+      "doctor": "Dr. Alejandro Morales",
+      "laboratory": "VetLab Central - Laboratorio Clínico y Hematología",
+      "targets": "Parámetros hematológicos y tiempos de coagulación",
+      "syndromes": [
+        "Evaluación prequirúrgica"
+      ],
+      "findings": [
+        "Paciente asintomático programado para profilaxis dental"
+      ],
+      "totalPrice": "$65.000",
+      "examType": "nuevo",
+      "requestedAt": "12/11/2026 - 11:45 AM",
+      "currentStep": 0,
+      "steps": [
+        {
+          "label": "Solicitud creada",
+          "desc": "Orden médica generada en clínica",
+          "date": "12/11/2026 - 11:45 AM",
+          "completed": true
+        },
+        {
+          "label": "Muestra recibida",
+          "desc": "Ingreso al laboratorio clínico y código de barras",
+          "date": "Pendiente",
+          "completed": false
+        },
+        {
+          "label": "En análisis clínico",
+          "desc": "Procesamiento en analizador hematológico / químico / coagulación",
+          "date": "Pendiente",
+          "completed": false
+        },
+        {
+          "label": "Validación médica",
+          "desc": "Resultados validados por bacteriólogo y patólogo clínico",
+          "date": "Pendiente",
+          "completed": false
+        },
+        {
+          "label": "Resultado enviado",
+          "desc": "Informe clínico emitido y disponible para descarga",
+          "date": "Pendiente",
+          "completed": false
+        }
+      ]
+    },
+    "qpcrExams": [
+      {
+        "id": "QPCR-2026-105",
+        "examCode": "QPCR-2026-105",
+        "testName": "Panel Dermatofitos qPCR",
+        "category": "Biología Molecular Cuantitativa (qPCR)",
+        "requestCategory": "qpcr",
+        "date": "25/10/2026",
+        "requestedAt": "25/10/2026 - 09:30 AM",
+        "receivedAt": "26/10/2026 - 04:00 PM",
+        "status": "Emitido",
+        "sampleType": "Raspado cutáneo / Pelos en tubo seco",
+        "doctor": "Dr. Alejandro Morales",
+        "agents": [
+          {
+            "name": "Microsporum canis",
+            "isPositive": false,
+            "result": "Negativo (-)",
+            "ct": "N/D",
+            "load": "No detectado"
+          },
+          {
+            "name": "Trichophyton mentagrophytes",
+            "isPositive": false,
+            "result": "Negativo (-)",
+            "ct": "N/D",
+            "load": "No detectado"
+          }
+        ],
+        "observations": "Negativo para dermatofitos zoonóticos.",
+        "reportUrl": "#"
+      }
+    ],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "consultations": [],
+    "auditHistory": [],
+    "clinicalDocuments": []
   },
   {
-    id: "PAC-PROP-PRUEBA-01-LOLA",
-    keaRecordId: 5,
-    name: "Lola",
-    lastName: "",
-    fullName: "Lola",
-    avatar: "🐱",
-    species: "Felino",
-    otherSpecies: "",
-    breed: "idk",
-    sex: "Macho",
-    birthDate: "2026-11-02",
-    age: "0 meses",
-    weight: "Sin registrar",
-    sedeId: "sede-principal-80",
-    sedeNombre: "Sede Principal - Calle 80",
-    codigoSedeNit: "#nit-1000087681",
-    microchip: "Sin microchip",
-    owner: {
-      name: "PROP-PRUEBA-01",
-      firstName: "PROP-PRUEBA-01",
-      lastName: "",
-      phone: "+57 300 000 0000",
-      email: "tutor@ejemplo.com",
-      city: "Bogotá"
+    "id": "PAC-TEST-03",
+    "keaRecordId": 8,
+    "name": "Simba",
+    "lastName": "Restrepo",
+    "fullName": "Simba Restrepo",
+    "avatar": "🐱",
+    "species": "Felino",
+    "otherSpecies": "",
+    "breed": "Criollo",
+    "sex": "Macho",
+    "birthDate": "2023-08-10",
+    "age": "3 años, 3 meses",
+    "weight": "3.1 kg",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-900000001",
+    "clinicNit": "900000001",
+    "clinicId": "cli-001",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "Laura Restrepo",
+      "firstName": "Laura",
+      "lastName": "Restrepo",
+      "phone": "+57 301 234 5678",
+      "email": "laura.restrepo@email.com",
+      "city": "Bogotá"
     },
-    riskFactors: {
-      habitat: "Interiores / Mixto",
-      recentTravel: false,
-      lastVisitedCountry: "Ninguno",
-      livesWithOtherAnimals: true,
-      ruralAccess: false
+    "riskFactors": {
+      "habitat": "Interiores / Mixto",
+      "housingType": "Casa con jardín / patio",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": true,
+      "ruralAccess": true
     },
-    medicalAdmission: {
-      isAsymptomatic: false,
-      symptoms: [],
-      bodyCondition: "3/5",
-      generalCondition: "Estable",
-      physicalFindings: "Condición corporal 3/5, Estable."
+    "medicalAdmission": {
+      "isAsymptomatic": false,
+      "symptoms": [
+        "Anemia severa",
+        "Hemorragias petequiales",
+        "Fiebre 40.2 °C",
+        "Anorexia total"
+      ],
+      "bodyCondition": "2/5",
+      "generalCondition": "Crítico",
+      "physicalFindings": "Condición corporal 2/5. Caquexia leve, mucosas en porcelana, soplo hemic grado II/VI."
     },
-    status: "activo",
-    isSterilized: false,
-    hasAllergies: false,
-    allergies: "",
-    attendingVet: "TP-PRUEBA-01",
-    lastVisit: "09/11/2026",
-    source: "Kea Tools DB"
+    "status": "critico",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "11/11/2026",
+    "source": "VetLab Demostración",
+    "sampleStatus": "Resultado enviado",
+    "activeExamOrder": null,
+    "qpcrExams": [
+      {
+        "id": "QPCR-2026-444",
+        "examCode": "QPCR-2026-444",
+        "testName": "Panel Hemotrópico Felino Completo",
+        "category": "Biología Molecular Cuantitativa (qPCR)",
+        "requestCategory": "qpcr",
+        "date": "11/11/2026",
+        "requestedAt": "11/11/2026 - 07:30 AM",
+        "receivedAt": "11/11/2026 - 02:00 PM",
+        "status": "Emitido",
+        "sampleType": "Sangre total con EDTA (2 ml)",
+        "doctor": "Dr. Alejandro Morales",
+        "requestedBy": "Dr. Alejandro Morales",
+        "resultSummary": "Mycoplasma haemofelis detectado con carga masiva",
+        "methodology": "qPCR TaqMan multiplex en tiempo real",
+        "agents": [
+          {
+            "name": "Mycoplasma haemofelis",
+            "isPositive": true,
+            "isAltered": true,
+            "result": "Positivo (+)",
+            "ct": "18.9",
+            "load": "4.5e5 copias/µL"
+          },
+          {
+            "name": "Cytauxzoon felis",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "Negativo (-)",
+            "ct": "N/D",
+            "load": "No detectado"
+          },
+          {
+            "name": "FeLV (Leucemia Felina Proviral)",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "Negativo (-)",
+            "ct": "N/D",
+            "load": "No detectado"
+          },
+          {
+            "name": "FIV (Inmunodeficiencia Felina)",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "Negativo (-)",
+            "ct": "N/D",
+            "load": "No detectado"
+          }
+        ],
+        "observations": "Carga bacteriana extremadamente elevada. Requiere transfusión sanguínea de emergencia y terapia con Doxiciclina + corticoide.",
+        "reportUrl": "#"
+      }
+    ],
+    "clinicalExams": [
+      {
+        "id": "CLN-2026-191",
+        "examCode": "CLN-2026-191",
+        "testName": "Hemograma de Urgencia en Cuidados Críticos",
+        "category": "Portafolio Clínico de Laboratorio",
+        "requestCategory": "clinicas",
+        "date": "11/11/2026",
+        "requestedAt": "11/11/2026 - 07:45 AM",
+        "receivedAt": "11/11/2026 - 09:30 AM",
+        "status": "Emitido",
+        "sampleType": "Sangre total con EDTA (1.5 ml)",
+        "doctor": "Dr. Alejandro Morales",
+        "agents": [
+          {
+            "name": "Hematocrito",
+            "isPositive": false,
+            "isAltered": true,
+            "result": "14.0 %",
+            "ct": "Crítico",
+            "load": "Ref: 28 - 45 %"
+          },
+          {
+            "name": "Hemoglobina",
+            "isPositive": false,
+            "isAltered": true,
+            "result": "4.6 g/dL",
+            "ct": "Crítico",
+            "load": "Ref: 9.5 - 15 g/dL"
+          },
+          {
+            "name": "Plaquetas",
+            "isPositive": false,
+            "isAltered": true,
+            "result": "80.000 /µL",
+            "ct": "Trombocitopenia marcada",
+            "load": "Ref: 180.000 - 450.000 /µL"
+          },
+          {
+            "name": "Leucocitos Totales",
+            "isPositive": false,
+            "isAltered": true,
+            "result": "22.400 /µL",
+            "ct": "Leucocitosis",
+            "load": "Ref: 5.500 - 19.500 /µL"
+          }
+        ],
+        "observations": "Anemia no regenerativa severa con riesgo vital inmediato.",
+        "reportUrl": "#"
+      }
+    ],
+    "microbiotaExams": [],
+    "consultations": [],
+    "auditHistory": [],
+    "clinicalDocuments": []
   },
   {
-    id: "PAC-542133",
-    keaRecordId: 6,
-    name: "Lucas",
-    lastName: "",
-    fullName: "Lucas",
-    avatar: "🐱",
-    species: "Felino",
-    otherSpecies: "",
-    breed: "cruce",
-    sex: "Macho",
-    birthDate: "2026-11-02",
-    age: "0 meses",
-    weight: "Sin registrar",
-    sedeId: "sede-principal-80",
-    sedeNombre: "Sede Principal - Calle 80",
-    codigoSedeNit: "#nit-900949599",
-    microchip: "Sin microchip",
-    owner: {
-      name: "98542",
-      firstName: "98542",
-      lastName: "",
-      phone: "+57 300 000 0000",
-      email: "tutor@ejemplo.com",
-      city: "Bogotá"
+    "id": "PAC-TEST-01",
+    "keaRecordId": 7,
+    "name": "Toby",
+    "lastName": "Silva",
+    "fullName": "Toby Silva",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "Beagle",
+    "sex": "Macho",
+    "birthDate": "2025-12-01",
+    "age": "11 meses",
+    "weight": "9.4 kg",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-900000001",
+    "clinicNit": "900000001",
+    "clinicId": "cli-001",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "Jorge Silva",
+      "firstName": "Jorge",
+      "lastName": "Silva",
+      "phone": "+57 312 456 7890",
+      "email": "jorge.silva@email.com",
+      "city": "Bogotá"
     },
-    riskFactors: {
-      habitat: "Interiores / Mixto",
-      recentTravel: false,
-      lastVisitedCountry: "Ninguno",
-      livesWithOtherAnimals: true,
-      ruralAccess: false
+    "riskFactors": {
+      "habitat": "Casa con jardín / patio",
+      "housingType": "Casa con jardín / patio",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": false,
+      "ruralAccess": false
     },
-    medicalAdmission: {
-      isAsymptomatic: false,
-      symptoms: [],
-      bodyCondition: "3/5",
-      generalCondition: "Estable",
-      physicalFindings: "Condición corporal 3/5, Estable."
+    "medicalAdmission": {
+      "isAsymptomatic": false,
+      "symptoms": [
+        "Gastroenteritis hemorrágica",
+        "Deshidratación 8%",
+        "Vómito incoercible"
+      ],
+      "bodyCondition": "3/5",
+      "generalCondition": "Internado"
     },
-    status: "activo",
-    isSterilized: false,
-    hasAllergies: false,
-    allergies: "",
-    attendingVet: "Dr. Asignado",
-    lastVisit: "09/11/2026",
-    source: "Kea Tools DB"
+    "status": "internado",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "10/11/2026",
+    "source": "VetLab Demostración",
+    "sampleStatus": "Resultado enviado",
+    "activeExamOrder": null,
+    "qpcrExams": [
+      {
+        "id": "QPCR-2026-555",
+        "examCode": "QPCR-2026-555",
+        "testName": "Panel Parvovirus Canino (CPV-2 TaqMan)",
+        "category": "Biología Molecular Cuantitativa (qPCR)",
+        "requestCategory": "qpcr",
+        "date": "10/11/2026",
+        "requestedAt": "10/11/2026 - 08:00 AM",
+        "receivedAt": "10/11/2026 - 01:30 PM",
+        "status": "Emitido",
+        "sampleType": "Hisopado rectal en tubo estéril",
+        "doctor": "Dr. Alejandro Morales",
+        "agents": [
+          {
+            "name": "Parvovirus Canino tipo 2 (CPV-2)",
+            "isPositive": true,
+            "isAltered": true,
+            "result": "Positivo (+)",
+            "ct": "16.4",
+            "load": "2.8e7 copias/µL"
+          },
+          {
+            "name": "Coronavirus Entérico Canino (CCoV)",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "Negativo (-)",
+            "ct": "N/D",
+            "load": "No detectado"
+          }
+        ],
+        "observations": "Alta eliminación viral entérica confirmada. Hospitalización aislada en curso.",
+        "reportUrl": "#"
+      }
+    ],
+    "clinicalExams": [
+      {
+        "id": "CLN-2026-772",
+        "examCode": "CLN-2026-772",
+        "testName": "Ionograma y Electrolitos Séricos",
+        "category": "Portafolio Clínico de Laboratorio",
+        "requestCategory": "clinicas",
+        "date": "10/11/2026",
+        "requestedAt": "10/11/2026 - 08:30 AM",
+        "receivedAt": "10/11/2026 - 11:00 AM",
+        "status": "Emitido",
+        "sampleType": "Suero seco (2 ml)",
+        "doctor": "Dr. Alejandro Morales",
+        "agents": [
+          {
+            "name": "Potasio (K+)",
+            "isPositive": false,
+            "isAltered": true,
+            "result": "2.8 mEq/L",
+            "ct": "Hipopotasemia severa",
+            "load": "Ref: 3.5 - 5.5 mEq/L"
+          },
+          {
+            "name": "Sodio (Na+)",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "138 mEq/L",
+            "ct": "Normal",
+            "load": "Ref: 135 - 150 mEq/L"
+          },
+          {
+            "name": "Cloro (Cl-)",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "104 mEq/L",
+            "ct": "Normal",
+            "load": "Ref: 100 - 115 mEq/L"
+          }
+        ],
+        "observations": "Pérdidas electrolíticas gastrointestinales profusas. Requiere suplementación con KCl en fluidoterapia.",
+        "reportUrl": "#"
+      }
+    ],
+    "microbiotaExams": [],
+    "consultations": [],
+    "auditHistory": [],
+    "clinicalDocuments": []
+  },
+  {
+    "id": "PAC-TEST-ALL",
+    "keaRecordId": 10,
+    "name": "Maximus",
+    "lastName": "Caicedo",
+    "fullName": "Maximus Caicedo",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "Pastor Alemán",
+    "sex": "Macho",
+    "birthDate": "2020-04-12",
+    "age": "6 años, 7 meses",
+    "weight": "36 kg",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-900000001",
+    "clinicNit": "900000001",
+    "clinicId": "cli-001",
+    "microchip": "981098104523010",
+    "owner": {
+      "name": "Andrés Caicedo",
+      "firstName": "Andrés",
+      "lastName": "Caicedo",
+      "phone": "+57 318 901 2345",
+      "email": "andres.caicedo@email.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "Casa con jardín / patio",
+      "housingType": "Casa con jardín / patio",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": true,
+      "ruralAccess": true
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": true,
+      "symptoms": [],
+      "bodyCondition": "4/5",
+      "generalCondition": "Dado de alta"
+    },
+    "status": "dado de alta",
+    "isSterilized": true,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "09/11/2026",
+    "source": "VetLab Demostración",
+    "sampleStatus": "Resultado enviado",
+    "activeExamOrder": null,
+    "qpcrExams": [
+      {
+        "id": "QPCR-2026-888",
+        "examCode": "QPCR-2026-888",
+        "testName": "Control qPCR — Panel Hemotrópico Canino",
+        "category": "Biología Molecular Cuantitativa (qPCR)",
+        "requestCategory": "qpcr",
+        "date": "09/11/2026",
+        "requestedAt": "09/11/2026 - 10:00 AM",
+        "receivedAt": "10/11/2026 - 03:00 PM",
+        "status": "Emitido",
+        "sampleType": "Sangre total con EDTA (2 ml)",
+        "doctor": "Dr. Alejandro Morales",
+        "agents": [
+          {
+            "name": "Ehrlichia canis",
+            "isPositive": false,
+            "result": "Negativo (-)",
+            "ct": "N/D",
+            "load": "No detectado"
+          },
+          {
+            "name": "Anaplasma platys",
+            "isPositive": false,
+            "result": "Negativo (-)",
+            "ct": "N/D",
+            "load": "No detectado"
+          }
+        ],
+        "observations": "Negativización molecular completa tras ciclo de 28 días con Doxiciclina. Paciente clínicamente sano y dado de alta.",
+        "reportUrl": "#"
+      }
+    ],
+    "clinicalExams": [
+      {
+        "id": "CLN-2026-999",
+        "examCode": "CLN-2026-999",
+        "testName": "Cuadro Hemático de Control Post-Tratamiento",
+        "category": "Portafolio Clínico de Laboratorio",
+        "requestCategory": "clinicas",
+        "date": "09/11/2026",
+        "requestedAt": "09/11/2026 - 10:15 AM",
+        "receivedAt": "09/11/2026 - 01:00 PM",
+        "status": "Emitido",
+        "sampleType": "Sangre total con EDTA (2 ml)",
+        "doctor": "Dr. Alejandro Morales",
+        "agents": [
+          {
+            "name": "Hematocrito",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "44.0 %",
+            "ct": "Normal",
+            "load": "Ref: 37 - 55 %"
+          },
+          {
+            "name": "Hemoglobina",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "15.2 g/dL",
+            "ct": "Normal",
+            "load": "Ref: 12 - 18 g/dL"
+          },
+          {
+            "name": "Plaquetas",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "310.000 /µL",
+            "ct": "Normal",
+            "load": "Ref: 200.000 - 500.000 /µL"
+          },
+          {
+            "name": "Leucocitos",
+            "isPositive": false,
+            "isAltered": false,
+            "result": "9.800 /µL",
+            "ct": "Normal",
+            "load": "Ref: 6.000 - 17.000 /µL"
+          }
+        ],
+        "observations": "Todos los parámetros hematológicos han normalizado. Sin secuelas.",
+        "reportUrl": "#"
+      }
+    ],
+    "microbiotaExams": [],
+    "consultations": [],
+    "auditHistory": [],
+    "clinicalDocuments": []
+  },
+  {
+    "id": "PAC-FALLECIDO-01",
+    "keaRecordId": 99,
+    "name": "Thor",
+    "lastName": "González",
+    "fullName": "Thor González",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "Golden Retriever",
+    "sex": "Macho",
+    "birthDate": "2015-04-10",
+    "age": "11 años, 7 meses",
+    "weight": "34 kg",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-900000001",
+    "clinicNit": "900000001",
+    "clinicId": "cli-001",
+    "microchip": "981098104523910",
+    "owner": {
+      "name": "Carlos González",
+      "firstName": "Carlos",
+      "lastName": "González",
+      "phone": "+57 310 456 7890",
+      "email": "carlos.gonzalez@email.com",
+      "city": "Bogotá",
+      "address": "Calle 127 # 19-45"
+    },
+    "riskFactors": {
+      "habitat": "Casa con jardín / patio",
+      "housingType": "Casa con jardín / patio",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": false,
+      "ruralAccess": true
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": false,
+      "symptoms": [
+        "Disnea severa",
+        "Ascitis",
+        "Síncope recurrente"
+      ],
+      "bodyCondition": "2/5",
+      "generalCondition": "Fallecido",
+      "physicalFindings": "Insuficiencia cardíaca congestiva terminal y colapso respiratorio."
+    },
+    "status": "fallecido",
+    "isSterilized": true,
+    "hasAllergies": true,
+    "allergies": "Penicilinas, Doxiciclina",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "01/11/2026",
+    "source": "VetLab Demostración",
+    "sampleStatus": "Sin examen activo",
+    "activeExamOrder": null,
+    "qpcrExams": [
+      {
+        "id": "QPCR-2026-112",
+        "examCode": "QPCR-2026-112",
+        "testName": "Panel Hemotrópico Canino",
+        "category": "Biología Molecular Cuantitativa (qPCR)",
+        "requestCategory": "qpcr",
+        "date": "28/10/2026",
+        "requestedAt": "28/10/2026 - 10:00 AM",
+        "receivedAt": "29/10/2026 - 04:00 PM",
+        "status": "Emitido",
+        "sampleType": "Sangre total con EDTA (2 ml)",
+        "doctor": "Dr. Alejandro Morales",
+        "agents": [
+          {
+            "name": "Ehrlichia canis",
+            "isPositive": false,
+            "result": "Negativo (-)",
+            "ct": "N/D",
+            "load": "No detectado"
+          },
+          {
+            "name": "Babesia canis",
+            "isPositive": false,
+            "result": "Negativo (-)",
+            "ct": "N/D",
+            "load": "No detectado"
+          }
+        ],
+        "observations": "Descarte molecular de hemoparásitos previo al desenlace clínico.",
+        "reportUrl": "#"
+      }
+    ],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "consultations": [
+      {
+        "id": "CONS-901",
+        "date": "01/11/2026 - 06:15 PM",
+        "veterinario": "Dr. Alejandro Morales",
+        "motivo": "Fallecimiento / Registro de Defunción",
+        "diagnostico": "Paro cardiorrespiratorio secundario a cardiopatía dilatada terminal.",
+        "tratamiento": "Cierre de expediente clínico. Condolencias a tutor.",
+        "notas": "Paciente fallece en brazos de su tutor de manera tranquila tras acompañamiento médico."
+      }
+    ],
+    "auditHistory": [
+      {
+        "id": "AUD-FALLECIDO",
+        "fecha": "01/11/2026 06:30 PM",
+        "timestamp": "2026-11-01T18:30:00.000Z",
+        "veterinario": "Dr. Alejandro Morales",
+        "rol": "Director Médico",
+        "accion": "Cierre de expediente por defunción",
+        "cambios": [
+          {
+            "campo": "Estado del Paciente",
+            "categoria": "General",
+            "anterior": "Crítico",
+            "nuevo": "Fallecido 🔒"
+          },
+          {
+            "campo": "Acceso a Solicitudes",
+            "categoria": "Seguridad",
+            "anterior": "Habilitado",
+            "nuevo": "Bloqueado por Defunción"
+          }
+        ]
+      }
+    ],
+    "clinicalDocuments": []
   }
 ];
 
-export let patientsStore = [...initialPatients];
+export const savePatientsToDisk = () => {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(PATIENTS_CACHE_FILE, JSON.stringify(patientsStore, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('[Storage] Error al guardar pacientes en disco:', err.message);
+  }
+};
+
+const loadPatientsFromDisk = () => {
+  try {
+    if (fs.existsSync(PATIENTS_CACHE_FILE)) {
+      const data = fs.readFileSync(PATIENTS_CACHE_FILE, 'utf-8').replace(/^\uFEFF/, '');
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.warn('[Storage] Error al leer pacientes desde disco:', err.message);
+  }
+  return [...initialPatients];
+};
+
+export let patientsStore = loadPatientsFromDisk();
+
+export const setPatientsStore = (newList) => {
+  if (Array.isArray(newList)) {
+    patientsStore = newList;
+    savePatientsToDisk();
+  }
+};
+
