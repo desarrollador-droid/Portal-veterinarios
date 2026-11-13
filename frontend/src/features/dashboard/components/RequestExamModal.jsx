@@ -182,6 +182,21 @@ export const QPCR_CATALOG = LOCAL_QPCR_PROFILES_MASTER;
 // ============================================================================
 export const AVAILABLE_ALTERNATIVE_AGENTS = LOCAL_INFECTIOUS_AGENTS_DB.map((a) => a.name);
 
+/**
+ * Normaliza nombres de patógenos/agentes para comparación estricta de no-duplicidad en la orden
+ * Elimina acentos, mayúsculas, signos de puntuación (. , ; : ( )) y espacios redundantes
+ */
+export function normalizeAgentName(name) {
+  if (!name || typeof name !== 'string') return '';
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[.,;:()]/g, '')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
 // ============================================================================
 // 4. HELPER: EXTRACCIÓN DE AGENTES Y VERIFICACIÓN DE CONTROL PREVIO (PLAZO MÁXIMO 6 MESES)
 // ============================================================================
@@ -839,6 +854,7 @@ export default function RequestExamModal({
   const [replacedAgents, setReplacedAgents] = useState({}); // { [profileId]: { [agentIdx]: newAgentName } }
 
   // Estado para la edición manual individual de cada agente
+  const [editingAgentProfileId, setEditingAgentProfileId] = useState(null); // id del perfil del agente en edición
   const [editingAgentIndex, setEditingAgentIndex] = useState(null); // índice del agente que se está editando
   const [manualAgentInput, setManualAgentInput] = useState(''); // texto tipeado manualmente
 
@@ -1400,13 +1416,85 @@ export default function RequestExamModal({
     return consolidatedSamples.every((s) => Boolean(confirmedSamplesChecklist[s.name]));
   }, [consolidatedSamples, confirmedSamplesChecklist]);
 
+  // ============================================================================
+  // PREVENCIÓN ESTRICTA DE AGENTES DUPLICADOS EN LA ORDEN qPCR
+  // ============================================================================
+  /**
+   * Obtiene la lista completa de agentes presentes en la orden actual
+   * (en todos los perfiles seleccionados, con reemplazos aplicados y adicionales).
+   * Si se especifica ignoreProfileId e ignoreAgentIdx, se omite ese slot en edición.
+   */
+  const getActiveOrderAgents = (ignoreProfileId = null, ignoreAgentIdx = null) => {
+    const list = [];
+    selectedProfiles.forEach((p) => {
+      // 1. Agentes base del perfil (con reemplazos si aplican)
+      (p.agents || []).forEach((origAgent, idx) => {
+        if (p.id === ignoreProfileId && idx === ignoreAgentIdx) {
+          return; // Ignorar el slot en edición activa
+        }
+        const activeName = replacedAgents[p.id]?.[idx] || origAgent;
+        if (activeName && activeName.trim()) {
+          list.push({
+            name: activeName.trim(),
+            norm: normalizeAgentName(activeName),
+            profileId: p.id,
+            profileTitle: p.title,
+            isExtra: false,
+            index: idx,
+          });
+        }
+      });
+
+      // 2. Agentes adicionales agregados manualmente a este perfil
+      const extras = addedAgentsByProfile[p.id] || [];
+      extras.forEach((extraAgent, extraIdx) => {
+        if (extraAgent && extraAgent.trim()) {
+          list.push({
+            name: extraAgent.trim(),
+            norm: normalizeAgentName(extraAgent),
+            profileId: p.id,
+            profileTitle: p.title,
+            isExtra: true,
+            index: extraIdx,
+          });
+        }
+      });
+    });
+    return list;
+  };
+
+  /**
+   * Determina si un nombre de agente ya existe en la orden actual
+   */
+  const findDuplicateAgentInOrder = (candidateName, ignoreProfileId = null, ignoreAgentIdx = null) => {
+    if (!candidateName || !candidateName.trim()) return null;
+    const targetNorm = normalizeAgentName(candidateName);
+    if (!targetNorm) return null;
+    const currentAgents = getActiveOrderAgents(ignoreProfileId, ignoreAgentIdx);
+    return currentAgents.find((a) => a.norm === targetNorm) || null;
+  };
+
   // Handlers para agregar y quitar agentes adicionales en un perfil qPCR
   const handleAddAgentToProfile = (profileId, agentName) => {
-    if (!agentName || !agentName.trim()) return;
+    if (!agentName || !agentName.trim()) {
+      alert('Por favor ingrese el nombre del agente o patógeno a agregar.');
+      return;
+    }
     const clean = agentName.trim();
+
+    // REQUERIMIENTO: No permitir agregar un mismo agente dos veces en la misma orden
+    const duplicate = findDuplicateAgentInOrder(clean);
+    if (duplicate) {
+      alert(
+        `No es posible agregar "${clean}": este agente ya se encuentra incluido en la orden (${duplicate.profileTitle}). No se permiten patógenos duplicados en la misma orden.`
+      );
+      return;
+    }
+
     setAddedAgentsByProfile((prev) => {
       const existing = prev[profileId] || [];
-      if (existing.includes(clean)) return prev;
+      const cleanNorm = normalizeAgentName(clean);
+      if (existing.some((a) => normalizeAgentName(a) === cleanNorm)) return prev;
       return {
         ...prev,
         [profileId]: [...existing, clean],
@@ -1608,7 +1696,8 @@ export default function RequestExamModal({
   };
 
   // Edición manual de agentes:
-  const handleStartEditingAgent = (idx, currentVal) => {
+  const handleStartEditingAgent = (profileId, idx, currentVal) => {
+    setEditingAgentProfileId(profileId);
     setEditingAgentIndex(idx);
     setManualAgentInput(currentVal);
   };
@@ -1618,13 +1707,35 @@ export default function RequestExamModal({
       alert('Por favor ingrese el nombre del agente o patógeno de reemplazo.');
       return;
     }
+    const clean = manualAgentInput.trim();
+
+    // Si el usuario guardó el mismo nombre que ya estaba en esta casilla (original o ya reemplazado):
+    const currentProfile = selectedProfiles.find((p) => p.id === profileId);
+    const existingInSlot = replacedAgents[profileId]?.[idx] || currentProfile?.agents?.[idx] || '';
+    if (normalizeAgentName(clean) === normalizeAgentName(existingInSlot)) {
+      setEditingAgentProfileId(null);
+      setEditingAgentIndex(null);
+      setManualAgentInput('');
+      return;
+    }
+
+    // REQUERIMIENTO: No permitir duplicar agentes en la orden al reemplazar/cambiar
+    const duplicate = findDuplicateAgentInOrder(clean, profileId, idx);
+    if (duplicate) {
+      alert(
+        `No es posible reemplazar por "${clean}": este agente ya se encuentra incluido en la orden (${duplicate.profileTitle}). No se permiten patógenos duplicados en la misma orden.`
+      );
+      return;
+    }
+
     setReplacedAgents((prev) => ({
       ...prev,
       [profileId]: {
         ...(prev[profileId] || {}),
-        [idx]: manualAgentInput.trim(),
+        [idx]: clean,
       },
     }));
+    setEditingAgentProfileId(null);
     setEditingAgentIndex(null);
     setManualAgentInput('');
   };
@@ -1638,7 +1749,8 @@ export default function RequestExamModal({
         [profileId]: copy,
       };
     });
-    if (editingAgentIndex === idx) {
+    if (editingAgentProfileId === profileId && editingAgentIndex === idx) {
+      setEditingAgentProfileId(null);
       setEditingAgentIndex(null);
       setManualAgentInput('');
     }
@@ -1659,7 +1771,15 @@ export default function RequestExamModal({
           return replacedAgents[p.id]?.[idx] || origAgent;
         });
         const extraAgents = addedAgentsByProfile[p.id] || [];
-        const allAgents = [...customAgents, ...extraAgents];
+        const allAgentsRaw = [...customAgents, ...extraAgents];
+        // Garantía estricta de no duplicidad en la orden final
+        const seenNorms = new Set();
+        const allAgents = allAgentsRaw.filter((ag) => {
+          const normAg = normalizeAgentName(ag);
+          if (!normAg || seenNorms.has(normAg)) return false;
+          seenNorms.add(normAg);
+          return true;
+        });
         return {
           id: p.id,
           title: p.title,
@@ -1868,6 +1988,11 @@ export default function RequestExamModal({
     setIsControlReviewOpen(false);
     setReplacementCount(0);
     setReplacedAgentsMap({});
+    setReplacedAgents({});
+    setAddedAgentsByProfile({});
+    setEditingAgentProfileId(null);
+    setEditingAgentIndex(null);
+    setManualAgentInput('');
     setSelectedSampleType('Hisopado nasal');
     setHasVetPlusInsurance(false);
     setVetPlusCode('');
@@ -5445,7 +5570,12 @@ export default function RequestExamModal({
                           {profile.agents.map((agentName, idx) => {
                             const isReplaced = Boolean(currentMods[idx]);
                             const activeAgentName = currentMods[idx] || agentName;
-                            const isCurrentlyEditing = editingAgentIndex === idx;
+                            const isCurrentlyEditing = editingAgentProfileId === profile.id && editingAgentIndex === idx;
+
+                            // Verificación de duplicado en tiempo real al cambiar/reemplazar agente
+                            const currentReplaceDuplicate = isCurrentlyEditing ? findDuplicateAgentInOrder(manualAgentInput, profile.id, idx) : null;
+                            const isSameSlotValue = isCurrentlyEditing && normalizeAgentName(manualAgentInput) === normalizeAgentName(activeAgentName);
+                            const hasReplaceConflict = Boolean(currentReplaceDuplicate && !isSameSlotValue);
 
                             return (
                               <div
@@ -5484,7 +5614,7 @@ export default function RequestExamModal({
                                       {/* REQUERIMIENTO DEL USUARIO: Botón al lado que diga "Editar" */}
                                       <button
                                         type="button"
-                                        onClick={() => handleStartEditingAgent(idx, activeAgentName)}
+                                        onClick={() => handleStartEditingAgent(profile.id, idx, activeAgentName)}
                                         className="px-3 py-1 rounded-lg bg-white border border-slate-200 hover:border-[#6F2BCC] text-[#6F2BCC] hover:bg-sky-50 font-bold text-xs flex items-center gap-1 cursor-pointer shadow-2xs transition-colors"
                                       >
                                         <span>✏️</span> Editar
@@ -5508,20 +5638,44 @@ export default function RequestExamModal({
                                         type="text"
                                         value={manualAgentInput}
                                         onChange={(e) => setManualAgentInput(e.target.value)}
+                                        list={`datalist-replace-${profile.id}-${idx}`}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            if (!hasReplaceConflict) {
+                                              handleSaveManualAgent(profile.id, idx);
+                                            }
+                                          }
+                                        }}
                                         placeholder="Escribe el nombre del nuevo agente o patógeno molecular..."
-                                        className="flex-1 px-3 py-2 bg-white border border-sky-300 rounded-xl text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
+                                        className={`flex-1 px-3 py-2 bg-white border rounded-xl text-xs font-semibold text-slate-900 focus:outline-none transition-all ${
+                                          hasReplaceConflict
+                                            ? 'border-rose-400 ring-2 ring-rose-200 bg-rose-50/20'
+                                            : 'border-sky-300 focus:ring-2 focus:ring-[#6F2BCC]'
+                                        }`}
                                         autoFocus
                                       />
+                                      <datalist id={`datalist-replace-${profile.id}-${idx}`}>
+                                        {AVAILABLE_ALTERNATIVE_AGENTS.filter((ag) => !findDuplicateAgentInOrder(ag, profile.id, idx)).map((ag) => (
+                                          <option key={ag} value={ag} />
+                                        ))}
+                                      </datalist>
                                       <button
                                         type="button"
+                                        disabled={hasReplaceConflict || !manualAgentInput.trim()}
                                         onClick={() => handleSaveManualAgent(profile.id, idx)}
-                                        className="px-4 py-2 bg-[#6F2BCC] hover:bg-[#581ea3] text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors shadow-2xs ${
+                                          hasReplaceConflict || !manualAgentInput.trim()
+                                            ? 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-60'
+                                            : 'bg-[#6F2BCC] hover:bg-[#581ea3] text-white cursor-pointer'
+                                        }`}
                                       >
                                         Guardar
                                       </button>
                                       <button
                                         type="button"
                                         onClick={() => {
+                                          setEditingAgentProfileId(null);
                                           setEditingAgentIndex(null);
                                           setManualAgentInput('');
                                         }}
@@ -5531,21 +5685,46 @@ export default function RequestExamModal({
                                       </button>
                                     </div>
 
+                                    {/* Alerta visual inmediata si el agente tipeado ya existe en la orden */}
+                                    {hasReplaceConflict && (
+                                      <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+                                        <span className="text-base shrink-0">🚫</span>
+                                        <div className="leading-tight">
+                                          <span>El agente <strong>"{manualAgentInput.trim()}"</strong> ya está incluido en la orden ({currentReplaceDuplicate.profileTitle}).</span>
+                                          <span className="block text-[11px] text-rose-700 font-normal mt-0.5">
+                                            No se permite cambiar a un agente que ya forma parte de este perfil o de la orden.
+                                          </span>
+                                        </div>
+                                      </div>
+                                    )}
+
                                     {/* Sugerencias rápidas clickeables */}
-                                    <div className="flex flex-wrap gap-1 pt-1">
+                                    <div className="flex flex-wrap gap-1.5 pt-1">
                                       <span className="text-[10px] text-slate-400 uppercase font-bold mr-1 self-center">
                                         Sugerencias:
                                       </span>
-                                      {AVAILABLE_ALTERNATIVE_AGENTS.slice(0, 6).map((sug) => (
-                                        <button
-                                          key={sug}
-                                          type="button"
-                                          onClick={() => setManualAgentInput(sug)}
-                                          className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-medium text-slate-700 hover:border-sky-300 hover:text-[#6F2BCC] cursor-pointer"
-                                        >
-                                          {sug}
-                                        </button>
-                                      ))}
+                                      {AVAILABLE_ALTERNATIVE_AGENTS.slice(0, 10).map((sug) => {
+                                        const isSugDup = Boolean(findDuplicateAgentInOrder(sug, profile.id, idx));
+                                        return (
+                                          <button
+                                            key={sug}
+                                            type="button"
+                                            disabled={isSugDup}
+                                            onClick={() => {
+                                              if (!isSugDup) setManualAgentInput(sug);
+                                            }}
+                                            title={isSugDup ? `"${sug}" ya se encuentra incluido en la orden` : `Seleccionar ${sug}`}
+                                            className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all ${
+                                              isSugDup
+                                                ? 'bg-slate-100 text-slate-400 border border-slate-200 line-through cursor-not-allowed opacity-60'
+                                                : 'bg-white border border-slate-200 text-slate-700 hover:border-sky-300 hover:text-[#6F2BCC] cursor-pointer shadow-2xs'
+                                            }`}
+                                          >
+                                            <span>{sug}</span>
+                                            {isSugDup && <span className="no-underline text-[9px] text-rose-600 font-bold ml-1">(Ya en orden)</span>}
+                                          </button>
+                                        );
+                                      })}
                                     </div>
                                   </div>
                                 )}
@@ -5592,81 +5771,129 @@ export default function RequestExamModal({
                           )}
 
                           {/* Control para agregar nuevo agente */}
-                          {isAddingAgentByProfile[profile.id] ? (
-                            <div className="p-3.5 bg-purple-50/50 border border-purple-300 rounded-2xl space-y-2.5 animate-in fade-in duration-150">
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="font-bold text-slate-800">
-                                  Ingresa el nombre del agente adicional a incorporar:
-                                </span>
-                                <span className="text-[10px] font-bold text-purple-700">+$25.000 COP</span>
-                              </div>
+                          {isAddingAgentByProfile[profile.id] ? (() => {
+                            const currentAddVal = newAgentInputByProfile[profile.id] || '';
+                            const currentAddDuplicate = findDuplicateAgentInOrder(currentAddVal);
+                            const hasAddConflict = Boolean(currentAddDuplicate);
 
-                              <div className="flex gap-2">
-                                <input
-                                  type="text"
-                                  value={newAgentInputByProfile[profile.id] || ''}
-                                  onChange={(e) =>
-                                    setNewAgentInputByProfile((prev) => ({
-                                      ...prev,
-                                      [profile.id]: e.target.value,
-                                    }))
-                                  }
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault();
-                                      handleAddAgentToProfile(profile.id, newAgentInputByProfile[profile.id]);
-                                    }
-                                  }}
-                                  placeholder="Ej: Anaplasma phagocytophilum, Bartonella henselae..."
-                                  className="flex-1 px-3.5 py-2 bg-white border border-purple-300 rounded-xl text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none"
-                                  autoFocus
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleAddAgentToProfile(profile.id, newAgentInputByProfile[profile.id])
-                                  }
-                                  className="px-4 py-2 bg-[#6F2BCC] hover:bg-[#581ea3] text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
-                                >
-                                  + Añadir al perfil
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setIsAddingAgentByProfile((prev) => ({
-                                      ...prev,
-                                      [profile.id]: false,
-                                    }))
-                                  }
-                                  className="px-3 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold hover:bg-white cursor-pointer"
-                                >
-                                  Cancelar
-                                </button>
-                              </div>
+                            return (
+                              <div className="p-3.5 bg-purple-50/50 border border-purple-300 rounded-2xl space-y-2.5 animate-in fade-in duration-150">
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="font-bold text-slate-800">
+                                    Ingresa el nombre del agente adicional a incorporar:
+                                  </span>
+                                  <span className="text-[10px] font-bold text-purple-700">+$25.000 COP</span>
+                                </div>
 
-                              {/* Sugerencias rápidas */}
-                              <div className="flex flex-wrap gap-1.5 pt-1">
-                                <span className="text-[10px] text-slate-500 uppercase font-bold mr-1 self-center">
-                                  Sugeridos:
-                                </span>
-                                {AVAILABLE_ALTERNATIVE_AGENTS.slice(0, 8).map((sug) => (
-                                  <button
-                                    key={sug}
-                                    type="button"
-                                    onClick={() =>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    value={currentAddVal}
+                                    onChange={(e) =>
                                       setNewAgentInputByProfile((prev) => ({
                                         ...prev,
-                                        [profile.id]: sug,
+                                        [profile.id]: e.target.value,
                                       }))
                                     }
-                                    className="px-2.5 py-0.5 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-slate-700 hover:border-[#6F2BCC] hover:text-[#6F2BCC] cursor-pointer shadow-2xs"
+                                    list={`datalist-add-${profile.id}`}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        if (!hasAddConflict) {
+                                          handleAddAgentToProfile(profile.id, currentAddVal);
+                                        }
+                                      }
+                                    }}
+                                    placeholder="Ej: Anaplasma phagocytophilum, Bartonella henselae..."
+                                    className={`flex-1 px-3.5 py-2 bg-white border rounded-xl text-xs font-semibold text-slate-900 focus:outline-none transition-all ${
+                                      hasAddConflict
+                                        ? 'border-rose-400 ring-2 ring-rose-200 bg-rose-50/20'
+                                        : 'border-purple-300 focus:ring-2 focus:ring-[#6F2BCC]'
+                                    }`}
+                                    autoFocus
+                                  />
+                                  <datalist id={`datalist-add-${profile.id}`}>
+                                    {AVAILABLE_ALTERNATIVE_AGENTS.filter((ag) => !findDuplicateAgentInOrder(ag)).map((ag) => (
+                                      <option key={ag} value={ag} />
+                                    ))}
+                                  </datalist>
+                                  <button
+                                    type="button"
+                                    disabled={hasAddConflict || !currentAddVal.trim()}
+                                    onClick={() =>
+                                      handleAddAgentToProfile(profile.id, currentAddVal)
+                                    }
+                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs ${
+                                      hasAddConflict || !currentAddVal.trim()
+                                        ? 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-60'
+                                        : 'bg-[#6F2BCC] hover:bg-[#581ea3] text-white cursor-pointer'
+                                    }`}
                                   >
-                                    + {sug}
+                                    + Añadir al perfil
                                   </button>
-                                ))}
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setIsAddingAgentByProfile((prev) => ({
+                                        ...prev,
+                                        [profile.id]: false,
+                                      }))
+                                    }
+                                    className="px-3 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold hover:bg-white cursor-pointer"
+                                  >
+                                    Cancelar
+                                  </button>
+                                </div>
+
+                                {/* Alerta visual inmediata si el agente a agregar ya existe en la orden */}
+                                {hasAddConflict && (
+                                  <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+                                    <span className="text-base shrink-0">🚫</span>
+                                    <div className="leading-tight">
+                                      <span>El agente <strong>"{currentAddVal.trim()}"</strong> ya está incluido en la orden ({currentAddDuplicate.profileTitle}).</span>
+                                      <span className="block text-[11px] text-rose-700 font-normal mt-0.5">
+                                        No se permite agregar un agente que ya forma parte de este perfil o de la orden.
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Sugerencias rápidas */}
+                                <div className="flex flex-wrap gap-1.5 pt-1">
+                                  <span className="text-[10px] text-slate-500 uppercase font-bold mr-1 self-center">
+                                    Sugeridos:
+                                  </span>
+                                  {AVAILABLE_ALTERNATIVE_AGENTS.slice(0, 10).map((sug) => {
+                                    const isSugDup = Boolean(findDuplicateAgentInOrder(sug));
+                                    return (
+                                      <button
+                                        key={sug}
+                                        type="button"
+                                        disabled={isSugDup}
+                                        onClick={() => {
+                                          if (!isSugDup) {
+                                            setNewAgentInputByProfile((prev) => ({
+                                              ...prev,
+                                              [profile.id]: sug,
+                                            }));
+                                          }
+                                        }}
+                                        title={isSugDup ? `"${sug}" ya se encuentra incluido en la orden` : `Seleccionar ${sug}`}
+                                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                                          isSugDup
+                                            ? 'bg-slate-100 text-slate-400 border border-slate-200 line-through cursor-not-allowed opacity-60'
+                                            : 'bg-white border border-slate-200 text-slate-700 hover:border-[#6F2BCC] hover:text-[#6F2BCC] cursor-pointer shadow-2xs'
+                                        }`}
+                                      >
+                                        <span>+ {sug}</span>
+                                        {isSugDup && <span className="no-underline text-[9px] text-rose-600 font-bold ml-1">(Ya en orden)</span>}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
                               </div>
-                            </div>
-                          ) : (
+                            );
+                          })() : (
                             <button
                               type="button"
                               onClick={() =>

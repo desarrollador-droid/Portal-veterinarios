@@ -564,9 +564,13 @@ export const patientService = {
         load: 'En análisis de laboratorio',
       }));
     } else if (examData.profiles && Array.isArray(examData.profiles)) {
+      const seenNames = new Set();
       examData.profiles.forEach((p) => {
         if (p.agents && Array.isArray(p.agents)) {
           p.agents.forEach((agentName) => {
+            const cleanNorm = (agentName || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[.,;:()]/g, '').trim();
+            if (!cleanNorm || seenNames.has(cleanNorm)) return;
+            seenNames.add(cleanNorm);
             examAgents.push({
               name: agentName,
               isPositive: false,
