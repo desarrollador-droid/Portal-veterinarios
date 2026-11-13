@@ -11,7 +11,7 @@ import {
  * Basado en la Base de Datos Biomédica y Epidemiológica (Excel).
  * Grupos: HEPATOZOON, RICKETTSIALES, HAEMOPLASMAS, APICOMPLEXOS, NEMÁTODOS, LEPTOSPIRA
  */
-export default function CatalogView() {
+export default function CatalogView({ onNavigateToRequestExam }) {
   const [activeTab, setActiveTab] = useState('perfiles'); // 'perfiles' | 'agentes'
   const [speciesFilter, setSpeciesFilter] = useState('all'); // 'all' | 'canino' | 'felino' | 'ambas'
   const [syndromeFilter, setSyndromeFilter] = useState('all'); // 'all' | 'Hemotrópico/Sistémico' | ...
@@ -164,28 +164,41 @@ export default function CatalogView() {
           </p>
         </div>
 
-        {/* Pestañas: Perfiles qPCR vs Agentes Infecciosos */}
-        <div className="flex rounded-xl bg-slate-200/70 p-1 border border-slate-300/80 text-xs font-bold self-start sm:self-auto">
-          <button
-            onClick={() => setActiveTab('perfiles')}
-            className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
-              activeTab === 'perfiles'
-                ? 'bg-[#6F2BCC] text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            📋 Perfiles qPCR ({LOCAL_QPCR_PROFILES_MASTER.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('agentes')}
-            className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
-              activeTab === 'agentes'
-                ? 'bg-[#6F2BCC] text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            🧬 Base de Patógenos ({LOCAL_INFECTIOUS_AGENTS_DB.length})
-          </button>
+        {/* Botón Solicitar qPCR y Pestañas */}
+        <div className="flex items-center gap-3 flex-wrap self-start sm:self-auto">
+          {onNavigateToRequestExam && (
+            <button
+              onClick={() => onNavigateToRequestExam()}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#2B017C] to-[#6F2BCC] hover:from-[#240068] hover:to-[#5e22b0] text-white font-extrabold text-xs shadow-md shadow-[#6F2BCC]/30 hover:scale-[1.02] transition-all cursor-pointer"
+            >
+              <span>🧬</span>
+              <span>Solicitar qPCR</span>
+            </button>
+          )}
+
+          {/* Pestañas: Perfiles qPCR vs Agentes Infecciosos */}
+          <div className="flex rounded-xl bg-slate-200/70 p-1 border border-slate-300/80 text-xs font-bold">
+            <button
+              onClick={() => setActiveTab('perfiles')}
+              className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                activeTab === 'perfiles'
+                  ? 'bg-[#6F2BCC] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              📋 Perfiles qPCR ({LOCAL_QPCR_PROFILES_MASTER.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('agentes')}
+              className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                activeTab === 'agentes'
+                  ? 'bg-[#6F2BCC] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              🧬 Base de Patógenos ({LOCAL_INFECTIOUS_AGENTS_DB.length})
+            </button>
+          </div>
         </div>
       </div>
 
@@ -572,7 +585,7 @@ export default function CatalogView() {
                   </div>
 
                   {/* Pie de tarjeta con precio e información de entrega */}
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
                         Precio de referencia
@@ -582,9 +595,19 @@ export default function CatalogView() {
                       </span>
                     </div>
 
-                    <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                      ⏱ Entrega en 24h
-                    </span>
+                    <div className="flex items-center gap-2 self-end sm:self-auto">
+                      <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full">
+                        ⏱ Entrega en 24h
+                      </span>
+                      {onNavigateToRequestExam && (
+                        <button
+                          onClick={() => onNavigateToRequestExam(profile)}
+                          className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#2B017C] to-[#6F2BCC] hover:from-[#240068] hover:to-[#5e22b0] text-white text-xs font-bold shadow-xs hover:scale-[1.02] transition-all cursor-pointer flex items-center gap-1.5"
+                        >
+                          <span>🧬</span> Solicitar qPCR
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

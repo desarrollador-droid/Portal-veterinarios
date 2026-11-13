@@ -26,32 +26,30 @@ export default function MicrobiotaOrderForm({
 
   // Información general
   const [kitNameOrBusiness, setKitNameOrBusiness] = useState(
-    activePatient?.owner?.name ? `${activePatient.owner.name}` : 'Clínica Veterinaria On Site Diagnostic'
+    activePatient?.owner?.name ? `${activePatient.owner.name}` : ''
   );
-  const [kitDocId, setKitDocId] = useState('901458789'); // NIT o documento (Sin dígito de verificación)
-  const [kitCity, setKitCity] = useState(activePatient?.owner?.city || 'Bogotá');
+  const [kitDocId, setKitDocId] = useState(''); // NIT o documento (Sin dígito de verificación)
+  const [kitCity, setKitCity] = useState(activePatient?.owner?.city || '');
   const [kitShippingAddress, setKitShippingAddress] = useState(
-    activePatient?.owner?.address || 'Cra 80 # 45-12, Bogotá'
+    activePatient?.owner?.address || ''
   );
-  const [kitPhone, setKitPhone] = useState(activePatient?.owner?.phone || '310 456 7890');
+  const [kitPhone, setKitPhone] = useState(activePatient?.owner?.phone || '');
   const [kitReportEmail, setKitReportEmail] = useState(
-    activePatient?.owner?.email || 'resultados.microbiota@osdiagnostic.com'
+    activePatient?.owner?.email || ''
   );
-  const [kitBillingEmail, setKitBillingEmail] = useState('facturacion@osdiagnostic.com');
+  const [kitBillingEmail, setKitBillingEmail] = useState('');
 
   // Información de la mascota
   const [kitPetName, setKitPetName] = useState(activePatient?.name || '');
-  const [kitPetSpecies, setKitPetSpecies] = useState(
-    activePatient?.species === 'Felino' ? 'Felino' : 'Canino'
-  );
+  const [kitPetSpecies, setKitPetSpecies] = useState(activePatient?.species || '');
 
   // Recuerda que este formulario es para la solicitud de prueba de microbiota:
   // "Si, es la prueba de microbiota lo que necesito"
-  const [isMicrobiotaConfirmed, setIsMicrobiotaConfirmed] = useState(true);
+  const [isMicrobiotaConfirmed, setIsMicrobiotaConfirmed] = useState(false);
 
   // ¿Cuenta con acuerdo de pago? Recuerda que los acuerdos de pago solo aplica para veterinarios:
   // 'Sí' | 'No'
-  const [hasPaymentAgreement, setHasPaymentAgreement] = useState('Sí');
+  const [hasPaymentAgreement, setHasPaymentAgreement] = useState('');
 
   // Cantidad de kits (opcional, default 1) e instrucciones de entrega
   const [kitQuantity, setKitQuantity] = useState(1);
@@ -61,99 +59,101 @@ export default function MicrobiotaOrderForm({
   // 2. ESTADOS PARA RECOLECCIÓN Y LOGÍSTICA
   // ============================================================================
   const [userRole, setUserRole] = useState('Médico veterinario'); // 'Médico veterinario' | 'Propietario de mascota'
-  const [clinicName, setClinicName] = useState('VetLab / On Site Diagnostic Sede Principal');
-  const [clinicNit, setClinicNit] = useState('901.458.789-2');
-  const [attendingVet, setAttendingVet] = useState(activePatient?.attendingVet || 'Dr. Alejandro Morales');
+  const [clinicName, setClinicName] = useState('');
+  const [clinicNit, setClinicNit] = useState('');
+  const [attendingVet, setAttendingVet] = useState(activePatient?.attendingVet || '');
   const [ownerName, setOwnerName] = useState(activePatient?.owner?.name || '');
-  const [city, setCity] = useState(activePatient?.owner?.city || 'Bogotá');
+  const [city, setCity] = useState(activePatient?.owner?.city || '');
   const [collectionAddress, setCollectionAddress] = useState(
-    activePatient?.owner?.address || 'Cra 80 # 45-12, Bogotá'
+    activePatient?.owner?.address || ''
   );
-  const [contactPhone, setContactPhone] = useState(activePatient?.owner?.phone || '310 456 7890');
+  const [contactPhone, setContactPhone] = useState(activePatient?.owner?.phone || '');
   const [reportEmail, setReportEmail] = useState(
-    activePatient?.owner?.email || 'resultados.microbiota@osdiagnostic.com'
+    activePatient?.owner?.email || ''
   );
-  const [billingEmail, setBillingEmail] = useState('facturacion@osdiagnostic.com');
+  const [billingEmail, setBillingEmail] = useState('');
   const [sampleDate, setSampleDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [collectionDate, setCollectionDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [collectionDate, setCollectionDate] = useState('');
   const [collectionNotes, setCollectionNotes] = useState('');
 
   // ============================================================================
   // 3. ESTADOS INFORMACIÓN DE LA MASCOTA & CONDICIÓN CORPORAL (Escala 1 al 9)
   // ============================================================================
   const [petName, setPetName] = useState(activePatient?.name || '');
-  const [petSpecies, setPetSpecies] = useState(activePatient?.species || 'Canino');
+  const [petSpecies, setPetSpecies] = useState(activePatient?.species || '');
   const [petBreed, setPetBreed] = useState(activePatient?.breed || '');
-  const [petAgeMonths, setPetAgeMonths] = useState(36);
-  const [petSex, setPetSex] = useState(activePatient?.sex || 'Macho');
+  const [petAgeMonths, setPetAgeMonths] = useState(
+    activePatient?.ageMonths || activePatient?.age || ''
+  );
+  const [petSex, setPetSex] = useState(activePatient?.sex || '');
   const [petWeight, setPetWeight] = useState(
-    activePatient?.weight ? parseFloat(activePatient.weight) || 12 : 12
+    activePatient?.weight ? parseFloat(activePatient.weight) || '' : ''
   );
   const [isSterilized, setIsSterilized] = useState(
-    activePatient?.isSterilized !== undefined ? (activePatient.isSterilized ? 'Sí' : 'No') : 'Sí'
+    activePatient?.isSterilized !== undefined ? (activePatient.isSterilized ? 'Sí' : 'No') : ''
   );
-  const [bodyScore, setBodyScore] = useState(5); // 1 a 9
+  const [bodyScore, setBodyScore] = useState(null); // 1 a 9
 
   // ============================================================================
   // 4. ESTADOS DIETA Y NUTRICIÓN
   // ============================================================================
-  const [dietTypes, setDietTypes] = useState(['Concentrado comercial']);
-  const [mainDietCategory, setMainDietCategory] = useState('Comercial'); // 'Comercial' | 'Casera'
+  const [dietTypes, setDietTypes] = useState([]);
+  const [mainDietCategory, setMainDietCategory] = useState(''); // 'Comercial' | 'Casera'
   // Dieta Comercial
-  const [commercialForm, setCommercialForm] = useState('Comida seca');
-  const [commercialBrand, setCommercialBrand] = useState('Royal Canin Gastrointestinal');
-  const [commercialFlavor, setCommercialFlavor] = useState('Pollo y Arroz');
-  const [commercialGramsDay, setCommercialGramsDay] = useState(250);
-  const [commercialPortionsDay, setCommercialPortionsDay] = useState('2');
+  const [commercialForm, setCommercialForm] = useState('');
+  const [commercialBrand, setCommercialBrand] = useState('');
+  const [commercialFlavor, setCommercialFlavor] = useState('');
+  const [commercialGramsDay, setCommercialGramsDay] = useState('');
+  const [commercialPortionsDay, setCommercialPortionsDay] = useState('');
   // Dieta Casera
   const [homemadeIngredients, setHomemadeIngredients] = useState('');
   const [homemadeGramsDay, setHomemadeGramsDay] = useState('');
-  const [homemadePortionsDay, setHomemadePortionsDay] = useState('2');
+  const [homemadePortionsDay, setHomemadePortionsDay] = useState('');
   // Cambios de dieta
-  const [hasDietChange3Weeks, setHasDietChange3Weeks] = useState('No');
+  const [hasDietChange3Weeks, setHasDietChange3Weeks] = useState('');
   const [dietChangeDetails, setDietChangeDetails] = useState('');
-  const [dietDurationTime, setDietDurationTime] = useState('Más de 6 meses');
-  const [dietChangeFrequency, setDietChangeFrequency] = useState('Nunca la ha cambiado');
+  const [dietDurationTime, setDietDurationTime] = useState('');
+  const [dietChangeFrequency, setDietChangeFrequency] = useState('');
   // Hábitos alimenticios
-  const [foodMeasuringMethod, setFoodMeasuringMethod] = useState('Con gramera');
-  const [feedingStyle, setFeedingStyle] = useState('Porciones medidas y se retira el sobrante de alimento');
-  const [feederPeople, setFeederPeople] = useState(['Adultos']);
-  const [givesTreats, setGivesTreats] = useState('No');
+  const [foodMeasuringMethod, setFoodMeasuringMethod] = useState('');
+  const [feedingStyle, setFeedingStyle] = useState('');
+  const [feederPeople, setFeederPeople] = useState([]);
+  const [givesTreats, setGivesTreats] = useState('');
   const [treatsDetails, setTreatsDetails] = useState('');
   const [treatsGramsDay, setTreatsGramsDay] = useState('');
   const [oralMedsWithFood, setOralMedsWithFood] = useState('');
-  const [eatsNonEdible, setEatsNonEdible] = useState('No');
-  const [givesMilk, setGivesMilk] = useState('No');
-  const [givesFreshWaterDaily, setGivesFreshWaterDaily] = useState('Sí');
-  const [waterChangeFrequency, setWaterChangeFrequency] = useState('Todos los días');
-  const [coprophagy, setCoprophagy] = useState('No');
+  const [eatsNonEdible, setEatsNonEdible] = useState('');
+  const [givesMilk, setGivesMilk] = useState('');
+  const [givesFreshWaterDaily, setGivesFreshWaterDaily] = useState('');
+  const [waterChangeFrequency, setWaterChangeFrequency] = useState('');
+  const [coprophagy, setCoprophagy] = useState('');
   const [coprophagyFrequency, setCoprophagyFrequency] = useState('');
-  const [garbageScavenging, setGarbageScavenging] = useState('No');
+  const [garbageScavenging, setGarbageScavenging] = useState('');
   const [dietComments, setDietComments] = useState('');
 
   // ============================================================================
   // 5. ESTADOS ESTILO DE VIDA Y SALUD
   // ============================================================================
-  const [livingEnvironment, setLivingEnvironment] = useState('Urbano');
-  const [hasOtherPets, setHasOtherPets] = useState('No');
+  const [livingEnvironment, setLivingEnvironment] = useState('');
+  const [hasOtherPets, setHasOtherPets] = useState('');
   const [otherPetsDetails, setOtherPetsDetails] = useState('');
-  const [doesPhysicalActivity, setDoesPhysicalActivity] = useState('Sí');
-  const [activityType, setActivityType] = useState('Caminatas');
-  const [activityLevel, setActivityLevel] = useState('Moderado');
-  const [activityFrequency, setActivityFrequency] = useState('Diario');
-  const [outdoorAccess, setOutdoorAccess] = useState('Sí');
-  const [outdoorAccessFrequency, setOutdoorAccessFrequency] = useState('Diario');
-  const [hasPastIllness, setHasPastIllness] = useState('No');
+  const [doesPhysicalActivity, setDoesPhysicalActivity] = useState('');
+  const [activityType, setActivityType] = useState('');
+  const [activityLevel, setActivityLevel] = useState('');
+  const [activityFrequency, setActivityFrequency] = useState('');
+  const [outdoorAccess, setOutdoorAccess] = useState('');
+  const [outdoorAccessFrequency, setOutdoorAccessFrequency] = useState('');
+  const [hasPastIllness, setHasPastIllness] = useState('');
   const [pastIllnessDetails, setPastIllnessDetails] = useState('');
-  const [vomitOrDiarrhea3Weeks, setVomitOrDiarrhea3Weeks] = useState('Ninguna');
+  const [vomitOrDiarrhea3Weeks, setVomitOrDiarrhea3Weeks] = useState('');
   const [vomitDiarrheaDetails, setVomitDiarrheaDetails] = useState('');
-  const [medsLast3Weeks, setMedsLast3Weeks] = useState('No');
+  const [medsLast3Weeks, setMedsLast3Weeks] = useState('');
   const [medsName, setMedsName] = useState('');
   const [medsDose, setMedsDose] = useState('');
   const [medsDuration, setMedsDuration] = useState('');
-  const [weightChange3Weeks, setWeightChange3Weeks] = useState('No');
-  const [appetiteChange3Weeks, setAppetiteChange3Weeks] = useState('No');
-  const [recentTravel, setRecentTravel] = useState('No');
+  const [weightChange3Weeks, setWeightChange3Weeks] = useState('');
+  const [appetiteChange3Weeks, setAppetiteChange3Weeks] = useState('');
+  const [recentTravel, setRecentTravel] = useState('');
   const [recentTravelDetails, setRecentTravelDetails] = useState('');
   const [lifestyleComments, setLifestyleComments] = useState('');
 
@@ -166,7 +166,7 @@ export default function MicrobiotaOrderForm({
     if (activePatient) {
       // Sincronizar en formulario de Kit de Microbiota
       setKitPetName(activePatient.name || '');
-      setKitPetSpecies(activePatient.species === 'Felino' ? 'Felino' : 'Canino');
+      setKitPetSpecies(activePatient.species || '');
       if (activePatient.owner) {
         if (kitUserRole === 'Propietario de mascota' && activePatient.owner.name) {
           setKitNameOrBusiness(activePatient.owner.name);
@@ -182,12 +182,15 @@ export default function MicrobiotaOrderForm({
 
       // Sincronizar en formulario de Recolección
       setPetName(activePatient.name || '');
-      setPetSpecies(activePatient.species || 'Canino');
+      setPetSpecies(activePatient.species || '');
       setPetBreed(activePatient.breed || '');
-      setPetSex(activePatient.sex || 'Macho');
+      setPetSex(activePatient.sex || '');
+      if (activePatient.ageMonths || activePatient.age) {
+        setPetAgeMonths(activePatient.ageMonths || activePatient.age || '');
+      }
       if (activePatient.weight) {
         const parsedW = parseFloat(activePatient.weight);
-        if (!isNaN(parsedW)) setPetWeight(parsedW);
+        setPetWeight(!isNaN(parsedW) ? parsedW : '');
       }
       if (activePatient.isSterilized !== undefined) {
         setIsSterilized(activePatient.isSterilized ? 'Sí' : 'No');
@@ -205,6 +208,23 @@ export default function MicrobiotaOrderForm({
       if (activePatient.attendingVet) {
         setAttendingVet(activePatient.attendingVet);
       }
+    } else {
+      // Si se deselecciona o no hay paciente, limpiar datos dependientes
+      setKitPetName('');
+      setKitPetSpecies('');
+      setPetName('');
+      setPetSpecies('');
+      setPetBreed('');
+      setPetSex('');
+      setPetAgeMonths('');
+      setPetWeight('');
+      setIsSterilized('');
+      setOwnerName('');
+      setContactPhone('');
+      setReportEmail('');
+      setBillingEmail('');
+      setCity('');
+      setCollectionAddress('');
     }
   }, [activePatient]);
 
@@ -1305,6 +1325,7 @@ export default function MicrobiotaOrderForm({
                     onChange={(e) => setPetSpecies(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   >
+                    <option value="">Seleccione especie...</option>
                     <option value="Canino">Canino (Perro)</option>
                     <option value="Felino">Felino (Gato)</option>
                     <option value="Otro">Otro</option>
@@ -1328,7 +1349,8 @@ export default function MicrobiotaOrderForm({
                     type="number"
                     min={1}
                     value={petAgeMonths}
-                    onChange={(e) => setPetAgeMonths(parseInt(e.target.value) || 1)}
+                    onChange={(e) => setPetAgeMonths(e.target.value ? parseInt(e.target.value) || '' : '')}
+                    placeholder="Ej. 36"
                     className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
@@ -1340,6 +1362,7 @@ export default function MicrobiotaOrderForm({
                     onChange={(e) => setPetSex(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   >
+                    <option value="">Seleccione sexo...</option>
                     <option value="Hembra">Hembra</option>
                     <option value="Macho">Macho</option>
                   </select>
@@ -1390,12 +1413,13 @@ export default function MicrobiotaOrderForm({
                   <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs">
                     <span className="text-xs text-slate-500 font-bold">Puntaje seleccionado:</span>
                     <span className={`text-sm font-black px-2 py-0.5 rounded-lg ${
+                      !bodyScore ? 'bg-slate-100 text-slate-500 border border-slate-200' :
                       bodyScore <= 3 ? 'bg-amber-100 text-amber-900 border border-amber-300' :
                       bodyScore === 5 ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' :
                       bodyScore >= 7 ? 'bg-purple-100 text-purple-900 border border-purple-300' :
                       'bg-slate-100 text-slate-900 border border-slate-300'
                     }`}>
-                      {bodyScore} / 9
+                      {bodyScore ? `${bodyScore} / 9` : 'Sin seleccionar'}
                     </span>
                   </div>
                 </div>
@@ -1531,6 +1555,7 @@ export default function MicrobiotaOrderForm({
                       onChange={(e) => setCommercialForm(e.target.value)}
                       className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     >
+                      <option value="">Seleccione presentación...</option>
                       <option value="Comida seca">Comida seca (Croquetas / Concentrado)</option>
                       <option value="Comida enlatada">Comida enlatada / Húmeda</option>
                       <option value="Mezcla">Mezcla (Seca + Húmeda)</option>
@@ -1567,7 +1592,7 @@ export default function MicrobiotaOrderForm({
                         type="number"
                         min={0}
                         value={commercialGramsDay}
-                        onChange={(e) => setCommercialGramsDay(parseInt(e.target.value) || 0)}
+                        onChange={(e) => setCommercialGramsDay(e.target.value ? parseInt(e.target.value) || '' : '')}
                         placeholder="Ej. 250"
                         className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                       />
@@ -1579,6 +1604,7 @@ export default function MicrobiotaOrderForm({
                         onChange={(e) => setCommercialPortionsDay(e.target.value)}
                         className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                       >
+                        <option value="">Seleccione raciones...</option>
                         <option value="1">1 ración</option>
                         <option value="2">2 raciones</option>
                         <option value="3">3 raciones</option>
@@ -1626,6 +1652,7 @@ export default function MicrobiotaOrderForm({
                         onChange={(e) => setHomemadePortionsDay(e.target.value)}
                         className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                       >
+                        <option value="">Seleccione raciones...</option>
                         <option value="1">1 ración</option>
                         <option value="2">2 raciones</option>
                         <option value="3">3 raciones</option>
@@ -1697,6 +1724,7 @@ export default function MicrobiotaOrderForm({
                       onChange={(e) => setDietChangeFrequency(e.target.value)}
                       className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     >
+                      <option value="">Seleccione frecuencia de cambio...</option>
                       <option value="Nunca la ha cambiado">Nunca la ha cambiado</option>
                       <option value="1 vez">1 vez</option>
                       <option value="2 veces">2 veces</option>
@@ -1722,6 +1750,7 @@ export default function MicrobiotaOrderForm({
                       onChange={(e) => setFoodMeasuringMethod(e.target.value)}
                       className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     >
+                      <option value="">Seleccione método de medición...</option>
                       <option value="Con gramera">Con gramera (Preciso en peso)</option>
                       <option value="Tazas medidoras">Tazas medidoras del fabricante</option>
                       <option value="Cocas u otros utensilios">Cocas u otros recipientes caseros</option>
@@ -1736,6 +1765,7 @@ export default function MicrobiotaOrderForm({
                       onChange={(e) => setFeedingStyle(e.target.value)}
                       className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     >
+                      <option value="">Seleccione modalidad...</option>
                       <option value="Porciones medidas y se retira el sobrante de alimento">
                         Porciones medidas y se retira el sobrante
                       </option>
@@ -1886,6 +1916,7 @@ export default function MicrobiotaOrderForm({
                       onChange={(e) => setWaterChangeFrequency(e.target.value)}
                       className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     >
+                      <option value="">Seleccione frecuencia...</option>
                       <option value="Todos los días">Todos los días</option>
                       <option value="Cada 2 días">Cada 2 días</option>
                       <option value="Cada 3 días">Cada 3 días</option>
@@ -1987,6 +2018,7 @@ export default function MicrobiotaOrderForm({
                     onChange={(e) => setLivingEnvironment(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   >
+                    <option value="">Seleccione entorno...</option>
                     <option value="Urbano">Urbano (Apartamento / Casa en ciudad)</option>
                     <option value="Suburbano">Suburbano (Afueras de la ciudad)</option>
                     <option value="Rural">Rural (Finca / Campo)</option>
@@ -2053,6 +2085,7 @@ export default function MicrobiotaOrderForm({
                           onChange={(e) => setActivityType(e.target.value)}
                           className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium"
                         >
+                          <option value="">Seleccione tipo...</option>
                           <option value="Caminatas">Caminatas</option>
                           <option value="Juegos de lanzamiento y búsqueda (pelotas)">Lanzamiento / Búsqueda de pelotas</option>
                           <option value="Juegos de caza / perseguir objetos">Juegos de caza / Juguetes</option>
@@ -2068,6 +2101,7 @@ export default function MicrobiotaOrderForm({
                           onChange={(e) => setActivityLevel(e.target.value)}
                           className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium"
                         >
+                          <option value="">Seleccione nivel...</option>
                           <option value="Suave">Suave</option>
                           <option value="Moderado">Moderado</option>
                           <option value="Intenso">Intenso</option>
@@ -2081,6 +2115,7 @@ export default function MicrobiotaOrderForm({
                           onChange={(e) => setActivityFrequency(e.target.value)}
                           className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium"
                         >
+                          <option value="">Seleccione frecuencia...</option>
                           <option value="Diario">Diario</option>
                           <option value="5 veces a la semana">5 veces a la semana</option>
                           <option value="3 veces a la semana">3 veces a la semana</option>
@@ -2118,6 +2153,7 @@ export default function MicrobiotaOrderForm({
                     onChange={(e) => setOutdoorAccessFrequency(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
                   >
+                    <option value="">Seleccione frecuencia...</option>
                     <option value="Diario">Diario</option>
                     <option value="5 veces a la semana">5 veces a la semana</option>
                     <option value="3 veces a la semana">3 veces a la semana</option>

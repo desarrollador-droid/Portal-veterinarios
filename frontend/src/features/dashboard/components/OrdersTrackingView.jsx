@@ -248,146 +248,181 @@ export default function OrdersTrackingView({
         </button>
       </div>
 
-      {/* Panel Integral de Búsqueda y Filtros de Estado y Fecha */}
-      <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm space-y-4">
-        {/* Fila 1: Búsqueda y Resumen */}
+      {/* Panel Integral de Búsqueda y Filtros de Estado y Fecha con Espaciado Generoso y Elegante */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-sm space-y-5">
+        {/* Fila 1: Barra de Búsqueda Principal con Contador y Limpiador */}
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-          <div className="flex-1 flex items-center gap-3 px-4 py-2.5 bg-slate-50 rounded-2xl border border-slate-200 focus-within:border-[#6F2BCC] focus-within:bg-white transition-all">
-            <span className="text-slate-400 text-sm">🔍</span>
+          <div className="flex-1 flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-2xl border border-slate-200 focus-within:border-[#6F2BCC] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#6F2BCC]/20 transition-all">
+            <span className="text-slate-400 text-base">🔍</span>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por código de orden (ORD-2026-...) o nombre de paciente..."
-              className="w-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none font-medium bg-transparent"
+              placeholder="Buscar por código de orden (ej. ORD-2026-...) o nombre del paciente..."
+              className="w-full text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none font-medium bg-transparent"
             />
             {searchTerm && (
               <button
                 type="button"
                 onClick={() => setSearchTerm('')}
-                className="text-xs text-slate-400 hover:text-slate-600 font-bold px-1.5 py-0.5"
+                className="text-xs text-slate-400 hover:text-slate-600 font-bold px-2 py-1 rounded-lg hover:bg-slate-200/60 transition-colors"
+                title="Limpiar búsqueda"
               >
                 ✕
               </button>
             )}
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="px-3 py-1.5 rounded-xl bg-purple-50 text-[#6F2BCC] font-bold text-xs border border-purple-200">
+          <div className="flex items-center gap-2.5 shrink-0 self-end md:self-auto">
+            <span className="px-3.5 py-2 rounded-xl bg-purple-50 text-[#6F2BCC] font-bold text-xs border border-purple-200 shadow-2xs">
               Mostrando {filteredOrders.length} de {allOrders.length} órdenes
             </span>
             {hasActiveFilters && (
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer flex items-center gap-1.5"
+                title="Restablecer todos los filtros"
               >
-                ✕ Limpiar Filtros
+                <span>✕</span> Limpiar Filtros
               </button>
             )}
           </div>
         </div>
 
-        {/* Fila 2: Filtros por Estado de la Muestra y por Fecha */}
-        <div className="pt-3 border-t border-slate-100 grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
-          {/* Filtro por Estado de la Muestra */}
-          <div className="lg:col-span-7 space-y-1.5">
-            <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 block">
-              Filtrar por Estado de la Muestra:
+        {/* Fila 2: Filtro por Estado de la Muestra (Fila Completa, Sin Apreturas) */}
+        <div className="pt-3 border-t border-slate-100 space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+              <span>🧬</span> Filtrar por Estado de la Muestra:
             </label>
-            <div className="flex flex-wrap gap-1.5">
-              {SAMPLE_STATUS_OPTIONS.map((opt) => {
-                const isActive = statusFilter === opt.value;
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setStatusFilter(opt.value)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                      isActive
-                        ? 'bg-[#2B017C] text-white shadow-xs'
-                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
-                    }`}
-                  >
-                    <span>{opt.icon}</span>
-                    <span>{opt.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+            {statusFilter !== 'all' && (
+              <button
+                type="button"
+                onClick={() => setStatusFilter('all')}
+                className="text-[11px] text-[#6F2BCC] font-bold hover:underline cursor-pointer"
+              >
+                Ver todos los estados
+              </button>
+            )}
           </div>
 
-          {/* Filtro por Fecha */}
-          <div className="lg:col-span-5 space-y-1.5">
-            <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 block">
-              Filtrar por Fecha de la Orden:
-            </label>
-            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
-              {/* Presets rápidos */}
-              <div className="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200 text-xs shrink-0">
+          <div className="flex flex-wrap gap-2">
+            {SAMPLE_STATUS_OPTIONS.map((opt) => {
+              const isActive = statusFilter === opt.value;
+              return (
                 <button
+                  key={opt.value}
                   type="button"
-                  onClick={() => {
-                    setDatePreset('all');
-                    setDateFilter('');
-                  }}
-                  className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                    datePreset === 'all' && !dateFilter ? 'bg-white text-[#2B017C] shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  onClick={() => setStatusFilter(opt.value)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                    isActive
+                      ? 'bg-[#2B017C] text-white shadow-md shadow-[#2B017C]/20 scale-[1.02]'
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300'
                   }`}
                 >
-                  Todas
+                  <span className="text-sm">{opt.icon}</span>
+                  <span>{opt.label}</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDatePreset('today');
-                    setDateFilter('');
-                  }}
-                  className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                    datePreset === 'today' ? 'bg-white text-[#2B017C] shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Hoy
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDatePreset('7days');
-                    setDateFilter('');
-                  }}
-                  className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                    datePreset === '7days' ? 'bg-white text-[#2B017C] shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  7 días
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDatePreset('30days');
-                    setDateFilter('');
-                  }}
-                  className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                    datePreset === '30days' ? 'bg-white text-[#2B017C] shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  30 días
-                </button>
-              </div>
+              );
+            })}
+          </div>
+        </div>
 
-              {/* Selector de Fecha Específica */}
-              <div className="relative flex-1 min-w-[140px]">
-                <input
-                  type="date"
-                  value={dateFilter}
-                  onChange={(e) => {
-                    setDateFilter(e.target.value);
-                    setDatePreset('custom');
+        {/* Fila 3: Filtro por Fecha de la Orden (Fila Completa con Presets y Date Picker) */}
+        <div className="pt-3 border-t border-slate-100 space-y-2">
+          <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+            <span>📅</span> Filtrar por Fecha de la Orden:
+          </label>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Presets de rango temporal */}
+            <div className="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200 text-xs shrink-0 gap-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setDatePreset('all');
+                  setDateFilter('');
+                }}
+                className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+                  datePreset === 'all' && !dateFilter
+                    ? 'bg-white text-[#2B017C] shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Todas las fechas
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDatePreset('today');
+                  setDateFilter('');
+                }}
+                className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+                  datePreset === 'today'
+                    ? 'bg-white text-[#2B017C] shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Hoy
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDatePreset('7days');
+                  setDateFilter('');
+                }}
+                className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+                  datePreset === '7days'
+                    ? 'bg-white text-[#2B017C] shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Últimos 7 días
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDatePreset('30days');
+                  setDateFilter('');
+                }}
+                className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+                  datePreset === '30days'
+                    ? 'bg-white text-[#2B017C] shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Últimos 30 días
+              </button>
+            </div>
+
+            <span className="text-xs text-slate-400 font-semibold hidden sm:inline">o fecha específica:</span>
+
+            {/* Input Date Picker Específico */}
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => {
+                  setDateFilter(e.target.value);
+                  setDatePreset('custom');
+                }}
+                className="px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#6F2BCC] focus:bg-white outline-none cursor-pointer"
+                title="Seleccionar fecha exacta en calendario"
+              />
+              {dateFilter && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDateFilter('');
+                    setDatePreset('all');
                   }}
-                  className="w-full px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-800 font-medium focus:ring-1 focus:ring-[#6F2BCC] focus:bg-white outline-none cursor-pointer"
-                  title="Seleccionar fecha específica"
-                />
-              </div>
+                  className="text-xs text-slate-400 hover:text-slate-700 font-bold px-1.5 py-1 rounded hover:bg-slate-100"
+                  title="Quitar fecha específica"
+                >
+                  ✕
+                </button>
+              )}
             </div>
           </div>
         </div>

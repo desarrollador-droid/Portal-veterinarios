@@ -8,6 +8,7 @@ export default function RegisterVeterinarianForm({ onBackToLogin }) {
 
   // Estados del formulario
   const [formData, setFormData] = useState({
+    clinicNit: '',
     clinicId: '',
     sedeId: '',
     nombre: '',
@@ -40,13 +41,6 @@ export default function RegisterVeterinarianForm({ onBackToLogin }) {
       const res = await clinicApi.getClinics();
       const list = Array.isArray(res) ? res : (res?.data || []);
       setClinics(list);
-      if (list.length > 0 && !formData.clinicId) {
-        setFormData((prev) => ({
-          ...prev,
-          clinicId: list[0].id,
-          sedeId: list[0].sedes?.[0]?.id || '',
-        }));
-      }
     } catch (_) {
       setGeneralError('No se pudieron cargar las clínicas veterinarias disponibles.');
     } finally {
@@ -54,19 +48,30 @@ export default function RegisterVeterinarianForm({ onBackToLogin }) {
     }
   };
 
-  const selectedClinic = clinics.find((c) => c.id === formData.clinicId) || clinics[0];
+  const cleanNumber = (v) => (v ? String(v).replace(/[^0-9]/g, '').trim() : '');
 
-  const handleClinicChange = (e) => {
-    const cId = e.target.value;
-    const cl = clinics.find((c) => c.id === cId);
+  const matchedClinic = clinics.find((c) => {
+    const qClean = cleanNumber(formData.clinicNit);
+    if (!qClean || qClean.length < 5) return false;
+    return cleanNumber(c.nit) === qClean || cleanNumber(c.cedula) === qClean;
+  }) || null;
+
+  const handleNitChange = (e) => {
+    const raw = e.target.value;
+    const clean = cleanNumber(raw);
+    const matched = clean.length >= 5 ? clinics.find((c) => cleanNumber(c.nit) === clean || cleanNumber(c.cedula) === clean) : null;
+
     setFormData((prev) => ({
       ...prev,
-      clinicId: cId,
-      sedeId: cl?.sedes?.[0]?.id || '',
+      clinicNit: raw,
+      clinicId: matched ? matched.id : '',
+      sedeId: matched?.sedes?.[0]?.id || '',
     }));
-    if (validationErrors.clinicId) {
-      setValidationErrors((prev) => ({ ...prev, clinicId: false }));
+
+    if (validationErrors.clinicNit) {
+      setValidationErrors((prev) => ({ ...prev, clinicNit: false }));
     }
+    if (generalError) setGeneralError('');
   };
 
   const handleChange = (field, value) => {
@@ -82,7 +87,7 @@ export default function RegisterVeterinarianForm({ onBackToLogin }) {
     setGeneralError('');
 
     const errors = {};
-    if (!formData.clinicId) errors.clinicId = true;
+    if (!formData.clinicNit.trim() || !matchedClinic) errors.clinicNit = true;
     if (!formData.nombre.trim()) errors.nombre = true;
     if (!formData.cedula.trim()) errors.cedula = true;
     if (!formData.tarjetaProfesional.trim()) errors.tarjetaProfesional = true;
@@ -94,7 +99,9 @@ export default function RegisterVeterinarianForm({ onBackToLogin }) {
 
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
-      if (errors.confirmPassword) {
+      if (errors.clinicNit) {
+        setGeneralError('Debes ingresar el NIT válido de una clínica veterinaria registrada.');
+      } else if (errors.confirmPassword) {
         setGeneralError('Las contraseñas no coinciden. Por favor verifica.');
       } else if (errors.password) {
         setGeneralError('La contraseña debe tener mínimo 6 caracteres.');
@@ -108,7 +115,7 @@ export default function RegisterVeterinarianForm({ onBackToLogin }) {
 
     setIsSubmitting(true);
     try {
-      const targetClinic = clinics.find((c) => c.id === formData.clinicId);
+      const targetClinic = matchedClinic;
       const selectedSede = targetClinic?.sedes?.find((s) => s.id === formData.sedeId) || targetClinic?.sedes?.[0];
 
       const vetPayload = {
@@ -127,7 +134,7 @@ export default function RegisterVeterinarianForm({ onBackToLogin }) {
         fechaSolicitud: new Date().toISOString(),
       };
 
-      await clinicApi.addVeterinarian(formData.clinicId, vetPayload);
+      await clinicApi.addVeterinarian(targetClinic.id, vetPayload);
 
       setRegisteredData({
         ...vetPayload,
@@ -276,62 +283,87 @@ export default function RegisterVeterinarianForm({ onBackToLogin }) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* SECCIÓN 1: VINCULACIÓN A CLÍNICA VETERINARIA */}
+          {/* SECCIÓN 1: VINCULACIÓN A CLÍNICA VETERINARIA MEDIANTE NIT */}
           <div className="p-4 sm:p-5 rounded-2xl bg-purple-50/60 dark:bg-[#1a1338]/80 border border-purple-200/80 dark:border-[#2e2358] space-y-3">
             <span className="text-[11px] font-black uppercase tracking-wider text-[#6F2BCC] dark:text-[#01FADA] flex items-center gap-1.5">
-              <span>🏢</span> 1. Clínica o Veterinaria a la que te asocias
+              <span>🏢</span> 1. Clínica o Veterinaria de Trabajo
             </span>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-3">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
-                  Selecciona la Veterinaria / Clínica *
+                  NIT de la Veterinaria / Clínica a la que perteneces *
                 </label>
-                <select
-                  value={formData.clinicId}
-                  onChange={handleClinicChange}
-                  disabled={loadingClinics}
-                  className={`w-full px-3.5 py-2.5 rounded-xl border bg-white dark:bg-slate-900 text-xs font-medium text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-[#6F2BCC] transition-all cursor-pointer ${
-                    validationErrors.clinicId
-                      ? 'border-red-500 ring-2 ring-red-400/40 bg-red-50/20'
-                      : 'border-slate-200 dark:border-slate-700'
-                  }`}
-                >
-                  {loadingClinics ? (
-                    <option value="">Cargando veterinarias...</option>
-                  ) : clinics.length > 0 ? (
-                    clinics.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.nombreVeterinaria || c.nombreMedico} ({c.type === 'veterinaria' ? `NIT ${c.nit}` : 'Independiente'})
-                      </option>
-                    ))
-                  ) : (
-                    <option value="">No hay veterinarias registradas</option>
-                  )}
-                </select>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={formData.clinicNit}
+                    onChange={handleNitChange}
+                    placeholder="Ingresa el NIT de la veterinaria (ej. 900845129)"
+                    className={`w-full px-3.5 py-2.5 rounded-xl border bg-white dark:bg-slate-900 text-xs font-medium text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#6F2BCC] transition-all pl-9 ${
+                      validationErrors.clinicNit
+                        ? 'border-red-500 ring-2 ring-red-400/40 bg-red-50/20'
+                        : 'border-slate-200 dark:border-slate-700'
+                    }`}
+                  />
+                  <span className="absolute left-3 top-2.5 text-slate-400 text-sm">🏢</span>
+                </div>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                  Digita el NIT sin puntos ni dígito de verificación. El sistema verificará la veterinaria en tiempo real.
+                </p>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
-                  Sede Asignada *
-                </label>
-                <select
-                  value={formData.sedeId}
-                  onChange={(e) => handleChange('sedeId', e.target.value)}
-                  disabled={!selectedClinic || !selectedClinic.sedes?.length}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-[#6F2BCC] transition-all cursor-pointer"
-                >
-                  {selectedClinic?.sedes?.length ? (
-                    selectedClinic.sedes.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.nombreSede} ({s.ciudad})
-                      </option>
-                    ))
-                  ) : (
-                    <option value="principal">Sede Principal</option>
+              {/* Si la clínica fue encontrada con éxito */}
+              {matchedClinic && (
+                <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 space-y-2.5 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black text-sm">
+                        ✓
+                      </span>
+                      <div>
+                        <strong className="text-emerald-950 dark:text-emerald-200 block text-xs">
+                          {matchedClinic.nombreVeterinaria || matchedClinic.nombreMedico}
+                        </strong>
+                        <span className="text-[11px] text-emerald-700 dark:text-emerald-300 font-medium">
+                          NIT: {matchedClinic.nit || matchedClinic.cedula} · {matchedClinic.recoleccion?.ciudad || 'Colombia'}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-200/80 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
+                      Clínica Encontrada
+                    </span>
+                  </div>
+
+                  {/* Selector de Sede si la clínica cuenta con múltiples sedes */}
+                  {matchedClinic.sedes && matchedClinic.sedes.length > 1 && (
+                    <div className="pt-2 border-t border-emerald-200 dark:border-emerald-800/60 space-y-1">
+                      <label className="text-[11px] font-bold text-emerald-900 dark:text-emerald-200 block">
+                        Sede donde operas:
+                      </label>
+                      <select
+                        value={formData.sedeId}
+                        onChange={(e) => handleChange('sedeId', e.target.value)}
+                        className="w-full px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-800 dark:text-white outline-none cursor-pointer"
+                      >
+                        {matchedClinic.sedes.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.nombreSede} ({s.ciudad})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   )}
-                </select>
-              </div>
+                </div>
+              )}
+
+              {/* Si ingresó caracteres pero no se encontró */}
+              {formData.clinicNit.trim().length >= 5 && !matchedClinic && (
+                <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2 animate-in fade-in duration-150">
+                  <span className="text-base shrink-0">⚠️</span>
+                  <span>No se encontró ninguna clínica veterinaria registrada con el NIT <strong>{formData.clinicNit}</strong>. Verifica el número con el administrador de tu clínica.</span>
+                </div>
+              )}
             </div>
           </div>
 

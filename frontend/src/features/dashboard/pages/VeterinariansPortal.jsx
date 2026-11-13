@@ -420,7 +420,9 @@ export default function VeterinariansPortal({ currentUser = null, onLogout = nul
 
           {/* MÓDULO 5: CATÁLOGO DE AGENTES & PANELES qPCR */}
           {activeModule === 'catalogo' && (
-            <CatalogView />
+            <CatalogView
+              onNavigateToRequestExam={(profile) => handleOpenExamModule(null, 'nuevo', 'qpcr', profile)}
+            />
           )}
 
           {/* MÓDULO 5B: CATÁLOGO CLÍNICAS (Portafolio Diagnóstico Clínico 2026) */}
