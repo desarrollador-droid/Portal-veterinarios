@@ -146,8 +146,8 @@ export default function CatalogView({ onNavigateToRequestExam }) {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6 animate-in fade-in duration-200">
       {/* 1. ENCABEZADO DEL CATÁLOGO */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex-1 min-w-0 max-w-xl">
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-100 text-[#6F2BCC] border border-purple-200/60">
               Catálogo Clínico Molecular
@@ -159,46 +159,59 @@ export default function CatalogView({ onNavigateToRequestExam }) {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2B017C] tracking-tight">
             Catálogo de Perfiles y Agentes qPCR
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
             Paneles validados, patógenos clasificados por familias, patogenia, signos clínicos, hallazgos de laboratorio y matrices biológicas pertinentes.
           </p>
         </div>
 
-        {/* Botón Solicitar qPCR y Pestañas */}
-        <div className="flex items-center gap-3 flex-wrap self-start sm:self-auto">
-          {onNavigateToRequestExam && (
-            <button
-              onClick={() => onNavigateToRequestExam()}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#2B017C] to-[#6F2BCC] hover:from-[#240068] hover:to-[#5e22b0] text-white font-extrabold text-xs shadow-md shadow-[#6F2BCC]/30 hover:scale-[1.02] transition-all cursor-pointer"
-            >
-              <span>🧬</span>
-              <span>Solicitar qPCR</span>
-            </button>
-          )}
-
+        {/* Acciones principales: Pestañas + Botón Solicitar */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 shrink-0 self-start lg:self-auto">
           {/* Pestañas: Perfiles qPCR vs Agentes Infecciosos */}
-          <div className="flex rounded-xl bg-slate-200/70 p-1 border border-slate-300/80 text-xs font-bold">
+          <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-bold gap-1 shadow-2xs">
             <button
               onClick={() => setActiveTab('perfiles')}
-              className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+              className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 activeTab === 'perfiles'
-                  ? 'bg-[#6F2BCC] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-[#6F2BCC] text-white shadow-xs font-extrabold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
               }`}
             >
-              📋 Perfiles qPCR ({LOCAL_QPCR_PROFILES_MASTER.length})
+              <span>📋</span>
+              <span>Perfiles qPCR</span>
+              <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${
+                activeTab === 'perfiles' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+              }`}>
+                {LOCAL_QPCR_PROFILES_MASTER.length}
+              </span>
             </button>
             <button
               onClick={() => setActiveTab('agentes')}
-              className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+              className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 activeTab === 'agentes'
-                  ? 'bg-[#6F2BCC] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-[#6F2BCC] text-white shadow-xs font-extrabold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
               }`}
             >
-              🧬 Base de Patógenos ({LOCAL_INFECTIOUS_AGENTS_DB.length})
+              <span>🧬</span>
+              <span>Base de Patógenos</span>
+              <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${
+                activeTab === 'agentes' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+              }`}>
+                {LOCAL_INFECTIOUS_AGENTS_DB.length}
+              </span>
             </button>
           </div>
+
+          {/* Botón Solicitar qPCR */}
+          {onNavigateToRequestExam && (
+            <button
+              onClick={() => onNavigateToRequestExam()}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#2B017C] to-[#6F2BCC] hover:from-[#240068] hover:to-[#5e22b0] text-white font-extrabold text-xs shadow-md shadow-[#6F2BCC]/25 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap min-h-[38px]"
+            >
+              <span className="text-sm">🧬</span>
+              <span>Solicitar qPCR</span>
+            </button>
+          )}
         </div>
       </div>
 

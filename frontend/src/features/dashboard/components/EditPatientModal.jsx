@@ -138,8 +138,8 @@ export default function EditPatientModal({ patient, onClose, onSave, currentUser
         riskFactors: {
           ...patient.riskFactors,
           habitat: formData.habitat,
-          coastalRescue: formData.coastalRescue,
-          coastalRescueLocation: formData.coastalRescue ? (formData.coastalRescueLocation || '').trim() : '',
+          coastalRescue: Boolean(patient.riskFactors?.coastalRescue),
+          coastalRescueLocation: patient.riskFactors?.coastalRescueLocation || '',
         },
         medicalAdmission: {
           ...patient.medicalAdmission,
@@ -356,46 +356,28 @@ export default function EditPatientModal({ patient, onClose, onSave, currentUser
                 </div>
               </div>
 
-              {/* Rescate costero */}
-              <div className="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-semibold text-slate-800 block">¿Rescatado recientemente de zona costera?</span>
-                    <span className="text-[11px] text-slate-500">Historial epidemiológico</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, coastalRescue: false, coastalRescueLocation: '' }))}
-                      className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer ${!formData.coastalRescue ? 'bg-slate-700 text-white' : 'bg-white border border-slate-200 text-slate-600'}`}
-                    >
-                      No
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, coastalRescue: true }))}
-                      className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer ${formData.coastalRescue ? 'bg-[#6F2BCC] text-white' : 'bg-white border border-slate-200 text-slate-600'}`}
-                    >
-                      Sí
-                    </button>
-                  </div>
+              {/* Rescate costero (Historial Epidemiológico Inmutable) */}
+              <div className="mt-3 p-3.5 bg-slate-50/80 rounded-xl border border-slate-200 flex items-center justify-between gap-4">
+                <div>
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <span className="text-slate-400">🔒</span> ¿Rescatado recientemente de zona costera?
+                  </span>
+                  <span className="text-[11px] text-slate-500 block mt-0.5">
+                    Historial epidemiológico inmutable registrado en matrícula del paciente
+                  </span>
                 </div>
-
-                {formData.coastalRescue && (
-                  <div className="pt-2 border-t border-slate-200 animate-in fade-in duration-150">
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      ¿De qué zona costera fue rescatado? <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="coastalRescueLocation"
-                      value={formData.coastalRescueLocation || ''}
-                      onChange={handleChange}
-                      placeholder="Ej. Santa Marta, Cartagena, Barranquilla, Buenaventura, Tumaco..."
-                      className="w-full px-3 py-2 bg-white border border-sky-300 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 shadow-2xs"
-                    />
-                  </div>
-                )}
+                <div className="shrink-0">
+                  {patient.riskFactors?.coastalRescue ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300 select-none shadow-2xs">
+                      <span>🏖️</span>
+                      <span>Sí {patient.riskFactors?.coastalRescueLocation ? `(${patient.riskFactors.coastalRescueLocation})` : ''}</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 select-none">
+                      No
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Esterilización */}
