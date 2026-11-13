@@ -157,6 +157,159 @@ export default function MicrobiotaOrderForm({
   const [missingFieldIds, setMissingFieldIds] = useState([]);
   const clearMissingField = (id) => setMissingFieldIds((prev) => prev.filter((f) => f !== id));
 
+  // Etapas del flujo de recolección y anamnesis
+  const STAGES = ['logistica', 'mascota', 'dieta', 'salud'];
+  const [unlockedTabs, setUnlockedTabs] = useState(['logistica']);
+
+  // Obtener campos faltantes obligatorios por etapa en recolección
+  const getMissingForStage = (stageName) => {
+    const missing = [];
+
+    if (stageName === 'logistica') {
+      if (!activePatient && !petName.trim()) missing.push('recol-patient');
+      if (!clinicName.trim()) missing.push('recol-clinic-name');
+      if (!clinicNit.trim()) missing.push('recol-clinic-nit');
+      if (!attendingVet.trim()) missing.push('recol-attending-vet');
+      if (!ownerName.trim()) missing.push('recol-owner-name');
+      if (!city.trim()) missing.push('recol-city');
+      if (!collectionAddress.trim()) missing.push('recol-collection-address');
+      if (!contactPhone.trim()) missing.push('recol-contact-phone');
+      if (!reportEmail.trim()) missing.push('recol-report-email');
+      if (!billingEmail.trim()) missing.push('recol-billing-email');
+      if (!sampleDate) missing.push('recol-sample-date');
+      if (!collectionDate) missing.push('recol-collection-date');
+    }
+
+    if (stageName === 'mascota') {
+      if (!petName.trim()) missing.push('recol-pet-name');
+      if (!petSpecies.trim()) missing.push('recol-pet-species');
+      if (!petBreed.trim()) missing.push('recol-pet-breed');
+      if (petAgeMonths === '' || petAgeMonths === null || petAgeMonths === undefined || isNaN(petAgeMonths)) {
+        missing.push('recol-pet-age');
+      }
+      if (!petSex.trim()) missing.push('recol-pet-sex');
+      if (petWeight === '' || petWeight === null || petWeight === undefined || isNaN(petWeight) || Number(petWeight) <= 0) {
+        missing.push('recol-pet-weight');
+      }
+      if (!isSterilized.trim()) missing.push('recol-pet-sterilized');
+      if (!bodyScore) missing.push('recol-body-score');
+    }
+
+    if (stageName === 'dieta') {
+      if (dietTypes.length === 0) missing.push('recol-diet-types');
+      if (!hasDietChange3Weeks.trim()) missing.push('recol-diet-change');
+      if (!dietChangeFrequency.trim()) missing.push('recol-diet-change-freq');
+      if (!foodMeasuringMethod.trim()) missing.push('recol-food-measuring');
+      if (!feedingStyle.trim()) missing.push('recol-feeding-style');
+      if (feederPeople.length === 0) missing.push('recol-feeder-people');
+      if (!givesTreats.trim()) missing.push('recol-gives-treats');
+      if (!eatsNonEdible.trim()) missing.push('recol-eats-non-edible');
+      if (!givesMilk.trim()) missing.push('recol-gives-milk');
+      if (!givesFreshWaterDaily.trim()) missing.push('recol-fresh-water');
+      if (!waterChangeFrequency.trim()) missing.push('recol-water-freq');
+      if (!coprophagy.trim()) missing.push('recol-coprophagy');
+      if (!garbageScavenging.trim()) missing.push('recol-garbage');
+    }
+
+    if (stageName === 'salud') {
+      if (!livingEnvironment.trim()) missing.push('recol-living-env');
+      if (!hasOtherPets.trim()) missing.push('recol-other-pets');
+      if (!doesPhysicalActivity.trim()) missing.push('recol-physical-activity');
+      if (!outdoorAccess.trim()) missing.push('recol-outdoor-access');
+      if (!hasPastIllness.trim()) missing.push('recol-past-illness');
+      if (!vomitOrDiarrhea3Weeks.trim()) missing.push('recol-vomit-diarrhea');
+      if (!medsLast3Weeks.trim()) missing.push('recol-meds');
+      if (!weightChange3Weeks.trim()) missing.push('recol-weight-change');
+      if (!appetiteChange3Weeks.trim()) missing.push('recol-appetite-change');
+      if (!recentTravel.trim()) missing.push('recol-recent-travel');
+    }
+
+    return missing;
+  };
+
+  // Validar una etapa específica
+  const validateCurrentStage = (stageName) => {
+    const missing = getMissingForStage(stageName);
+    if (missing.length > 0) {
+      setMissingFieldIds((prev) => Array.from(new Set([...prev, ...missing])));
+      setTimeout(() => {
+        const el = document.getElementById(missing[0]);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          if (typeof el.focus === 'function') el.focus();
+        }
+      }, 50);
+      return false;
+    }
+    setMissingFieldIds((prev) => prev.filter((id) => !id.startsWith('recol-')));
+    return true;
+  };
+
+  // Avanzar a la siguiente etapa con validación estricta
+  const handleNextStage = () => {
+    const currentIndex = STAGES.indexOf(activeTab);
+    if (currentIndex === -1) return;
+
+    if (!validateCurrentStage(activeTab)) {
+      return;
+    }
+
+    if (currentIndex < STAGES.length - 1) {
+      const nextTab = STAGES[currentIndex + 1];
+      setUnlockedTabs((prev) => Array.from(new Set([...prev, nextTab])));
+      setActiveTab(nextTab);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Retroceder a la etapa previa
+  const handlePrevStage = () => {
+    const currentIndex = STAGES.indexOf(activeTab);
+    if (currentIndex > 0) {
+      setActiveTab(STAGES[currentIndex - 1]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Clic en pestaña superior (permite volver a anteriores o avanzar solo si las anteriores son válidas)
+  const handleTabClick = (targetTab) => {
+    if (targetTab === activeTab) return;
+    const targetIndex = STAGES.indexOf(targetTab);
+    const currentIndex = STAGES.indexOf(activeTab);
+
+    // Si va hacia atrás, permitir navegación libre
+    if (targetIndex < currentIndex) {
+      setActiveTab(targetTab);
+      return;
+    }
+
+    // Si intenta saltar hacia adelante, validar etapas previas secuencialmente
+    for (let i = 0; i < targetIndex; i++) {
+      const stageToCheck = STAGES[i];
+      const missing = getMissingForStage(stageToCheck);
+      if (missing.length > 0) {
+        setActiveTab(stageToCheck);
+        setMissingFieldIds((prev) => Array.from(new Set([...prev, ...missing])));
+        setTimeout(() => {
+          const el = document.getElementById(missing[0]);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (typeof el.focus === 'function') el.focus();
+          }
+        }, 50);
+        return;
+      }
+    }
+
+    // Todas las anteriores son válidas: desbloquear y avanzar
+    setUnlockedTabs((prev) => {
+      const updated = new Set(prev);
+      for (let i = 0; i <= targetIndex; i++) updated.add(STAGES[i]);
+      return Array.from(updated);
+    });
+    setActiveTab(targetTab);
+  };
+
   // Sincronizar datos cuando cambia el paciente activo
   useEffect(() => {
     if (activePatient) {
@@ -364,12 +517,21 @@ export default function MicrobiotaOrderForm({
 
       onSubmitOrder(payload);
     } else {
-      if (!activePatient && !petName) {
-        setMissingFieldIds(['recoleccion-pet-input']);
-        setActiveTab('mascota');
-        const el = document.getElementById('recoleccion-pet-input');
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
+      // Validar rigurosamente todas las etapas (1 a 4) de recolección
+      for (const stg of STAGES) {
+        const missing = getMissingForStage(stg);
+        if (missing.length > 0) {
+          setActiveTab(stg);
+          setMissingFieldIds((prev) => Array.from(new Set([...prev, ...missing])));
+          setTimeout(() => {
+            const el = document.getElementById(missing[0]);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              if (typeof el.focus === 'function') el.focus();
+            }
+          }, 60);
+          return;
+        }
       }
       setMissingFieldIds([]);
 
@@ -1155,60 +1317,49 @@ export default function MicrobiotaOrderForm({
       {subtype === 'recoleccion' && (
         <div className="space-y-5 animate-in fade-in duration-150">
           
-          {/* Barra de pestañas del cuestionario */}
+          {/* Barra de pestañas del cuestionario con bloqueo secuencial */}
           <div className="bg-white rounded-2xl border border-slate-200/90 p-2 shadow-2xs">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-              <button
-                type="button"
-                onClick={() => setActiveTab('logistica')}
-                className={`py-2.5 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                  activeTab === 'logistica'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                <span>🚚</span>
-                <span>1. Logística</span>
-              </button>
+              {[
+                { id: 'logistica', label: '1. Logística', icon: '🚚' },
+                { id: 'mascota', label: '2. Mascota & Escala', icon: '🐾' },
+                { id: 'dieta', label: '3. Dieta & Hábitos', icon: '🥩' },
+                { id: 'salud', label: '4. Estilo & Salud', icon: '🩺' },
+              ].map((tab) => {
+                const isActive = activeTab === tab.id;
+                const isUnlocked = unlockedTabs.includes(tab.id);
+                const isComplete = getMissingForStage(tab.id).length === 0;
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('mascota')}
-                className={`py-2.5 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                  activeTab === 'mascota'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                <span>🐾</span>
-                <span>2. Mascota & Escala</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('dieta')}
-                className={`py-2.5 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                  activeTab === 'dieta'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                <span>🥩</span>
-                <span>3. Dieta & Hábitos</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('salud')}
-                className={`py-2.5 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                  activeTab === 'salud'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                <span>🩺</span>
-                <span>4. Estilo & Salud</span>
-              </button>
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => handleTabClick(tab.id)}
+                    className={`py-2.5 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : isComplete
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/70 hover:bg-emerald-100/70'
+                        : isUnlocked
+                        ? 'text-slate-700 hover:bg-slate-100'
+                        : 'text-slate-400 bg-slate-50/60 hover:bg-slate-100/60'
+                    }`}
+                  >
+                    <span>{tab.icon}</span>
+                    <span>{tab.label}</span>
+                    {isComplete && !isActive && (
+                      <span className="ml-1 text-[10px] font-black text-emerald-600 bg-white px-1.5 py-0.2 rounded-full border border-emerald-300">
+                        ✓
+                      </span>
+                    )}
+                    {!isUnlocked && !isActive && (
+                      <span className="ml-1 text-[10px] opacity-60" title="Completa las etapas anteriores para desbloquear">
+                        🔒
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -1246,8 +1397,20 @@ export default function MicrobiotaOrderForm({
               </div>
 
               {/* Paciente asociado */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700">Paciente del cual se tomó la muestra *</label>
+              <div
+                id="recol-patient"
+                className={`space-y-2 rounded-xl transition-all ${
+                  missingFieldIds.includes('recol-patient')
+                    ? 'p-3 border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                    : ''
+                }`}
+              >
+                <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                  <span>Paciente del cual se tomó la muestra *</span>
+                  {missingFieldIds.includes('recol-patient') && (
+                    <span className="text-[10px] text-rose-600 font-extrabold">Seleccione un paciente</span>
+                  )}
+                </label>
                 {activePatient ? (
                   <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -1267,7 +1430,10 @@ export default function MicrobiotaOrderForm({
                     {onSelectPatient && (
                       <button
                         type="button"
-                        onClick={() => onSelectPatient('')}
+                        onClick={() => {
+                          onSelectPatient('');
+                          clearMissingField('recol-patient');
+                        }}
                         className="text-xs font-bold text-emerald-800 hover:text-emerald-900 bg-white px-3 py-1.5 rounded-lg border border-emerald-200 shadow-2xs hover:bg-emerald-50 transition-all cursor-pointer"
                       >
                         Cambiar paciente
@@ -1288,7 +1454,10 @@ export default function MicrobiotaOrderForm({
                         {filteredPatients.map((p) => (
                           <div
                             key={p.id}
-                            onClick={() => onSelectPatient && onSelectPatient(p.id)}
+                            onClick={() => {
+                              if (onSelectPatient) onSelectPatient(p.id);
+                              clearMissingField('recol-patient');
+                            }}
                             className="p-2.5 rounded-lg hover:bg-emerald-50/80 cursor-pointer flex items-center justify-between text-xs transition-colors"
                           >
                             <div className="flex items-center gap-2.5">
@@ -1316,10 +1485,18 @@ export default function MicrobiotaOrderForm({
                   <label className="text-xs font-bold text-slate-700">Nombre o razón social de la veterinaria *</label>
                   <input
                     type="text"
+                    id="recol-clinic-name"
                     value={clinicName}
-                    onChange={(e) => setClinicName(e.target.value)}
+                    onChange={(e) => {
+                      setClinicName(e.target.value);
+                      clearMissingField('recol-clinic-name');
+                    }}
                     placeholder="Clínica veterinaria o consultorio"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-clinic-name')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   />
                 </div>
 
@@ -1327,10 +1504,18 @@ export default function MicrobiotaOrderForm({
                   <label className="text-xs font-bold text-slate-700">NIT o documento de identidad *</label>
                   <input
                     type="text"
+                    id="recol-clinic-nit"
                     value={clinicNit}
-                    onChange={(e) => setClinicNit(e.target.value)}
+                    onChange={(e) => {
+                      setClinicNit(e.target.value);
+                      clearMissingField('recol-clinic-nit');
+                    }}
                     placeholder="NIT o cédula"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs font-mono text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-clinic-nit')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   />
                 </div>
 
@@ -1338,10 +1523,18 @@ export default function MicrobiotaOrderForm({
                   <label className="text-xs font-bold text-slate-700">Nombre del profesional responsable *</label>
                   <input
                     type="text"
+                    id="recol-attending-vet"
                     value={attendingVet}
-                    onChange={(e) => setAttendingVet(e.target.value)}
+                    onChange={(e) => {
+                      setAttendingVet(e.target.value);
+                      clearMissingField('recol-attending-vet');
+                    }}
                     placeholder="Dr. Médico tratante"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-attending-vet')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   />
                 </div>
 
@@ -1349,10 +1542,18 @@ export default function MicrobiotaOrderForm({
                   <label className="text-xs font-bold text-slate-700">Nombre del propietario de la mascota *</label>
                   <input
                     type="text"
+                    id="recol-owner-name"
                     value={ownerName}
-                    onChange={(e) => setOwnerName(e.target.value)}
+                    onChange={(e) => {
+                      setOwnerName(e.target.value);
+                      clearMissingField('recol-owner-name');
+                    }}
                     placeholder="Nombre completo del tutor"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-owner-name')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   />
                 </div>
 
@@ -1360,10 +1561,18 @@ export default function MicrobiotaOrderForm({
                   <label className="text-xs font-bold text-slate-700">Ciudad *</label>
                   <input
                     type="text"
+                    id="recol-city"
                     value={city}
-                    onChange={(e) => setCity(e.target.value)}
+                    onChange={(e) => {
+                      setCity(e.target.value);
+                      clearMissingField('recol-city');
+                    }}
                     placeholder="Ej. Bogotá"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-city')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   />
                 </div>
 
@@ -1371,10 +1580,18 @@ export default function MicrobiotaOrderForm({
                   <label className="text-xs font-bold text-slate-700">Dirección de recolección *</label>
                   <input
                     type="text"
+                    id="recol-collection-address"
                     value={collectionAddress}
-                    onChange={(e) => setCollectionAddress(e.target.value)}
+                    onChange={(e) => {
+                      setCollectionAddress(e.target.value);
+                      clearMissingField('recol-collection-address');
+                    }}
                     placeholder="Dirección donde el mensajero recogerá la muestra"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-collection-address')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   />
                 </div>
 
@@ -1382,10 +1599,18 @@ export default function MicrobiotaOrderForm({
                   <label className="text-xs font-bold text-slate-700">Número celular de contacto *</label>
                   <input
                     type="text"
+                    id="recol-contact-phone"
                     value={contactPhone}
-                    onChange={(e) => setContactPhone(e.target.value)}
+                    onChange={(e) => {
+                      setContactPhone(e.target.value);
+                      clearMissingField('recol-contact-phone');
+                    }}
                     placeholder="310 123 4567"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs font-mono text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-contact-phone')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   />
                 </div>
 
@@ -1393,10 +1618,18 @@ export default function MicrobiotaOrderForm({
                   <label className="text-xs font-bold text-slate-700">Correo para reporte de resultados *</label>
                   <input
                     type="email"
+                    id="recol-report-email"
                     value={reportEmail}
-                    onChange={(e) => setReportEmail(e.target.value)}
+                    onChange={(e) => {
+                      setReportEmail(e.target.value);
+                      clearMissingField('recol-report-email');
+                    }}
                     placeholder="correo@ejemplo.com"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-report-email')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   />
                 </div>
 
@@ -1404,10 +1637,18 @@ export default function MicrobiotaOrderForm({
                   <label className="text-xs font-bold text-slate-700">Correo electrónico de facturación *</label>
                   <input
                     type="email"
+                    id="recol-billing-email"
                     value={billingEmail}
-                    onChange={(e) => setBillingEmail(e.target.value)}
+                    onChange={(e) => {
+                      setBillingEmail(e.target.value);
+                      clearMissingField('recol-billing-email');
+                    }}
                     placeholder="facturacion@ejemplo.com"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-billing-email')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   />
                 </div>
 
@@ -1415,9 +1656,17 @@ export default function MicrobiotaOrderForm({
                   <label className="text-xs font-bold text-slate-700">Fecha de toma de la muestra *</label>
                   <input
                     type="date"
+                    id="recol-sample-date"
                     value={sampleDate}
-                    onChange={(e) => setSampleDate(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    onChange={(e) => {
+                      setSampleDate(e.target.value);
+                      clearMissingField('recol-sample-date');
+                    }}
+                    className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-sample-date')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   />
                 </div>
 
@@ -1425,9 +1674,17 @@ export default function MicrobiotaOrderForm({
                   <label className="text-xs font-bold text-slate-700">Fecha programada de recogida *</label>
                   <input
                     type="date"
+                    id="recol-collection-date"
                     value={collectionDate}
-                    onChange={(e) => setCollectionDate(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    onChange={(e) => {
+                      setCollectionDate(e.target.value);
+                      clearMissingField('recol-collection-date');
+                    }}
+                    className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-collection-date')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   />
                 </div>
 
@@ -1446,8 +1703,8 @@ export default function MicrobiotaOrderForm({
               <div className="flex justify-end pt-3 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setActiveTab('mascota')}
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+                  onClick={handleNextStage}
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
                 >
                   <span>Siguiente: Mascota & Escala Corporal</span>
                   <span>→</span>
@@ -1475,19 +1732,35 @@ export default function MicrobiotaOrderForm({
                   <label className="text-xs font-bold text-slate-700">Nombre de la mascota *</label>
                   <input
                     type="text"
+                    id="recol-pet-name"
                     value={petName}
-                    onChange={(e) => setPetName(e.target.value)}
+                    onChange={(e) => {
+                      setPetName(e.target.value);
+                      clearMissingField('recol-pet-name');
+                    }}
                     placeholder="Ej. Luna"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-pet-name')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   />
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700">Especie *</label>
                   <select
+                    id="recol-pet-species"
                     value={petSpecies}
-                    onChange={(e) => setPetSpecies(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    onChange={(e) => {
+                      setPetSpecies(e.target.value);
+                      clearMissingField('recol-pet-species');
+                    }}
+                    className={`w-full px-3.5 py-2.5 bg-slate-50 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-pet-species')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   >
                     <option value="">Seleccione especie...</option>
                     <option value="Canino">Canino (Perro)</option>
@@ -1500,10 +1773,18 @@ export default function MicrobiotaOrderForm({
                   <label className="text-xs font-bold text-slate-700">Raza *</label>
                   <input
                     type="text"
+                    id="recol-pet-breed"
                     value={petBreed}
-                    onChange={(e) => setPetBreed(e.target.value)}
+                    onChange={(e) => {
+                      setPetBreed(e.target.value);
+                      clearMissingField('recol-pet-breed');
+                    }}
                     placeholder="Ej. Criollo, Labrador, Siamés"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-pet-breed')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   />
                 </div>
 
@@ -1511,20 +1792,36 @@ export default function MicrobiotaOrderForm({
                   <label className="text-xs font-bold text-slate-700">Edad (en meses) *</label>
                   <input
                     type="number"
+                    id="recol-pet-age"
                     min={1}
                     value={petAgeMonths}
-                    onChange={(e) => setPetAgeMonths(e.target.value ? parseInt(e.target.value) || '' : '')}
+                    onChange={(e) => {
+                      setPetAgeMonths(e.target.value ? parseInt(e.target.value) || '' : '');
+                      clearMissingField('recol-pet-age');
+                    }}
                     placeholder="Ej. 36"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-pet-age')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   />
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700">Sexo *</label>
                   <select
+                    id="recol-pet-sex"
                     value={petSex}
-                    onChange={(e) => setPetSex(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    onChange={(e) => {
+                      setPetSex(e.target.value);
+                      clearMissingField('recol-pet-sex');
+                    }}
+                    className={`w-full px-3.5 py-2.5 bg-slate-50 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-pet-sex')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   >
                     <option value="">Seleccione sexo...</option>
                     <option value="Hembra">Hembra</option>
@@ -1536,15 +1833,30 @@ export default function MicrobiotaOrderForm({
                   <label className="text-xs font-bold text-slate-700">Peso aproximado (kg) *</label>
                   <input
                     type="number"
+                    id="recol-pet-weight"
                     step="0.1"
                     min={0.1}
                     value={petWeight}
-                    onChange={(e) => setPetWeight(parseFloat(e.target.value) || 0)}
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    onChange={(e) => {
+                      setPetWeight(parseFloat(e.target.value) || 0);
+                      clearMissingField('recol-pet-weight');
+                    }}
+                    className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-pet-weight')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   />
                 </div>
 
-                <div className="space-y-1.5 sm:col-span-3">
+                <div
+                  id="recol-pet-sterilized"
+                  className={`space-y-1.5 sm:col-span-3 rounded-xl transition-all ${
+                    missingFieldIds.includes('recol-pet-sterilized')
+                      ? 'p-2.5 border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                      : ''
+                  }`}
+                >
                   <label className="text-xs font-bold text-slate-700">¿La mascota está castrada / esterilizada? *</label>
                   <div className="flex gap-4">
                     {['Sí', 'No'].map((opt) => (
@@ -1553,7 +1865,10 @@ export default function MicrobiotaOrderForm({
                           type="radio"
                           name="petSterilized"
                           checked={isSterilized === opt}
-                          onChange={() => setIsSterilized(opt)}
+                          onChange={() => {
+                            setIsSterilized(opt);
+                            clearMissingField('recol-pet-sterilized');
+                          }}
                           className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                         />
                         <span className="font-semibold">{opt}</span>
@@ -1564,7 +1879,14 @@ export default function MicrobiotaOrderForm({
               </div>
 
               {/* SECCIÓN VISUAL DE CONDICIÓN CORPORAL (Escala 1 al 9) */}
-              <div className="bg-slate-50 rounded-2xl border border-slate-200 p-4 space-y-4">
+              <div
+                id="recol-body-score"
+                className={`bg-slate-50 rounded-2xl border p-4 space-y-4 transition-all ${
+                  missingFieldIds.includes('recol-body-score')
+                    ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                    : 'border-slate-200'
+                }`}
+              >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
                   <div>
                     <h5 className="text-xs font-black text-slate-900 uppercase tracking-wide flex items-center gap-2">
@@ -1602,7 +1924,7 @@ export default function MicrobiotaOrderForm({
 
                 {/* Botones selectores del 1 al 9 */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-700">Selecciona la puntuación observada:</label>
+                  <label className="text-xs font-bold text-slate-700">Selecciona la puntuación observada *:</label>
                   <div className="grid grid-cols-3 sm:grid-cols-9 gap-1.5">
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((score) => {
                       const isSelected = bodyScore === score;
@@ -1630,7 +1952,10 @@ export default function MicrobiotaOrderForm({
                         <button
                           key={score}
                           type="button"
-                          onClick={() => setBodyScore(score)}
+                          onClick={() => {
+                            setBodyScore(score);
+                            clearMissingField('recol-body-score');
+                          }}
                           className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${badgeColor}`}
                         >
                           <span className="text-sm font-black">{score}</span>
@@ -1647,15 +1972,15 @@ export default function MicrobiotaOrderForm({
               <div className="flex justify-between pt-3 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setActiveTab('logistica')}
+                  onClick={handlePrevStage}
                   className="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-50 transition-all cursor-pointer"
                 >
                   ← Anterior
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveTab('dieta')}
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+                  onClick={handleNextStage}
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
                 >
                   <span>Siguiente: Dieta & Nutrición</span>
                   <span>→</span>
@@ -1679,7 +2004,14 @@ export default function MicrobiotaOrderForm({
               </div>
 
               {/* Tipo de dieta */}
-              <div className="space-y-2">
+              <div
+                id="recol-diet-types"
+                className={`space-y-2 rounded-xl transition-all ${
+                  missingFieldIds.includes('recol-diet-types')
+                    ? 'p-3 border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                    : ''
+                }`}
+              >
                 <label className="text-xs font-bold text-slate-700">
                   ¿Qué tipo de dieta consume su mascota? (Selecciona todas las que apliquen) *
                 </label>
@@ -1696,7 +2028,10 @@ export default function MicrobiotaOrderForm({
                       <input
                         type="checkbox"
                         checked={dietTypes.includes(type)}
-                        onChange={() => toggleArrayItem(dietTypes, setDietTypes, type)}
+                        onChange={() => {
+                          toggleArrayItem(dietTypes, setDietTypes, type);
+                          clearMissingField('recol-diet-types');
+                        }}
                         className="w-4 h-4 text-emerald-600 rounded"
                       />
                       <span>{type}</span>
@@ -1835,7 +2170,14 @@ export default function MicrobiotaOrderForm({
                 </h5>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
+                  <div
+                    id="recol-diet-change"
+                    className={`space-y-1.5 rounded-xl transition-all ${
+                      missingFieldIds.includes('recol-diet-change')
+                        ? 'p-2.5 border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                        : ''
+                    }`}
+                  >
                     <label className="text-xs font-bold text-slate-700">
                       ¿Ha tenido algún cambio en su dieta en las últimas 3 semanas? *
                     </label>
@@ -1846,7 +2188,10 @@ export default function MicrobiotaOrderForm({
                             type="radio"
                             name="dietChange3Weeks"
                             checked={hasDietChange3Weeks === opt}
-                            onChange={() => setHasDietChange3Weeks(opt)}
+                            onChange={() => {
+                              setHasDietChange3Weeks(opt);
+                              clearMissingField('recol-diet-change');
+                            }}
                             className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                           />
                           <span>{opt}</span>
@@ -1884,9 +2229,17 @@ export default function MicrobiotaOrderForm({
                   <div className="space-y-1.5 sm:col-span-2">
                     <label className="text-xs font-bold text-slate-700">¿Cuántas veces ha cambiado el tipo de comida? *</label>
                     <select
+                      id="recol-diet-change-freq"
                       value={dietChangeFrequency}
-                      onChange={(e) => setDietChangeFrequency(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      onChange={(e) => {
+                        setDietChangeFrequency(e.target.value);
+                        clearMissingField('recol-diet-change-freq');
+                      }}
+                      className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                        missingFieldIds.includes('recol-diet-change-freq')
+                          ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                          : 'border border-slate-200'
+                      }`}
                     >
                       <option value="">Seleccione frecuencia de cambio...</option>
                       <option value="Nunca la ha cambiado">Nunca la ha cambiado</option>
@@ -1910,9 +2263,17 @@ export default function MicrobiotaOrderForm({
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-700">¿Cómo se mide la comida? *</label>
                     <select
+                      id="recol-food-measuring"
                       value={foodMeasuringMethod}
-                      onChange={(e) => setFoodMeasuringMethod(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      onChange={(e) => {
+                        setFoodMeasuringMethod(e.target.value);
+                        clearMissingField('recol-food-measuring');
+                      }}
+                      className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                        missingFieldIds.includes('recol-food-measuring')
+                          ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                          : 'border border-slate-200'
+                      }`}
                     >
                       <option value="">Seleccione método de medición...</option>
                       <option value="Con gramera">Con gramera (Preciso en peso)</option>
@@ -1925,9 +2286,17 @@ export default function MicrobiotaOrderForm({
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-700">Modalidad de alimentación *</label>
                     <select
+                      id="recol-feeding-style"
                       value={feedingStyle}
-                      onChange={(e) => setFeedingStyle(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      onChange={(e) => {
+                        setFeedingStyle(e.target.value);
+                        clearMissingField('recol-feeding-style');
+                      }}
+                      className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                        missingFieldIds.includes('recol-feeding-style')
+                          ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                          : 'border border-slate-200'
+                      }`}
                     >
                       <option value="">Seleccione modalidad...</option>
                       <option value="Porciones medidas y se retira el sobrante de alimento">
@@ -1942,7 +2311,14 @@ export default function MicrobiotaOrderForm({
                     </select>
                   </div>
 
-                  <div className="space-y-1.5 sm:col-span-2">
+                  <div
+                    id="recol-feeder-people"
+                    className={`space-y-1.5 sm:col-span-2 rounded-xl transition-all ${
+                      missingFieldIds.includes('recol-feeder-people')
+                        ? 'p-2.5 border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                        : ''
+                    }`}
+                  >
                     <label className="text-xs font-bold text-slate-700">
                       ¿Quién o quiénes alimentan a la mascota en casa? *
                     </label>
@@ -1959,7 +2335,10 @@ export default function MicrobiotaOrderForm({
                           <input
                             type="checkbox"
                             checked={feederPeople.includes(person)}
-                            onChange={() => toggleArrayItem(feederPeople, setFeederPeople, person)}
+                            onChange={() => {
+                              toggleArrayItem(feederPeople, setFeederPeople, person);
+                              clearMissingField('recol-feeder-people');
+                            }}
                             className="w-4 h-4 text-emerald-600 rounded"
                           />
                           <span>{person}</span>
@@ -1969,7 +2348,14 @@ export default function MicrobiotaOrderForm({
                   </div>
 
                   {/* Snacks / Premios */}
-                  <div className="space-y-1.5">
+                  <div
+                    id="recol-gives-treats"
+                    className={`space-y-1.5 rounded-xl transition-all ${
+                      missingFieldIds.includes('recol-gives-treats')
+                        ? 'p-2.5 border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                        : ''
+                    }`}
+                  >
                     <label className="text-xs font-bold text-slate-700">
                       ¿Le da golosinas, premios, snacks o suplementos? *
                     </label>
@@ -1980,7 +2366,10 @@ export default function MicrobiotaOrderForm({
                             type="radio"
                             name="givesTreats"
                             checked={givesTreats === opt}
-                            onChange={() => setGivesTreats(opt)}
+                            onChange={() => {
+                              setGivesTreats(opt);
+                              clearMissingField('recol-gives-treats');
+                            }}
                             className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                           />
                           <span>{opt}</span>
@@ -2017,7 +2406,14 @@ export default function MicrobiotaOrderForm({
                   </div>
 
                   {/* Elementos no comestibles, leche, agua */}
-                  <div className="space-y-1.5">
+                  <div
+                    id="recol-eats-non-edible"
+                    className={`space-y-1.5 rounded-xl transition-all ${
+                      missingFieldIds.includes('recol-eats-non-edible')
+                        ? 'p-2.5 border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                        : ''
+                    }`}
+                  >
                     <label className="text-xs font-bold text-slate-700">
                       ¿Come elementos no comestibles (ropa, pañales, etc.)? *
                     </label>
@@ -2028,7 +2424,10 @@ export default function MicrobiotaOrderForm({
                             type="radio"
                             name="eatsNonEdible"
                             checked={eatsNonEdible === opt}
-                            onChange={() => setEatsNonEdible(opt)}
+                            onChange={() => {
+                              setEatsNonEdible(opt);
+                              clearMissingField('recol-eats-non-edible');
+                            }}
                             className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                           />
                           <span>{opt}</span>
@@ -2037,7 +2436,14 @@ export default function MicrobiotaOrderForm({
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div
+                    id="recol-gives-milk"
+                    className={`space-y-1.5 rounded-xl transition-all ${
+                      missingFieldIds.includes('recol-gives-milk')
+                        ? 'p-2.5 border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                        : ''
+                    }`}
+                  >
                     <label className="text-xs font-bold text-slate-700">¿Se le da leche a su mascota? *</label>
                     <div className="flex gap-4">
                       {['Sí', 'No'].map((opt) => (
@@ -2046,7 +2452,10 @@ export default function MicrobiotaOrderForm({
                             type="radio"
                             name="givesMilk"
                             checked={givesMilk === opt}
-                            onChange={() => setGivesMilk(opt)}
+                            onChange={() => {
+                              setGivesMilk(opt);
+                              clearMissingField('recol-gives-milk');
+                            }}
                             className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                           />
                           <span>{opt}</span>
@@ -2055,7 +2464,14 @@ export default function MicrobiotaOrderForm({
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div
+                    id="recol-fresh-water"
+                    className={`space-y-1.5 rounded-xl transition-all ${
+                      missingFieldIds.includes('recol-fresh-water')
+                        ? 'p-2.5 border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                        : ''
+                    }`}
+                  >
                     <label className="text-xs font-bold text-slate-700">¿Se le proporciona agua fresca a diario? *</label>
                     <div className="flex gap-4">
                       {['Sí', 'No'].map((opt) => (
@@ -2064,7 +2480,10 @@ export default function MicrobiotaOrderForm({
                             type="radio"
                             name="freshWater"
                             checked={givesFreshWaterDaily === opt}
-                            onChange={() => setGivesFreshWaterDaily(opt)}
+                            onChange={() => {
+                              setGivesFreshWaterDaily(opt);
+                              clearMissingField('recol-fresh-water');
+                            }}
                             className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                           />
                           <span>{opt}</span>
@@ -2076,9 +2495,17 @@ export default function MicrobiotaOrderForm({
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-700">¿Con qué frecuencia cambia el agua? *</label>
                     <select
+                      id="recol-water-freq"
                       value={waterChangeFrequency}
-                      onChange={(e) => setWaterChangeFrequency(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      onChange={(e) => {
+                        setWaterChangeFrequency(e.target.value);
+                        clearMissingField('recol-water-freq');
+                      }}
+                      className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                        missingFieldIds.includes('recol-water-freq')
+                          ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                          : 'border border-slate-200'
+                      }`}
                     >
                       <option value="">Seleccione frecuencia...</option>
                       <option value="Todos los días">Todos los días</option>
@@ -2089,7 +2516,14 @@ export default function MicrobiotaOrderForm({
                   </div>
 
                   {/* Coprofagia y basura */}
-                  <div className="space-y-1.5">
+                  <div
+                    id="recol-coprophagy"
+                    className={`space-y-1.5 rounded-xl transition-all ${
+                      missingFieldIds.includes('recol-coprophagy')
+                        ? 'p-2.5 border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                        : ''
+                    }`}
+                  >
                     <label className="text-xs font-bold text-slate-700">
                       ¿Hábito de comer heces propias o de otros animales? *
                     </label>
@@ -2100,7 +2534,10 @@ export default function MicrobiotaOrderForm({
                             type="radio"
                             name="coprophagy"
                             checked={coprophagy === opt}
-                            onChange={() => setCoprophagy(opt)}
+                            onChange={() => {
+                              setCoprophagy(opt);
+                              clearMissingField('recol-coprophagy');
+                            }}
                             className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                           />
                           <span>{opt}</span>
@@ -2109,7 +2546,14 @@ export default function MicrobiotaOrderForm({
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div
+                    id="recol-garbage"
+                    className={`space-y-1.5 rounded-xl transition-all ${
+                      missingFieldIds.includes('recol-garbage')
+                        ? 'p-2.5 border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                        : ''
+                    }`}
+                  >
                     <label className="text-xs font-bold text-slate-700">¿Hábito de escarbar en la basura? *</label>
                     <div className="flex gap-4">
                       {['Sí', 'No'].map((opt) => (
@@ -2118,7 +2562,10 @@ export default function MicrobiotaOrderForm({
                             type="radio"
                             name="garbageScavenging"
                             checked={garbageScavenging === opt}
-                            onChange={() => setGarbageScavenging(opt)}
+                            onChange={() => {
+                              setGarbageScavenging(opt);
+                              clearMissingField('recol-garbage');
+                            }}
                             className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                           />
                           <span>{opt}</span>
@@ -2143,15 +2590,15 @@ export default function MicrobiotaOrderForm({
               <div className="flex justify-between pt-3 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setActiveTab('mascota')}
+                  onClick={handlePrevStage}
                   className="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-50 transition-all cursor-pointer"
                 >
                   ← Anterior
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveTab('salud')}
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+                  onClick={handleNextStage}
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
                 >
                   <span>Siguiente: Estilo de Vida & Salud</span>
                   <span>→</span>
@@ -2178,9 +2625,17 @@ export default function MicrobiotaOrderForm({
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700">Entorno en el que vive la mascota *</label>
                   <select
+                    id="recol-living-env"
                     value={livingEnvironment}
-                    onChange={(e) => setLivingEnvironment(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    onChange={(e) => {
+                      setLivingEnvironment(e.target.value);
+                      clearMissingField('recol-living-env');
+                    }}
+                    className={`w-full px-3.5 py-2.5 bg-slate-50 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('recol-living-env')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
                   >
                     <option value="">Seleccione entorno...</option>
                     <option value="Urbano">Urbano (Apartamento / Casa en ciudad)</option>
@@ -2189,7 +2644,14 @@ export default function MicrobiotaOrderForm({
                   </select>
                 </div>
 
-                <div className="space-y-1.5">
+                <div
+                  id="recol-other-pets"
+                  className={`space-y-1.5 rounded-xl transition-all ${
+                    missingFieldIds.includes('recol-other-pets')
+                      ? 'p-2.5 border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                      : ''
+                  }`}
+                >
                   <label className="text-xs font-bold text-slate-700">¿Convive con otras mascotas en casa? *</label>
                   <div className="flex gap-4">
                     {['Sí', 'No'].map((opt) => (
@@ -2198,7 +2660,10 @@ export default function MicrobiotaOrderForm({
                           type="radio"
                           name="hasOtherPets"
                           checked={hasOtherPets === opt}
-                          onChange={() => setHasOtherPets(opt)}
+                          onChange={() => {
+                            setHasOtherPets(opt);
+                            clearMissingField('recol-other-pets');
+                          }}
                           className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                         />
                         <span>{opt}</span>
@@ -2223,7 +2688,14 @@ export default function MicrobiotaOrderForm({
                 )}
 
                 {/* Actividad física */}
-                <div className="space-y-1.5 sm:col-span-2 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                <div
+                  id="recol-physical-activity"
+                  className={`space-y-1.5 sm:col-span-2 bg-slate-50 p-3.5 rounded-xl transition-all ${
+                    missingFieldIds.includes('recol-physical-activity')
+                      ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                      : 'border border-slate-200'
+                  }`}
+                >
                   <label className="text-xs font-bold text-slate-700">¿Su mascota hace algún tipo de actividad física? *</label>
                   <div className="flex gap-4 my-2">
                     {['Sí', 'No'].map((opt) => (
@@ -2232,7 +2704,10 @@ export default function MicrobiotaOrderForm({
                           type="radio"
                           name="doesPhysicalActivity"
                           checked={doesPhysicalActivity === opt}
-                          onChange={() => setDoesPhysicalActivity(opt)}
+                          onChange={() => {
+                            setDoesPhysicalActivity(opt);
+                            clearMissingField('recol-physical-activity');
+                          }}
                           className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                         />
                         <span>{opt}</span>
@@ -2292,7 +2767,14 @@ export default function MicrobiotaOrderForm({
                 </div>
 
                 {/* Acceso a la calle */}
-                <div className="space-y-1.5">
+                <div
+                  id="recol-outdoor-access"
+                  className={`space-y-1.5 rounded-xl transition-all ${
+                    missingFieldIds.includes('recol-outdoor-access')
+                      ? 'p-2.5 border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                      : ''
+                  }`}
+                >
                   <label className="text-xs font-bold text-slate-700">¿Acceso al exterior o a la calle? *</label>
                   <div className="flex gap-4">
                     {['Sí', 'No'].map((opt) => (
@@ -2301,7 +2783,10 @@ export default function MicrobiotaOrderForm({
                           type="radio"
                           name="outdoorAccess"
                           checked={outdoorAccess === opt}
-                          onChange={() => setOutdoorAccess(opt)}
+                          onChange={() => {
+                            setOutdoorAccess(opt);
+                            clearMissingField('recol-outdoor-access');
+                          }}
                           className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                         />
                         <span>{opt}</span>
@@ -2327,7 +2812,14 @@ export default function MicrobiotaOrderForm({
                 </div>
 
                 {/* Enfermedades previas */}
-                <div className="space-y-1.5 sm:col-span-2">
+                <div
+                  id="recol-past-illness"
+                  className={`space-y-1.5 sm:col-span-2 rounded-xl transition-all ${
+                    missingFieldIds.includes('recol-past-illness')
+                      ? 'p-2.5 border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                      : ''
+                  }`}
+                >
                   <label className="text-xs font-bold text-slate-700">¿Ha padecido alguna enfermedad relevante? *</label>
                   <div className="flex gap-4">
                     {['Sí', 'No'].map((opt) => (
@@ -2336,7 +2828,10 @@ export default function MicrobiotaOrderForm({
                           type="radio"
                           name="pastIllness"
                           checked={hasPastIllness === opt}
-                          onChange={() => setHasPastIllness(opt)}
+                          onChange={() => {
+                            setHasPastIllness(opt);
+                            clearMissingField('recol-past-illness');
+                          }}
                           className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                         />
                         <span>{opt}</span>
@@ -2359,7 +2854,14 @@ export default function MicrobiotaOrderForm({
                 )}
 
                 {/* Vómito o Diarrea últimas 3 semanas */}
-                <div className="space-y-1.5 sm:col-span-2 bg-amber-50/60 p-3.5 rounded-xl border border-amber-200">
+                <div
+                  id="recol-vomit-diarrhea"
+                  className={`space-y-1.5 sm:col-span-2 p-3.5 rounded-xl transition-all ${
+                    missingFieldIds.includes('recol-vomit-diarrhea')
+                      ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                      : 'bg-amber-50/60 border border-amber-200'
+                  }`}
+                >
                   <label className="text-xs font-bold text-slate-800">
                     ¿Episodio de diarrea o vómito en las últimas tres (3) semanas? *
                   </label>
@@ -2377,7 +2879,10 @@ export default function MicrobiotaOrderForm({
                           type="radio"
                           name="vomitOrDiarrhea3Weeks"
                           checked={vomitOrDiarrhea3Weeks === opt}
-                          onChange={() => setVomitOrDiarrhea3Weeks(opt)}
+                          onChange={() => {
+                            setVomitOrDiarrhea3Weeks(opt);
+                            clearMissingField('recol-vomit-diarrhea');
+                          }}
                           className="sr-only"
                         />
                         <span>{opt}</span>
@@ -2402,7 +2907,14 @@ export default function MicrobiotaOrderForm({
                 </div>
 
                 {/* Medicamentos últimas 3 semanas */}
-                <div className="space-y-1.5 sm:col-span-2 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                <div
+                  id="recol-meds"
+                  className={`space-y-1.5 sm:col-span-2 bg-slate-50 p-3.5 rounded-xl transition-all ${
+                    missingFieldIds.includes('recol-meds')
+                      ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                      : 'border border-slate-200'
+                  }`}
+                >
                   <label className="text-xs font-bold text-slate-800">
                     ¿Ha administrado algún medicamento (antibiótico, analgésico, antiparasitario) en las últimas 3 semanas? *
                   </label>
@@ -2413,7 +2925,10 @@ export default function MicrobiotaOrderForm({
                           type="radio"
                           name="medsLast3Weeks"
                           checked={medsLast3Weeks === opt}
-                          onChange={() => setMedsLast3Weeks(opt)}
+                          onChange={() => {
+                            setMedsLast3Weeks(opt);
+                            clearMissingField('recol-meds');
+                          }}
                           className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                         />
                         <span>{opt}</span>
@@ -2458,7 +2973,14 @@ export default function MicrobiotaOrderForm({
                 </div>
 
                 {/* Cambios de peso y apetito */}
-                <div className="space-y-1.5">
+                <div
+                  id="recol-weight-change"
+                  className={`space-y-1.5 rounded-xl transition-all ${
+                    missingFieldIds.includes('recol-weight-change')
+                      ? 'p-2.5 border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                      : ''
+                  }`}
+                >
                   <label className="text-xs font-bold text-slate-700">
                     ¿Ha perdido o aumentado peso en las últimas 3 semanas? *
                   </label>
@@ -2469,7 +2991,10 @@ export default function MicrobiotaOrderForm({
                           type="radio"
                           name="weightChange"
                           checked={weightChange3Weeks === opt}
-                          onChange={() => setWeightChange3Weeks(opt)}
+                          onChange={() => {
+                            setWeightChange3Weeks(opt);
+                            clearMissingField('recol-weight-change');
+                          }}
                           className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                         />
                         <span>{opt}</span>
@@ -2478,7 +3003,14 @@ export default function MicrobiotaOrderForm({
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
+                <div
+                  id="recol-appetite-change"
+                  className={`space-y-1.5 rounded-xl transition-all ${
+                    missingFieldIds.includes('recol-appetite-change')
+                      ? 'p-2.5 border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                      : ''
+                  }`}
+                >
                   <label className="text-xs font-bold text-slate-700">
                     ¿Ha aumentado o disminuido el apetito en las últimas 3 semanas? *
                   </label>
@@ -2489,7 +3021,10 @@ export default function MicrobiotaOrderForm({
                           type="radio"
                           name="appetiteChange"
                           checked={appetiteChange3Weeks === opt}
-                          onChange={() => setAppetiteChange3Weeks(opt)}
+                          onChange={() => {
+                            setAppetiteChange3Weeks(opt);
+                            clearMissingField('recol-appetite-change');
+                          }}
                           className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                         />
                         <span>{opt}</span>
@@ -2499,7 +3034,14 @@ export default function MicrobiotaOrderForm({
                 </div>
 
                 {/* Viajes */}
-                <div className="space-y-1.5 sm:col-span-2">
+                <div
+                  id="recol-recent-travel"
+                  className={`space-y-1.5 sm:col-span-2 rounded-xl transition-all ${
+                    missingFieldIds.includes('recol-recent-travel')
+                      ? 'p-2.5 border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/15'
+                      : ''
+                  }`}
+                >
                   <label className="text-xs font-bold text-slate-700">
                     ¿Ha viajado a lugares distintos al de su residencia? *
                   </label>
@@ -2510,7 +3052,10 @@ export default function MicrobiotaOrderForm({
                           type="radio"
                           name="recentTravel"
                           checked={recentTravel === opt}
-                          onChange={() => setRecentTravel(opt)}
+                          onChange={() => {
+                            setRecentTravel(opt);
+                            clearMissingField('recol-recent-travel');
+                          }}
                           className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                         />
                         <span>{opt}</span>
@@ -2544,18 +3089,27 @@ export default function MicrobiotaOrderForm({
                 </div>
               </div>
 
-              <div className="flex justify-between pt-3 border-t border-slate-100">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setActiveTab('dieta')}
-                  className="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-50 transition-all cursor-pointer"
+                  onClick={handlePrevStage}
+                  className="w-full sm:w-auto px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-50 transition-all cursor-pointer"
                 >
-                  ← Anterior
+                  ← Anterior: Dieta & Hábitos
                 </button>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                   <span className="text-xs font-black text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
                     Estudio 16S: $285.000 COP
                   </span>
+                  <button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={handleSubmit}
+                    className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span>✓</span>
+                    <span>{isSubmitting ? 'Procesando...' : 'Confirmar Solicitud de Recolección & Estudio'}</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -2568,49 +3122,79 @@ export default function MicrobiotaOrderForm({
       {/* ==================================================================== */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors cursor-pointer"
-          >
-            {isModal ? 'Cancelar' : '← Volver a Pacientes'}
-          </button>
+          {subtype === 'recoleccion' && activeTab !== 'logistica' ? (
+            <button
+              type="button"
+              onClick={handlePrevStage}
+              className="px-4 py-2.5 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors cursor-pointer flex items-center gap-1.5"
+            >
+              <span>←</span>
+              <span>Anterior</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              {isModal ? 'Cancelar' : '← Volver a Pacientes'}
+            </button>
+          )}
+
           {subtype === 'recoleccion' && (
-            <span className="text-xs text-slate-500 font-medium hidden sm:inline">
-              Paso {activeTab === 'logistica' ? '1/4' : activeTab === 'mascota' ? '2/4' : activeTab === 'dieta' ? '3/4' : '4/4'}
+            <span className="text-xs text-slate-500 font-bold hidden sm:inline">
+              Paso {activeTab === 'logistica' ? '1/4: Logística' : activeTab === 'mascota' ? '2/4: Mascota & Escala' : activeTab === 'dieta' ? '3/4: Dieta & Hábitos' : '4/4: Estilo & Salud (Final)'}
             </span>
           )}
         </div>
 
         <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-          <button
-            type="button"
-            disabled={
-              isSubmitting ||
-              (subtype === 'kit' &&
-                (!isMicrobiotaConfirmed ||
-                  !kitNameOrBusiness.trim() ||
-                  !kitDocId.trim() ||
-                  !kitCity.trim() ||
-                  !kitShippingAddress.trim() ||
-                  !kitPhone.trim() ||
-                  !kitReportEmail.trim() ||
-                  !kitBillingEmail.trim() ||
-                  !kitPetName.trim())) ||
-              (subtype === 'recoleccion' && !activePatient && !petName)
-            }
-            onClick={handleSubmit}
-            className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span>✓</span>
-            <span>
-              {isSubmitting
-                ? 'Procesando...'
-                : subtype === 'kit'
-                ? `Solicitar Kit de Microbiota para ${kitPetName || 'Mascota'}`
-                : 'Confirmar Solicitud de Recolección & Estudio'}
-            </span>
-          </button>
+          {subtype === 'kit' ? (
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={handleSubmit}
+              className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span>✓</span>
+              <span>
+                {isSubmitting
+                  ? 'Procesando...'
+                  : `Solicitar Kit de Microbiota para ${kitPetName || 'Mascota'}`}
+              </span>
+            </button>
+          ) : activeTab === 'salud' ? (
+            /* EL BOTÓN DE CONFIRMAR SOLICITUD ÚNICAMENTE SALE AL FINAL (ETAPA SALUD) */
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={handleSubmit}
+              className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span>✓</span>
+              <span>
+                {isSubmitting
+                  ? 'Procesando...'
+                  : 'Confirmar Solicitud de Recolección & Estudio'}
+              </span>
+            </button>
+          ) : (
+            /* EN LAS ETAPAS PREVIAS (1, 2, 3), SOLO SALE EL BOTÓN DE CONTINUAR A LA SIGUIENTE ETAPA */
+            <button
+              type="button"
+              onClick={handleNextStage}
+              className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
+            >
+              <span>
+                {activeTab === 'logistica'
+                  ? 'Siguiente: Mascota & Escala Corporal'
+                  : activeTab === 'mascota'
+                  ? 'Siguiente: Dieta & Nutrición'
+                  : 'Siguiente: Estilo de Vida & Salud'}
+              </span>
+              <span>→</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
