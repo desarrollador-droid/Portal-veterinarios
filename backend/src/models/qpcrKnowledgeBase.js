@@ -1012,6 +1012,434 @@ export const INFECTIOUS_AGENTS_DB = [
       'hemorragia pulmonar': 'Hemorragias pulmonares y hemoptisis por vasculitis alveolar necrotizante.',
       vomito: 'Vómito y diarrea hemorrágica por uremia severa y microangiopatía gastrointestinal.'
     }
+  },
+
+
+  // ==========================================================================
+  // GRUPO NUEVO: TRIPANOSOMÁTIDOS Y PROTOZOOS VECTORIALES
+  // ==========================================================================
+  {
+    id: 'trypanosoma-spp',
+    name: 'Trypanosoma spp. (T. cruzi / T. evansi)',
+    group: 'TRIPANOSOMÁTIDOS',
+    species: ['Canino'],
+    hostDetails: 'Canino (Canis lupus familiaris; reservorio y centinela doméstico principal de T. cruzi)',
+    countries: 'Colombia (valles interandinos, Magdalena Medio, Casanare, Meta, Costa Caribe); Brasil, Venezuela',
+    transmission: 'Contaminación de mucosas/heridas con deyecciones de triatominos (pitos), ingestión oral de vectores, vía congénita o transfusión',
+    vectors: ['triatomino', 'pito', 'chinche', 'vectorial', 'ingestion'],
+    targetOrgans: 'Miocardio (músculo cardíaco), macrófagos, sistema de conducción atrioventricular, ganglios linfáticos, bazo e hígado',
+    pathogenesis: 'Invasión y replicación intracelular de amastigotes en cardiomiocitos con miocarditis necrosante aguda, destrucción de fibras miocárdicas y ganglios parasimpáticos cardíacos, desencadenando miocardiopatía dilatada y arritmias ventriculares graves.',
+    symptomsDescription: 'Fase aguda: fiebre, letargia, linfadenomegalia generalizada, anorexia, hepato-esplenomegalia y edema subcutáneo. Fase crónica: miocardiopatía dilatada, insuficiencia cardíaca congestiva, arritmias ventriculares complejas, síncope, debilidad e intolerancia al ejercicio, ascitis y muerte súbita.',
+    labDescription: 'Anemia normocítica normocrómica, leucocitosis con linfocitosis, trombocitopenia variable; elevación muy marcada de Troponina I cardíaca (cTnI) y CK-MB en daño miocárdico agudo.',
+    diagnosticMethods: 'qPCR cuantitativa específica para ADN satélite / kinetoplasto (kDNA) de Trypanosoma cruzi. Muestra: Sangre total con EDTA (2 ml).',
+    relevantNotes: 'Enfermedad de Chagas canina. El perro es el principal hospedero centinela y reservorio doméstico para transmisión a humanos. Indispensable en diagnóstico diferencial de miocardiopatías y arritmias.',
+    keywords: [
+      'trypanosoma', 'cruzi', 'chagas', 'miocarditis', 'arritmia', 'corazon', 'cardiomiopatia',
+      'dilatada', 'soplo', 'sincope', 'síncope', 'insuficiencia cardiaca', 'intolerancia al ejercicio',
+      'letargia', 'fiebre', 'pito', 'triatomino', 'troponina', 'linfadenomegalia', 'muerte subita'
+    ],
+    symptomExplanations: {
+      miocarditis: 'Miocarditis necrosante aguda por replicación de amastigotes en cardiomiocitos.',
+      arritmias: 'Arritmias ventriculares y bloqueos de conducción por fibrosis del tejido nodal cardíaco.',
+      sincope: 'Síncope y debilidad episódica debido a gasto cardíaco insuficiente o taquiarritmias.',
+      letargia: 'Letargia y fatiga extrema secundaria a hipoperfusión tisular y falla cardíaca.',
+      fiebre: 'Fiebre debida a parasitemia activa y respuesta inflamatoria sistémica aguda.'
+    }
+  },
+  {
+    id: 'leishmania-spp',
+    name: 'Leishmania spp. (L. infantum / L. braziliensis)',
+    group: 'TRIPANOSOMÁTIDOS',
+    species: ['Canino', 'Felino'],
+    hostDetails: 'Canino (reservorio urbano mayor) y Felino',
+    countries: 'Colombia (Tolima, Cundinamarca, Huila, Sucre, Santander, Costa Caribe); Cuenca mediterránea, Brasil',
+    transmission: 'Picadura de flebótomos hembra hematófagos (Lutzomyia longipalpis / evansi en Colombia)',
+    vectors: ['flebotomo', 'flebótomo', 'lutzomyia', 'manta blanca'],
+    targetOrgans: 'Macrófagos del sistema fagocítico mononuclear: médula ósea, ganglios linfáticos, bazo, hígado, piel, endotelio vascular y glomérulos renales',
+    pathogenesis: 'Multiplicación intracelular en macrófagos y diseminación linforreticular. Falla en respuesta celular Th1 y activación aberrante Th2 policlonal con hipergammaglobulinemia masiva y depósitos masivos de inmunocomplejos circulantes, causando glomerulonefritis membranoproliferativa, vasculitis sistémica y uveítis.',
+    symptomsDescription: 'Dermatitis exfoliativa no pruriginosa (escamas finas plateadas y caspa), alopecia periocular bilateral ("signo de las gafas"), úlceras mucocutáneas en bordes de orejas y trufa, onicogrifosis (uñas anormalmente largas y curvadas), nódulos subcutáneos, pérdida de peso severa (caquexia), epistaxis recurrente, uveítis anterior, cojera y linfoadenomegalia generalizada simétrica.',
+    labDescription: 'Hiperproteinemia severa con hipergammaglobulinemia policlonal marcada, hipoalbuminemia profunda (relación Albúmina/Globulina invertida < 0.6), proteinuria marcada con UPC elevado, azotemia progresiva (falla renal crónica terminal por glomerulonefritis), anemia no regenerativa y trombocitopenia.',
+    diagnosticMethods: 'qPCR tiempo real cinetoplasto kDNA / 18S rRNA de Leishmania (altísima sensibilidad analítica). Muestra: Sangre total con EDTA (2 ml), aspirado de médula ósea, aspirado ganglionar o frotis/biopsia de lesiones dérmicas.',
+    relevantNotes: 'Enfermedad zoonótica de gran impacto en salud pública. La afección renal por glomerulonefritis por inmunocomplejos es la causa principal de muerte.',
+    keywords: [
+      'leishmania', 'infantum', 'leishmaniasis', 'alopecia periocular', 'gafas', 'onicogrifosis',
+      'ulceras', 'úlceras', 'descamacion', 'descamación', 'caspa', 'epistaxis', 'falla renal',
+      'proteinuria', 'hiperglobulinemia', 'relacion a/g', 'linfadenomegalia', 'flebotomo', 'lutzomyia',
+      'nodulos', 'nódulos', 'uveitis', 'uveítis', 'caquexia', 'perdida de peso'
+    ],
+    symptomExplanations: {
+      onicogrifosis: 'Onicogrifosis por vasculitis proliferativa crónica del lecho ungueal.',
+      'alopecia periocular': 'Alopecia periocular y dermatitis descamativa por infiltración piogranulomatosa macrofágica.',
+      epistaxis: 'Epistaxis por vasculitis necrotizante de la mucosa nasal y trombocitopatía urémica.',
+      proteinuria: 'Proteinuria masiva por glomerulonefritis por depósito de inmunocomplejos antígeno-anticuerpo.',
+      uveitis: 'Uveítis anterior inmunomediada por depósitos de complejos inmunes en el tracto uveal.'
+    }
+  },
+  {
+    id: 'bartonella-spp',
+    name: 'Bartonella spp.',
+    group: 'BARTONELLA',
+    species: ['Canino', 'Felino'],
+    hostDetails: 'Canino y Felino',
+    countries: 'Colombia (Bogotá, Antioquia, Valle, Eje Cafetero, Costa); cosmopolita',
+    transmission: 'Picadura de pulgas (Ctenocephalides felis), garrapatas, piojos o arañazo',
+    vectors: ['pulga', 'ctenocephalides', 'garrapata', 'arañazo'],
+    targetOrgans: 'Endotelio vascular, eritrocitos, válvulas cardíacas, ganglios linfáticos, bazo, ojos y meninges',
+    pathogenesis: 'Bacteriemia intraeritrocitaria persistente e infección de células endoteliales con vasculitis, angiomatosis y endocarditis vegetante.',
+    symptomsDescription: 'Fiebre de origen desconocido (FOD), endocarditis vegetante con soplos cardíacos, claudicación intermitente, poliartritis, uveítis anterior, letargia y linfadenomegalia.',
+    labDescription: 'Anemia normocítica normocrómica leve o hemolítica, trombocitopenia leve, leucocitosis neutrofílica y elevación de globulinas.',
+    diagnosticMethods: 'qPCR gen gltA / ribC / ITS 16S-23S de Bartonella spp. Muestra: Sangre total con EDTA (2 ml).',
+    relevantNotes: 'Patógeno zoonótico de difícil cultivo bacteriológico. La qPCR es la herramienta diagnóstica de elección.',
+    keywords: ['bartonella', 'spp', 'fiebre', 'endocarditis', 'soplo', 'cojera', 'poliartritis', 'uveitis', 'pulga'],
+    symptomExplanations: {
+      fiebre: 'Fiebre persistente o recurrente debida a ciclos de bacteriemia intraeritrocitaria.',
+      endocarditis: 'Endocarditis vegetante valvular por colonización endotelial crónica.',
+      poliartritis: 'Poliartritis y sinovitis por vasculitis inmunomediada.'
+    }
+  },
+  {
+    id: 'ehrlichia-spp',
+    name: 'Ehrlichia spp.',
+    group: 'RICKETTSIALES',
+    species: ['Canino', 'Felino'],
+    hostDetails: 'Canino y Felino',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Picadura de garrapatas Rhipicephalus sanguineus y Amblyomma spp.',
+    vectors: ['garrapata', 'rhipicephalus', 'amblyomma'],
+    targetOrgans: 'Monocitos, macrófagos y neutrófilos; médula ósea, bazo, ganglios linfáticos, articulaciones y riñón',
+    pathogenesis: 'Infección leucocitaria intracelular obligada con vasculitis, citopenias autoinmunes y formación de mórulas.',
+    symptomsDescription: 'Fiebre, decaimiento, anorexia, petequias, equimosis, epistaxis, cojera y dolor articular por poliartritis, linfoadenomegalia y uveítis.',
+    labDescription: 'Trombocitopenia marcada, anemia no regenerativa en fase crónica, leucopenia o leucocitosis reactiva, hiperproteinemia con hiperglobulinemia.',
+    diagnosticMethods: 'qPCR gen dsb / 16S rRNA de Ehrlichia spp. Muestra: Sangre total con EDTA (2 ml).',
+    relevantNotes: 'Hemoparasitosis canina y felina de alta morbilidad.',
+    keywords: ['ehrlichia', 'spp', 'garrapata', 'trombocitopenia', 'petequias', 'epistaxis', 'poliartritis', 'cojera', 'anemia'],
+    symptomExplanations: {
+      trombocitopenia: 'Trombocitopenia por consumo inflamatorio, secuestro esplénico y destrucción inmune.',
+      epistaxis: 'Hemorragias y epistaxis secundarias a trombocitopenia severa y vasculitis.',
+      poliartritis: 'Poliartritis inmunomediada neutrofílica por inmunocomplejos en líquido sinovial.'
+    }
+  },
+
+  // ==========================================================================
+  // GRUPO NUEVO: VIRUS CANINOS ENTÉRICOS, RESPIRATORIOS Y NEUROLÓGICOS
+  // ==========================================================================
+  {
+    id: 'parvovirus-canino',
+    name: 'Parvovirus Canino (CPV-2)',
+    group: 'VIRAL',
+    species: ['Canino'],
+    hostDetails: 'Canino (cachorros y adultos no vacunados)',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Transmisión fecal-oral directa o fómites ambientales contaminados',
+    targetOrgans: 'Células en mitosis activa: criptas intestinales del yeyuno e íleon, médula ósea, tejido linfoide y miocardio neonatal',
+    pathogenesis: 'Necrosis y lisis de enterocitos de las criptas con colapso de vellosidades intestinales, diarrea hemorrágica masiva y traslocación bacteriana séptica; necrosis linfoide con panleucopenia severa.',
+    symptomsDescription: 'Vómitos continuos e incoercibles, diarrea hemorrágica profusa muy fétida, deshidratación hipovolémica severa, dolor abdominal agudo, depresión profunda, anorexia y fiebre o hipotermia en shock séptico.',
+    labDescription: 'Leucopenia severa extrema (<3.000 leucocitos/µL con neutropenia profunda y desviación a la izquierda), anemia por hemorragia gastrointestinal, hipoalbuminemia, hipokalemia y acidosis metabólica.',
+    diagnosticMethods: 'qPCR tiempo real gen VP2 de Parvovirus canino (sensibilidad molecular superior frente a test rápidos). Muestra: Materia fecal, hisopado rectal o sangre con EDTA.',
+    relevantNotes: 'Principal causa infecciosa de muerte por enteritis hemorrágica en cachorros.',
+    keywords: [
+      'parvovirus', 'cpv', 'vomito', 'vómito', 'diarrea', 'diarrea sanguinolenta', 'hemorragica', 'hemorrágica',
+      'leucopenia', 'neutropenia', 'deshidratacion', 'deshidratación', 'dolor abdominal', 'cachorro'
+    ],
+    symptomExplanations: {
+      vomito: 'Vómito incoercible por necrosis de mucosa gastroduodenal y estimulación de quimiorreceptores.',
+      diarrea: 'Diarrea hemorrágica fétida debida a la destrucción masiva de las criptas intestinales.',
+      leucopenia: 'Leucopenia extrema por destrucción de precursores mieloides en médula ósea y tejido linfoide.'
+    }
+  },
+  {
+    id: 'distemper-canino',
+    name: 'Virus del Distemper Canino (CDV / Moquillo)',
+    group: 'VIRAL',
+    species: ['Canino'],
+    hostDetails: 'Canino (todas las edades)',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Aerosoles respiratorios, contacto oronasal con secreciones oculares, nasales y orina',
+    targetOrgans: 'Epitelio respiratorio, digestivo y cutáneo; tejido linfoide y células gliales/neuronales del SNC',
+    pathogenesis: 'Infección de macrófagos respiratorios con diseminación linfoide y viremia; tropismo multiorgánico epitelial y neuroinvasión con desmielinización inflamatoria perivenosa.',
+    symptomsDescription: 'Fase respiratoria y digestiva: secreción oculonasal mucopurulenta bilateral, tos productiva, disnea, vómito y diarrea. Fase cutánea: hiperqueratosis de almohadillas plantares y trufa nasal ("almohadilla dura"), pústulas abdominales. Fase neurológica: mioclonías involuntarias rítmicas ("tics"), convulsiones epileptiformes de tipo masticatorio ("chewing gum"), ataxia, paresia y ceguera.',
+    labDescription: 'Linfopenia absoluta severa temprana, neutrofilia en sobreinfección bacteriana secundaria; pleocitosis mononuclear en LCR.',
+    diagnosticMethods: 'RT-qPCR tiempo real gen N / fosfoproteína P de CDV. Muestra: Hisopado conjuntival, hisopado nasal, orina, sangre total con EDTA o LCR.',
+    relevantNotes: 'Enfermedad sistémica y neurodegenerativa grave. La confirmación por RT-qPCR permite detectar el virus tempranamente.',
+    keywords: [
+      'distemper', 'cdv', 'moquillo', 'mioclonias', 'mioclonías', 'convulsiones', 'chewing gum',
+      'secrecion nasal', 'secreción nasal', 'secrecion ocular', 'secreción ocular', 'hiperqueratosis',
+      'almohadilla dura', 'ataxia', 'tos', 'diarrea', 'vomito', 'vómito', 'fiebre bifasica'
+    ],
+    symptomExplanations: {
+      mioclonias: 'Mioclonías rítmicas debidas a desmielinización y daño inflamatorio de neuronas motoras espinales y medulares.',
+      convulsiones: 'Convulsiones y automatismos masticatorios por encefalitis no supurativa y necrosis cortical.',
+      'secrecion nasal': 'Secreción mucopurulenta por daño epitelial respiratorio y sobreinfección bacteriana.'
+    }
+  },
+  {
+    id: 'adenovirus-canino',
+    name: 'Adenovirus Canino (CAV-1 / CAV-2)',
+    group: 'VIRAL',
+    species: ['Canino'],
+    hostDetails: 'Canino',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Ingestión o inhalación de orina, heces o saliva de animales infectados',
+    targetOrgans: 'Hepatocitos y células endoteliales (CAV-1: hepatitis infecciosa); tracto respiratorio superior (CAV-2)',
+    pathogenesis: 'Necrosis hepática centrolobulillar aguda, vasculitis hemorrágica difusa, coagulopatía de consumo y formación de inmunocomplejos causantes de edema corneal ("ojo azul") y glomerulonefritis.',
+    symptomsDescription: 'Hepatitis infecciosa canina: fiebre, hepatomegalia muy dolorosa a la palpación, dolor abdominal agudo, ictericia, vómito, melena, petequias, edema corneal bilateral blanco-azulado ("ojo azul") y tos.',
+    labDescription: 'Elevación masiva de transaminasas (ALT, AST > 1000 UI/L) y fosfatasa alcalina, prolongación de tiempos de coagulación (PT y PTT), leucopenia inicial seguida de leucocitosis.',
+    diagnosticMethods: 'qPCR tiempo real gen hexón de Adenovirus canino. Muestra: Sangre total con EDTA (2 ml), hisopado orofaríngeo u orina.',
+    relevantNotes: 'Causa viral mayor de hepatitis aguda necrotizante en caninos.',
+    keywords: [
+      'adenovirus', 'cav', 'hepatitis infecciosa canina', 'ojo azul', 'ictericia', 'hepatomegalia',
+      'dolor abdominal', 'alt', 'ast', 'coagulopatia', 'coagulopatía', 'melena', 'petequias'
+    ],
+    symptomExplanations: {
+      ictericia: 'Ictericia y hepatomegalia por necrosis hepática centrolobulillar y colestasis intrahepática.',
+      'ojo azul': 'Edema corneal ("ojo azul") y uveítis anterior por depósito de inmunocomplejos antígeno-anticuerpo.',
+      dolor_abdominal: 'Dolor abdominal agudo por distensión de la cápsula hepática inflamada.'
+    }
+  },
+  {
+    id: 'coronavirus-canino',
+    name: 'Coronavirus Canino (CCoV)',
+    group: 'VIRAL',
+    species: ['Canino'],
+    hostDetails: 'Canino',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Transmisión fecal-oral directa o fómites',
+    targetOrgans: 'Células epiteliales de la punta y tercio superior de las vellosidades intestinales (duodeno y yeyuno)',
+    pathogenesis: 'Destrucción de enterocitos maduros absortivos con diarrea osmótica y de mala absorción; coinfección frecuente que agrava el cuadro por Parvovirus.',
+    symptomsDescription: 'Enteritis aguda: diarrea acuosa o mucosa de color amarillento-naranja, fétida, letargia, anorexia, deshidratación leve a moderada y vómitos ocasionales.',
+    labDescription: 'Generalmente sin leucopenia extrema a diferencia de parvovirus (salvo coinfección); deshidratación y desequilibrio electrolítico.',
+    diagnosticMethods: 'RT-qPCR tiempo real gen M / N de Coronavirus canino. Muestra: Materia fecal o hisopado rectal.',
+    relevantNotes: 'Coinfección habitual en cuadros de gastroenteritis viral canina.',
+    keywords: ['coronavirus canino', 'ccov', 'diarrea', 'enteritis', 'vomito', 'vómito', 'deshidratacion'],
+    symptomExplanations: {
+      diarrea: 'Diarrea acuosa amarillenta por descamación de enterocitos maduros en puntas de vellosidades intestinales.'
+    }
+  },
+
+  // ==========================================================================
+  // GRUPO NUEVO: BACTERIAS Y PROTOZOOS OSTEOMUSCULARES Y NEUROLÓGICOS CANINOS
+  // ==========================================================================
+  {
+    id: 'brucella-spp',
+    name: 'Brucella spp. (B. canis / B. abortus)',
+    group: 'ZOONÓTICO',
+    species: ['Canino'],
+    hostDetails: 'Canino (reservorio específico de B. canis)',
+    countries: 'Colombia; América Latina',
+    transmission: 'Contacto venéreo / oronasal con fluidos reproductivos, abortos, descargas vaginales, orina o semen',
+    targetOrgans: 'Aparato reproductor, próstata, testículos, discos intervertebrales (discoespóndilitis), articulaciones (poliartritis), ganglios y bazo',
+    pathogenesis: 'Bacteriemia intracelular facultativa persistente en macrófagos; colonización del disco intervertebral con osteomielitis y discoespondilitis lítica dolorosa, orquiepididimitis y abortos.',
+    symptomsDescription: 'Fallas reproductivas, aborto en el tercer tercio de gestación, orquitis, epididimitis dolorosa, prostatitis, discoespondilitis con intenso dolor espinal y rigidez al caminar, cojera por poliartritis, linfadenomegalia y uveítis anterior.',
+    labDescription: 'Leucocitosis leve a moderada con monocitosis, hiperglobulinemia policlonal; lisis de cuerpos vertebrales visible radiográficamente.',
+    diagnosticMethods: 'qPCR secuencia de inserción IS711 / gen bcsp31 de Brucella spp. Muestra: Sangre total con EDTA (2 ml), orina, líquido sinovial o secreción reproductiva.',
+    relevantNotes: 'Enfermedad zoonótica bacteriana crónica de alta trascendencia. Causa primaria de discoespondilitis en caninos.',
+    keywords: [
+      'brucella', 'canis', 'discoespondilitis', 'dolor de espalda', 'dolor espinal', 'orquitis',
+      'epididimitis', 'aborto', 'infertilidad', 'cojera', 'poliartritis', 'prostatitis', 'zoonosis'
+    ],
+    symptomExplanations: {
+      discoespondilitis: 'Discoespondilitis lítica por colonización bacteriana y osteomielitis de placas vertebrales.',
+      dolor_espinal: 'Dolor espinal agudo por compresión de raíces nerviosas y necrosis del disco intervertebral.',
+      poliartritis: 'Poliartritis por diseminación bacteriana y reacción inflamatoria sinovial.'
+    }
+  },
+  {
+    id: 'borrelia-spp',
+    name: 'Borrelia spp. (B. burgdorferi / Lyme)',
+    group: 'ESPIROQUETAS',
+    species: ['Canino'],
+    hostDetails: 'Canino',
+    countries: 'Colombia; Norteamérica, Europa',
+    transmission: 'Picadura de garrapatas duras Ixodes spp.',
+    vectors: ['garrapata', 'ixodes'],
+    targetOrgans: 'Sinovial articular, glomérulo renal (nefropatía de Lyme), endotelio vascular y miocardio',
+    pathogenesis: 'Diseminación tisular de espiroquetas con intensa artritis neutrofílica no degenerativa; depósito masivo de inmunocomplejos en glomérulos renales causando glomerulonefritis rápidamente progresiva con síndrome nefrótico.',
+    symptomsDescription: 'Cojera súbita cambiante ("salta de una pata a otra"), articulaciones del tarso y carpo hinchadas, calientes y dolorosas, fiebre recurrente, rigidez en marcha ("paso envarado"), letargia y anorexia; en forma renal: proteinuria masiva, azotemia y edemas por nefropatía de Lyme.',
+    labDescription: 'Líquido sinovial con leucocitosis neutrofílica no degenerativa; en nefropatía de Lyme: hipoalbuminemia severa, proteinuria masiva con UPC muy elevado y azotemia.',
+    diagnosticMethods: 'qPCR tiempo real gen flaB / ospA / 23S rRNA de Borrelia burgdorferi sensu lato. Muestra: Sangre total con EDTA (2 ml), líquido sinovial articular o biopsia dérmica.',
+    relevantNotes: 'Enfermedad de Lyme canina transmitida por garrapatas. Diferencial esencial en poliartritis y cojeras intermitentes.',
+    keywords: [
+      'borrelia', 'burgdorferi', 'lyme', 'cojera', 'cojera cambiante', 'poliartritis', 'artritis',
+      'articulacion hinchada', 'fiebre', 'nefropatia de lyme', 'nefropatía', 'proteinuria', 'garrapata', 'ixodes'
+    ],
+    symptomExplanations: {
+      cojera: 'Cojera migratoria recurrente por inflamación sinovial proliferativa aguda.',
+      poliartritis: 'Poliartritis inflamatoria neutrofílica por persistencia espiroquetal articular.',
+      proteinuria: 'Proteinuria y azotemia por glomerulonefritis membranoproliferativa mediada por inmunocomplejos.'
+    }
+  },
+  {
+    id: 'neospora-spp',
+    name: 'Neospora spp. (Neospora caninum)',
+    group: 'APICOMPLEXA',
+    species: ['Canino'],
+    hostDetails: 'Canino (hospedero definitivo e intermediario)',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Transplacentaria / congénita (vía principal en cachorros) o ingestión de tejidos con quistes',
+    targetOrgans: 'Sistema nervioso central (médula espinal lumbosacra, encéfalo) y músculo esquelético',
+    pathogenesis: 'Multiplicación de taquizoítos con radiculoneuritis y miositis focal necrosante severa con fibrosis y contractura irreversible en hiperextensión de miembros.',
+    symptomsDescription: 'Parálisis ascendente rígida característica de miembros posteriores en cachorros (hiperextensión espástica no dolorosa), atrofia muscular bilateral simétrica muy severa de miembros pélvicos, ataxia, disfagia, megaesófago, convulsiones y paresia flácida o espástica.',
+    labDescription: 'Elevación masiva de Creatina Kinasa (CK) y AST por daño muscular extenso; pleocitosis mixta con hiperproteinorraquia en LCR.',
+    diagnosticMethods: 'qPCR tiempo real gen Nc-5 / 18S rRNA de Neospora caninum. Muestra: Líquido cefalorraquídeo (LCR), biopsia muscular o sangre total con EDTA.',
+    relevantNotes: 'Causa primaria de parálisis rígida en hiperextensión en cachorros menores de 6 meses. La detección precoz es decisiva.',
+    keywords: [
+      'neospora', 'caninum', 'paralisis ascendente', 'parálisis ascendente', 'hiperextension', 'hiperextensión',
+      'atrofia muscular', 'miositis', 'lcr', 'creatina kinasa', 'ck', 'convulsiones', 'ataxia', 'cachorro'
+    ],
+    symptomExplanations: {
+      paralisis: 'Parálisis rígida e hiperextensión de miembros por radiculoneuritis motora lumbosacra y fibrosis muscular.',
+      atrofia_muscular: 'Atrofia muscular severa bilateral secundaria a miositis necrosante y denervación motora.',
+      convulsiones: 'Convulsiones y signos encefálicos por meningoencefalitis granulomatosa multifocal.'
+    }
+  },
+
+  // ==========================================================================
+  // GRUPO NUEVO: PATÓGENOS FELINOS VIRALES, OCULARES Y ENTÉRICOS
+  // ==========================================================================
+  {
+    id: 'vif-fiv',
+    name: 'Virus de la Inmunodeficiencia Felina (VIF / FIV)',
+    group: 'RETROVIRUS',
+    species: ['Felino'],
+    hostDetails: 'Felino doméstico (Felis catus)',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Mordeduras profundas (saliva infectada), peleas territoriales entre gatos machos, vía vertical ocasional',
+    targetOrgans: 'Linfocitos T CD4+, linfocitos T CD8+, macrófagos, médula ósea y astrocitos',
+    pathogenesis: 'Lentivirus que provoca disfunción e inversión de la relación CD4+/CD8+, pérdida progresiva de la inmunidad mediada por células y desarrollo del síndrome de inmunodeficiencia adquirida felina (SIDA felino).',
+    symptomsDescription: 'Gingivostomatitis crónica felina proliferativa y ulcerativa refractaria, infecciones secundarias oportunistas (orales, respiratorias, cutáneas), linfadenomegalia generalizada, pérdida de peso crónica progresiva, fiebre recurrente, uveítis anterior y neoplasias (linfomas).',
+    labDescription: 'Linfopenia progresiva, anemia no regenerativa normocítica normocrómica, neutropenia crónica, hiperproteinemia con hipergammaglobulinemia.',
+    diagnosticMethods: 'qPCR ADN proviral integrado / RT-qPCR ARN (gen gag / pol) de FIV. Muestra: Sangre total con EDTA (2 ml). No presenta interferencia por anticuerpos maternos ni vacunales.',
+    relevantNotes: 'Retrovirus de alta prevalencia en gatos callejeros y machos no esterilizados. La qPCR proviral confirma la infección definitiva.',
+    keywords: [
+      'vif', 'fiv', 'inmunodeficiencia felina', 'sida felino', 'gingivitis', 'estomatitis', 'gingivoestomatitis',
+      'linfoma', 'perdida de peso', 'pérdida de peso', 'linfopenia', 'anemia', 'uveitis', 'uveítis'
+    ],
+    symptomExplanations: {
+      estomatitis: 'Gingivostomatitis ulcerativa refractaria debida a desregulación inmune y sobreinfecciones orales.',
+      linfopenia: 'Linfopenia severa por agotamiento y citólisis de linfocitos T colaboradores CD4+.',
+      uveitis: 'Uveítis anterior por replicación viral y respuesta linfoplasmocítica intraocular.'
+    }
+  },
+  {
+    id: 'vilef-felv',
+    name: 'Virus de la Leucemia Felina (ViLeF / FeLV)',
+    group: 'RETROVIRUS',
+    species: ['Felino'],
+    hostDetails: 'Felino doméstico (Felis catus)',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Contacto oronasal estrecho ("gatos que se acicalan"), saliva, orina, leche materna y mordeduras',
+    targetOrgans: 'Médula ósea, células precursoras hematopoyéticas, ganglios linfáticos, epitelio salival y enterocitos',
+    pathogenesis: 'Integración proviral oncogénica en el genoma de células pluripotenciales; induce transformación neoplásica (linfomas tímicos, renales, medulares y leucemia), aplasia medular e inmunosupresión profunda.',
+    symptomsDescription: 'Anemia no regenerativa muy severa con palidez extrema de mucosas, neoplasias hematopoyéticas (linfoma mediastínico con disnea, linfoma renal o digestivo), leucemia, infecciones bacterianas y fúngicas oportunistas graves, caquexia y fiebre persistente.',
+    labDescription: 'Anemia no regenerativa macrocítica clásica (VCM elevado sin reticulocitos), pancitopenia severa o neutropenia profunda, presencia de linfoblastos en frotis sanguíneo en fase leucémica.',
+    diagnosticMethods: 'qPCR proviral cuantitativa ADN (gen U3 LTR / env de FeLV) para determinar infección progresiva, regresiva o latente en médula ósea. Muestra: Sangre total con EDTA (2 ml) o aspirado de médula ósea.',
+    relevantNotes: 'Estándar de oro para detectar la infección regresiva latente en médula ósea que resulta negativa en pruebas rápidas de antígeno p27.',
+    keywords: [
+      'vilef', 'felv', 'leucemia felina', 'anemia arregenerativa', 'anemia macrocitica', 'linfoma',
+      'leucemia', 'linfoma mediastinico', 'palidez', 'pancitopenia', 'inmunosupresion', 'caquexia'
+    ],
+    symptomExplanations: {
+      anemia: 'Anemia macrocítica no regenerativa severa debida a mieloptisis y aplasia eritroide medular.',
+      linfoma: 'Linfomas y leucemias inducidos por mutagénesis insercional proviral oncogénica.',
+      inmunosupresion: 'Inmunodeficiencia profunda humoral y celular por destrucción linfohematopoyética.'
+    }
+  },
+  {
+    id: 'chlamydia-spp',
+    name: 'Chlamydia spp. (Chlamydia felis)',
+    group: 'BACTERIAS INTRACELULARES',
+    species: ['Felino'],
+    hostDetails: 'Felino doméstico (especialmente gatitos y colectividades felinas)',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Contacto directo con secreciones oculares infectadas y fómites recientes',
+    targetOrgans: 'Epitelio de la conjuntiva ocular y mucosa respiratoria nasal',
+    pathogenesis: 'Bacterias intracelulares obligadas que se replican en células epiteliales conjuntivales, provocando necrosis epitelial e infiltración neutrofílica masiva con quemosis intensa.',
+    symptomsDescription: 'Conjuntivitis unilateral inicial que se torna bilateral en pocos días, quemosis conjuntival muy prominente (edema gelatinoso de la conjuntiva que protruye sobre el globo ocular), secreción ocular serosa que pasa a mucopurulenta espesa, blefaroespasmo, hiperemia conjuntival marcada y estornudos leves.',
+    labDescription: 'Cuerpos de inclusión basofílicos intracitoplasmáticos en raspado conjuntival inicial; citología con predominio neutrofílico marcado.',
+    diagnosticMethods: 'qPCR gen ompA / 16S rRNA de Chlamydia felis. Muestra: Hisopado conjuntival vigoroso con hisopo estéril de dacrón/rayon sin medio de cultivo bacteriano.',
+    relevantNotes: 'Patógeno bacteriano ocular principal del complejo respiratorio felino. La quemosis extrema es su signo clínico más distintivo.',
+    keywords: [
+      'chlamydia', 'felis', 'quemosis', 'conjuntivitis', 'ojo', 'secrecion ocular', 'secreción ocular',
+      'blefaroespasmo', 'edema conjuntival', 'estornudos', 'complejo respiratorio felino'
+    ],
+    symptomExplanations: {
+      quemosis: 'Quemosis severa por edema inflamatorio agudo de la submucosa conjuntival.',
+      conjuntivitis: 'Conjuntivitis mucopurulenta por replicación intracelular bacteriana en enterocitos epiteliales.'
+    }
+  },
+  {
+    id: 'herpesvirus-felino',
+    name: 'Herpesvirus Felino tipo 1 (FHV-1)',
+    group: 'VIRAL',
+    species: ['Felino'],
+    hostDetails: 'Felino doméstico',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Aerosoles de corta distancia y contacto directo con secreciones oculares, nasales y orales',
+    targetOrgans: 'Epitelio conjuntival, córnea, mucosa respiratoria nasal/traqueal; ganglio del nervio trigémino (sitio de latencia de por vida)',
+    pathogenesis: 'Lisis de células epiteliales con úlceras dendríticas ramificadas patognomónicas en córnea; establecimiento de latencia neural en ganglio trigémino con reactivaciones periódicas ante estrés o inmunosupresión.',
+    symptomsDescription: 'Rinotraqueítis felina severa con estornudos paroxísticos intensos, secreción nasal y ocular mucopurulenta abundante, conjuntivitis ulcerativa, queratitis dendrítica (úlceras corneales lineales ramificadas visibles con fluoresceína), blefaroespasmo doloroso, secuestro corneal negro, fiebre, anorexia y sialorrea.',
+    labDescription: 'Neutrofilia reactiva en sobreinfecciones; úlceras corneales dendríticas patognomónicas positivas a tinción de fluoresceína o rosa de bengala.',
+    diagnosticMethods: 'qPCR tiempo real gen timidina quinasa (TK) / glicoproteína B de FHV-1. Muestra: Hisopado conjuntival, corneal o nasal profundo.',
+    relevantNotes: 'Agente causal principal de queratitis ulcerativa y secuestro estromal corneal en gatos. Diferencial clave frente a Chlamydia y Calicivirus.',
+    keywords: [
+      'herpesvirus', 'fhv', 'rinotraqueitis', 'rinotraqueítis', 'ulcera dendritica', 'úlcera dendrítica',
+      'cornea', 'córnea', 'queratitis', 'secuestro corneal', 'estornudos', 'secrecion nasal', 'conjuntivitis'
+    ],
+    symptomExplanations: {
+      'ulcera dendritica': 'Úlceras corneales dendríticas patognomónicas por citólisis de células epiteliales corneales.',
+      estornudos: 'Estornudos paroxísticos intensos por necrosis del epitelio de los cornetes nasales.',
+      secuestro_corneal: 'Secuestro corneal estromal momificado secundario a queratitis herpética crónica.'
+    }
+  },
+  {
+    id: 'pif-fcov',
+    name: 'Coronavirus Felino / PIF (FCoV)',
+    group: 'CORONAVIRUS',
+    species: ['Felino'],
+    hostDetails: 'Felino doméstico (especialmente gatos jóvenes <2 años y ambientes colectivos)',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Fecal-oral de cepas entéricas de FCoV con mutación interna posterior en macrófagos',
+    targetOrgans: 'Macrófagos tisulares, endotelio vascular venoso (periflebitis), peritoneo, pleura, úvea ocular, SNC, riñón, hígado y ganglios mesentéricos',
+    pathogenesis: 'Replicación masiva en macrófagos con vasculitis piogranulomatosa inmunomediada (Hipersensibilidad Tipo III) y activación del complemento; fuga masiva de plasma rico en proteínas (forma efusiva) o piogranulomas parenquimatosos en órganos diana (forma no efusiva o seca).',
+    symptomsDescription: 'Forma efusiva (húmeda): distensión abdominal marcada progresiva no dolorosa con ascitis amarillenta filante, efusión pleural con disnea y taquipnea severa. Forma no efusiva (seca): uveítis anterior con precipitados queráticos en grasa de carnero, hipema, coriorretinitis en "nube", signos neurológicos (ataxia, nistagmo, convulsiones, paresia), nefromegalia irregular granulomatosa, ictericia y nódulos hepáticos. Signos generales: fiebre fluctuante que no responde a ningún antibiótico, letargia profunda y caquexia.',
+    labDescription: 'Líquido efusivo clásico: exudado claro o amarillento pajizo, denso y viscoso (filante), con proteínas totales >3.5 g/dL, relación Albúmina/Globulina (A/G) <0.45 patognomónica y prueba de Rivalta positiva. Hemograma con hipergammaglobulinemia policlonal masiva, linfopenia severa, anemia no regenerativa e hiperbilirrubinemia.',
+    diagnosticMethods: 'RT-qPCR tiempo real para mutaciones de la espícula (gen S) / 7b / 3c de FCoV en líquido efusivo o tejido afectado. Muestra: Líquido ascítico o pleural (2-5 ml), LCR, humor acuoso o sangre total con EDTA.',
+    relevantNotes: 'Diagnóstico confirmatorio de la Peritonitis Infecciosa Felina. Esencial para iniciar terapia antiviral moderna (GS-441524 / Remdesivir).',
+    keywords: [
+      'pif', 'fcov', 'coronavirus felino', 'peritonitis infecciosa felina', 'ascitis', 'efusion pleural',
+      'efusión pleural', 'relacion a/g', 'relación a/g', 'rivalta', 'uveitis', 'uveítis', 'ataxia',
+      'fiebre refractaria', 'liquido filante', 'líquido filante', 'precipitados keraticos', 'ictericia'
+    ],
+    symptomExplanations: {
+      ascitis: 'Ascitis exudativa rica en proteínas y fibrina debida a periflebitis y vasculitis inmunomediada.',
+      'efusion pleural': 'Efusión pleural con disnea restrictiva por vasculitis piogranulomatosa serosa.',
+      uveitis: 'Uveítis anterior con precipitados queráticos y efecto Tyndall por daño vascular uveal.',
+      fiebre: 'Fiebre persistente fluctuante resistente a antibióticos mediada por pirógenos liberados por macrófagos infectados.'
+    }
+  },
+  {
+    id: 'calicivirus-felino',
+    name: 'Calicivirus Felino (FCV)',
+    group: 'VIRAL',
+    species: ['Felino'],
+    hostDetails: 'Felino doméstico',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Contacto directo con saliva, secreciones oronasales y conjuntivales, fómites ambientales',
+    targetOrgans: 'Epitelio de la mucosa lingual, paladar duro, fosas nasales, sinovial articular y endotelio vascular en cepas virulentas sistémicas (FCV-VSD)',
+    pathogenesis: 'Citólisis de células del epitelio escamoso oral con formación de vesículas que se rompen formando úlceras dolorosas profundas; tropismo articular agudo con sinovitis inflamatoria.',
+    symptomsDescription: 'Úlceras orales linguales y palatinas dolorosas características, sialorrea profusa espesa (babeo continuo), anorexia aguda por intenso dolor al deglutir, gingivoestomatitis ulceroproliferativa, rinitis con estornudos, claudicación articular aguda transitoria ("síndrome de la cojera del calicivirus"). En forma virulenta sistémica (FCV-VSD): edema facial y de extremidades, ictericia y úlceras cutáneas.',
+    labDescription: 'Neutrofilia en úlceras con sobreinfección; en forma virulenta sistémica (VSD): trombocitopenia marcada, elevación pronunciada de ALT, AST y bilirrubina por necrosis hepática.',
+    diagnosticMethods: 'RT-qPCR tiempo real gen de la cápside (VP1) de Calicivirus felino. Muestra: Hisopado orofaríngeo directo de las úlceras linguales, secreción nasal o sangre total con EDTA.',
+    relevantNotes: 'Las úlceras linguales son el signo patognomónico que distingue a Calicivirus del Herpesvirus felino.',
+    keywords: [
+      'calicivirus', 'fcv', 'ulceras linguales', 'úlceras linguales', 'ulceras orales', 'úlceras orales',
+      'sialorrea', 'babeo', 'estomatitis', 'cojera transitoria', 'gingivitis', 'estornudos', 'anorexia'
+    ],
+    symptomExplanations: {
+      'ulceras linguales': 'Úlceras dolorosas en borde y dorso de la lengua por necrosis del epitelio escamoso oral.',
+      sialorrea: 'Sialorrea profusa debida a la imposibilidad de deglutir por dolor lingual severo.',
+      cojera: 'Cojera transitoria aguda debida a sinovitis inflamatoria inmunomediada por complejos virales.'
+    }
   }
 ];
 
@@ -1031,7 +1459,7 @@ export const QPCR_PROFILES_MASTER = [
     samples: [
       { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado (4°C)' }
     ],
-    syndromes: ['Hemotrópico/Sistémico', 'Infeccioso viral', 'Dermatológico / Cutáneo (Piel)', 'Digestivo-Hepático'],
+    syndromes: ['Hemotrópico/Sistémico', 'Infeccioso viral', 'Dermatológico / Cutáneo (Piel)', 'Digestivo-Hepático', 'Nefrológico', 'Cardíaco'],
     agentIds: [
       'ehrlichia-canis',
       'anaplasma-platys',
@@ -1039,13 +1467,17 @@ export const QPCR_PROFILES_MASTER = [
       'babesia-canis',
       'hepatozoon-canis',
       'mycoplasma-haemocanis',
-      'rickettsia-rickettsii'
+      'rickettsia-rickettsii',
+      'bartonella-canina',
+      'leptospira-spp',
+      'trypanosoma-spp',
+      'leishmania-spp'
     ],
-    description: 'Diagnóstico molecular integral de patógenos transmitidos por vectores y hemotrópicos en caninos según tabla clínica de referencia (Ehrlichia, Anaplasma, Babesia, Hepatozoon, Mycoplasma, Rickettsia).'
+    description: 'Diagnóstico molecular integral de patógenos transmitidos por vectores y hemotrópicos en caninos según tabla clínica de referencia: Ehrlichia canis, Anaplasma (platys/phagocytophilum), Babesia canis, Hepatozoon canis, Mycoplasma haemocanis, Rickettsia rickettsii, Bartonella spp., Leptospira spp., Trypanosoma spp. y Leishmania spp.'
   },
   {
     id: 'panel-leptospirosis-integral',
-    title: 'Panel Leptospirosis Patogénica & Falla Renal Aguda (qPCR)',
+    title: 'Panel Leptospirosis Patogénica (qPCR)',
     species: 'Canino',
     type: 'Específico',
     basePrice: 165000,
@@ -1055,7 +1487,7 @@ export const QPCR_PROFILES_MASTER = [
       { name: 'Sangre total con EDTA (2 ml)', desc: 'Fase leptospirémica temprana (<7-10 días)' },
       { name: 'Orina estéril por cistocentesis (5 ml)', desc: 'Fase leptospirúrica de excreción renal (>7 días)' }
     ],
-    syndromes: ['Nefrológico', 'Digestivo-Hepático', 'Hemotrópico/Sistémico'],
+    syndromes: ['Nefrológico', 'Digestivo-Hepático', 'Hemotrópico/Sistémico', 'Respiratorio'],
     agentIds: [
       'leptospira-spp',
       'leptospira-interrogans',
@@ -1063,7 +1495,7 @@ export const QPCR_PROFILES_MASTER = [
       'leptospira-canicola',
       'leptospira-icterohaemorrhagiae'
     ],
-    description: 'Detección cuantitativa de especies patógenas de Leptospira (lipL32, 16S, secY). Indicado en lesión renal aguda (LRA), azotemia, proteinuria, glucosuria renal, ictericia o hemorragia pulmonar.'
+    description: 'Detección cuantitativa molecular de serovares y especies patógenas de Leptospira (lipL32, 16S, secY). Diagnóstico específico ante cuadros de leptospirosis sistémica que cursan con falla renal aguda, hepatitis/ictericia o síndrome de hemorragia pulmonar.'
   },
   {
     id: 'panel-nefrologico-infeccioso',
@@ -1089,25 +1521,31 @@ export const QPCR_PROFILES_MASTER = [
   },
   {
     id: 'panel-digestivo-hepatico-canino',
-    title: 'Panel Digestivo-Hepático & Síndrome Ictérico Canino',
+    title: 'Panel Digestivo-Hepático Canino',
     species: 'Canino',
     type: 'Específico',
     basePrice: 165000,
     discount: false,
-    sampleSummary: 'Sangre total con EDTA (2 ml) + Orina estéril (5 ml)',
+    sampleSummary: 'Sangre total con EDTA (2 ml) + Hisopado rectal / Materia fecal + Orina estéril (5 ml)',
     samples: [
       { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado (4°C)' },
+      { name: 'Hisopado rectal / Materia fecal', desc: 'Para detección de virus entéricos (Parvovirus, Coronavirus, Distemper)' },
       { name: 'Orina estéril (5 ml)', desc: 'Para evaluación de hemoglobinuria / bilirrubinuria' }
     ],
-    syndromes: ['Digestivo-Hepático', 'Hemotrópico/Sistémico'],
+    syndromes: ['Digestivo-Hepático', 'Hemotrópico/Sistémico', 'Infeccioso viral'],
     agentIds: [
       'babesia-canis',
       'leptospira-icterohaemorrhagiae',
       'hepatozoon-canis',
       'toxoplasma-gondii',
-      'ehrlichia-canis'
+      'ehrlichia-canis',
+      'anaplasma-spp',
+      'parvovirus-canino',
+      'distemper-canino',
+      'adenovirus-canino',
+      'coronavirus-canino'
     ],
-    description: 'Panel enfocado en ictericia franca, hepatomegalia, esplenomegalia, elevación de ALT/AST/FA y bilirrubinas, vómito y anemia hemolítica.'
+    description: 'Abordaje molecular integral de gastroenteritis viral, hepatitis infecciosa, daño hepático y síndrome ictérico canino: Anaplasma spp., Parvovirus canino, Virus del Distemper, Adenovirus canino (CAV-1/CAV-2), Coronavirus canino, Babesia canis, Leptospira icterohaemorrhagiae, Hepatozoon canis, Toxoplasma gondii y Ehrlichia canis.'
   },
   {
     id: 'panel-cardiopulmonar-filarial-canino',
@@ -1125,9 +1563,10 @@ export const QPCR_PROFILES_MASTER = [
       'dirofilaria-immitis',
       'wolbachia-pipientis',
       'bartonella-canina',
-      'rickettsia-rickettsii'
+      'rickettsia-rickettsii',
+      'trypanosoma-spp'
     ],
-    description: 'Evaluación molecular de endocarditis valvular, vasculitis endotelial, dirofilariosis e infección filarial mediada por Wolbachia pipientis (tos, soplos, disnea, síncope, hipertensión pulmonar).'
+    description: 'Evaluación molecular de endocarditis valvular, miocarditis por Trypanosoma spp. (Enfermedad de Chagas), vasculitis endotelial, dirofilariosis e infección filarial mediada por Wolbachia pipientis (tos, soplos, disnea, arritmias, hipertensión pulmonar).'
   },
   {
     id: 'panel-musculoesqueletico-canino',
@@ -1147,9 +1586,12 @@ export const QPCR_PROFILES_MASTER = [
       'hepatozoon-americanum',
       'anaplasma-phagocytophilum',
       'bartonella-canina',
-      'toxoplasma-gondii'
+      'toxoplasma-gondii',
+      'ehrlichia-canis',
+      'brucella-spp',
+      'borrelia-spp'
     ],
-    description: 'Panel enfocado en cojera intermitente, poliartritis inmunomediada neutrofílica, atrofia muscular severa, miositis piogranulomatosa y dolor osteomuscular generalizado.'
+    description: 'Panel enfocado en cojera intermitente, poliartritis infecciosa / inmunomediada neutrofílica, discoespondilitis por Brucella spp., artritis de Lyme por Borrelia spp., atrofia muscular severa y miositis (Ehrlichia, Brucella, Borrelia, Hepatozoon, Anaplasma, Bartonella y Toxoplasma).'
   },
   {
     id: 'panel-neuro-infeccioso-canino',
@@ -1163,15 +1605,18 @@ export const QPCR_PROFILES_MASTER = [
       { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado' },
       { name: 'Líquido cefalorraquídeo (LCR)', desc: 'Tubo estéril sin aditivos refrigerado' }
     ],
-    syndromes: ['Neurológico', 'Hemotrópico/Sistémico'],
+    syndromes: ['Neurológico', 'Hemotrópico/Sistémico', 'Infeccioso viral'],
     agentIds: [
       'toxoplasma-gondii',
       'ehrlichia-canis',
       'rickettsia-rickettsii',
       'bartonella-canina',
-      'hepatozoon-americanum'
+      'hepatozoon-americanum',
+      'distemper-canino',
+      'anaplasma-spp',
+      'neospora-spp'
     ],
-    description: 'Abordaje molecular de convulsiones, ataxia, meningitis linfoplasmocítica, pleocitosis en LCR y vasculitis del sistema nervioso central.'
+    description: 'Abordaje molecular de convulsiones, mioclonías por Distemper, parálisis ascendente por Neospora caninum, meningitis, pleocitosis en LCR y vasculitis del sistema nervioso central (Distemper canino, Anaplasma spp., Neospora caninum, Toxoplasma gondii, Ehrlichia canis, Rickettsia rickettsii, Bartonella canina, Hepatozoon americanum).'
   },
   {
     id: 'panel-ocular-uveitis-canino',
@@ -1214,9 +1659,10 @@ export const QPCR_PROFILES_MASTER = [
       'rickettsia-conorii',
       'rickettsia-rickettsii',
       'rickettsia-felis',
-      'ehrlichia-canis'
+      'ehrlichia-canis',
+      'leishmania-spp'
     ],
-    description: 'Panel para nódulos subcutáneos, dermatitis papular, alopecia focal, prurito, vasculitis necrotizante cutánea, petequias y equimosis.'
+    description: 'Panel para dermatitis descamativa, alopecia periocular y úlceras por Leishmania spp., nódulos subcutáneos filariales, dermatitis papular, alopecia focal, prurito, vasculitis necrotizante cutánea, petequias y equimosis.'
   },
 
   // --- PANELES FELINOS ---
@@ -1237,9 +1683,12 @@ export const QPCR_PROFILES_MASTER = [
       'bartonella-felina',
       'rickettsia-felis',
       'anaplasma-phagocytophilum',
-      'hepatozoon-felis'
+      'hepatozoon-felis',
+      'toxoplasma-gondii',
+      'vif-fiv',
+      'vilef-felv'
     ],
-    description: 'Panel qPCR felino enfocado en hemoplasmas (anemia hemolítica cíclica), bartonelosis felina, rickettsiosis por pulgas y coinfecciones vectoriales.'
+    description: 'Panel qPCR felino integral enfocado en hemoplasmas (anemia hemolítica cíclica), retrovirus inmunosupresores mayores (VIF / FIV y ViLeF / FeLV), toxoplasmosis felina, bartonelosis felina y coinfecciones vectoriales.'
   },
   {
     id: 'panel-toxoplasmosis-neuro-ocular-felino',
@@ -1248,18 +1697,23 @@ export const QPCR_PROFILES_MASTER = [
     type: 'Específico',
     basePrice: 165000,
     discount: false,
-    sampleSummary: 'Sangre total con EDTA / Humor acuoso / LCR',
+    sampleSummary: 'Sangre total con EDTA (2 ml) + Hisopado conjuntival / Humor acuoso / LCR',
     samples: [
       { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado' },
-      { name: 'Humor acuoso o LCR', desc: 'Muestra estéril refrigerada' }
+      { name: 'Hisopado conjuntival / Humor acuoso o LCR', desc: 'Muestra estéril refrigerada' }
     ],
-    syndromes: ['Ocular', 'Neurológico', 'Infeccioso viral'],
+    syndromes: ['Ocular', 'Neurológico', 'Infeccioso viral', 'Respiratorio'],
     agentIds: [
       'toxoplasma-gondii',
       'bartonella-felina',
-      'mycoplasma-haemofelis'
+      'mycoplasma-haemofelis',
+      'chlamydia-spp',
+      'herpesvirus-felino',
+      'vif-fiv',
+      'vilef-felv',
+      'pif-fcov'
     ],
-    description: 'Evaluación molecular de uveítis anterior, coriorretinitis, convulsiones, ataxia, miositis y neumonía intersticial en gatos.'
+    description: 'Evaluación molecular integral del complejo neuro-ocular y respiratorio felino: Toxoplasma gondii, Chlamydia spp., Herpesvirus felino (FHV-1), VIF (FIV), ViLeF (FeLV), Coronavirus / PIF (FCoV), Bartonella felina y Mycoplasma haemofelis (uveítis anterior, coriorretinitis, queratitis dendrítica, quemosis, convulsiones, ataxia y neumonitis).'
   },
   {
     id: 'panel-cardiorespiratorio-hard-felino',
@@ -1276,33 +1730,38 @@ export const QPCR_PROFILES_MASTER = [
     agentIds: [
       'dirofilaria-immitis',
       'wolbachia-pipientis',
-      'toxoplasma-gondii'
+      'toxoplasma-gondii',
+      'bartonella-felina'
     ],
-    description: 'Diagnóstico de enfermedad respiratoria asociada a filariosis felina (HARD), tos asmática refractaria, vómitos agudos no digestivos y disnea paroxística.'
+    description: 'Diagnóstico molecular de enfermedad respiratoria asociada a filariosis felina (HARD), endocarditis / miocarditis por Bartonella spp., neumonitis por Toxoplasma gondii, tos asmática refractaria, vómitos agudos no digestivos y disnea paroxística.'
   },
   {
     id: 'panel-digestivo-hepatico-felino',
-    title: 'Panel Digestivo-Hepático & Ictérico Felino',
+    title: 'Panel Digestivo-Hepático Felino',
     species: 'Felino',
     type: 'Específico',
     basePrice: 160000,
     discount: false,
-    sampleSummary: 'Sangre total con EDTA (2 ml)',
+    sampleSummary: 'Sangre total con EDTA (2 ml) + Hisopado orofaríngeo / Materia fecal (2 ml)',
     samples: [
-      { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado' }
+      { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado' },
+      { name: 'Hisopado orofaríngeo / Materia fecal', desc: 'Para Calicivirus felino (FCV) y Coronavirus / PIF' }
     ],
-    syndromes: ['Digestivo-Hepático', 'Hemotrópico/Sistémico'],
+    syndromes: ['Digestivo-Hepático', 'Hemotrópico/Sistémico', 'Infeccioso viral'],
     agentIds: [
       'mycoplasma-haemofelis',
       'toxoplasma-gondii',
       'hepatozoon-felis',
-      'bartonella-felina'
+      'bartonella-felina',
+      'leptospira-spp',
+      'calicivirus-felino',
+      'pif-fcov'
     ],
-    description: 'Abordaje de ictericia colestásica felina, anemia hemolítica, hepatomegalia, anorexia y vómito.'
+    description: 'Abordaje molecular integral digestivo, oral y hepatobiliar felino: Leptospira spp., Calicivirus felino (FCV con úlceras orales), Coronavirus / PIF (FCoV), Mycoplasma haemofelis, Toxoplasma gondii, Hepatozoon felis y Bartonella felina.'
   },
   {
     id: 'panel-nefrologico-uveitis-felina',
-    title: 'Panel Nefrológico & Uveítis Crónica Felina',
+    title: 'Panel Nefrológico Felino',
     species: 'Felino',
     type: 'Específico',
     basePrice: 160000,
@@ -1312,13 +1771,15 @@ export const QPCR_PROFILES_MASTER = [
       { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado' },
       { name: 'Orina estéril por cistocentesis (3-5 ml)', desc: 'Tubo estéril refrigerado' }
     ],
-    syndromes: ['Nefrológico', 'Ocular'],
+    syndromes: ['Nefrológico', 'Ocular', 'Hemotrópico/Sistémico'],
     agentIds: [
       'leptospira-spp',
       'bartonella-felina',
-      'toxoplasma-gondii'
+      'toxoplasma-gondii',
+      'ehrlichia-canis',
+      'anaplasma-spp'
     ],
-    description: 'Diagnóstico de nefropatía intersticial crónica felina, proteinuria, eliminación urinaria silenciosa de Leptospira y uveítis anterior crónica.'
+    description: 'Diagnóstico molecular de nefropatía infecciosa felina, nefritis intersticial, proteinuria y glomerulopatía asociada a Leptospira spp., Ehrlichia spp., Anaplasma spp., Bartonella felina y Toxoplasma gondii.'
   },
 
   // --- PANELES MULTIESPECIE / ZOONOSIS ---
@@ -1341,9 +1802,11 @@ export const QPCR_PROFILES_MASTER = [
       'bartonella-felina',
       'bartonella-canina',
       'toxoplasma-gondii',
-      'dirofilaria-immitis'
+      'dirofilaria-immitis',
+      'leishmania-spp',
+      'brucella-spp'
     ],
-    description: 'Panel integral de vigilancia epidemiológica para patógenos zoonóticos mayores de alto riesgo transmitidos por vectores y agua en perros y gatos.'
+    description: 'Panel integral de vigilancia epidemiológica One Health para patógenos zoonóticos mayores de alto riesgo transmitidos por vectores y agua en perros y gatos: Leptospira spp., Leishmania spp., Brucella spp., Bartonella (felina/canina), Toxoplasma gondii, Rickettsia rickettsii y Dirofilaria immitis.'
   }
 ];
 
