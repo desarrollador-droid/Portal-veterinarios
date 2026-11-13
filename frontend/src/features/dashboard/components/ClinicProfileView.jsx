@@ -5,6 +5,7 @@ import {
   VETERINARY_SPECIALTIES,
 } from '../services/clinicApi.js';
 import { colombiaGeoApi } from '../services/colombiaGeoApi.js';
+import { showAestheticConfirm } from './AestheticModal.jsx';
 
 export default function ClinicProfileView({ onClinicUpdated, onNavigateToTeamPermissions }) {
   // Pestañas principales del perfil:
@@ -353,7 +354,14 @@ export default function ClinicProfileView({ onClinicUpdated, onNavigateToTeamPer
   };
 
   const handleDeleteSede = async (sedeId, nombreSede) => {
-    if (!window.confirm(`¿Seguro que deseas eliminar la sede "${nombreSede}"?`)) return;
+    const confirmed = await showAestheticConfirm({
+      title: 'Eliminar Sede',
+      message: `¿Está seguro de que desea eliminar la sede "${nombreSede}"? Esta acción no se puede deshacer.`,
+      type: 'danger',
+      confirmText: 'Sí, eliminar sede',
+      cancelText: 'Cancelar',
+    });
+    if (!confirmed) return;
     try {
       const updated = await clinicApi.deleteSede(activeClinic.id, sedeId);
       setActiveClinic(updated);
@@ -555,7 +563,14 @@ export default function ClinicProfileView({ onClinicUpdated, onNavigateToTeamPer
   };
 
   const handleDeleteVet = async (vetId, vetNombre) => {
-    if (!window.confirm(`¿Seguro que deseas desvincular a ${vetNombre}?`)) return;
+    const confirmed = await showAestheticConfirm({
+      title: 'Desvincular Veterinario',
+      message: `¿Está seguro de que desea desvincular al médico veterinario ${vetNombre}? Ya no tendrá acceso al portal bajo esta clínica.`,
+      type: 'warning',
+      confirmText: 'Sí, desvincular',
+      cancelText: 'Cancelar',
+    });
+    if (!confirmed) return;
     try {
       const updated = await clinicApi.deleteVeterinarian(activeClinic.id, vetId);
       setActiveClinic(updated);

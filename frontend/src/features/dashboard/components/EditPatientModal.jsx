@@ -3,6 +3,7 @@ import { PATIENT_STATUSES } from '../services/patientApi.js';
 import { colombiaGeoApi } from '../services/colombiaGeoApi.js';
 import { clinicApi } from '../services/clinicApi.js';
 import { hasReportedAllergy, getAllergyDisplay } from '../utils/allergyHelpers.js';
+import { showAestheticConfirm } from './AestheticModal.jsx';
 
 const COLOMBIA_DEPARTMENTS = colombiaGeoApi.getDepartmentsSync().map((d) => d.name);
 
@@ -97,9 +98,13 @@ export default function EditPatientModal({ patient, onClose, onSave, currentUser
     }
 
     if (formData.status === 'fallecido') {
-      const confirmDeceased = window.confirm(
-        '⚠️ ATENCIÓN:\n¿Está seguro de marcar al paciente como FALLECIDO?\nUna vez guardado con este estado, la ficha quedará bloqueada permanentemente y NO podrá ser editada para nada.'
-      );
+      const confirmDeceased = await showAestheticConfirm({
+        title: 'ATENCIÓN: Marcar Paciente como FALLECIDO',
+        message: '¿Está seguro de marcar al paciente como FALLECIDO?\n\nUna vez guardado con este estado, la ficha médica quedará bloqueada permanentemente y NO podrá ser editada para nada.',
+        type: 'danger',
+        confirmText: 'Sí, confirmar como fallecido',
+        cancelText: 'Cancelar',
+      });
       if (!confirmDeceased) return;
     }
 

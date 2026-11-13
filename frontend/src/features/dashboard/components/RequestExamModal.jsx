@@ -14,6 +14,7 @@ import MicrobiotaOrderForm from './MicrobiotaOrderForm.jsx';
 import { hasReportedAllergy, isNegativeAllergyText } from '../utils/allergyHelpers.js';
 import ClinicalOrderForm from './ClinicalOrderForm.jsx';
 import { authService } from '../../auth/services/authService.js';
+import { showAestheticAlert, showAestheticConfirm } from './AestheticModal.jsx';
 
 
 // ============================================================================
@@ -862,6 +863,19 @@ export default function RequestExamModal({
   const [confirmedSamples, setConfirmedSamples] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Resaltado visual en rojo para campos obligatorios pendientes al dar "Continuar" (Sin mensajes largos)
+  const [stepValidationErrors, setStepValidationErrors] = useState([]); // IDs de campos faltantes
+  const clearValidationError = (fieldKey) => {
+    setStepValidationErrors((prev) => prev.filter((id) => id !== fieldKey));
+  };
+  const scrollToField = (fieldId) => {
+    if (!fieldId) return;
+    const el = document.getElementById(fieldId) || document.querySelector(`[data-field-id="${fieldId}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
   // ============================================================================
   // PANTALLA FINAL: RESUMEN INTEGRAL Y DASHBOARD TRAS CONFIRMAR Y ENVIAR
   // ============================================================================
@@ -1066,6 +1080,11 @@ export default function RequestExamModal({
   // Handlers para Factores de Riesgo
   const handleRiskChange = (name, value) => {
     setRiskFactors((prev) => ({ ...prev, [name]: value }));
+    if (name === 'habitat') clearValidationError('step2-habitat-card');
+    if (name === 'housingArea') clearValidationError('step2-housing-area-card');
+    if (name === 'housingType') clearValidationError('step2-housing-type-card');
+    if (name === 'livesWithOtherAnimals') clearValidationError('step2-animals-card');
+    if (name === 'recentTravel') clearValidationError('step2-travel-card');
   };
 
   const handleToggleCohabitingSpecies = (sp) => {
@@ -1477,7 +1496,11 @@ export default function RequestExamModal({
   // Handlers para agregar y quitar agentes adicionales en un perfil qPCR
   const handleAddAgentToProfile = (profileId, agentName) => {
     if (!agentName || !agentName.trim()) {
-      alert('Por favor ingrese el nombre del agente o patógeno a agregar.');
+      showAestheticAlert({
+        title: 'Campo Requerido',
+        message: 'Por favor ingrese el nombre del agente o patógeno a agregar.',
+        type: 'warning',
+      });
       return;
     }
     const clean = agentName.trim();
@@ -1485,9 +1508,12 @@ export default function RequestExamModal({
     // REQUERIMIENTO: No permitir agregar un mismo agente dos veces en la misma orden
     const duplicate = findDuplicateAgentInOrder(clean);
     if (duplicate) {
-      alert(
-        `No es posible agregar "${clean}": este agente ya se encuentra incluido en la orden (${duplicate.profileTitle}). No se permiten patógenos duplicados en la misma orden.`
-      );
+      showAestheticAlert({
+        title: 'Patógeno Ya Incluido en la Orden',
+        message: `No es posible agregar "${clean}": este agente ya se encuentra incluido en la orden (${duplicate.profileTitle}).\n\nNo se permiten agentes duplicados en la misma orden.`,
+        type: 'warning',
+        confirmText: 'Entendido',
+      });
       return;
     }
 
@@ -1521,9 +1547,15 @@ export default function RequestExamModal({
   // REQUERIMIENTO: Solo se selecciona 1 paciente. Clic resalta borde; volver a hacer clic deselecciona.
   const handleTogglePatientSelection = (p) => {
     if (p.status === 'fallecido') {
-      alert('Acceso denegado: El paciente ' + (p.name || '') + ' se encuentra registrado como fallecido y su ficha médica no admite nuevas solicitudes de examen.');
+      showAestheticAlert({
+        title: 'Acceso Denegado: Paciente Fallecido',
+        message: 'El paciente ' + (p.name || '') + ' se encuentra registrado como fallecido y su ficha médica no admite nuevas solicitudes de examen.',
+        type: 'danger',
+        confirmText: 'Entendido',
+      });
       return;
     }
+    clearValidationError('step1-patient-card');
     if (selectedPatientId === p.id) {
       setSelectedPatientId('');
       if (examType === 'control') {
@@ -1534,7 +1566,12 @@ export default function RequestExamModal({
       const info = getPatientExamHistoryInfo(p);
       if (examType === 'control') {
         if (!info.canRequestControl) {
-          alert(`El paciente ${p.name} no cuenta con examen previo dentro de los 6 meses requeridos para control.\nSe cambiará a la modalidad "Examen nuevo".`);
+          showAestheticAlert({
+            title: 'No Califica para Control',
+            message: `El paciente ${p.name} no cuenta con examen previo dentro de los 6 meses requeridos para control.\nSe cambiará a la modalidad "Examen nuevo".`,
+            type: 'warning',
+            confirmText: 'Aceptar',
+          });
           setExamType('nuevo');
           setPreviousExamCode('');
           setIsControlReviewOpen(false);
@@ -1563,11 +1600,21 @@ export default function RequestExamModal({
   const handleToggleExamType = (type) => {
     if (type === 'control') {
       if (!activePatient) {
-        alert('Debe seleccionar primero un paciente para evaluar si cuenta con exámenes previos y califica para control.');
+        showAestheticAlert({
+          title: 'Paciente Requerido',
+          message: 'Debe seleccionar primero un paciente para evaluar si cuenta con exámenes previos y califica para control.',
+          type: 'info',
+          confirmText: 'Entendido',
+        });
         return;
       }
       if (!controlHistoryInfo.canRequestControl) {
-        alert(`Este paciente no tiene habilitada la opción de seguimiento / control.\n\nMotivo: ${controlHistoryInfo.reason}.\nDebe solicitar un "Examen nuevo".`);
+        showAestheticAlert({
+          title: 'Opción de Control No Disponible',
+          message: `Este paciente no tiene habilitada la opción de seguimiento / control.\n\nMotivo: ${controlHistoryInfo.reason}.\nDebe solicitar un "Examen nuevo".`,
+          type: 'warning',
+          confirmText: 'Entendido',
+        });
         return;
       }
       setExamType('control');
@@ -1653,6 +1700,7 @@ export default function RequestExamModal({
   };
 
   const handleToggleSyndrome = (syndromeName) => {
+    clearValidationError('step3-syndromes-card');
     setSelectedSyndromes((prev) => {
       if (prev.includes(syndromeName)) {
         return prev.filter((s) => s !== syndromeName);
@@ -1704,7 +1752,11 @@ export default function RequestExamModal({
 
   const handleSaveManualAgent = (profileId, idx) => {
     if (!manualAgentInput.trim()) {
-      alert('Por favor ingrese el nombre del agente o patógeno de reemplazo.');
+      showAestheticAlert({
+        title: 'Campo Requerido',
+        message: 'Por favor ingrese el nombre del agente o patógeno de reemplazo.',
+        type: 'warning',
+      });
       return;
     }
     const clean = manualAgentInput.trim();
@@ -1722,9 +1774,12 @@ export default function RequestExamModal({
     // REQUERIMIENTO: No permitir duplicar agentes en la orden al reemplazar/cambiar
     const duplicate = findDuplicateAgentInOrder(clean, profileId, idx);
     if (duplicate) {
-      alert(
-        `No es posible reemplazar por "${clean}": este agente ya se encuentra incluido en la orden (${duplicate.profileTitle}). No se permiten patógenos duplicados en la misma orden.`
-      );
+      showAestheticAlert({
+        title: 'Patógeno Ya Incluido en la Orden',
+        message: `No es posible reemplazar por "${clean}": este agente ya se encuentra incluido en la orden (${duplicate.profileTitle}).\n\nNo se permiten agentes duplicados en la misma orden.`,
+        type: 'warning',
+        confirmText: 'Entendido',
+      });
       return;
     }
 
@@ -1759,7 +1814,12 @@ export default function RequestExamModal({
   // Confirmar y enviar la orden -> Lleva a la pantalla final de resumen integral
   const handleSubmitFinalOrder = async () => {
     if (!areAllSamplesConfirmed || !confirmedSamples) {
-      alert('Por favor complete el checklist confirmando todas las muestras biológicas requeridas antes de enviar.');
+      showAestheticAlert({
+        title: 'Confirmación de Muestras Requerida',
+        message: 'Por favor complete el checklist confirmando todas las muestras biológicas requeridas antes de enviar.',
+        type: 'warning',
+        confirmText: 'Revisar checklist',
+      });
       return;
     }
     if (!activePatient) return;
@@ -1880,7 +1940,11 @@ export default function RequestExamModal({
 
       setIsOrderSuccess(true);
     } catch (err) {
-      alert(`Error al generar la orden qPCR: ${err.message}`);
+      showAestheticAlert({
+        title: 'Error al Generar Orden qPCR',
+        message: err.message,
+        type: 'danger',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -1890,7 +1954,11 @@ export default function RequestExamModal({
   const handleConfirmControlOrder = async () => {
     if (!activePatient) return;
     if (activeControlAgents.length === 0) {
-      alert('Por favor selecciona al menos un agente positivo de la lista para solicitar el control.');
+      showAestheticAlert({
+        title: 'Agentes de Control Requeridos',
+        message: 'Por favor selecciona al menos un agente positivo de la lista para solicitar el control.',
+        type: 'warning',
+      });
       return;
     }
 
@@ -1968,7 +2036,11 @@ export default function RequestExamModal({
       setIsControlReviewOpen(false);
       setIsOrderSuccess(true);
     } catch (err) {
-      alert(`Error al generar la orden de control: ${err.message}`);
+      showAestheticAlert({
+        title: 'Error al Generar Orden de Control',
+        message: err.message,
+        type: 'danger',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -2102,12 +2174,20 @@ export default function RequestExamModal({
         targetPatientId = activePatient?.id || customPayload.patientData?.id || `PAC-CLN-${Date.now().toString().slice(-4)}`;
       } else {
         if (!activePatient) {
-          alert('Por favor selecciona un paciente para la solicitud de exámenes clínicos.');
+          showAestheticAlert({
+            title: 'Paciente Requerido',
+            message: 'Por favor selecciona un paciente para la solicitud de exámenes clínicos.',
+            type: 'warning',
+          });
           setIsSubmitting(false);
           return;
         }
         if (selectedClinicalExams.length === 0) {
-          alert('Por favor selecciona al menos una prueba clínica del catálogo.');
+          showAestheticAlert({
+            title: 'Prueba Clínica Requerida',
+            message: 'Por favor selecciona al menos una prueba clínica del catálogo.',
+            type: 'warning',
+          });
           setIsSubmitting(false);
           return;
         }
@@ -2164,7 +2244,11 @@ export default function RequestExamModal({
 
       setIsOrderSuccess(true);
     } catch (err) {
-      alert(`Error al generar la orden clínica: ${err.message}`);
+      showAestheticAlert({
+        title: 'Error al Generar Orden Clínica',
+        message: err.message,
+        type: 'danger',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -2200,7 +2284,11 @@ export default function RequestExamModal({
           };
         } else {
           if (!activePatient) {
-            alert('Por favor selecciona el paciente para la recolección de muestra de microbiota.');
+            showAestheticAlert({
+              title: 'Paciente Requerido',
+              message: 'Por favor selecciona el paciente para la recolección de muestra de microbiota.',
+              type: 'warning',
+            });
             setIsSubmitting(false);
             return;
           }
@@ -2245,7 +2333,11 @@ export default function RequestExamModal({
 
       setIsOrderSuccess(true);
     } catch (err) {
-      alert(`Error al generar la solicitud de microbiota: ${err.message}`);
+      showAestheticAlert({
+        title: 'Error al Generar Solicitud de Microbiota',
+        message: err.message,
+        type: 'danger',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -3386,7 +3478,7 @@ export default function RequestExamModal({
                 )}
 
                 {/* 1.2 Buscador y selector limpio de paciente */}
-                <div className="space-y-3">
+                <div id="step1-patient-card" className={`space-y-3 transition-all rounded-2xl p-2.5 ${stepValidationErrors.includes('step1-patient-card') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : ''}`}>
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-slate-700">
                       Paciente *
@@ -3529,7 +3621,7 @@ export default function RequestExamModal({
                     <div className="pt-4 border-t border-slate-100 space-y-4 animate-in fade-in duration-200">
                       
                       {/* 1. ESTADO DE ESTERILIZACIÓN */}
-                      <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                      <div id="step1-sterilized-card" className={`p-4 bg-slate-50 border rounded-2xl space-y-2 transition-all ${stepValidationErrors.includes('step1-sterilized-card') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : 'border-slate-200'}`}>
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
                             <span>🩺</span> ¿El paciente está esterilizado? <span className="text-rose-500 font-bold">*</span>
@@ -3556,7 +3648,10 @@ export default function RequestExamModal({
                             <div className="flex items-center gap-2">
                               <button
                                 type="button"
-                                onClick={() => setExamIsSterilized(true)}
+                                onClick={() => {
+                                  setExamIsSterilized(true);
+                                  clearValidationError('step1-sterilized-card');
+                                }}
                                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                                   examIsSterilized === true
                                     ? 'bg-emerald-600 text-white shadow-xs'
@@ -3567,7 +3662,10 @@ export default function RequestExamModal({
                               </button>
                               <button
                                 type="button"
-                                onClick={() => setExamIsSterilized(false)}
+                                onClick={() => {
+                                  setExamIsSterilized(false);
+                                  clearValidationError('step1-sterilized-card');
+                                }}
                                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                                   examIsSterilized === false
                                     ? 'bg-amber-600 text-white shadow-xs'
@@ -3671,7 +3769,7 @@ export default function RequestExamModal({
                       </div>
 
                       {/* 3. CONDICIÓN CLÍNICA DEL PACIENTE */}
-                      <div className="p-4 bg-emerald-50/60 border border-emerald-200/90 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div id="step1-condition-card" className={`p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all ${stepValidationErrors.includes('step1-condition-card') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : 'bg-emerald-50/60 border border-emerald-200/90'}`}>
                         <div>
                           <div className="mb-0.5">
                             <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
@@ -3689,7 +3787,10 @@ export default function RequestExamModal({
                         <div className="flex items-center gap-2 shrink-0">
                           <button
                             type="button"
-                            onClick={() => setIsAsymptomatic(false)}
+                            onClick={() => {
+                              setIsAsymptomatic(false);
+                              clearValidationError('step1-condition-card');
+                            }}
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                               isAsymptomatic === false
                                 ? 'bg-slate-800 text-white shadow-xs'
@@ -3700,7 +3801,10 @@ export default function RequestExamModal({
                           </button>
                           <button
                             type="button"
-                            onClick={() => setIsAsymptomatic(true)}
+                            onClick={() => {
+                              setIsAsymptomatic(true);
+                              clearValidationError('step1-condition-card');
+                            }}
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                               isAsymptomatic === true
                                 ? 'bg-emerald-600 text-white shadow-xs'
@@ -3776,7 +3880,7 @@ export default function RequestExamModal({
                 {/* 2.1 Hábitat principal y Área de residencia (Separados con tarjetas independientes y obligatorios) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Tarjeta 1: Hábitat principal */}
-                  <div className="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/90 space-y-2.5 shadow-2xs">
+                  <div id="step2-habitat-card" className={`p-4 rounded-2xl space-y-2.5 shadow-2xs transition-all ${stepValidationErrors.includes('step2-habitat-card') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : 'bg-slate-50/90 border border-slate-200/90'}`}>
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
                         <span>🏡</span> Hábitat principal <span className="text-rose-500 font-bold">*</span>
@@ -3805,7 +3909,7 @@ export default function RequestExamModal({
                   </div>
 
                   {/* Tarjeta 2: Área de residencia / vivienda */}
-                  <div className="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/90 space-y-2.5 shadow-2xs">
+                  <div id="step2-housing-area-card" className={`p-4 rounded-2xl space-y-2.5 shadow-2xs transition-all ${stepValidationErrors.includes('step2-housing-area-card') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : 'bg-slate-50/90 border border-slate-200/90'}`}>
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
                         <span>📍</span> Área de residencia <span className="text-rose-500 font-bold">*</span>
@@ -3835,7 +3939,7 @@ export default function RequestExamModal({
                 </div>
 
                 {/* Tarjeta 3: Tipo de residencia */}
-                <div className="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/90 space-y-2 shadow-2xs">
+                <div id="step2-housing-type-card" className={`p-4 rounded-2xl space-y-2 shadow-2xs transition-all ${stepValidationErrors.includes('step2-housing-type-card') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : 'bg-slate-50/90 border border-slate-200/90'}`}>
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
                       <span>🏢</span> Tipo de residencia / vivienda <span className="text-rose-500 font-bold">*</span>
@@ -3857,7 +3961,7 @@ export default function RequestExamModal({
                 </div>
 
                 {/* 2.2 Convivencia con otros animales */}
-                <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                <div id="step2-animals-card" className={`p-4 rounded-2xl space-y-3 transition-all ${stepValidationErrors.includes('step2-animals-card') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : 'bg-slate-50 border border-slate-200'}`}>
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2 mb-0.5">
@@ -3948,7 +4052,7 @@ export default function RequestExamModal({
                 </div>
 
                 {/* 2.3 Viajes recientes fuera del departamento / país */}
-                <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                <div id="step2-travel-card" className={`p-4 rounded-2xl space-y-3 transition-all ${stepValidationErrors.includes('step2-travel-card') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : 'bg-slate-50 border border-slate-200'}`}>
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2 mb-0.5">
@@ -4254,7 +4358,7 @@ export default function RequestExamModal({
               )}
 
               {/* 3.1 SÍNDROMES CLÍNICOS */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-5 space-y-4 shadow-2xs">
+              <div id="step3-syndromes-card" className={`rounded-2xl p-5 space-y-4 shadow-2xs transition-all ${stepValidationErrors.includes('step3-syndromes-card') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : 'bg-white border border-slate-200/90'}`}>
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-700 block">
                     Síndrome clínico observado (puedes seleccionar varios)
@@ -4483,7 +4587,7 @@ export default function RequestExamModal({
                 </div>
 
                 {/* Pregunta Inicial Obligatoria */}
-                <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-3">
+                <div id="step3-previous-exam-card" className={`p-4 rounded-2xl space-y-3 transition-all ${stepValidationErrors.includes('step3-previous-exam-card') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : 'bg-slate-50/80 border border-slate-200'}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-2.5">
                       <span className="text-lg">❓</span>
@@ -4518,6 +4622,7 @@ export default function RequestExamModal({
                       type="button"
                       onClick={() => {
                         setHasPreviousClinicalExam('si');
+                        clearValidationError('step3-previous-exam-card');
                         setClinicalRiskDisclaimerAccepted(false);
                         setIsClinicalDeclinedConfirmed(false);
                       }}
@@ -4544,6 +4649,7 @@ export default function RequestExamModal({
                       type="button"
                       onClick={() => {
                         setHasPreviousClinicalExam('no');
+                        clearValidationError('step3-previous-exam-card');
                         handleRemoveCuadroHematico();
                         setClinicalRiskDisclaimerAccepted(false);
                         setIsClinicalDeclinedConfirmed(false);
@@ -4803,7 +4909,7 @@ export default function RequestExamModal({
                         </div>
 
                         {/* Descargo de Responsabilidad Médica ("Bajo su propio riesgo") */}
-                        <div id="clinical-disclaimer-card" className="p-4 rounded-2xl bg-rose-50/70 border-2 border-rose-200 space-y-3 animate-in fade-in duration-200">
+                        <div id="step3-disclaimer-card" className={`p-4 rounded-2xl space-y-3 animate-in fade-in duration-200 transition-all ${stepValidationErrors.includes('step3-disclaimer-card') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : 'bg-rose-50/70 border-2 border-rose-200'}`}>
                           <div className="flex items-start gap-2.5">
                             <span className="text-lg">⚠️</span>
                             <div className="space-y-1">
@@ -4823,6 +4929,7 @@ export default function RequestExamModal({
                                 checked={clinicalRiskDisclaimerAccepted}
                                 onChange={(e) => {
                                   setClinicalRiskDisclaimerAccepted(e.target.checked);
+                                  clearValidationError('step3-disclaimer-card');
                                   if (!e.target.checked) {
                                     setIsClinicalDeclinedConfirmed(false);
                                   }
@@ -5698,33 +5805,22 @@ export default function RequestExamModal({
                                       </div>
                                     )}
 
-                                    {/* Sugerencias rápidas clickeables */}
+                                    {/* Sugerencias rápidas clickeables (solo agentes no incluidos en la orden) */}
                                     <div className="flex flex-wrap gap-1.5 pt-1">
                                       <span className="text-[10px] text-slate-400 uppercase font-bold mr-1 self-center">
                                         Sugerencias:
                                       </span>
-                                      {AVAILABLE_ALTERNATIVE_AGENTS.slice(0, 10).map((sug) => {
-                                        const isSugDup = Boolean(findDuplicateAgentInOrder(sug, profile.id, idx));
-                                        return (
-                                          <button
-                                            key={sug}
-                                            type="button"
-                                            disabled={isSugDup}
-                                            onClick={() => {
-                                              if (!isSugDup) setManualAgentInput(sug);
-                                            }}
-                                            title={isSugDup ? `"${sug}" ya se encuentra incluido en la orden` : `Seleccionar ${sug}`}
-                                            className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all ${
-                                              isSugDup
-                                                ? 'bg-slate-100 text-slate-400 border border-slate-200 line-through cursor-not-allowed opacity-60'
-                                                : 'bg-white border border-slate-200 text-slate-700 hover:border-sky-300 hover:text-[#6F2BCC] cursor-pointer shadow-2xs'
-                                            }`}
-                                          >
-                                            <span>{sug}</span>
-                                            {isSugDup && <span className="no-underline text-[9px] text-rose-600 font-bold ml-1">(Ya en orden)</span>}
-                                          </button>
-                                        );
-                                      })}
+                                      {AVAILABLE_ALTERNATIVE_AGENTS.filter((sug) => !findDuplicateAgentInOrder(sug, profile.id, idx)).slice(0, 10).map((sug) => (
+                                        <button
+                                          key={sug}
+                                          type="button"
+                                          onClick={() => setManualAgentInput(sug)}
+                                          title={`Seleccionar ${sug}`}
+                                          className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-white border border-slate-200 text-slate-700 hover:border-sky-300 hover:text-[#6F2BCC] cursor-pointer shadow-2xs transition-all"
+                                        >
+                                          <span>{sug}</span>
+                                        </button>
+                                      ))}
                                     </div>
                                   </div>
                                 )}
@@ -5858,38 +5954,27 @@ export default function RequestExamModal({
                                   </div>
                                 )}
 
-                                {/* Sugerencias rápidas */}
+                                {/* Sugerencias rápidas (solo agentes no incluidos en la orden) */}
                                 <div className="flex flex-wrap gap-1.5 pt-1">
                                   <span className="text-[10px] text-slate-500 uppercase font-bold mr-1 self-center">
                                     Sugeridos:
                                   </span>
-                                  {AVAILABLE_ALTERNATIVE_AGENTS.slice(0, 10).map((sug) => {
-                                    const isSugDup = Boolean(findDuplicateAgentInOrder(sug));
-                                    return (
-                                      <button
-                                        key={sug}
-                                        type="button"
-                                        disabled={isSugDup}
-                                        onClick={() => {
-                                          if (!isSugDup) {
-                                            setNewAgentInputByProfile((prev) => ({
-                                              ...prev,
-                                              [profile.id]: sug,
-                                            }));
-                                          }
-                                        }}
-                                        title={isSugDup ? `"${sug}" ya se encuentra incluido en la orden` : `Seleccionar ${sug}`}
-                                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
-                                          isSugDup
-                                            ? 'bg-slate-100 text-slate-400 border border-slate-200 line-through cursor-not-allowed opacity-60'
-                                            : 'bg-white border border-slate-200 text-slate-700 hover:border-[#6F2BCC] hover:text-[#6F2BCC] cursor-pointer shadow-2xs'
-                                        }`}
-                                      >
-                                        <span>+ {sug}</span>
-                                        {isSugDup && <span className="no-underline text-[9px] text-rose-600 font-bold ml-1">(Ya en orden)</span>}
-                                      </button>
-                                    );
-                                  })}
+                                  {AVAILABLE_ALTERNATIVE_AGENTS.filter((sug) => !findDuplicateAgentInOrder(sug)).slice(0, 10).map((sug) => (
+                                    <button
+                                      key={sug}
+                                      type="button"
+                                      onClick={() => {
+                                        setNewAgentInputByProfile((prev) => ({
+                                          ...prev,
+                                          [profile.id]: sug,
+                                        }));
+                                      }}
+                                      title={`Seleccionar ${sug}`}
+                                      className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-white border border-slate-200 text-slate-700 hover:border-[#6F2BCC] hover:text-[#6F2BCC] cursor-pointer shadow-2xs transition-all"
+                                    >
+                                      <span>+ {sug}</span>
+                                    </button>
+                                  ))}
                                 </div>
                               </div>
                             );
@@ -6206,14 +6291,19 @@ export default function RequestExamModal({
                     <button
                       type="button"
                       onClick={() => {
+                        const missing = [];
                         if (!hasPreviousClinicalExam) {
-                          alert('Por favor indique en la Sección 3.4 si ha realizado un examen clínico o hemograma al paciente anteriormente.');
-                          return;
+                          missing.push('step3-previous-exam-card');
                         }
                         if (hasPreviousClinicalExam === 'no' && !clinicalRiskDisclaimerAccepted) {
-                          alert('Para continuar la solicitud de qPCR sin examen clínico previo, debe confirmar que acepta el descargo de responsabilidad médica bajo su propio criterio profesional.');
+                          missing.push('step3-disclaimer-card');
+                        }
+                        if (missing.length > 0) {
+                          setStepValidationErrors(missing);
+                          scrollToField(missing[0]);
                           return;
                         }
+                        setStepValidationErrors([]);
                         setCurrentStep(4);
                       }}
                       className="text-xs text-slate-500 hover:text-slate-800 underline font-semibold cursor-pointer"
@@ -6231,21 +6321,30 @@ export default function RequestExamModal({
                   type="button"
                   onClick={() => {
                     if (currentStep === 1) {
+                      const missingStep1 = [];
                       if (!activePatient) {
-                        alert('Por favor busca y selecciona un paciente para continuar.');
-                        return;
+                        missingStep1.push('step1-patient-card');
                       }
                       if (!isAlreadySterilized && examIsSterilized === null) {
-                        alert('Por favor indique en la Sección 1 si el paciente se encuentra esterilizado.');
-                        return;
+                        missingStep1.push('step1-sterilized-card');
                       }
                       if (isAsymptomatic === null) {
-                        alert('Por favor indique la condición clínica actual del paciente (Sintomático o Asintomático).');
+                        missingStep1.push('step1-condition-card');
+                      }
+                      if (missingStep1.length > 0) {
+                        setStepValidationErrors(missingStep1);
+                        scrollToField(missingStep1[0]);
                         return;
                       }
+                      setStepValidationErrors([]);
                       if (examType === 'control') {
                         if (!controlHistoryInfo.canRequestControl) {
-                          alert(`Este paciente no tiene habilitada la opción de seguimiento / control.\n\nMotivo: ${controlHistoryInfo.reason}.\nDebe solicitar un "Examen nuevo".`);
+                          showAestheticAlert({
+                            title: 'Opción de Control No Disponible',
+                            message: `Este paciente no tiene habilitada la opción de seguimiento / control.\n\nMotivo: ${controlHistoryInfo.reason}.\nDebe solicitar un "Examen nuevo".`,
+                            type: 'warning',
+                            confirmText: 'Entendido',
+                          });
                           return;
                         }
                         if (!previousExamCode.trim() && controlHistoryInfo.lastExamId) {
@@ -6256,40 +6355,46 @@ export default function RequestExamModal({
                       }
                     }
                     if (currentStep === 2) {
+                      const missingStep2 = [];
                       if (!riskFactors.habitat) {
-                        alert('Por favor seleccione el hábitat principal de la mascota (Interiores, Exterior o Mixto).');
-                        return;
+                        missingStep2.push('step2-habitat-card');
                       }
                       if (!riskFactors.housingArea) {
-                        alert('Por favor seleccione el área de residencia (Urbana o Rural / Campestre).');
-                        return;
+                        missingStep2.push('step2-housing-area-card');
                       }
                       if (!riskFactors.housingType) {
-                        alert('Por favor seleccione el tipo de residencia del paciente.');
-                        return;
+                        missingStep2.push('step2-housing-type-card');
                       }
                       if (riskFactors.livesWithOtherAnimals === null) {
-                        alert('Por favor indique si el paciente convive con otros animales en el hogar o entorno.');
-                        return;
+                        missingStep2.push('step2-animals-card');
                       }
                       if (riskFactors.recentTravel === null) {
-                        alert('Por favor indique si el paciente ha realizado viajes recientes fuera del departamento o país.');
+                        missingStep2.push('step2-travel-card');
+                      }
+                      if (missingStep2.length > 0) {
+                        setStepValidationErrors(missingStep2);
+                        scrollToField(missingStep2[0]);
                         return;
                       }
+                      setStepValidationErrors([]);
                     }
                     if (currentStep === 3) {
+                      const missingStep3 = [];
                       if (!isAsymptomatic && selectedSyndromes.length === 0) {
-                        alert('Debes seleccionar al menos un síndrome clínico, o marcar al paciente como asintomático.');
-                        return;
+                        missingStep3.push('step3-syndromes-card');
                       }
                       if (!hasPreviousClinicalExam) {
-                        alert('Por favor indique en la Sección 3.4 si ha realizado un examen clínico o hemograma al paciente anteriormente.');
-                        return;
+                        missingStep3.push('step3-previous-exam-card');
                       }
                       if (hasPreviousClinicalExam === 'no' && !clinicalRiskDisclaimerAccepted) {
-                        alert('Para continuar la solicitud de qPCR sin examen clínico previo, debe confirmar que acepta el descargo de responsabilidad médica bajo su propio criterio profesional.');
+                        missingStep3.push('step3-disclaimer-card');
+                      }
+                      if (missingStep3.length > 0) {
+                        setStepValidationErrors(missingStep3);
+                        scrollToField(missingStep3[0]);
                         return;
                       }
+                      setStepValidationErrors([]);
                     }
                     setCurrentStep((prev) => prev + 1);
                   }}

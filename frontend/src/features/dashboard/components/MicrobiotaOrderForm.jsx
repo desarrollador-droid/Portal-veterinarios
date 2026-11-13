@@ -157,6 +157,10 @@ export default function MicrobiotaOrderForm({
   const [recentTravelDetails, setRecentTravelDetails] = useState('');
   const [lifestyleComments, setLifestyleComments] = useState('');
 
+  // Resaltado visual en rojo de campos requeridos al continuar/enviar
+  const [missingFieldIds, setMissingFieldIds] = useState([]);
+  const clearMissingField = (id) => setMissingFieldIds((prev) => prev.filter((f) => f !== id));
+
   // Sincronizar datos cuando cambia el paciente activo
   useEffect(() => {
     if (activePatient) {
@@ -230,42 +234,24 @@ export default function MicrobiotaOrderForm({
     e?.preventDefault();
 
     if (subtype === 'kit') {
-      if (!isMicrobiotaConfirmed) {
-        alert('Debes confirmar que este formulario es para la solicitud de prueba de microbiota.');
+      const missing = [];
+      if (!isMicrobiotaConfirmed) missing.push('kit-confirm-section');
+      if (!kitNameOrBusiness.trim()) missing.push('kit-name-input');
+      if (!kitDocId.trim()) missing.push('kit-doc-input');
+      if (!kitCity.trim()) missing.push('kit-city-input');
+      if (!kitShippingAddress.trim()) missing.push('kit-shipping-input');
+      if (!kitPhone.trim()) missing.push('kit-phone-input');
+      if (!kitReportEmail.trim()) missing.push('kit-report-email-input');
+      if (!kitBillingEmail.trim()) missing.push('kit-billing-email-input');
+      if (!kitPetName.trim()) missing.push('kit-pet-name-input');
+
+      if (missing.length > 0) {
+        setMissingFieldIds(missing);
+        const el = document.getElementById(missing[0]);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
-      if (!kitNameOrBusiness.trim()) {
-        alert('Por favor ingresa el Nombre o razón social.');
-        return;
-      }
-      if (!kitDocId.trim()) {
-        alert('Por favor ingresa el NIT o documento de identidad (Sin dígito de verificación).');
-        return;
-      }
-      if (!kitCity.trim()) {
-        alert('Por favor ingresa la Ciudad.');
-        return;
-      }
-      if (!kitShippingAddress.trim()) {
-        alert('Por favor ingresa la Dirección de envío del kit.');
-        return;
-      }
-      if (!kitPhone.trim()) {
-        alert('Por favor ingresa el Número celular.');
-        return;
-      }
-      if (!kitReportEmail.trim()) {
-        alert('Por favor ingresa el Correo electrónico para reporte de resultados.');
-        return;
-      }
-      if (!kitBillingEmail.trim()) {
-        alert('Por favor ingresa el Correo electrónico de facturación.');
-        return;
-      }
-      if (!kitPetName.trim()) {
-        alert('Por favor ingresa el Nombre de la mascota.');
-        return;
-      }
+      setMissingFieldIds([]);
 
       const payload = {
         requestCategory: 'microbiota',
@@ -316,10 +302,13 @@ export default function MicrobiotaOrderForm({
       onSubmitOrder(payload);
     } else {
       if (!activePatient && !petName) {
-        alert('Por favor selecciona o indica el nombre de la mascota para la recolección.');
+        setMissingFieldIds(['recoleccion-pet-input']);
         setActiveTab('mascota');
+        const el = document.getElementById('recoleccion-pet-input');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
+      setMissingFieldIds([]);
 
       const payload = {
         requestCategory: 'microbiota',
@@ -647,14 +636,20 @@ export default function MicrobiotaOrderForm({
                 </label>
                 <input
                   type="text"
+                  id="kit-name-input"
                   value={kitNameOrBusiness}
-                  onChange={(e) => setKitNameOrBusiness(e.target.value)}
+                  onChange={(e) => {
+                    setKitNameOrBusiness(e.target.value);
+                    clearMissingField('kit-name-input');
+                  }}
                   placeholder={
                     kitUserRole === 'Propietario de mascota'
                       ? 'Ej. Andrea Gómez Restrepo'
                       : 'Ej. Clínica Veterinaria San Martín / Dr. Carlos Pérez'
                   }
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                    missingFieldIds.includes('kit-name-input') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : 'border border-slate-200'
+                  }`}
                 />
               </div>
 
@@ -666,10 +661,16 @@ export default function MicrobiotaOrderForm({
                 </label>
                 <input
                   type="text"
+                  id="kit-doc-input"
                   value={kitDocId}
-                  onChange={(e) => setKitDocId(e.target.value.replace(/[^0-9a-zA-Z]/g, ''))}
+                  onChange={(e) => {
+                    setKitDocId(e.target.value.replace(/[^0-9a-zA-Z]/g, ''));
+                    clearMissingField('kit-doc-input');
+                  }}
                   placeholder="Ej. 901458789 o 1020304050"
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs font-mono font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                    missingFieldIds.includes('kit-doc-input') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : 'border border-slate-200'
+                  }`}
                 />
                 <p className="text-[10px] text-slate-400">Ingresar sin guión, puntos ni dígito de verificación.</p>
               </div>
@@ -682,10 +683,16 @@ export default function MicrobiotaOrderForm({
                 </label>
                 <input
                   type="text"
+                  id="kit-city-input"
                   value={kitCity}
-                  onChange={(e) => setKitCity(e.target.value)}
+                  onChange={(e) => {
+                    setKitCity(e.target.value);
+                    clearMissingField('kit-city-input');
+                  }}
                   placeholder="Ej. Bogotá, Medellín, Cali, Barranquilla..."
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                    missingFieldIds.includes('kit-city-input') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : 'border border-slate-200'
+                  }`}
                 />
               </div>
 
@@ -697,10 +704,16 @@ export default function MicrobiotaOrderForm({
                 </label>
                 <input
                   type="text"
+                  id="kit-shipping-input"
                   value={kitShippingAddress}
-                  onChange={(e) => setKitShippingAddress(e.target.value)}
+                  onChange={(e) => {
+                    setKitShippingAddress(e.target.value);
+                    clearMissingField('kit-shipping-input');
+                  }}
                   placeholder="Ej. Calle 100 # 15-20 Apto 402 / Consultorio 201"
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                    missingFieldIds.includes('kit-shipping-input') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : 'border border-slate-200'
+                  }`}
                 />
               </div>
 
@@ -712,10 +725,16 @@ export default function MicrobiotaOrderForm({
                 </label>
                 <input
                   type="text"
+                  id="kit-phone-input"
                   value={kitPhone}
-                  onChange={(e) => setKitPhone(e.target.value)}
+                  onChange={(e) => {
+                    setKitPhone(e.target.value);
+                    clearMissingField('kit-phone-input');
+                  }}
                   placeholder="Ej. 310 123 4567"
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs font-mono font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                    missingFieldIds.includes('kit-phone-input') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : 'border border-slate-200'
+                  }`}
                 />
               </div>
 
@@ -727,10 +746,16 @@ export default function MicrobiotaOrderForm({
                 </label>
                 <input
                   type="email"
+                  id="kit-report-email-input"
                   value={kitReportEmail}
-                  onChange={(e) => setKitReportEmail(e.target.value)}
+                  onChange={(e) => {
+                    setKitReportEmail(e.target.value);
+                    clearMissingField('kit-report-email-input');
+                  }}
                   placeholder="correo.resultados@ejemplo.com"
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                    missingFieldIds.includes('kit-report-email-input') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : 'border border-slate-200'
+                  }`}
                 />
               </div>
 
@@ -742,10 +767,16 @@ export default function MicrobiotaOrderForm({
                 </label>
                 <input
                   type="email"
+                  id="kit-billing-email-input"
                   value={kitBillingEmail}
-                  onChange={(e) => setKitBillingEmail(e.target.value)}
+                  onChange={(e) => {
+                    setKitBillingEmail(e.target.value);
+                    clearMissingField('kit-billing-email-input');
+                  }}
                   placeholder="facturacion@ejemplo.com"
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className={`w-full px-3.5 py-2.5 bg-white rounded-xl text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                    missingFieldIds.includes('kit-billing-email-input') ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10' : 'border border-slate-200'
+                  }`}
                 />
               </div>
             </div>

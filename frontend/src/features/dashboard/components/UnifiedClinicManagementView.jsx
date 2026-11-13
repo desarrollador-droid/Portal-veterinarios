@@ -383,16 +383,16 @@ export default function UnifiedClinicManagementView({ currentUser = null, active
       handleNotify(`Ficha y permisos de ${updatedVetPayload.nombre} actualizados con éxito.`);
       setEditingVet(null);
     } catch (err) {
-      alert(err.message || 'Error al actualizar el profesional');
+      showAestheticAlert({ title: 'Error al Actualizar', message: err.message || 'Error al actualizar el profesional', type: 'danger' });
     }
   };
 
   // Guardar nuevo veterinario
   const handleCreateVet = async (e) => {
     e.preventDefault();
-    if (!newVetForm.nombre.trim()) return alert('El nombre completo es obligatorio');
-    if (!newVetForm.tarjetaProfesional.trim()) return alert('La tarjeta profesional COMVEZCOL es obligatoria');
-    if (!newVetForm.password.trim()) return alert('La contraseña o PIN de acceso al portal es obligatoria');
+    if (!newVetForm.nombre.trim()) return showAestheticAlert({ title: 'Campo Requerido', message: 'El nombre completo es obligatorio', type: 'warning' });
+    if (!newVetForm.tarjetaProfesional.trim()) return showAestheticAlert({ title: 'Campo Requerido', message: 'La tarjeta profesional COMVEZCOL es obligatoria', type: 'warning' });
+    if (!newVetForm.password.trim()) return showAestheticAlert({ title: 'Campo Requerido', message: 'La contraseña o PIN de acceso al portal es obligatoria', type: 'warning' });
 
     try {
       const isBlocked = newVetForm.estado === 'bloqueado';
@@ -439,14 +439,14 @@ export default function UnifiedClinicManagementView({ currentUser = null, active
         permisos: getPermissionsForRole('veterinario_planta'),
       });
     } catch (err) {
-      alert(err.message || 'Error registrando veterinario');
+      showAestheticAlert({ title: 'Error al Registrar Veterinario', message: err.message || 'Error registrando veterinario', type: 'danger' });
     }
   };
 
   // Guardar nueva sede
   const handleSaveSede = async (e) => {
     e.preventDefault();
-    if (!sedeForm.nombreSede.trim()) return alert('El nombre de la sede es obligatorio');
+    if (!sedeForm.nombreSede.trim()) return showAestheticAlert({ title: 'Campo Requerido', message: 'El nombre de la sede es obligatorio', type: 'warning' });
     try {
       const nextConsecutive = (activeClinic.sedes?.length || 0) + 1;
       const res = await clinicApi.addSede(activeClinic.id, {
@@ -458,7 +458,7 @@ export default function UnifiedClinicManagementView({ currentUser = null, active
       handleNotify(`Sede ${sedeForm.nombreSede} (#nit-${nextConsecutive}) creada exitosamente.`);
       setShowAddSedeModal(false);
     } catch (err) {
-      alert(err.message || 'Error guardando sede');
+      showAestheticAlert({ title: 'Error Guardando Sede', message: err.message || 'Error guardando sede', type: 'danger' });
     }
   };
 
@@ -471,7 +471,7 @@ export default function UnifiedClinicManagementView({ currentUser = null, active
       setIsEditingClinicData(false);
       handleNotify('Información de la clínica actualizada correctamente.');
     } catch (err) {
-      alert(err.message || 'Error actualizando clínica');
+      showAestheticAlert({ title: 'Error Actualizando Clínica', message: err.message || 'Error actualizando clínica', type: 'danger' });
     }
   };
 

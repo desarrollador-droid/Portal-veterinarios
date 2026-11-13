@@ -98,7 +98,7 @@ export default function PatientDocumentsTab({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.title.trim()) {
-      alert('Por favor ingrese un título para el documento.');
+      showAestheticAlert({ title: 'Título Requerido', message: 'Por favor ingrese un título para el documento.', type: 'warning' });
       return;
     }
 
@@ -358,7 +358,7 @@ export default function PatientDocumentsTab({
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => alert(`Descargando ${doc.fileName}...`)}
+                    onClick={() => showAestheticAlert({ title: 'Descarga en Proceso', message: `Descargando archivo ${doc.fileName}...`, type: 'info' })}
                     className="px-2.5 py-1.5 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold transition-all cursor-pointer"
                     title="Descargar archivo"
                   >
@@ -726,7 +726,7 @@ export default function PatientDocumentsTab({
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => alert(`Descargando archivo ${selectedDoc.fileName}...`)}
+                  onClick={() => showAestheticAlert({ title: 'Descarga en Proceso', message: `Descargando archivo ${selectedDoc.fileName}...`, type: 'info' })}
                   className="px-4 py-2 bg-[#6F2BCC] text-white rounded-xl text-xs font-bold hover:bg-[#581ea3] transition-colors cursor-pointer"
                 >
                   📥 Descargar Archivo

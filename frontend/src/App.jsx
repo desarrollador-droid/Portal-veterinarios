@@ -3,6 +3,7 @@ import { ThemeProvider } from './context/ThemeContext.jsx';
 import VeterinariansPortal from './features/dashboard/pages/VeterinariansPortal.jsx';
 import LoginPage from './features/auth/pages/LoginPage.jsx';
 import { authService } from './features/auth/services/authService.js';
+import AestheticModalContainer from './features/dashboard/components/AestheticModal.jsx';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(() => {
@@ -45,6 +46,8 @@ export default function App() {
       ) : (
         <LoginPage onLoginSuccess={handleLoginSuccess} />
       )}
+      {/* Diálogo y Alertas Estéticas centradas sobrepuestas */}
+      <AestheticModalContainer />
     </ThemeProvider>
   );
 }

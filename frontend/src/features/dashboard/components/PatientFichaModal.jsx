@@ -262,7 +262,7 @@ export default function PatientFichaModal({
         }
       }
     } catch (err) {
-      alert(`Error al registrar consulta: ${err.message}`);
+      showAestheticAlert({ title: 'Error al Registrar Consulta', message: err.message, type: 'danger' });
     }
   };
 

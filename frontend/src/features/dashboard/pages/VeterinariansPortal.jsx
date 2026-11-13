@@ -215,7 +215,7 @@ export default function VeterinariansPortal({ currentUser = null, onLogout = nul
         setSelectedPatient(created);
       }
     } catch (err) {
-      alert(err.message || 'Error registrando paciente');
+      showAestheticAlert({ title: 'Error al Registrar Paciente', message: err.message || 'Error registrando paciente', type: 'danger' });
     }
   };
 
@@ -228,7 +228,7 @@ export default function VeterinariansPortal({ currentUser = null, onLogout = nul
       await loadPatients();
       await loadInitialStats();
     } catch (err) {
-      alert(err.message || 'Error al actualizar paciente');
+      showAestheticAlert({ title: 'Error al Actualizar Paciente', message: err.message || 'Error al actualizar paciente', type: 'danger' });
       throw err;
     }
   };
@@ -260,7 +260,7 @@ export default function VeterinariansPortal({ currentUser = null, onLogout = nul
       await loadInitialStats();
       return newOrder;
     } catch (err) {
-      alert(err.message || 'Error solicitando examen');
+      showAestheticAlert({ title: 'Error al Solicitar Examen', message: err.message || 'Error solicitando examen', type: 'danger' });
       throw err;
     }
   };

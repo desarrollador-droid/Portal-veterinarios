@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { clinicApi, AVAILABLE_PERMISSIONS, ROLE_PRESETS } from '../services/clinicApi.js';
+import { showAestheticConfirm, showAestheticAlert } from './AestheticModal.jsx';
 
 export default function TeamPermissionsView({ onNotify }) {
   const [clinics, setClinics] = useState([]);
@@ -73,7 +74,7 @@ export default function TeamPermissionsView({ onNotify }) {
       setActiveClinic(updated);
       notify(`Administrando clínica: ${updated.nombreVeterinaria || updated.nombreMedico}`);
     } catch (err) {
-      alert(err.message || 'Error al cambiar clínica');
+      showAestheticAlert({ title: 'Error al Cambiar Clínica', message: err.message || 'Error al cambiar clínica', type: 'danger' });
     }
   };
 
@@ -120,7 +121,7 @@ export default function TeamPermissionsView({ onNotify }) {
       notify(`Permisos actualizados para ${modalPermissionsVet.nombre}`);
       setModalPermissionsVet(null);
     } catch (err) {
-      alert(err.message || 'Error al guardar permisos');
+      showAestheticAlert({ title: 'Error al Guardar Permisos', message: err.message || 'Error al guardar permisos', type: 'danger' });
     }
   };
 
@@ -174,7 +175,7 @@ export default function TeamPermissionsView({ onNotify }) {
       notify(`Asignación de sedes actualizada para ${modalSedesVet.nombre}`);
       setModalSedesVet(null);
     } catch (err) {
-      alert(err.message || 'Error asignando sedes');
+      showAestheticAlert({ title: 'Error Asignando Sedes', message: err.message || 'Error asignando sedes', type: 'danger' });
     }
   };
 
@@ -196,21 +197,26 @@ export default function TeamPermissionsView({ onNotify }) {
       setModalBlockVet(null);
       setMotivoBloqueo('');
     } catch (err) {
-      alert(err.message || 'Error al bloquear acceso');
+      showAestheticAlert({ title: 'Error al Bloquear Acceso', message: err.message || 'Error al bloquear acceso', type: 'danger' });
     }
   };
 
   const handleUnblock = async (vet) => {
     if (!activeClinic) return;
-    if (!window.confirm(`¿Deseas restablecer el acceso a ${vet.nombre}? Se restaurarán sus permisos clínicos.`)) {
-      return;
-    }
+    const confirmed = await showAestheticConfirm({
+      title: 'Restablecer Acceso',
+      message: `¿Desea restablecer el acceso a ${vet.nombre}? Se restaurarán sus permisos clínicos activos.`,
+      type: 'info',
+      confirmText: 'Sí, restablecer acceso',
+      cancelText: 'Cancelar',
+    });
+    if (!confirmed) return;
     try {
       const res = await clinicApi.unblockVeterinarian(activeClinic.id, vet.id);
       setActiveClinic(res.clinic);
       notify(`Acceso restablecido para ${vet.nombre}`);
     } catch (err) {
-      alert(err.message || 'Error al desbloquear acceso');
+      showAestheticAlert({ title: 'Error', message: err.message || 'Error al desbloquear acceso', type: 'danger' });
     }
   };
 
@@ -221,7 +227,7 @@ export default function TeamPermissionsView({ onNotify }) {
       setActiveClinic(res.clinic);
       notify(`Usuario de ${vet.nombre} ${res.vet.estado === 'activo' ? 'activado' : 'desactivado'}`);
     } catch (err) {
-      alert(err.message || 'Error alternando estado');
+      showAestheticAlert({ title: 'Error Alternando Estado', message: err.message || 'Error alternando estado', type: 'danger' });
     }
   };
 
@@ -229,11 +235,11 @@ export default function TeamPermissionsView({ onNotify }) {
   const handleCreateVeterinarian = async (e) => {
     e.preventDefault();
     if (!newVetForm.nombre.trim()) {
-      alert('El nombre completo del veterinario es obligatorio');
+      showAestheticAlert({ title: 'Campo Requerido', message: 'El nombre completo del veterinario es obligatorio', type: 'warning' });
       return;
     }
     if (!newVetForm.tarjetaProfesional.trim()) {
-      alert('La tarjeta profesional COMVEZCOL es obligatoria');
+      showAestheticAlert({ title: 'Campo Requerido', message: 'La tarjeta profesional COMVEZCOL es obligatoria', type: 'warning' });
       return;
     }
 
@@ -281,7 +287,7 @@ export default function TeamPermissionsView({ onNotify }) {
         permisos: { ...ROLE_PRESETS.veterinario_planta.permisos },
       });
     } catch (err) {
-      alert(err.message || 'Error registrando veterinario');
+      showAestheticAlert({ title: 'Error al Registrar Veterinario', message: err.message || 'Error registrando veterinario', type: 'danger' });
     }
   };
 
