@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ThemeToggle from '../../dashboard/components/ThemeToggle.jsx';
 import RegisterClientForm from '../components/RegisterClientForm.jsx';
+import RegisterVeterinarianForm from '../components/RegisterVeterinarianForm.jsx';
 import { authService } from '../services/authService.js';
 import { clinicApi } from '../../dashboard/services/clinicApi.js';
 
@@ -84,15 +85,14 @@ export default function LoginPage({ onLoginSuccess }) {
       {/* Main Container */}
       <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Selector de Pestañas: Iniciar Sesión / Registro de Nuevo Cliente */}
-        <div className="flex justify-center mb-8">
-          <div className="inline-flex p-1.5 rounded-2xl bg-slate-200/80 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 shadow-inner">
+          <div className="inline-flex flex-wrap justify-center p-1.5 rounded-2xl bg-slate-200/80 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 shadow-inner gap-1">
             <button
               type="button"
               onClick={() => {
                 setActiveTab('login');
                 setLoginError('');
               }}
-              className={`px-5 sm:px-8 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'login'
                   ? 'bg-white dark:bg-slate-900 text-[#2B017C] dark:text-[#01FADA] shadow-md'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -105,20 +105,35 @@ export default function LoginPage({ onLoginSuccess }) {
             <button
               type="button"
               onClick={() => {
+                setActiveTab('register-vet');
+                setLoginError('');
+              }}
+              className={`px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
+                activeTab === 'register-vet'
+                  ? 'bg-white dark:bg-slate-900 text-[#2B017C] dark:text-[#01FADA] shadow-md'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <span>🩺</span>
+              <span>Veterinario Asociado</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
                 setActiveTab('register');
                 setLoginError('');
               }}
-              className={`px-5 sm:px-8 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'register'
                   ? 'bg-white dark:bg-slate-900 text-[#2B017C] dark:text-[#01FADA] shadow-md'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <span>✨</span>
-              <span>Registrar Nuevo Cliente</span>
+              <span>🏢</span>
+              <span>Registrar Clínica</span>
             </button>
           </div>
-        </div>
 
         {/* PESTAÑA 1: INICIAR SESIÓN */}
         {activeTab === 'login' && (
@@ -211,27 +226,52 @@ export default function LoginPage({ onLoginSuccess }) {
 
 
 
-              {/* Botón para cambiar a formulario de nuevo cliente */}
-              <div className="text-center pt-2">
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  ¿Es la primera vez que solicitas exámenes en OSD?
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTab('register');
-                    setLoginError('');
-                  }}
-                  className="mt-1.5 text-xs font-extrabold text-[#6F2BCC] dark:text-[#01FADA] hover:underline cursor-pointer"
-                >
-                  Diligenciar Formulario Oficial de Creación de Clientes →
-                </button>
+              {/* Enlaces a registros */}
+              <div className="text-center pt-3 space-y-3 border-t border-slate-100 dark:border-slate-800 text-xs">
+                <div>
+                  <p className="text-slate-500 dark:text-slate-400">
+                    ¿Trabajas en una veterinaria y deseas vincularte como médico profesional?
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('register-vet');
+                      setLoginError('');
+                    }}
+                    className="mt-1 font-extrabold text-[#6F2BCC] dark:text-[#01FADA] hover:underline cursor-pointer"
+                  >
+                    Crear cuenta como Veterinario Asociado →
+                  </button>
+                </div>
+
+                <div>
+                  <p className="text-slate-500 dark:text-slate-400">
+                    ¿Es la primera vez que tu clínica solicita exámenes en OSD?
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('register');
+                      setLoginError('');
+                    }}
+                    className="mt-1 font-extrabold text-[#6F2BCC] dark:text-[#01FADA] hover:underline cursor-pointer"
+                  >
+                    Diligenciar Formulario Oficial de Creación de Clientes →
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* PESTAÑA 2: FORMULARIO OFICIAL DE CREACIÓN DE CLIENTES */}
+        {/* PESTAÑA 2: REGISTRO DE VETERINARIO ASOCIADO A CLÍNICA */}
+        {activeTab === 'register-vet' && (
+          <div className="animate-in fade-in duration-200">
+            <RegisterVeterinarianForm onBackToLogin={() => setActiveTab('login')} />
+          </div>
+        )}
+
+        {/* PESTAÑA 3: FORMULARIO OFICIAL DE CREACIÓN DE CLIENTES (CLÍNICAS) */}
         {activeTab === 'register' && (
           <div className="animate-in fade-in duration-200">
             <RegisterClientForm

@@ -318,6 +318,7 @@ export default function TeamPermissionsView({ onNotify }) {
     }
     // Status
     if (statusFilter !== 'all') {
+      if (statusFilter === 'pendiente_aprobacion' && v.estado !== 'pendiente_aprobacion') return false;
       if (statusFilter === 'bloqueado' && !v.bloqueadoPorAdmin && v.estado !== 'bloqueado') return false;
       if (statusFilter === 'activo' && (v.bloqueadoPorAdmin || v.estado !== 'activo')) return false;
       if (statusFilter === 'inactivo' && (v.bloqueadoPorAdmin || v.estado !== 'inactivo')) return false;
@@ -332,6 +333,7 @@ export default function TeamPermissionsView({ onNotify }) {
   // Métricas
   const totalVets = rawVets.length;
   const activeVets = rawVets.filter((v) => v.estado === 'activo' && !v.bloqueadoPorAdmin).length;
+  const pendingVets = rawVets.filter((v) => v.estado === 'pendiente_aprobacion').length;
   const rotativeVets = rawVets.filter((v) => v.tipoAsignacion === 'rotativa' || v.tipoAsignacion === 'todas_las_sedes').length;
   const blockedVets = rawVets.filter((v) => v.bloqueadoPorAdmin || v.estado === 'bloqueado').length;
 
@@ -492,8 +494,11 @@ export default function TeamPermissionsView({ onNotify }) {
               className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#6F2BCC]"
             >
               <option value="all">🔒 Todos los Estados de Acceso</option>
-              <option value="activo">✓ Habilitados / Activos</option>
-              <option value="bloqueado">🔒 Bloqueados por Admin</option>
+              {pendingVets > 0 && (
+                <option value="pendiente_aprobacion">🟡 Pendientes de Aprobación ({pendingVets})</option>
+              )}
+              <option value="activo">✓ Habilitados / Activos ({activeVets})</option>
+              <option value="bloqueado">🔒 Bloqueados por Admin ({blockedVets})</option>
               <option value="inactivo">⚪ Inactivos / Deshabilitados</option>
             </select>
           </div>
@@ -602,6 +607,10 @@ export default function TeamPermissionsView({ onNotify }) {
                         {isBlocked ? (
                           <span className="px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center gap-1 animate-pulse">
                             🔒 ACCESO BLOQUEADO POR ADMIN
+                          </span>
+                        ) : vet.estado === 'pendiente_aprobacion' ? (
+                          <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 text-[10px] font-black flex items-center gap-1 border border-amber-300 dark:border-amber-700 animate-pulse">
+                            🟡 PENDIENTE DE APROBACIÓN
                           </span>
                         ) : vet.estado === 'activo' ? (
                           <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 text-[10px] font-bold">
@@ -783,14 +792,32 @@ export default function TeamPermissionsView({ onNotify }) {
                           </button>
                         )}
 
-                        {/* Alternador Activo / Inactivo */}
-                        <button
-                          onClick={() => handleToggleStatus(vet)}
-                          className="px-2.5 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 font-semibold text-xs transition-colors cursor-pointer"
-                          title="Activar o desactivar usuario"
-                        >
-                          {vet.estado === 'activo' ? 'Desactivar' : 'Activar'}
-                        </button>
+                        {/* Acción para Veterinario Pendiente de Aprobación */}
+                        {vet.estado === 'pendiente_aprobacion' ? (
+                          <button
+                            onClick={async () => {
+                              try {
+                                await clinicApi.updateVeterinarian(activeClinicId, vet.id, { estado: 'activo' });
+                                notify(`¡Cuenta del Dr(a). ${vet.nombre} aprobada y activada con éxito!`);
+                                loadData();
+                              } catch (err) {
+                                showAestheticAlert({ title: 'Error Aprobando Médico', message: err.message || 'Error al aprobar', type: 'danger' });
+                              }
+                            }}
+                            className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer animate-pulse"
+                          >
+                            <span>✅</span> Aprobar & Activar Cuenta
+                          </button>
+                        ) : (
+                          /* Alternador Activo / Inactivo */
+                          <button
+                            onClick={() => handleToggleStatus(vet)}
+                            className="px-2.5 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 font-semibold text-xs transition-colors cursor-pointer"
+                            title="Activar o desactivar usuario"
+                          >
+                            {vet.estado === 'activo' ? 'Desactivar' : 'Activar'}
+                          </button>
+                        )}
                       </>
                     )}
 

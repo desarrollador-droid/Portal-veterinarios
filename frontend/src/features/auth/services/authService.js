@@ -147,6 +147,13 @@ export const authService = {
         const { vet: foundVet, clinic: parentClinic } = vetMatch;
 
         // Comprobar estado de la cuenta
+        if (foundVet.estado === 'pendiente_aprobacion') {
+          return {
+            success: false,
+            message: `Hola Dr(a). ${foundVet.nombre}. Tu cuenta como Veterinario Asociado a ${parentClinic.nombreVeterinaria || 'tu clínica'} se encuentra en proceso de validación y aprobación por el Administrador. Podrás ingresar tan pronto sea aprobada.`,
+          };
+        }
+
         if (foundVet.estado === 'inactivo' || foundVet.estado === 'bloqueado' || foundVet.bloqueadoPorAdmin) {
           const reason = foundVet.motivoBloqueo ? ` Motivo: ${foundVet.motivoBloqueo}.` : '';
           return {

@@ -134,7 +134,7 @@ export default function AestheticModalContainer() {
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-[9999999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200"
       onClick={(e) => {
         // Clic en el backdrop cancela/cierra
         if (e.target === e.currentTarget) {

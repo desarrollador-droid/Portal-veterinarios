@@ -296,11 +296,13 @@ export default function VeterinariansPortal({ currentUser = null, onLogout = nul
 
   return (
     <div className="min-h-screen bg-[#f7f5fd] text-slate-800 flex font-body">
-      {/* Toast flotante de notificación */}
+      {/* Toast flotante de notificación siempre sobrepuesto sobre cualquier ficha o modal */}
       {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl text-xs font-semibold flex items-center gap-2 border border-slate-700 animate-in fade-in slide-in-from-top-3 duration-200">
-          <span>✅</span>
-          <span>{toastMessage}</span>
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[9999999] bg-slate-900/95 dark:bg-slate-950/95 backdrop-blur-md text-white px-6 py-3.5 rounded-2xl shadow-2xl text-xs sm:text-sm font-bold flex items-center gap-3 border-2 border-emerald-500/80 shadow-emerald-500/30 animate-in fade-in slide-in-from-top-4 duration-200 pointer-events-auto">
+          <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-black border border-emerald-500/40 shrink-0">
+            ✓
+          </span>
+          <span className="text-emerald-100 font-semibold">{toastMessage}</span>
         </div>
       )}
 
