@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 export default function MicrobiotaOrderForm({
   activePatient,
@@ -24,24 +24,24 @@ export default function MicrobiotaOrderForm({
   // Selecciona la opción según tu caso: 'Propietario de mascota' | 'Médico veterinario'
   const [kitUserRole, setKitUserRole] = useState('Médico veterinario');
 
-  // Información general
+  // Información general de la veterinaria (información oficial de la clínica)
   const [kitNameOrBusiness, setKitNameOrBusiness] = useState(
-    activePatient?.owner?.name ? `${activePatient.owner.name}` : ''
+    activePatient?.owner?.name && kitUserRole === 'Propietario de mascota'
+      ? activePatient.owner.name
+      : 'Clínica Veterinaria On Site Diagnostic'
   );
-  const [kitDocId, setKitDocId] = useState(''); // NIT o documento (Sin dígito de verificación)
-  const [kitCity, setKitCity] = useState(activePatient?.owner?.city || '');
-  const [kitShippingAddress, setKitShippingAddress] = useState(
-    activePatient?.owner?.address || ''
-  );
-  const [kitPhone, setKitPhone] = useState(activePatient?.owner?.phone || '');
-  const [kitReportEmail, setKitReportEmail] = useState(
-    activePatient?.owner?.email || ''
-  );
-  const [kitBillingEmail, setKitBillingEmail] = useState('');
+  const [kitDocId, setKitDocId] = useState('901458789'); // NIT o documento (Sin dígito de verificación)
+  const [kitCity, setKitCity] = useState('Bogotá');
+  const [kitShippingAddress, setKitShippingAddress] = useState('Cra 80 # 45-12, Bogotá');
+  const [kitPhone, setKitPhone] = useState('310 456 7890');
+  const [kitReportEmail, setKitReportEmail] = useState('resultados.microbiota@osdiagnostic.com');
+  const [kitBillingEmail, setKitBillingEmail] = useState('facturacion@osdiagnostic.com');
 
-  // Información de la mascota
+  // Información de la mascota (sin datos precargados, con buscador dinámico interactivo)
   const [kitPetName, setKitPetName] = useState(activePatient?.name || '');
   const [kitPetSpecies, setKitPetSpecies] = useState(activePatient?.species || '');
+  const [petDropdownOpen, setPetDropdownOpen] = useState(false);
+  const petDropdownRef = useRef(null);
 
   // Recuerda que este formulario es para la solicitud de prueba de microbiota:
   // "Si, es la prueba de microbiota lo que necesito"
@@ -49,7 +49,7 @@ export default function MicrobiotaOrderForm({
 
   // ¿Cuenta con acuerdo de pago? Recuerda que los acuerdos de pago solo aplica para veterinarios:
   // 'Sí' | 'No'
-  const [hasPaymentAgreement, setHasPaymentAgreement] = useState('');
+  const [hasPaymentAgreement, setHasPaymentAgreement] = useState('Sí');
 
   // Cantidad de kits (opcional, default 1) e instrucciones de entrega
   const [kitQuantity, setKitQuantity] = useState(1);
@@ -59,19 +59,15 @@ export default function MicrobiotaOrderForm({
   // 2. ESTADOS PARA RECOLECCIÓN Y LOGÍSTICA
   // ============================================================================
   const [userRole, setUserRole] = useState('Médico veterinario'); // 'Médico veterinario' | 'Propietario de mascota'
-  const [clinicName, setClinicName] = useState('');
-  const [clinicNit, setClinicNit] = useState('');
-  const [attendingVet, setAttendingVet] = useState(activePatient?.attendingVet || '');
+  const [clinicName, setClinicName] = useState('VetLab / On Site Diagnostic Sede Principal');
+  const [clinicNit, setClinicNit] = useState('901.458.789-2');
+  const [attendingVet, setAttendingVet] = useState(activePatient?.attendingVet || 'Dr. Alejandro Morales');
   const [ownerName, setOwnerName] = useState(activePatient?.owner?.name || '');
-  const [city, setCity] = useState(activePatient?.owner?.city || '');
-  const [collectionAddress, setCollectionAddress] = useState(
-    activePatient?.owner?.address || ''
-  );
+  const [city, setCity] = useState(activePatient?.owner?.city || 'Bogotá');
+  const [collectionAddress, setCollectionAddress] = useState(activePatient?.owner?.address || '');
   const [contactPhone, setContactPhone] = useState(activePatient?.owner?.phone || '');
-  const [reportEmail, setReportEmail] = useState(
-    activePatient?.owner?.email || ''
-  );
-  const [billingEmail, setBillingEmail] = useState('');
+  const [reportEmail, setReportEmail] = useState(activePatient?.owner?.email || '');
+  const [billingEmail, setBillingEmail] = useState('facturacion@osdiagnostic.com');
   const [sampleDate, setSampleDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [collectionDate, setCollectionDate] = useState('');
   const [collectionNotes, setCollectionNotes] = useState('');
@@ -167,10 +163,8 @@ export default function MicrobiotaOrderForm({
       // Sincronizar en formulario de Kit de Microbiota
       setKitPetName(activePatient.name || '');
       setKitPetSpecies(activePatient.species || '');
-      if (activePatient.owner) {
-        if (kitUserRole === 'Propietario de mascota' && activePatient.owner.name) {
-          setKitNameOrBusiness(activePatient.owner.name);
-        }
+      if (activePatient.owner && kitUserRole === 'Propietario de mascota') {
+        if (activePatient.owner.name) setKitNameOrBusiness(activePatient.owner.name);
         if (activePatient.owner.phone) setKitPhone(activePatient.owner.phone);
         if (activePatient.owner.email) {
           setKitReportEmail(activePatient.owner.email);
@@ -198,10 +192,7 @@ export default function MicrobiotaOrderForm({
       if (activePatient.owner) {
         setOwnerName(activePatient.owner.name || '');
         if (activePatient.owner.phone) setContactPhone(activePatient.owner.phone);
-        if (activePatient.owner.email) {
-          setReportEmail(activePatient.owner.email);
-          setBillingEmail(activePatient.owner.email);
-        }
+        if (activePatient.owner.email) setReportEmail(activePatient.owner.email);
         if (activePatient.owner.city) setCity(activePatient.owner.city);
         if (activePatient.owner.address) setCollectionAddress(activePatient.owner.address);
       }
@@ -209,7 +200,7 @@ export default function MicrobiotaOrderForm({
         setAttendingVet(activePatient.attendingVet);
       }
     } else {
-      // Si se deselecciona o no hay paciente, limpiar datos dependientes
+      // Si se deselecciona o no hay paciente, limpiar solo datos de la mascota
       setKitPetName('');
       setKitPetSpecies('');
       setPetName('');
@@ -222,13 +213,19 @@ export default function MicrobiotaOrderForm({
       setOwnerName('');
       setContactPhone('');
       setReportEmail('');
-      setBillingEmail('');
-      setCity('');
       setCollectionAddress('');
+      if (kitUserRole === 'Propietario de mascota') {
+        setKitNameOrBusiness('');
+        setKitCity('');
+        setKitShippingAddress('');
+        setKitPhone('');
+        setKitReportEmail('');
+        setKitBillingEmail('');
+      }
     }
-  }, [activePatient]);
+  }, [activePatient, kitUserRole]);
 
-  // Lista de pacientes filtrados para el selector
+  // Lista de pacientes filtrados para el selector de Recolección
   const filteredPatients = useMemo(() => {
     if (!patientSearch.trim()) return patients.slice(0, 5);
     const q = patientSearch.toLowerCase();
@@ -239,6 +236,52 @@ export default function MicrobiotaOrderForm({
         (p.owner?.name && p.owner.name.toLowerCase().includes(q))
     );
   }, [patients, patientSearch]);
+
+  // Lista de pacientes filtrados para el menú autocompletable en Solicitud de Kit
+  const filteredKitPatients = useMemo(() => {
+    if (!patients || patients.length === 0) return [];
+    const q = (kitPetName || '').trim().toLowerCase();
+    if (!q) return patients.slice(0, 6);
+    return patients.filter(
+      (p) =>
+        (p.name && p.name.toLowerCase().includes(q)) ||
+        (p.id && p.id.toLowerCase().includes(q)) ||
+        (p.breed && p.breed.toLowerCase().includes(q)) ||
+        (p.owner?.name && p.owner.name.toLowerCase().includes(q))
+    ).slice(0, 8);
+  }, [patients, kitPetName]);
+
+  // Selección de paciente desde el menú desplegable en Solicitud de Kit
+  const handleSelectKitPatient = (p) => {
+    setKitPetName(p.name || '');
+    setKitPetSpecies(p.species === 'Felino' ? 'Felino' : 'Canino');
+    if (onSelectPatient) {
+      onSelectPatient(p.id);
+    }
+    if (kitUserRole === 'Propietario de mascota' && p.owner) {
+      if (p.owner.name) setKitNameOrBusiness(p.owner.name);
+      if (p.owner.phone) setKitPhone(p.owner.phone);
+      if (p.owner.city) setKitCity(p.owner.city);
+      if (p.owner.address) setKitShippingAddress(p.owner.address);
+      if (p.owner.email) {
+        setKitReportEmail(p.owner.email);
+        setKitBillingEmail(p.owner.email);
+      }
+    }
+    setPetDropdownOpen(false);
+    clearMissingField('kit-pet-name-input');
+  };
+
+  // Click outside para cerrar el menú desplegable del paciente
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (petDropdownRef.current && !petDropdownRef.current.contains(e.target)) {
+        setPetDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Helper para checkbox múltiple
   const toggleArrayItem = (arr, setArr, item) => {
@@ -571,7 +614,24 @@ export default function MicrobiotaOrderForm({
                 type="button"
                 onClick={() => {
                   setKitUserRole('Propietario de mascota');
-                  if (activePatient?.owner?.name) setKitNameOrBusiness(activePatient.owner.name);
+                  if (activePatient?.owner) {
+                    if (activePatient.owner.name) setKitNameOrBusiness(activePatient.owner.name);
+                    if (activePatient.owner.phone) setKitPhone(activePatient.owner.phone);
+                    if (activePatient.owner.city) setKitCity(activePatient.owner.city);
+                    if (activePatient.owner.address) setKitShippingAddress(activePatient.owner.address);
+                    if (activePatient.owner.email) {
+                      setKitReportEmail(activePatient.owner.email);
+                      setKitBillingEmail(activePatient.owner.email);
+                    }
+                  } else {
+                    setKitNameOrBusiness('');
+                    setKitDocId('');
+                    setKitCity('');
+                    setKitShippingAddress('');
+                    setKitPhone('');
+                    setKitReportEmail('');
+                    setKitBillingEmail('');
+                  }
                   setHasPaymentAgreement('No');
                 }}
                 className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
@@ -606,7 +666,14 @@ export default function MicrobiotaOrderForm({
                 type="button"
                 onClick={() => {
                   setKitUserRole('Médico veterinario');
-                  if (clinicName) setKitNameOrBusiness(clinicName);
+                  setKitNameOrBusiness('Clínica Veterinaria On Site Diagnostic');
+                  setKitDocId('901458789');
+                  setKitCity('Bogotá');
+                  setKitShippingAddress('Cra 80 # 45-12, Bogotá');
+                  setKitPhone('310 456 7890');
+                  setKitReportEmail('resultados.microbiota@osdiagnostic.com');
+                  setKitBillingEmail('facturacion@osdiagnostic.com');
+                  setHasPaymentAgreement('Sí');
                 }}
                 className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
                   kitUserRole === 'Médico veterinario'
@@ -816,19 +883,116 @@ export default function MicrobiotaOrderForm({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Nombre de la mascota * */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                  <span>Nombre de la mascota</span>
-                  <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={kitPetName}
-                  onChange={(e) => setKitPetName(e.target.value)}
-                  placeholder="Ej. Luna, Zeus, Milo..."
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                />
+              {/* Nombre de la mascota con autocompletado y menú filtrable * */}
+              <div className="space-y-1.5 relative" ref={petDropdownRef}>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
+                    <span>Nombre de la mascota</span>
+                    <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    Escribe para filtrar pacientes
+                  </span>
+                </div>
+
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none select-none">
+                    🔍
+                  </span>
+                  <input
+                    type="text"
+                    id="kit-pet-name-input"
+                    value={kitPetName}
+                    onFocus={() => setPetDropdownOpen(true)}
+                    onChange={(e) => {
+                      setKitPetName(e.target.value);
+                      setPetDropdownOpen(true);
+                      clearMissingField('kit-pet-name-input');
+                    }}
+                    placeholder="Escribe el nombre del paciente..."
+                    autoComplete="off"
+                    className={`w-full pl-9 pr-9 py-2.5 bg-white rounded-xl text-xs text-slate-800 font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all ${
+                      missingFieldIds.includes('kit-pet-name-input')
+                        ? 'border-2 border-rose-500 ring-4 ring-rose-200/60 bg-rose-50/10'
+                        : 'border border-slate-200'
+                    }`}
+                  />
+                  {kitPetName && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setKitPetName('');
+                        setPetDropdownOpen(true);
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs p-1 cursor-pointer"
+                      title="Limpiar búsqueda"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* Menú desplegable filtrable flotante */}
+                {petDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+                    <div className="px-3.5 py-2 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
+                      <span>Pacientes coincidentes ({filteredKitPatients.length})</span>
+                      <span className="text-[10px] font-normal text-slate-400">Clic para autocompletar</span>
+                    </div>
+
+                    <div className="max-h-56 overflow-y-auto divide-y divide-slate-100">
+                      {filteredKitPatients.map((p) => {
+                        const isSelected =
+                          activePatient?.id === p.id ||
+                          kitPetName.trim().toLowerCase() === p.name.toLowerCase();
+                        return (
+                          <div
+                            key={p.id}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              handleSelectKitPatient(p);
+                            }}
+                            className={`p-3 hover:bg-emerald-50/90 cursor-pointer flex items-center justify-between text-xs transition-colors ${
+                              isSelected ? 'bg-emerald-50/60' : ''
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <span className="text-xl shrink-0">
+                                {p.avatar || (p.species === 'Felino' ? '🐱' : '🐶')}
+                              </span>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-extrabold text-slate-900">{p.name}</span>
+                                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono">
+                                    {p.id}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-slate-500 mt-0.5">
+                                  {p.species} · {p.breed || 'Sin raza'}{' '}
+                                  {p.owner?.name ? `· Tutor: ${p.owner.name}` : ''}
+                                </p>
+                              </div>
+                            </div>
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/70 px-2.5 py-1 rounded-full shrink-0">
+                              Autocompletar →
+                            </span>
+                          </div>
+                        );
+                      })}
+
+                      {filteredKitPatients.length === 0 && (
+                        <div className="p-4 text-center">
+                          <p className="text-xs font-bold text-slate-700">
+                            No se encontraron pacientes con "{kitPetName}"
+                          </p>
+                          <p className="text-[11px] text-slate-400 mt-1">
+                            Puedes continuar con este nombre para registrar una mascota nueva.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Especie * (Canino / Felino) */}
