@@ -271,7 +271,7 @@ export default function PatientFichaModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-[#140f2d] rounded-3xl max-w-5xl w-full shadow-2xl border border-slate-100 dark:border-[#2b2052] overflow-hidden my-6 max-h-[94vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-white dark:bg-[#140f2d] rounded-3xl w-full max-w-7xl xl:max-w-[1400px] shadow-2xl border border-slate-100 dark:border-[#2b2052] overflow-hidden my-6 max-h-[94vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
         <div className="px-6 py-3 bg-slate-50 dark:bg-[#1a1438] border-b border-slate-100 dark:border-[#2b2052] flex items-center justify-between text-xs text-slate-500 dark:text-slate-300 shrink-0">
           <span className="font-semibold flex items-center gap-1.5">
             <span>🐾</span> Expediente Clínico Digital · Portal Veterinario
@@ -505,83 +505,125 @@ export default function PatientFichaModal({
           {/* 6. Historial de Cambios                                        */}
           {/* ============================================================== */}
           <div className="bg-white dark:bg-[#1b143c] rounded-2xl border border-slate-200/90 dark:border-[#2b2052] shadow-xs overflow-hidden">
-            {/* Pestañas de Navegación Modular */}
-            <div className="flex border-b border-slate-200 dark:border-[#2b2052] bg-slate-50/70 dark:bg-[#171035] text-xs font-bold px-4 gap-2 overflow-x-auto">
+            {/* Pestañas de Navegación Modular (Sin scrollbar nativo desagradable) */}
+            <div className="flex border-b border-slate-200 dark:border-[#2b2052] bg-slate-50/70 dark:bg-[#171035] text-xs font-bold px-3 sm:px-4 gap-1 sm:gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               <button
                 onClick={() => setActiveTab('dashboard')}
-                className={`py-3.5 px-4 border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`py-3 px-3.5 border-b-2 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === 'dashboard'
                     ? 'border-[#6F2BCC] text-[#6F2BCC] dark:text-[#01FADA] dark:border-[#01FADA] bg-white dark:bg-[#1b143c] font-extrabold'
                     : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-800/50'
                 }`}
               >
-                <span>📊</span> Dashboard del Paciente
+                <span>📊</span>
+                <span>Dashboard</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('consultas')}
-                className={`py-3.5 px-4 border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`py-3 px-3.5 border-b-2 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === 'consultas'
                     ? 'border-[#6F2BCC] text-[#6F2BCC] dark:text-[#01FADA] dark:border-[#01FADA] bg-white dark:bg-[#1b143c] font-extrabold'
                     : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-800/50'
                 }`}
               >
-                <span>🩺</span> Consultas Médicas ({patient.consultations?.length || 0})
+                <span>🩺</span>
+                <span>Consultas</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                  activeTab === 'consultas'
+                    ? 'bg-[#6F2BCC]/15 text-[#6F2BCC] dark:bg-[#01FADA]/25 dark:text-[#01FADA]'
+                    : 'bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                }`}>
+                  {patient.consultations?.length || 0}
+                </span>
               </button>
 
               <button
                 onClick={() => setActiveTab('qpcr')}
-                className={`py-3.5 px-4 border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`py-3 px-3.5 border-b-2 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === 'qpcr'
                     ? 'border-[#6F2BCC] text-[#6F2BCC] dark:text-[#01FADA] dark:border-[#01FADA] bg-white dark:bg-[#1b143c] font-extrabold'
                     : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-800/50'
                 }`}
               >
-                <span>🔬</span> Exámenes qPCR ({qpcrExamsList.length})
+                <span>🔬</span>
+                <span>Exámenes qPCR</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                  activeTab === 'qpcr'
+                    ? 'bg-[#6F2BCC]/15 text-[#6F2BCC] dark:bg-[#01FADA]/25 dark:text-[#01FADA]'
+                    : 'bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                }`}>
+                  {qpcrExamsList.length}
+                </span>
               </button>
 
               <button
                 onClick={() => setActiveTab('clinicas')}
-                className={`py-3.5 px-4 border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`py-3 px-3.5 border-b-2 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === 'clinicas'
                     ? 'border-[#6F2BCC] text-[#6F2BCC] dark:text-[#01FADA] dark:border-[#01FADA] bg-white dark:bg-[#1b143c] font-extrabold'
                     : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-800/50'
                 }`}
               >
-                <span>🧪</span> Pruebas Clínicas ({clinicalExamsList.length})
+                <span>🧪</span>
+                <span>Pruebas Clínicas</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                  activeTab === 'clinicas'
+                    ? 'bg-[#6F2BCC]/15 text-[#6F2BCC] dark:bg-[#01FADA]/25 dark:text-[#01FADA]'
+                    : 'bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                }`}>
+                  {clinicalExamsList.length}
+                </span>
               </button>
 
               <button
                 onClick={() => setActiveTab('documentos')}
-                className={`py-3.5 px-4 border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`py-3 px-3.5 border-b-2 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === 'documentos'
                     ? 'border-[#6F2BCC] text-[#6F2BCC] dark:text-[#01FADA] dark:border-[#01FADA] bg-white dark:bg-[#1b143c] font-extrabold'
                     : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-800/50'
                 }`}
               >
-                <span>📁</span> Exámenes e Historia ({clinicalDocs.length})
+                <span>📁</span>
+                <span>Exámenes e Historia</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                  activeTab === 'documentos'
+                    ? 'bg-[#6F2BCC]/15 text-[#6F2BCC] dark:bg-[#01FADA]/25 dark:text-[#01FADA]'
+                    : 'bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                }`}>
+                  {clinicalDocs.length}
+                </span>
               </button>
 
               <button
                 onClick={() => setActiveTab('general')}
-                className={`py-3.5 px-4 border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`py-3 px-3.5 border-b-2 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === 'general'
                     ? 'border-[#6F2BCC] text-[#6F2BCC] dark:text-[#01FADA] dark:border-[#01FADA] bg-white dark:bg-[#1b143c] font-extrabold'
                     : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-800/50'
                 }`}
               >
-                <span>📋</span> Datos Generales & Tutor
+                <span>📋</span>
+                <span>Datos Generales & Tutor</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('auditoria')}
-                className={`py-3.5 px-4 border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`py-3 px-3.5 border-b-2 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === 'auditoria'
                     ? 'border-[#6F2BCC] text-[#6F2BCC] dark:text-[#01FADA] dark:border-[#01FADA] bg-white dark:bg-[#1b143c] font-extrabold'
                     : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-800/50'
                 }`}
               >
-                <span>📜</span> Historial de Cambios ({patient.auditHistory?.length || 1})
+                <span>📜</span>
+                <span>Historial de Cambios</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                  activeTab === 'auditoria'
+                    ? 'bg-[#6F2BCC]/15 text-[#6F2BCC] dark:bg-[#01FADA]/25 dark:text-[#01FADA]'
+                    : 'bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                }`}>
+                  {patient.auditHistory?.length || 1}
+                </span>
               </button>
             </div>
 
@@ -634,17 +676,116 @@ export default function PatientFichaModal({
                     </div>
                   </div>
 
-                  {/* Evolución de Peso y Signos Vitales */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200/80">
+                  {/* Signos Vitales de Último Control (Destacado Clínico Amplio) */}
+                  <div className="bg-slate-50 dark:bg-[#1b143c] rounded-2xl p-5 border border-slate-200/80 dark:border-[#2b2052] shadow-2xs">
+                    <div className="flex items-center justify-between mb-3.5">
+                      <div className="flex items-center gap-2">
+                        <span className="p-1.5 rounded-lg bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 text-sm">💓</span>
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">
+                            Signos Vitales de Último Control
+                          </h4>
+                          <span className="text-[11px] text-slate-400 dark:text-slate-400 font-medium">
+                            Constantes fisiológicas evaluadas en consulta
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                        ● Registro Activo
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+                      {/* Frec. Cardíaca */}
+                      <div className="bg-white dark:bg-[#140f2d] p-3.5 sm:p-4 rounded-xl border border-slate-200 dark:border-[#2b2052] shadow-2xs flex flex-col justify-between hover:border-purple-300 transition-all">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">Frec. Cardíaca</span>
+                          <span className="text-rose-500 text-xs">🫀</span>
+                        </div>
+                        <div className="my-1">
+                          <span className="text-xl font-black text-slate-900 dark:text-white block">
+                            {patient.healthMetrics?.vitalSigns?.heartRate || '130 bpm'}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-medium">Normal: 70 - 160 bpm</span>
+                      </div>
+
+                      {/* Temperatura */}
+                      <div className="bg-white dark:bg-[#140f2d] p-3.5 sm:p-4 rounded-xl border border-slate-200 dark:border-[#2b2052] shadow-2xs flex flex-col justify-between hover:border-purple-300 transition-all">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">Temperatura</span>
+                          <span className="text-amber-500 text-xs">🌡️</span>
+                        </div>
+                        <div className="my-1">
+                          <span className="text-xl font-black text-slate-900 dark:text-white block">
+                            {patient.healthMetrics?.vitalSigns?.temperature || '38.5 °C'}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-medium">Normal: 38.0 - 39.2 °C</span>
+                      </div>
+
+                      {/* Frec. Respiratoria */}
+                      <div className="bg-white dark:bg-[#140f2d] p-3.5 sm:p-4 rounded-xl border border-slate-200 dark:border-[#2b2052] shadow-2xs flex flex-col justify-between hover:border-purple-300 transition-all">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">Frec. Respiratoria</span>
+                          <span className="text-sky-500 text-xs">🫁</span>
+                        </div>
+                        <div className="my-1">
+                          <span className="text-xl font-black text-slate-900 dark:text-white block">
+                            {patient.healthMetrics?.vitalSigns?.respiratoryRate || '22 rpm'}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-medium">Normal: 18 - 34 rpm</span>
+                      </div>
+
+                      {/* Mucosas */}
+                      <div className="bg-white dark:bg-[#140f2d] p-3.5 sm:p-4 rounded-xl border border-slate-200 dark:border-[#2b2052] shadow-2xs flex flex-col justify-between hover:border-purple-300 transition-all">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">Color Mucosas</span>
+                          <span className="text-pink-500 text-xs">👄</span>
+                        </div>
+                        <div className="my-1">
+                          <span className="text-base font-extrabold text-slate-900 dark:text-white block leading-snug">
+                            {patient.healthMetrics?.vitalSigns?.mucosa || 'Rosadas'}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Estado Óptimo</span>
+                      </div>
+
+                      {/* TLLC */}
+                      <div className="bg-white dark:bg-[#140f2d] p-3.5 sm:p-4 rounded-xl border border-slate-200 dark:border-[#2b2052] shadow-2xs flex flex-col justify-between hover:border-purple-300 transition-all col-span-2 sm:col-span-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">TLLC (Llenado)</span>
+                          <span className="text-indigo-500 text-xs">⏱️</span>
+                        </div>
+                        <div className="my-1">
+                          <span className="text-base font-black text-slate-900 dark:text-white block">
+                            {patient.healthMetrics?.vitalSigns?.capillaryRefillTime
+                              ? (patient.healthMetrics.vitalSigns.capillaryRefillTime.includes('seg')
+                                  ? patient.healthMetrics.vitalSigns.capillaryRefillTime
+                                  : patient.healthMetrics.vitalSigns.capillaryRefillTime.includes('min')
+                                  ? patient.healthMetrics.vitalSigns.capillaryRefillTime.replace('min', 'seg')
+                                  : `${patient.healthMetrics.vitalSigns.capillaryRefillTime} seg`)
+                              : '< 2 seg'}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-medium">Normal: 1 - 2 seg</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Fila secundaria: Historial Evolutivo de Peso y Cuadro Hemático / Profilaxis */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    {/* Historial Evolutivo de Peso */}
+                    <div className="bg-slate-50 dark:bg-[#1b143c] rounded-2xl p-5 border border-slate-200/80 dark:border-[#2b2052]">
                       <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                        <h4 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
                           <span>📈</span> Historial Evolutivo de Peso
                         </h4>
                         {onNavigateToTemporalEvolution && (
                           <button
                             onClick={() => onNavigateToTemporalEvolution(patient)}
-                            className="text-[11px] font-bold text-[#6F2BCC] hover:underline cursor-pointer flex items-center gap-1"
+                            className="text-[11px] font-bold text-[#6F2BCC] dark:text-[#01FADA] hover:underline cursor-pointer flex items-center gap-1"
                           >
                             <span>Ver Curva Temporal</span> →
                           </button>
@@ -652,104 +793,101 @@ export default function PatientFichaModal({
                       </div>
                       <div className="space-y-2.5">
                         {patient.healthMetrics?.weightHistory?.map((w, idx) => (
-                          <div key={idx} className="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-slate-200">
-                            <span className="text-slate-500 font-medium">{w.date}</span>
-                            <span className="font-extrabold text-slate-900">{w.weight}</span>
+                          <div key={idx} className="flex items-center justify-between text-xs bg-white dark:bg-[#140f2d] p-2.5 rounded-xl border border-slate-200 dark:border-[#2b2052]">
+                            <span className="text-slate-500 dark:text-slate-400 font-medium">{w.date}</span>
+                            <span className="font-extrabold text-slate-900 dark:text-white">{w.weight}</span>
                           </div>
                         )) || (
-                          <div className="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-slate-200">
-                            <span className="text-slate-500">{patient.lastVisit}</span>
-                            <span className="font-extrabold text-slate-900">{patient.weight}</span>
+                          <div className="flex items-center justify-between text-xs bg-white dark:bg-[#140f2d] p-2.5 rounded-xl border border-slate-200 dark:border-[#2b2052]">
+                            <span className="text-slate-500 dark:text-slate-400">{patient.lastVisit}</span>
+                            <span className="font-extrabold text-slate-900 dark:text-white">{patient.weight}</span>
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200/80">
-                      <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                        <span>💓</span> Signos Vitales de Último Control
-                      </h4>
-                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs">
-                        <div className="bg-white p-2.5 rounded-xl border border-slate-200">
-                          <span className="text-slate-400 block text-[10px] font-semibold">Frec. Cardíaca</span>
-                          <span className="font-extrabold text-slate-800">{patient.healthMetrics?.vitalSigns?.heartRate || '130 bpm'}</span>
+                    {/* Cuadro Hemático Registrado si existe, o Estado Preventivo */}
+                    {patient.cuadroHematico && (patient.cuadroHematico.hasCuadroHematico || patient.cuadroHematico.fileName || patient.cuadroHematico.hematocrito) ? (
+                      <div className="p-5 bg-purple-50/50 dark:bg-purple-950/20 rounded-2xl border border-purple-200/80 dark:border-purple-800/40 space-y-2.5 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-bold text-[#2B017C] dark:text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
+                              <span>🩸</span> Cuadro Hemático / Hemograma
+                            </span>
+                            {patient.cuadroHematico.fileName && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                ✓ {patient.cuadroHematico.fileName}
+                              </span>
+                            )}
+                          </div>
+                          {(patient.cuadroHematico.hematocrito || patient.cuadroHematico.leucocitos || patient.cuadroHematico.plaquetas) && (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                              {patient.cuadroHematico.hematocrito && (
+                                <div className="bg-white dark:bg-[#140f2d] p-2 rounded-xl border border-purple-100 dark:border-purple-900/40">
+                                  <span className="text-slate-400 text-[10px] block font-semibold">Hematocrito</span>
+                                  <span className="font-bold text-slate-800 dark:text-white">{patient.cuadroHematico.hematocrito}%</span>
+                                </div>
+                              )}
+                              {patient.cuadroHematico.hemoglobina && (
+                                <div className="bg-white dark:bg-[#140f2d] p-2 rounded-xl border border-purple-100 dark:border-purple-900/40">
+                                  <span className="text-slate-400 text-[10px] block font-semibold">Hemoglobina</span>
+                                  <span className="font-bold text-slate-800 dark:text-white">{patient.cuadroHematico.hemoglobina} g/dL</span>
+                                </div>
+                              )}
+                              {patient.cuadroHematico.leucocitos && (
+                                <div className="bg-white dark:bg-[#140f2d] p-2 rounded-xl border border-purple-100 dark:border-purple-900/40">
+                                  <span className="text-slate-400 text-[10px] block font-semibold">Leucocitos</span>
+                                  <span className="font-bold text-slate-800 dark:text-white">{patient.cuadroHematico.leucocitos} /µL</span>
+                                </div>
+                              )}
+                              {patient.cuadroHematico.plaquetas && (
+                                <div className="bg-white dark:bg-[#140f2d] p-2 rounded-xl border border-purple-100 dark:border-purple-900/40">
+                                  <span className="text-slate-400 text-[10px] block font-semibold">Plaquetas</span>
+                                  <span className="font-bold text-slate-800 dark:text-white">{patient.cuadroHematico.plaquetas} /µL</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-slate-200">
-                          <span className="text-slate-400 block text-[10px] font-semibold">Temperatura</span>
-                          <span className="font-extrabold text-slate-800">{patient.healthMetrics?.vitalSigns?.temperature || '38.5 °C'}</span>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-slate-200">
-                          <span className="text-slate-400 block text-[10px] font-semibold">Frec. Respiratoria</span>
-                          <span className="font-extrabold text-slate-800">{patient.healthMetrics?.vitalSigns?.respiratoryRate || '22 rpm'}</span>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-slate-200">
-                          <span className="text-slate-400 block text-[10px] font-semibold">Mucosas</span>
-                          <span className="font-extrabold text-slate-800">{patient.healthMetrics?.vitalSigns?.mucosa || 'Rosadas'}</span>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-slate-200 col-span-2 sm:col-span-1">
-                          <span className="text-slate-400 block text-[10px] font-semibold">TLLC (Llenado Capilar)</span>
-                          <span className="font-extrabold text-slate-800">
-                            {patient.healthMetrics?.vitalSigns?.capillaryRefillTime
-                              ? (patient.healthMetrics.vitalSigns.capillaryRefillTime.includes('seg')
-                                  ? patient.healthMetrics.vitalSigns.capillaryRefillTime
-                                  : patient.healthMetrics.vitalSigns.capillaryRefillTime.includes('min')
-                                  ? patient.healthMetrics.vitalSigns.capillaryRefillTime.replace('min', 'seg')
-                                  : `${patient.healthMetrics.vitalSigns.capillaryRefillTime} seg`)
-                              : 'Normal (< 2 seg)'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Cuadro Hemático Registrado si existe */}
-                  {patient.cuadroHematico && (patient.cuadroHematico.hasCuadroHematico || patient.cuadroHematico.fileName || patient.cuadroHematico.hematocrito) && (
-                    <div className="p-4 bg-purple-50/50 rounded-2xl border border-purple-200/80 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#2B017C] uppercase tracking-wider flex items-center gap-1.5">
-                          <span>🩸</span> Cuadro Hemático / Hemograma
-                        </span>
-                        {patient.cuadroHematico.fileName && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            ✓ {patient.cuadroHematico.fileName}
-                          </span>
+                        {patient.cuadroHematico.observaciones && (
+                          <p className="text-[11px] text-slate-600 dark:text-slate-300 italic bg-white dark:bg-[#140f2d] p-2 rounded-xl border border-purple-100 dark:border-purple-900/40">
+                            * {patient.cuadroHematico.observaciones}
+                          </p>
                         )}
                       </div>
-                      {(patient.cuadroHematico.hematocrito || patient.cuadroHematico.leucocitos || patient.cuadroHematico.plaquetas) && (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                          {patient.cuadroHematico.hematocrito && (
-                            <div className="bg-white p-2 rounded-xl border border-purple-100">
-                              <span className="text-slate-400 text-[10px] block font-semibold">Hematocrito</span>
-                              <span className="font-bold text-slate-800">{patient.cuadroHematico.hematocrito}%</span>
+                    ) : (
+                      <div className="bg-slate-50 dark:bg-[#1b143c] rounded-2xl p-5 border border-slate-200/80 dark:border-[#2b2052] flex flex-col justify-between">
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <span>🛡️</span> Estado Preventivo & Profilaxis
+                          </h4>
+                          <div className="grid grid-cols-2 gap-3 text-xs mt-3">
+                            <div className="bg-white dark:bg-[#140f2d] p-3 rounded-xl border border-slate-200 dark:border-[#2b2052]">
+                              <span className="text-slate-400 block text-[10px] font-bold uppercase">Vacunación</span>
+                              <span className="font-extrabold text-slate-800 dark:text-white block mt-0.5">
+                                {patient.medicalAdmission?.vaccinationStatus || 'Al día'}
+                              </span>
+                              <span className="text-[10px] text-slate-500 block mt-1">
+                                {patient.medicalAdmission?.lastVaccinationDate ? `Última: ${patient.medicalAdmission.lastVaccinationDate}` : 'Registro base'}
+                              </span>
                             </div>
-                          )}
-                          {patient.cuadroHematico.hemoglobina && (
-                            <div className="bg-white p-2 rounded-xl border border-purple-100">
-                              <span className="text-slate-400 text-[10px] block font-semibold">Hemoglobina</span>
-                              <span className="font-bold text-slate-800">{patient.cuadroHematico.hemoglobina} g/dL</span>
+                            <div className="bg-white dark:bg-[#140f2d] p-3 rounded-xl border border-slate-200 dark:border-[#2b2052]">
+                              <span className="text-slate-400 block text-[10px] font-bold uppercase">Desparasitación</span>
+                              <span className="font-extrabold text-slate-800 dark:text-white block mt-0.5">
+                                {patient.medicalAdmission?.dewormingStatus || 'Al día'}
+                              </span>
+                              <span className="text-[10px] text-slate-500 block mt-1">
+                                {patient.medicalAdmission?.lastDewormingDate ? `Última: ${patient.medicalAdmission.lastDewormingDate}` : 'Registro base'}
+                              </span>
                             </div>
-                          )}
-                          {patient.cuadroHematico.leucocitos && (
-                            <div className="bg-white p-2 rounded-xl border border-purple-100">
-                              <span className="text-slate-400 text-[10px] block font-semibold">Leucocitos</span>
-                              <span className="font-bold text-slate-800">{patient.cuadroHematico.leucocitos} /µL</span>
-                            </div>
-                          )}
-                          {patient.cuadroHematico.plaquetas && (
-                            <div className="bg-white p-2 rounded-xl border border-purple-100">
-                              <span className="text-slate-400 text-[10px] block font-semibold">Plaquetas</span>
-                              <span className="font-bold text-slate-800">{patient.cuadroHematico.plaquetas} /µL</span>
-                            </div>
-                          )}
+                          </div>
                         </div>
-                      )}
-                      {patient.cuadroHematico.observaciones && (
-                        <p className="text-[11px] text-slate-600 italic bg-white p-2 rounded-xl border border-purple-100">
-                          * {patient.cuadroHematico.observaciones}
+                        <p className="text-[11px] text-slate-400 mt-3 italic">
+                          Planes preventivos actualizados en la última ficha médica.
                         </p>
-                      )}
-                    </div>
-                  )}
+                      </div>
+                    )}
+                  </div>
 
                   {qpcrExamsList && qpcrExamsList.length > 0 && (() => {
                     const latestExam = qpcrExamsList[0];
