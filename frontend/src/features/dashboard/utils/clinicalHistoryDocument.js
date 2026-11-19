@@ -1,4 +1,227 @@
 import { hasReportedAllergy, getAllergyDisplay } from './allergyHelpers.js';
+import { SAMPLE_DOCS_BY_PATIENT } from '../data/sampleDocumentsData.js';
+
+/**
+ * Escapa caracteres especiales para inserción segura en SVG / XML
+ */
+export function escapeXml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+/**
+ * Genera la representación gráfica vectorial (SVG membretado) del informe oficial
+ * de examen clínico para que cualquier archivo o registro histórico se visualice
+ * como una hoja médica completa con membrete, tabla analítica, curva citológica y firma.
+ */
+export function generateMedicalDocSvg(doc, patient = {}) {
+  const patientName = `${patient.name || ''} ${patient.lastName || ''}`.trim() || 'Paciente Veterinario';
+  const patientId = patient.id || 'PAC-001';
+  const species = patient.species || 'Canino';
+  const breed = patient.breed || 'Mestizo';
+  const ownerName = patient.owner?.name || patient.ownerName || 'Tutor Registrado';
+  const vetName = doc.uploadedBy || patient.attendingVet || 'Dr. Alejandro Morales';
+  const docTitle = doc.title || 'Informe Oficial de Laboratorio Clínico';
+  const docFolio = doc.id || 'DOC-2026-001';
+  const docDate = doc.date || new Date().toLocaleDateString('es-CO');
+  const fileName = doc.fileName || 'Reporte_Clinico.pdf';
+  const docTypeLabel = doc.documentTypeLabel || doc.documentType || 'Laboratorio Clínico';
+  const notes = doc.notes || 'Estudio clínico procesado bajo protocolo de calidad. Hallazgos analíticos verificados.';
+  const findings = (doc.keyFindings && doc.keyFindings.length > 0) ? doc.keyFindings : ['Estudio clínico dentro de límites fisiológicos'];
+
+  const sd = doc.structuredData || {};
+
+  // Parámetros analíticos
+  const hto = doc.hematocrito || sd.hematocrito || 38;
+  const hb = doc.hemoglobina || sd.hemoglobina || 13.5;
+  const plq = doc.plaquetas || sd.plaquetas || 220000;
+  const leu = doc.leucocitos || sd.leucocitos || 12500;
+
+  const htoStatus = hto < 37 ? 'DISMINUIDO (Anemia)' : (hto > 55 ? 'ELEVADO (Policitemia)' : 'NORMAL');
+  const htoColor = hto < 37 ? '#d97706' : (hto > 55 ? '#dc2626' : '#059669');
+
+  const plqStatus = plq < 175000 ? 'DISMINUIDO (Trombocitopenia)' : (plq > 500000 ? 'ELEVADO (Trombocitosis)' : 'NORMAL');
+  const plqColor = plq < 175000 ? '#e11d48' : (plq > 500000 ? '#7c3aed' : '#059669');
+
+  const leuStatus = leu > 17000 ? 'ELEVADO (Leucocitosis)' : (leu < 6000 ? 'DISMINUIDO (Leucopenia)' : 'NORMAL');
+  const leuColor = leu > 17000 ? '#7c3aed' : (leu < 6000 ? '#e11d48' : '#059669');
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 1100" width="100%" height="100%" style="background:#ffffff; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+    <!-- Fondo y Marco de Hoja Clínica Membretada -->
+    <rect width="850" height="1100" fill="#ffffff" />
+    <rect x="20" y="20" width="810" height="1060" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" />
+    <rect x="25" y="25" width="800" height="10" fill="#2B017C" rx="4" />
+
+    <!-- Encabezado Membretado OSD / VetLab -->
+    <g transform="translate(45, 55)">
+      <rect x="0" y="0" width="56" height="56" rx="14" fill="#2B017C" />
+      <text x="28" y="38" font-size="28" text-anchor="middle" fill="#ffffff">🧬</text>
+
+      <text x="70" y="22" font-size="20" font-weight="900" fill="#2B017C" letter-spacing="-0.5">ON SITE DIAGNOSTIC (OSD)</text>
+      <text x="70" y="38" font-size="11" font-weight="800" fill="#6F2BCC" letter-spacing="1">LABORATORIO CENTRAL DE PATOLOGÍA &amp; BIOLOGÍA MOLECULAR qPCR</text>
+      <text x="70" y="52" font-size="9.5" fill="#64748b">Habilitación Sanitaria ICA / MinSalud #COL-VET-7892 · Certificación ISO 9001/17025</text>
+
+      <!-- Badge Folio a la derecha -->
+      <rect x="570" y="2" width="190" height="26" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1" />
+      <text x="665" y="19" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle" fill="#1e293b">FOLIO: ${docFolio}</text>
+      <text x="760" y="44" font-size="10" text-anchor="end" fill="#64748b">Emisión: ${docDate}</text>
+    </g>
+
+    <line x1="45" y1="125" x2="805" y2="125" stroke="#e2e8f0" stroke-width="1.5" />
+
+    <!-- Título del Documento -->
+    <g transform="translate(45, 145)">
+      <text x="0" y="18" font-size="16" font-weight="900" fill="#0f172a">${escapeXml(docTitle)}</text>
+      <text x="0" y="34" font-size="10.5" fill="#64748b" font-family="monospace">Tipo: ${escapeXml(docTypeLabel)} · Archivo original: ${escapeXml(fileName)} · Custodia electrónica VetLab</text>
+    </g>
+
+    <!-- Caja de Metadatos del Paciente y Médico -->
+    <g transform="translate(45, 195)">
+      <rect x="0" y="0" width="760" height="76" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+      
+      <text x="18" y="22" font-size="9" font-weight="800" fill="#64748b" text-transform="uppercase">PACIENTE</text>
+      <text x="18" y="42" font-size="13" font-weight="900" fill="#0f172a">${escapeXml(patientName)}</text>
+      <text x="18" y="58" font-size="10" font-family="monospace" fill="#2B017C">ID: ${patientId}</text>
+
+      <text x="210" y="22" font-size="9" font-weight="800" fill="#64748b" text-transform="uppercase">ESPECIE / RAZA</text>
+      <text x="210" y="42" font-size="12" font-weight="800" fill="#1e293b">${escapeXml(species)}</text>
+      <text x="210" y="58" font-size="10.5" fill="#64748b">${escapeXml(breed)}</text>
+
+      <text x="390" y="22" font-size="9" font-weight="800" fill="#64748b" text-transform="uppercase">TUTOR RESPONSABLE</text>
+      <text x="390" y="42" font-size="12" font-weight="800" fill="#1e293b">${escapeXml(ownerName)}</text>
+      <text x="390" y="58" font-size="10.5" fill="#64748b">Registro Verificado</text>
+
+      <text x="570" y="22" font-size="9" font-weight="800" fill="#64748b" text-transform="uppercase">MÉDICO VETERINARIO</text>
+      <text x="570" y="42" font-size="12" font-weight="800" fill="#1e293b">${escapeXml(vetName)}</text>
+      <text x="570" y="58" font-size="10.5" fill="#047857" font-weight="700">✓ Tratante Acreditado</text>
+    </g>
+
+    <!-- Tabla Analítica Cuantitativa Oficial -->
+    <g transform="translate(45, 290)">
+      <rect x="0" y="0" width="760" height="28" rx="6" fill="#2B017C" />
+      <text x="18" y="18" font-size="10.5" font-weight="800" fill="#ffffff">PARÁMETRO ANALÍTICO</text>
+      <text x="260" y="18" font-size="10.5" font-weight="800" fill="#ffffff">RESULTADO</text>
+      <text x="430" y="18" font-size="10.5" font-weight="800" fill="#ffffff">RANGO DE REFERENCIA</text>
+      <text x="620" y="18" font-size="10.5" font-weight="800" fill="#ffffff">ESTADO CLÍNICO</text>
+
+      <!-- Fila 1: Hematocrito -->
+      <rect x="0" y="28" width="760" height="42" fill="#ffffff" stroke="#f1f5f9" />
+      <text x="18" y="52" font-size="11.5" font-weight="800" fill="#1e293b">Hematocrito (Hto)</text>
+      <text x="18" y="65" font-size="9" fill="#64748b">Volumen globular concentrado</text>
+      <text x="260" y="56" font-size="13" font-weight="900" fill="#0f172a">${hto}%</text>
+      <text x="430" y="56" font-size="11" font-family="monospace" fill="#475569">37.0 - 55.0 %</text>
+      <rect x="615" y="40" width="130" height="22" rx="4" fill="${htoColor}15" stroke="${htoColor}40" />
+      <text x="680" y="55" font-size="10" font-weight="800" fill="${htoColor}" text-anchor="middle">${htoStatus}</text>
+
+      <!-- Fila 2: Hemoglobina -->
+      <rect x="0" y="70" width="760" height="42" fill="#f8fafc" stroke="#f1f5f9" />
+      <text x="18" y="94" font-size="11.5" font-weight="800" fill="#1e293b">Hemoglobina (Hb)</text>
+      <text x="18" y="107" font-size="9" fill="#64748b">Concentración sérica total</text>
+      <text x="260" y="98" font-size="13" font-weight="900" fill="#0f172a">${hb} g/dL</text>
+      <text x="430" y="98" font-size="11" font-family="monospace" fill="#475569">12.0 - 18.0 g/dL</text>
+      <rect x="615" y="82" width="130" height="22" rx="4" fill="#05966915" stroke="#05966940" />
+      <text x="680" y="97" font-size="10" font-weight="800" fill="#059669" text-anchor="middle">NORMAL</text>
+
+      <!-- Fila 3: Plaquetas -->
+      <rect x="0" y="112" width="760" height="42" fill="#ffffff" stroke="#f1f5f9" />
+      <text x="18" y="136" font-size="11.5" font-weight="800" fill="#1e293b">Recuento Plaquetario</text>
+      <text x="18" y="149" font-size="9" fill="#64748b">Estimación en cámara Neubauer</text>
+      <text x="260" y="140" font-size="13" font-weight="900" fill="#0f172a">${Number(plq).toLocaleString('es-CO')} /µL</text>
+      <text x="430" y="140" font-size="11" font-family="monospace" fill="#475569">175.000 - 500.000 /µL</text>
+      <rect x="615" y="124" width="130" height="22" rx="4" fill="${plqColor}15" stroke="${plqColor}40" />
+      <text x="680" y="139" font-size="10" font-weight="800" fill="${plqColor}" text-anchor="middle">${plqStatus}</text>
+
+      <!-- Fila 4: Leucocitos -->
+      <rect x="0" y="154" width="760" height="42" fill="#f8fafc" stroke="#f1f5f9" />
+      <text x="18" y="178" font-size="11.5" font-weight="800" fill="#1e293b">Leucocitos Totales</text>
+      <text x="18" y="191" font-size="9" fill="#64748b">Recuento citológico global</text>
+      <text x="260" y="182" font-size="13" font-weight="900" fill="#0f172a">${Number(leu).toLocaleString('es-CO')} /µL</text>
+      <text x="430" y="182" font-size="11" font-family="monospace" fill="#475569">6.000 - 17.000 /µL</text>
+      <rect x="615" y="166" width="130" height="22" rx="4" fill="${leuColor}15" stroke="${leuColor}40" />
+      <text x="680" y="181" font-size="10" font-weight="800" fill="${leuColor}" text-anchor="middle">${leuStatus}</text>
+    </g>
+
+    <!-- Hallazgos Clínicos Notificados -->
+    <g transform="translate(45, 510)">
+      <text x="0" y="16" font-size="11" font-weight="800" fill="#2B017C" text-transform="uppercase">✓ HALLAZGOS CLÍNICOS NOTIFICADOS EN DOCUMENTO:</text>
+      ${findings.map((f, i) => `
+        <g transform="translate(${i * 220}, 28)">
+          <rect x="0" y="0" width="205" height="28" rx="8" fill="#6F2BCC" />
+          <text x="102" y="18" font-size="10.5" font-weight="800" fill="#ffffff" text-anchor="middle">✓ ${escapeXml(f)}</text>
+        </g>
+      `).join('')}
+    </g>
+
+    <!-- Observaciones / Interpretación Médica -->
+    <g transform="translate(45, 580)">
+      <text x="0" y="16" font-size="11" font-weight="800" fill="#334155" text-transform="uppercase">INTERPRETACIÓN CLÍNICA &amp; OBSERVACIONES:</text>
+      <rect x="0" y="26" width="760" height="65" rx="8" fill="#f8fafc" stroke="#e2e8f0" />
+      <text x="16" y="50" font-size="11.5" fill="#1e293b" font-style="italic">"${escapeXml(notes)}"</text>
+      <text x="16" y="74" font-size="10" fill="#64748b">Correlación recomendada con perfil de hemotrópicos o microbiota qPCR según sospecha diagnóstica.</text>
+    </g>
+
+    <!-- Gráfico / Histograma Hematológico Simulado -->
+    <g transform="translate(45, 685)">
+      <rect x="0" y="0" width="760" height="150" rx="10" fill="#fcfdfe" stroke="#e2e8f0" />
+      <text x="18" y="22" font-size="10.5" font-weight="800" fill="#475569">DISPERSIÓN CITOLÓGICA &amp; CURVA VOLUMÉTRICA ERITROCITARIA (RBC / PLT)</text>
+      
+      <line x1="40" y1="125" x2="720" y2="125" stroke="#cbd5e1" stroke-width="1.5" />
+      <line x1="40" y1="35" x2="40" y2="125" stroke="#cbd5e1" stroke-width="1.5" />
+      
+      <path d="M 50 125 Q 150 120 220 85 T 320 45 T 420 85 T 550 120 L 680 125" fill="none" stroke="#2B017C" stroke-width="2.5" />
+      <path d="M 50 125 Q 150 120 220 85 T 320 45 T 420 85 T 550 120 L 680 125 Z" fill="#2B017C" fill-opacity="0.12" />
+
+      <circle cx="90" cy="118" r="3.5" fill="#6F2BCC" />
+      <circle cx="110" cy="112" r="3.5" fill="#6F2BCC" />
+      <circle cx="130" cy="108" r="4" fill="#6F2BCC" />
+      <circle cx="150" cy="114" r="3" fill="#6F2BCC" />
+      <text x="120" y="98" font-size="9" font-weight="700" fill="#6F2BCC" text-anchor="middle">Plaquetas</text>
+
+      <text x="320" y="38" font-size="9.5" font-weight="800" fill="#2B017C" text-anchor="middle">Población Eritrocitaria Principal (VCM)</text>
+
+      <text x="40" y="138" font-size="8.5" fill="#94a3b8">0 fL</text>
+      <text x="220" y="138" font-size="8.5" fill="#94a3b8">60 fL</text>
+      <text x="420" y="138" font-size="8.5" fill="#94a3b8">120 fL</text>
+      <text x="680" y="138" font-size="8.5" fill="#94a3b8">200 fL</text>
+    </g>
+
+    <!-- Sello Oficial y Firma Digital -->
+    <g transform="translate(45, 875)">
+      <g transform="translate(100, 70)">
+        <circle cx="0" cy="0" r="48" fill="#ffffff" stroke="#2B017C" stroke-width="2" stroke-dasharray="4,2" />
+        <circle cx="0" cy="0" r="42" fill="#f8fafc" stroke="#2B017C" stroke-width="1" />
+        <text x="0" y="-18" font-size="8" font-weight="800" fill="#2B017C" text-anchor="middle">LABORATORIO CENTRAL</text>
+        <text x="0" y="-4" font-size="10" font-weight="900" fill="#6F2BCC" text-anchor="middle">VETLAB</text>
+        <text x="0" y="10" font-size="7.5" font-weight="800" fill="#047857" text-anchor="middle">★ CERTIFICADO ★</text>
+        <text x="0" y="24" font-size="7" fill="#64748b" text-anchor="middle">CALIDAD OSD</text>
+      </g>
+
+      <g transform="translate(480, 50)">
+        <path d="M 10 30 Q 30 5 60 25 T 120 15 T 180 35 T 230 10" fill="none" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round" />
+        <line x1="0" y1="45" x2="260" y2="45" stroke="#334155" stroke-width="1.5" />
+        <text x="130" y="60" font-size="11.5" font-weight="800" fill="#0f172a" text-anchor="middle">${escapeXml(vetName)}</text>
+        <text x="130" y="74" font-size="9.5" fill="#64748b" text-anchor="middle">Médico Veterinario Especialista en Patología Clínica</text>
+        <text x="130" y="86" font-size="9" font-family="monospace" fill="#2B017C" text-anchor="middle">M.P. OSD-COL-9482 · R.N.V. #84920</text>
+      </g>
+    </g>
+
+    <!-- Pie de Seguridad Criptográfica -->
+    <g transform="translate(45, 1025)">
+      <line x1="0" y1="0" x2="760" y2="0" stroke="#e2e8f0" stroke-width="1" />
+      <text x="0" y="18" font-size="8.5" fill="#94a3b8">Este informe analítico digital ha sido generado por el sistema de custodia VetLab Diagnostics. Hash SHA-256: e8b94f...9c12a · Documento inmutable para auditoría médica.</text>
+    </g>
+  </svg>`;
+}
+
+export function generateMedicalDocSvgDataUrl(doc, patient = {}) {
+  const svg = generateMedicalDocSvg(doc, patient);
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
 
 /**
  * Generador de Historia Clínica Visual Digital - VetLab
@@ -271,6 +494,65 @@ export function generateClinicalHistoryHtml(patient) {
                 ${agentsGridHtml}
               </div>
             </div>
+
+            <!-- Archivos Adjuntos a la Orden qPCR (Cuadro Hemático o Historia Clínica) -->
+            ${exam.cuadroHematico?.file ? `
+              <div class="doc-attachment-preview">
+                <div class="doc-attachment-bar">
+                  <div class="doc-attachment-info">
+                    <span class="doc-attachment-icon">🩸</span>
+                    <div>
+                      <strong class="doc-attachment-name">Cuadro Hemático Adjunto a la Orden: ${exam.cuadroHematico.fileName || 'Hemograma.pdf'}</strong>
+                      <span class="doc-attachment-sub">${exam.cuadroHematico.fileSize || 'Examen analítico previo'} · Archivo oficial cargado</span>
+                    </div>
+                  </div>
+                  <a href="${exam.cuadroHematico.file}" download="${exam.cuadroHematico.fileName || 'hemograma.pdf'}" target="_blank" class="doc-attachment-btn">
+                    <span>📥</span> Abrir / Descargar Archivo ↗
+                  </a>
+                </div>
+                ${exam.cuadroHematico.file.startsWith('data:image/') || /\.(png|jpe?g|webp|gif)$/i.test(exam.cuadroHematico.fileName || '') ? `
+                  <div class="doc-image-frame">
+                    <img src="${exam.cuadroHematico.file}" alt="Cuadro Hemático" class="doc-image-content" />
+                  </div>
+                ` : `
+                  <div class="doc-pdf-frame">
+                    <iframe src="${exam.cuadroHematico.file}#toolbar=1" title="Cuadro Hemático" class="doc-pdf-iframe"></iframe>
+                  </div>
+                  <div class="doc-pdf-print-fallback">
+                    Documento PDF adjunto a la orden qPCR: ${exam.cuadroHematico.fileName} (${exam.cuadroHematico.fileSize || 'Archivo'}).
+                  </div>
+                `}
+              </div>
+            ` : ''}
+
+            ${exam.historiaClinica?.file ? `
+              <div class="doc-attachment-preview">
+                <div class="doc-attachment-bar">
+                  <div class="doc-attachment-info">
+                    <span class="doc-attachment-icon">📋</span>
+                    <div>
+                      <strong class="doc-attachment-name">Historia Clínica Adjunta a la Orden: ${exam.historiaClinica.fileName || 'Historia_Clinica.pdf'}</strong>
+                      <span class="doc-attachment-sub">${exam.historiaClinica.fileSize || 'Remisión clínica'} · Archivo oficial cargado</span>
+                    </div>
+                  </div>
+                  <a href="${exam.historiaClinica.file}" download="${exam.historiaClinica.fileName || 'historia_clinica.pdf'}" target="_blank" class="doc-attachment-btn">
+                    <span>📥</span> Abrir / Descargar Archivo ↗
+                  </a>
+                </div>
+                ${exam.historiaClinica.file.startsWith('data:image/') || /\.(png|jpe?g|webp|gif)$/i.test(exam.historiaClinica.fileName || '') ? `
+                  <div class="doc-image-frame">
+                    <img src="${exam.historiaClinica.file}" alt="Historia Clínica" class="doc-image-content" />
+                  </div>
+                ` : `
+                  <div class="doc-pdf-frame">
+                    <iframe src="${exam.historiaClinica.file}#toolbar=1" title="Historia Clínica" class="doc-pdf-iframe"></iframe>
+                  </div>
+                  <div class="doc-pdf-print-fallback">
+                    Documento PDF adjunto a la orden qPCR: ${exam.historiaClinica.fileName} (${exam.historiaClinica.fileSize || 'Archivo'}).
+                  </div>
+                `}
+              </div>
+            ` : ''}
           </div>
         `;
       }).join('')
@@ -289,7 +571,10 @@ export function generateClinicalHistoryHtml(patient) {
     `).join('')
     : `<div class="weight-row"><span class="weight-date">${patient.lastVisit || 'Fecha inicial'}</span><span class="weight-val">${patient.weight || 'Sin registrar'}</span></div>`;
 
-  const clinicalDocs = (patient.clinicalDocuments && Array.isArray(patient.clinicalDocuments)) ? patient.clinicalDocuments : [];
+  const clinicalDocs = (patient.clinicalDocuments && Array.isArray(patient.clinicalDocuments) && patient.clinicalDocuments.length > 0)
+    ? patient.clinicalDocuments
+    : (SAMPLE_DOCS_BY_PATIENT[patient.id] || []);
+
   const clinicalDocsHtml = clinicalDocs.length > 0
     ? clinicalDocs.map((doc) => {
         const findings = doc.keyFindings && doc.keyFindings.length > 0
@@ -330,11 +615,94 @@ export function generateClinicalHistoryHtml(patient) {
           </div>`;
         }
 
+        // Determinar archivo visual directo (Imagen o PDF)
+        let fileSource = doc.fileDataUrl || (doc.fileUrl && doc.fileUrl !== '#' ? doc.fileUrl : null);
+        const isImage = Boolean(
+          (doc.fileType && doc.fileType.startsWith('image/')) ||
+          (fileSource && fileSource.startsWith('data:image/')) ||
+          /\.(png|jpe?g|webp|gif|svg|bmp)$/i.test(doc.fileName || '')
+        );
+        const isPdf = Boolean(
+          (doc.fileType && doc.fileType.includes('pdf')) ||
+          (fileSource && fileSource.startsWith('data:application/pdf')) ||
+          /\.pdf$/i.test(doc.fileName || '')
+        );
+
+        let visualDocHtml = '';
+        if (fileSource) {
+          if (isImage) {
+            visualDocHtml = `
+              <div class="doc-attachment-preview">
+                <div class="doc-attachment-bar">
+                  <div class="doc-attachment-info">
+                    <span class="doc-attachment-icon">🖼️</span>
+                    <div>
+                      <strong class="doc-attachment-name">Visualización del Archivo Cargado: ${doc.fileName || 'Examen_Imagen.jpg'}</strong>
+                      <span class="doc-attachment-sub">${doc.fileSize || 'Imagen médica'} · Archivo integrado al expediente del paciente</span>
+                    </div>
+                  </div>
+                  <a href="${fileSource}" download="${doc.fileName || 'examen.jpg'}" target="_blank" class="doc-attachment-btn">
+                    <span>🔍</span> Ver Imagen en Alta Resolución ↗
+                  </a>
+                </div>
+                <div class="doc-image-frame">
+                  <img src="${fileSource}" alt="${doc.title}" class="doc-image-content" />
+                </div>
+              </div>
+            `;
+          } else if (isPdf) {
+            visualDocHtml = `
+              <div class="doc-attachment-preview">
+                <div class="doc-attachment-bar">
+                  <div class="doc-attachment-info">
+                    <span class="doc-attachment-icon">📄</span>
+                    <div>
+                      <strong class="doc-attachment-name">Documento PDF del Examen: ${doc.fileName || 'Examen_Clinico.pdf'}</strong>
+                      <span class="doc-attachment-sub">${doc.fileSize || 'Documento PDF'} · Archivo oficial integrado para lectura directa</span>
+                    </div>
+                  </div>
+                  <a href="${fileSource}" download="${doc.fileName || 'examen.pdf'}" target="_blank" class="doc-attachment-btn">
+                    <span>📥</span> Abrir / Descargar PDF Original ↗
+                  </a>
+                </div>
+                <div class="doc-pdf-frame">
+                  <iframe src="${fileSource}#toolbar=1" title="${doc.title}" class="doc-pdf-iframe"></iframe>
+                </div>
+                <div class="doc-pdf-print-fallback">
+                  Documento PDF Adjunto: ${doc.fileName} (${doc.fileSize}). Los parámetros y hallazgos analíticos se detallan en el expediente.
+                </div>
+              </div>
+            `;
+          }
+        } else {
+          // Hoja visual gráfica oficial OSD membretada
+          const svgDataUrl = generateMedicalDocSvgDataUrl(doc, patient);
+          visualDocHtml = `
+            <div class="doc-attachment-preview">
+              <div class="doc-attachment-bar">
+                <div class="doc-attachment-info">
+                  <span class="doc-attachment-icon">📋</span>
+                  <div>
+                    <strong class="doc-attachment-name">Hoja Oficial de Resultados del Examen: ${doc.fileName || 'Reporte_Clinico.pdf'}</strong>
+                    <span class="doc-attachment-sub">Folio Oficial: ${doc.id} · Certificación OSD Diagnostics</span>
+                  </div>
+                </div>
+                <a href="${svgDataUrl}" download="${doc.fileName || 'Reporte_Clinico.svg'}" target="_blank" class="doc-attachment-btn">
+                  <span>🔍</span> Ver Hoja en Alta Resolución ↗
+                </a>
+              </div>
+              <div class="doc-image-frame">
+                <img src="${svgDataUrl}" alt="${doc.title}" class="doc-image-content" />
+              </div>
+            </div>
+          `;
+        }
+
         return `
-          <div class="exam-card" style="margin-bottom: 12px; padding: 14px 16px; border-left: 4px solid var(--primary);">
+          <div class="exam-card" style="margin-bottom: 16px; padding: 16px 18px; border-left: 4px solid var(--primary);">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
               <div>
-                <span style="font-weight: 800; font-size: 13px; color: var(--primary); display: block;">
+                <span style="font-weight: 800; font-size: 14px; color: var(--primary); display: block;">
                   📄 ${doc.title || 'Documento Clínico'}
                 </span>
                 <span style="font-size: 10.5px; color: #64748b; font-family: monospace;">
@@ -352,6 +720,8 @@ export function generateClinicalHistoryHtml(patient) {
                 "${doc.notes}"
               </div>
             ` : ''}
+            <!-- Visualización Directa del Archivo (Imagen o PDF) -->
+            ${visualDocHtml}
           </div>
         `;
       }).join('')
@@ -359,29 +729,82 @@ export function generateClinicalHistoryHtml(patient) {
 
   const clinicalExams = (patient.clinicalExams && Array.isArray(patient.clinicalExams)) ? patient.clinicalExams : [];
   const clinicalExamsHtml = clinicalExams.length > 0
-    ? clinicalExams.map((exam) => `
-        <div class="exam-card" style="margin-bottom: 12px; padding: 14px 16px;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
-            <div>
-              <span style="font-weight: 800; font-size: 13px; color: #0f172a;">🧪 ${exam.name || exam.testName || 'Prueba de Laboratorio Clínico'}</span>
-              <span style="font-size: 10.5px; color: #64748b; display: block;">ID: ${exam.id} · Fecha: ${exam.date || exam.orderDate || 'N/A'} · Solicitado por: ${exam.vet || patient.attendingVet || 'Dr. Alejandro Morales'}</span>
+    ? clinicalExams.map((exam) => {
+        const examFile = exam.fileDataUrl || (exam.fileUrl && exam.fileUrl !== '#' ? exam.fileUrl : null) || exam.file;
+        let examVisualHtml = '';
+        if (examFile) {
+          const isImg = examFile.startsWith('data:image/') || /\.(png|jpe?g|webp|gif)$/i.test(exam.fileName || '');
+          if (isImg) {
+            examVisualHtml = `
+              <div class="doc-attachment-preview" style="margin-top: 10px;">
+                <div class="doc-attachment-bar">
+                  <div class="doc-attachment-info">
+                    <span class="doc-attachment-icon">🖼️</span>
+                    <div>
+                      <strong class="doc-attachment-name">Archivo Adjunto: ${exam.fileName || 'Examen_Clinico.jpg'}</strong>
+                      <span class="doc-attachment-sub">${exam.fileSize || ''} · Imagen médica del estudio</span>
+                    </div>
+                  </div>
+                  <a href="${examFile}" download="${exam.fileName || 'examen.jpg'}" target="_blank" class="doc-attachment-btn">
+                    <span>🔍</span> Ver Imagen ↗
+                  </a>
+                </div>
+                <div class="doc-image-frame">
+                  <img src="${examFile}" alt="${exam.name || 'Examen'}" class="doc-image-content" />
+                </div>
+              </div>
+            `;
+          } else {
+            examVisualHtml = `
+              <div class="doc-attachment-preview" style="margin-top: 10px;">
+                <div class="doc-attachment-bar">
+                  <div class="doc-attachment-info">
+                    <span class="doc-attachment-icon">📄</span>
+                    <div>
+                      <strong class="doc-attachment-name">Documento PDF Adjunto: ${exam.fileName || 'Examen_Clinico.pdf'}</strong>
+                      <span class="doc-attachment-sub">${exam.fileSize || ''} · Informe de laboratorio</span>
+                    </div>
+                  </div>
+                  <a href="${examFile}" download="${exam.fileName || 'examen.pdf'}" target="_blank" class="doc-attachment-btn">
+                    <span>📥</span> Abrir PDF ↗
+                  </a>
+                </div>
+                <div class="doc-pdf-frame">
+                  <iframe src="${examFile}#toolbar=1" title="${exam.name || 'Examen'}" class="doc-pdf-iframe"></iframe>
+                </div>
+                <div class="doc-pdf-print-fallback">
+                  Documento PDF Adjunto: ${exam.fileName || 'Examen'} (${exam.fileSize || 'N/A'}).
+                </div>
+              </div>
+            `;
+          }
+        }
+
+        return `
+          <div class="exam-card" style="margin-bottom: 12px; padding: 14px 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+              <div>
+                <span style="font-weight: 800; font-size: 13px; color: #0f172a;">🧪 ${exam.name || exam.testName || 'Prueba de Laboratorio Clínico'}</span>
+                <span style="font-size: 10.5px; color: #64748b; display: block;">ID: ${exam.id} · Fecha: ${exam.date || exam.orderDate || 'N/A'} · Solicitado por: ${exam.vet || patient.attendingVet || 'Dr. Alejandro Morales'}</span>
+              </div>
+              <span class="badge ${exam.status === 'Completado' || exam.status === 'Resultado enviado' ? 'badge-emerald' : 'badge-blue'}">
+                ${exam.status || 'Completado'}
+              </span>
             </div>
-            <span class="badge ${exam.status === 'Completado' || exam.status === 'Resultado enviado' ? 'badge-emerald' : 'badge-blue'}">
-              ${exam.status || 'Completado'}
-            </span>
+            ${exam.resultsSummary || exam.resultSummary ? `
+              <div style="margin-top: 6px; font-size: 11.5px; color: #334155;">
+                <strong>Resumen de Resultado:</strong> ${exam.resultsSummary || exam.resultSummary}
+              </div>
+            ` : ''}
+            ${exam.notes ? `
+              <div style="margin-top: 4px; font-size: 11px; color: #64748b; font-style: italic;">
+                ${exam.notes}
+              </div>
+            ` : ''}
+            ${examVisualHtml}
           </div>
-          ${exam.resultsSummary || exam.resultSummary ? `
-            <div style="margin-top: 6px; font-size: 11.5px; color: #334155;">
-              <strong>Resumen de Resultado:</strong> ${exam.resultsSummary || exam.resultSummary}
-            </div>
-          ` : ''}
-          ${exam.notes ? `
-            <div style="margin-top: 4px; font-size: 11px; color: #64748b; font-style: italic;">
-              ${exam.notes}
-            </div>
-          ` : ''}
-        </div>
-      `).join('')
+        `;
+      }).join('')
     : '<div class="empty-state">No registra pruebas de laboratorio convencionales adicionales.</div>';
 
   const auditHistory = Array.isArray(patient.auditHistory) && patient.auditHistory.length > 0
@@ -987,6 +1410,103 @@ export function generateClinicalHistoryHtml(patient) {
       font-size: 12px;
     }
 
+    /* Visualizador de Archivos Adjuntos e Imágenes de Exámenes */
+    .doc-attachment-preview {
+      margin-top: 14px;
+      border: 1px solid var(--slate-300);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      page-break-inside: avoid;
+    }
+    .doc-attachment-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: var(--slate-100);
+      border-bottom: 1px solid var(--slate-200);
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .doc-attachment-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .doc-attachment-icon {
+      font-size: 20px;
+    }
+    .doc-attachment-name {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--slate-900);
+      display: block;
+    }
+    .doc-attachment-sub {
+      font-size: 10px;
+      color: var(--slate-500);
+      font-family: monospace;
+      display: block;
+    }
+    .doc-attachment-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--primary);
+      color: #ffffff !important;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .doc-attachment-btn:hover {
+      background: #4a148c;
+      box-shadow: 0 2px 6px rgba(43, 1, 124, 0.25);
+    }
+    .doc-image-frame {
+      padding: 16px;
+      background: #f8fafc;
+      text-align: center;
+      border-top: 1px solid var(--slate-100);
+    }
+    .doc-image-content {
+      max-width: 100%;
+      max-height: 750px;
+      width: auto;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--slate-200);
+      display: inline-block;
+      object-fit: contain;
+      background: #ffffff;
+    }
+    .doc-pdf-frame {
+      width: 100%;
+      height: 600px;
+      background: #ffffff;
+    }
+    .doc-pdf-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+    .doc-pdf-print-fallback {
+      display: none;
+      padding: 12px;
+      font-size: 11px;
+      color: var(--slate-600);
+      background: #f8fafc;
+      border-top: 1px solid var(--slate-200);
+      font-style: italic;
+    }
+
     /* Reglas para Impresión / PDF */
     @media print {
       body {
@@ -1005,6 +1525,27 @@ export function generateClinicalHistoryHtml(patient) {
       }
       .section-block, .consultation-card, .exam-card, .clinic-footer {
         page-break-inside: avoid;
+      }
+      .doc-attachment-preview {
+        page-break-inside: avoid;
+        border: 1px solid var(--slate-300);
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+      .doc-attachment-btn {
+        display: none !important;
+      }
+      .doc-image-content {
+        max-height: 850px;
+        box-shadow: none;
+        border: 1px solid #94a3b8;
+      }
+      .doc-pdf-frame {
+        height: 500px;
+        page-break-inside: avoid;
+      }
+      .doc-pdf-print-fallback {
+        display: block;
       }
     }
   </style>

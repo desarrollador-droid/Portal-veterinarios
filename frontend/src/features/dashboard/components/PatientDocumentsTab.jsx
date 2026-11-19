@@ -124,6 +124,7 @@ export default function PatientDocumentsTab({
     fileSize: '1.2 MB',
     fileType: '',
     fileUrl: null,
+    fileDataUrl: null,
     keyFindings: [],
     // Laboratorio / Hemograma
     hematocrito: '',
@@ -245,14 +246,28 @@ export default function PatientDocumentsTab({
       const objectUrl = URL.createObjectURL(file);
       const isImg = file.type?.startsWith('image/') || /\.(png|jpe?g|webp|gif)$/i.test(file.name);
       const inferredType = isImg ? (file.type || 'image/jpeg') : (file.type || 'application/pdf');
+
       setFormData((prev) => ({
         ...prev,
         fileName: file.name,
         fileSize: `${sizeMB} MB`,
         fileType: inferredType,
         fileUrl: objectUrl,
+        fileDataUrl: null,
         title: prev.title || file.name.replace(/\.[^/.]+$/, ''),
       }));
+
+      // Convertir a Data URL (Base64) para exportes de historia clínica
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result;
+        setFormData((prev) => ({
+          ...prev,
+          fileDataUrl: dataUrl,
+          fileUrl: prev.fileUrl || dataUrl,
+        }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -276,7 +291,8 @@ export default function PatientDocumentsTab({
       fileName: formData.fileName || 'Documento_Clinico_Adjunto.pdf',
       fileSize: formData.fileSize || '1.0 MB',
       fileType: resolvedType,
-      fileUrl: formData.fileUrl || null,
+      fileUrl: formData.fileUrl || formData.fileDataUrl || null,
+      fileDataUrl: formData.fileDataUrl || formData.fileUrl || null,
       notes: formData.notes.trim(),
       keyFindings: formData.keyFindings,
       structuredData: {
@@ -318,6 +334,7 @@ export default function PatientDocumentsTab({
       fileSize: '1.2 MB',
       fileType: '',
       fileUrl: null,
+      fileDataUrl: null,
       keyFindings: [],
       hematocrito: '',
       plaquetas: '',
@@ -1130,12 +1147,12 @@ export default function PatientDocumentsTab({
               {docViewMode === 'viewer' ? (
                 /* VISTA PREVIA DEL DOCUMENTO COMPLETO (PDF / IMAGEN / HOJA CLÍNICA SIMULADA) */
                 <div className="h-full flex flex-col space-y-4">
-                  {selectedDoc.fileUrl && selectedDoc.fileUrl !== '#' ? (
-                    // Archivo real cargado por el usuario con Blob URL
+                  {(selectedDoc.fileDataUrl || (selectedDoc.fileUrl && selectedDoc.fileUrl !== '#')) ? (
+                    // Archivo real cargado por el usuario con Blob o Data URL
                     (selectedDoc.fileType?.startsWith('image/') || /\.(png|jpe?g|webp|gif)$/i.test(selectedDoc.fileName)) ? (
                       <div className="flex-1 flex flex-col items-center justify-center bg-white dark:bg-[#1a1338] border border-slate-200 dark:border-[#2e2358] rounded-2xl p-4 shadow-sm min-h-[480px]">
                         <img
-                          src={selectedDoc.fileUrl}
+                          src={selectedDoc.fileDataUrl || selectedDoc.fileUrl}
                           alt={selectedDoc.title}
                           className="max-h-[560px] w-auto max-w-full rounded-xl object-contain shadow-md"
                         />
@@ -1154,7 +1171,7 @@ export default function PatientDocumentsTab({
                           </span>
                         </div>
                         <iframe
-                          src={selectedDoc.fileUrl}
+                          src={selectedDoc.fileDataUrl || selectedDoc.fileUrl}
                           title={selectedDoc.title}
                           className="w-full flex-1 min-h-[500px] border-0 bg-white"
                         />
@@ -1583,9 +1600,9 @@ export default function PatientDocumentsTab({
                 {selectedDoc.fileName} ({selectedDoc.fileSize})
               </span>
               <div className="flex items-center gap-3">
-                {selectedDoc.fileUrl && selectedDoc.fileUrl !== '#' && (
+                {(selectedDoc.fileDataUrl || (selectedDoc.fileUrl && selectedDoc.fileUrl !== '#')) && (
                   <a
-                    href={selectedDoc.fileUrl}
+                    href={selectedDoc.fileDataUrl || selectedDoc.fileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
@@ -1596,9 +1613,10 @@ export default function PatientDocumentsTab({
                 <button
                   type="button"
                   onClick={() => {
-                    if (selectedDoc.fileUrl && selectedDoc.fileUrl !== '#') {
+                    const activeUrl = selectedDoc.fileDataUrl || (selectedDoc.fileUrl && selectedDoc.fileUrl !== '#' ? selectedDoc.fileUrl : null);
+                    if (activeUrl) {
                       const link = document.createElement('a');
-                      link.href = selectedDoc.fileUrl;
+                      link.href = activeUrl;
                       link.download = selectedDoc.fileName || 'Documento_Clinico.pdf';
                       link.click();
                     } else {
