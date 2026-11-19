@@ -1,5 +1,6 @@
 import { hasReportedAllergy, getAllergyDisplay } from './allergyHelpers.js';
 import { SAMPLE_DOCS_BY_PATIENT } from '../data/sampleDocumentsData.js';
+import { convertPdfToImages } from './pdfToImages.js';
 
 /**
  * Escapa caracteres especiales para inserción segura en SVG / XML
@@ -224,6 +225,95 @@ export function generateMedicalDocSvgDataUrl(doc, patient = {}) {
 }
 
 /**
+ * Renderiza el bloque visual de cualquier archivo adjunto (PDF convertido en imágenes de alta resolución,
+ * imagen médica o fallback vectorial membretado), evitando totalmente el uso de iframes en blanco
+ * y permitiendo la descarga segura sin bloqueos de navegador.
+ */
+export function renderAttachedDocumentHtml({
+  fileKey,
+  title,
+  subTitle,
+  icon = '📄',
+  fileName = 'documento.pdf',
+  fileSize = '',
+  fileSource = null,
+  previewPages = [],
+  fallbackSvg = null,
+  attachedFilesRegistry = null,
+}) {
+  const isImage = fileSource && (fileSource.startsWith('data:image/') || /\.(png|jpe?g|webp|gif)$/i.test(fileName || ''));
+
+  if (fileSource && attachedFilesRegistry && fileKey) {
+    attachedFilesRegistry[fileKey] = {
+      fileName: fileName || 'documento.pdf',
+      dataUrl: fileSource,
+    };
+  }
+
+  let visualContent = '';
+  if (previewPages && previewPages.length > 0) {
+    visualContent = `
+      <div class="doc-pages-container">
+        ${previewPages.map((pageImg, idx) => `
+          <div class="doc-page-wrapper">
+            <div class="doc-page-badge">Página ${idx + 1} de ${previewPages.length}</div>
+            <img src="${pageImg}" alt="Página ${idx + 1} - ${escapeXml(title || fileName)}" class="doc-image-content" />
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } else if (isImage) {
+    visualContent = `
+      <div class="doc-image-frame">
+        <img src="${fileSource}" alt="${escapeXml(title || fileName)}" class="doc-image-content" />
+      </div>
+    `;
+  } else if (fallbackSvg) {
+    visualContent = `
+      <div class="doc-image-frame">
+        <img src="${fallbackSvg}" alt="${escapeXml(title || fileName)}" class="doc-image-content" />
+      </div>
+    `;
+  } else {
+    visualContent = `
+      <div class="doc-empty-frame" style="padding: 24px; text-align: center; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+        <span style="font-size: 32px; display: block; margin-bottom: 6px;">📄</span>
+        <strong style="color: #1e293b; font-size: 13px; display: block;">Documento Oficial Integrado al Expediente</strong>
+        <p style="color: #64748b; font-size: 11px; margin: 4px 0 0 0;">
+          Para consultar el archivo digital original, presiona el botón de descarga superior.
+        </p>
+      </div>
+    `;
+  }
+
+  const downloadBtn = fileSource
+    ? `<button type="button" onclick="downloadAttachedFile('${fileKey}')" class="doc-attachment-btn">
+         <span>📥</span> Descargar Archivo Original
+       </button>`
+    : (fallbackSvg
+        ? `<a href="${fallbackSvg}" download="${fileName || 'Reporte_Clinico.svg'}" target="_blank" class="doc-attachment-btn">
+             <span>🔍</span> Ver Hoja en Alta Resolución ↗
+           </a>`
+        : '');
+
+  return `
+    <div class="doc-attachment-preview">
+      <div class="doc-attachment-bar">
+        <div class="doc-attachment-info">
+          <span class="doc-attachment-icon">${icon || '📄'}</span>
+          <div>
+            <strong class="doc-attachment-name">${escapeXml(title || fileName || 'Documento')}</strong>
+            <span class="doc-attachment-sub">${escapeXml(subTitle || `${fileSize || ''} · Archivo integrado al expediente`)}</span>
+          </div>
+        </div>
+        ${downloadBtn}
+      </div>
+      ${visualContent}
+    </div>
+  `;
+}
+
+/**
  * Generador de Historia Clínica Visual Digital - VetLab
  * Genera un documento clínico completo con diseño idéntico al dashboard visual de la plataforma,
  * preservando todas las casillas, tarjetas, badges de estado y tablas clínicas.
@@ -297,6 +387,7 @@ export function generateClinicalHistoryHtml(patient) {
   const vs = hm.vitalSigns || {};
   const owner = patient.owner || {};
   const isDeceased = patient.status === 'fallecido';
+  const attachedFilesRegistry = {};
 
   // Badges y estilos
   const getStatusBadgeHtml = (status) => {
@@ -496,63 +587,29 @@ export function generateClinicalHistoryHtml(patient) {
             </div>
 
             <!-- Archivos Adjuntos a la Orden qPCR (Cuadro Hemático o Historia Clínica) -->
-            ${exam.cuadroHematico?.file ? `
-              <div class="doc-attachment-preview">
-                <div class="doc-attachment-bar">
-                  <div class="doc-attachment-info">
-                    <span class="doc-attachment-icon">🩸</span>
-                    <div>
-                      <strong class="doc-attachment-name">Cuadro Hemático Adjunto a la Orden: ${exam.cuadroHematico.fileName || 'Hemograma.pdf'}</strong>
-                      <span class="doc-attachment-sub">${exam.cuadroHematico.fileSize || 'Examen analítico previo'} · Archivo oficial cargado</span>
-                    </div>
-                  </div>
-                  <a href="${exam.cuadroHematico.file}" download="${exam.cuadroHematico.fileName || 'hemograma.pdf'}" target="_blank" class="doc-attachment-btn">
-                    <span>📥</span> Abrir / Descargar Archivo ↗
-                  </a>
-                </div>
-                ${exam.cuadroHematico.file.startsWith('data:image/') || /\.(png|jpe?g|webp|gif)$/i.test(exam.cuadroHematico.fileName || '') ? `
-                  <div class="doc-image-frame">
-                    <img src="${exam.cuadroHematico.file}" alt="Cuadro Hemático" class="doc-image-content" />
-                  </div>
-                ` : `
-                  <div class="doc-pdf-frame">
-                    <iframe src="${exam.cuadroHematico.file}#toolbar=1" title="Cuadro Hemático" class="doc-pdf-iframe"></iframe>
-                  </div>
-                  <div class="doc-pdf-print-fallback">
-                    Documento PDF adjunto a la orden qPCR: ${exam.cuadroHematico.fileName} (${exam.cuadroHematico.fileSize || 'Archivo'}).
-                  </div>
-                `}
-              </div>
-            ` : ''}
+            ${exam.cuadroHematico?.file ? renderAttachedDocumentHtml({
+              fileKey: `qpcr_hema_${exam.id}`,
+              title: `Cuadro Hemático Adjunto a la Orden: ${exam.cuadroHematico.fileName || 'Hemograma.pdf'}`,
+              subTitle: `${exam.cuadroHematico.fileSize || 'Examen analítico previo'} · Archivo oficial cargado`,
+              icon: '🩸',
+              fileName: exam.cuadroHematico.fileName || 'hemograma.pdf',
+              fileSize: exam.cuadroHematico.fileSize,
+              fileSource: exam.cuadroHematico.file,
+              previewPages: exam.cuadroHematico.previewPages || [],
+              attachedFilesRegistry,
+            }) : ''}
 
-            ${exam.historiaClinica?.file ? `
-              <div class="doc-attachment-preview">
-                <div class="doc-attachment-bar">
-                  <div class="doc-attachment-info">
-                    <span class="doc-attachment-icon">📋</span>
-                    <div>
-                      <strong class="doc-attachment-name">Historia Clínica Adjunta a la Orden: ${exam.historiaClinica.fileName || 'Historia_Clinica.pdf'}</strong>
-                      <span class="doc-attachment-sub">${exam.historiaClinica.fileSize || 'Remisión clínica'} · Archivo oficial cargado</span>
-                    </div>
-                  </div>
-                  <a href="${exam.historiaClinica.file}" download="${exam.historiaClinica.fileName || 'historia_clinica.pdf'}" target="_blank" class="doc-attachment-btn">
-                    <span>📥</span> Abrir / Descargar Archivo ↗
-                  </a>
-                </div>
-                ${exam.historiaClinica.file.startsWith('data:image/') || /\.(png|jpe?g|webp|gif)$/i.test(exam.historiaClinica.fileName || '') ? `
-                  <div class="doc-image-frame">
-                    <img src="${exam.historiaClinica.file}" alt="Historia Clínica" class="doc-image-content" />
-                  </div>
-                ` : `
-                  <div class="doc-pdf-frame">
-                    <iframe src="${exam.historiaClinica.file}#toolbar=1" title="Historia Clínica" class="doc-pdf-iframe"></iframe>
-                  </div>
-                  <div class="doc-pdf-print-fallback">
-                    Documento PDF adjunto a la orden qPCR: ${exam.historiaClinica.fileName} (${exam.historiaClinica.fileSize || 'Archivo'}).
-                  </div>
-                `}
-              </div>
-            ` : ''}
+            ${exam.historiaClinica?.file ? renderAttachedDocumentHtml({
+              fileKey: `qpcr_hc_${exam.id}`,
+              title: `Historia Clínica Adjunta a la Orden: ${exam.historiaClinica.fileName || 'Historia_Clinica.pdf'}`,
+              subTitle: `${exam.historiaClinica.fileSize || 'Remisión clínica'} · Archivo oficial cargado`,
+              icon: '📋',
+              fileName: exam.historiaClinica.fileName || 'historia_clinica.pdf',
+              fileSize: exam.historiaClinica.fileSize,
+              fileSource: exam.historiaClinica.file,
+              previewPages: exam.historiaClinica.previewPages || [],
+              attachedFilesRegistry,
+            }) : ''}
           </div>
         `;
       }).join('')
@@ -628,75 +685,20 @@ export function generateClinicalHistoryHtml(patient) {
           /\.pdf$/i.test(doc.fileName || '')
         );
 
-        let visualDocHtml = '';
-        if (fileSource) {
-          if (isImage) {
-            visualDocHtml = `
-              <div class="doc-attachment-preview">
-                <div class="doc-attachment-bar">
-                  <div class="doc-attachment-info">
-                    <span class="doc-attachment-icon">🖼️</span>
-                    <div>
-                      <strong class="doc-attachment-name">Visualización del Archivo Cargado: ${doc.fileName || 'Examen_Imagen.jpg'}</strong>
-                      <span class="doc-attachment-sub">${doc.fileSize || 'Imagen médica'} · Archivo integrado al expediente del paciente</span>
-                    </div>
-                  </div>
-                  <a href="${fileSource}" download="${doc.fileName || 'examen.jpg'}" target="_blank" class="doc-attachment-btn">
-                    <span>🔍</span> Ver Imagen en Alta Resolución ↗
-                  </a>
-                </div>
-                <div class="doc-image-frame">
-                  <img src="${fileSource}" alt="${doc.title}" class="doc-image-content" />
-                </div>
-              </div>
-            `;
-          } else if (isPdf) {
-            visualDocHtml = `
-              <div class="doc-attachment-preview">
-                <div class="doc-attachment-bar">
-                  <div class="doc-attachment-info">
-                    <span class="doc-attachment-icon">📄</span>
-                    <div>
-                      <strong class="doc-attachment-name">Documento PDF del Examen: ${doc.fileName || 'Examen_Clinico.pdf'}</strong>
-                      <span class="doc-attachment-sub">${doc.fileSize || 'Documento PDF'} · Archivo oficial integrado para lectura directa</span>
-                    </div>
-                  </div>
-                  <a href="${fileSource}" download="${doc.fileName || 'examen.pdf'}" target="_blank" class="doc-attachment-btn">
-                    <span>📥</span> Abrir / Descargar PDF Original ↗
-                  </a>
-                </div>
-                <div class="doc-pdf-frame">
-                  <iframe src="${fileSource}#toolbar=1" title="${doc.title}" class="doc-pdf-iframe"></iframe>
-                </div>
-                <div class="doc-pdf-print-fallback">
-                  Documento PDF Adjunto: ${doc.fileName} (${doc.fileSize}). Los parámetros y hallazgos analíticos se detallan en el expediente.
-                </div>
-              </div>
-            `;
-          }
-        } else {
-          // Hoja visual gráfica oficial OSD membretada
-          const svgDataUrl = generateMedicalDocSvgDataUrl(doc, patient);
-          visualDocHtml = `
-            <div class="doc-attachment-preview">
-              <div class="doc-attachment-bar">
-                <div class="doc-attachment-info">
-                  <span class="doc-attachment-icon">📋</span>
-                  <div>
-                    <strong class="doc-attachment-name">Hoja Oficial de Resultados del Examen: ${doc.fileName || 'Reporte_Clinico.pdf'}</strong>
-                    <span class="doc-attachment-sub">Folio Oficial: ${doc.id} · Certificación OSD Diagnostics</span>
-                  </div>
-                </div>
-                <a href="${svgDataUrl}" download="${doc.fileName || 'Reporte_Clinico.svg'}" target="_blank" class="doc-attachment-btn">
-                  <span>🔍</span> Ver Hoja en Alta Resolución ↗
-                </a>
-              </div>
-              <div class="doc-image-frame">
-                <img src="${svgDataUrl}" alt="${doc.title}" class="doc-image-content" />
-              </div>
-            </div>
-          `;
-        }
+        const fileKey = `doc_${String(doc.id || Math.random()).replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+        const fallbackSvg = !fileSource ? generateMedicalDocSvgDataUrl(doc, patient) : null;
+        const visualDocHtml = renderAttachedDocumentHtml({
+          fileKey,
+          title: doc.fileName ? `Documento del Examen: ${doc.fileName}` : (doc.title || 'Documento Clínico'),
+          subTitle: `Folio Oficial: ${doc.id} · ${doc.fileSize || 'Estudio Clínico'} · Custodia VetLab`,
+          icon: isPdf ? '📄' : (isImage ? '🖼️' : '📋'),
+          fileName: doc.fileName || 'documento.pdf',
+          fileSize: doc.fileSize,
+          fileSource,
+          previewPages: doc.previewPages || [],
+          fallbackSvg,
+          attachedFilesRegistry,
+        });
 
         return `
           <div class="exam-card" style="margin-bottom: 16px; padding: 16px 18px; border-left: 4px solid var(--primary);">
@@ -731,54 +733,18 @@ export function generateClinicalHistoryHtml(patient) {
   const clinicalExamsHtml = clinicalExams.length > 0
     ? clinicalExams.map((exam) => {
         const examFile = exam.fileDataUrl || (exam.fileUrl && exam.fileUrl !== '#' ? exam.fileUrl : null) || exam.file;
-        let examVisualHtml = '';
-        if (examFile) {
-          const isImg = examFile.startsWith('data:image/') || /\.(png|jpe?g|webp|gif)$/i.test(exam.fileName || '');
-          if (isImg) {
-            examVisualHtml = `
-              <div class="doc-attachment-preview" style="margin-top: 10px;">
-                <div class="doc-attachment-bar">
-                  <div class="doc-attachment-info">
-                    <span class="doc-attachment-icon">🖼️</span>
-                    <div>
-                      <strong class="doc-attachment-name">Archivo Adjunto: ${exam.fileName || 'Examen_Clinico.jpg'}</strong>
-                      <span class="doc-attachment-sub">${exam.fileSize || ''} · Imagen médica del estudio</span>
-                    </div>
-                  </div>
-                  <a href="${examFile}" download="${exam.fileName || 'examen.jpg'}" target="_blank" class="doc-attachment-btn">
-                    <span>🔍</span> Ver Imagen ↗
-                  </a>
-                </div>
-                <div class="doc-image-frame">
-                  <img src="${examFile}" alt="${exam.name || 'Examen'}" class="doc-image-content" />
-                </div>
-              </div>
-            `;
-          } else {
-            examVisualHtml = `
-              <div class="doc-attachment-preview" style="margin-top: 10px;">
-                <div class="doc-attachment-bar">
-                  <div class="doc-attachment-info">
-                    <span class="doc-attachment-icon">📄</span>
-                    <div>
-                      <strong class="doc-attachment-name">Documento PDF Adjunto: ${exam.fileName || 'Examen_Clinico.pdf'}</strong>
-                      <span class="doc-attachment-sub">${exam.fileSize || ''} · Informe de laboratorio</span>
-                    </div>
-                  </div>
-                  <a href="${examFile}" download="${exam.fileName || 'examen.pdf'}" target="_blank" class="doc-attachment-btn">
-                    <span>📥</span> Abrir PDF ↗
-                  </a>
-                </div>
-                <div class="doc-pdf-frame">
-                  <iframe src="${examFile}#toolbar=1" title="${exam.name || 'Examen'}" class="doc-pdf-iframe"></iframe>
-                </div>
-                <div class="doc-pdf-print-fallback">
-                  Documento PDF Adjunto: ${exam.fileName || 'Examen'} (${exam.fileSize || 'N/A'}).
-                </div>
-              </div>
-            `;
-          }
-        }
+        const examKey = `exam_${String(exam.id || Math.random()).replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+        const examVisualHtml = examFile ? renderAttachedDocumentHtml({
+          fileKey: examKey,
+          title: `Archivo Adjunto: ${exam.fileName || 'Examen_Clinico.pdf'}`,
+          subTitle: `${exam.fileSize || ''} · Informe de laboratorio clínico`,
+          icon: examFile.startsWith('data:image/') || /\.(png|jpe?g|webp|gif)$/i.test(exam.fileName || '') ? '🖼️' : '📄',
+          fileName: exam.fileName || 'examen.pdf',
+          fileSize: exam.fileSize,
+          fileSource: examFile,
+          previewPages: exam.previewPages || [],
+          attachedFilesRegistry,
+        }) : '';
 
         return `
           <div class="exam-card" style="margin-bottom: 12px; padding: 14px 16px;">
@@ -1460,9 +1426,11 @@ export function generateClinicalHistoryHtml(patient) {
       font-weight: 700;
       padding: 6px 12px;
       border-radius: 8px;
+      border: none;
       text-decoration: none;
       transition: all 0.15s ease;
       cursor: pointer;
+      font-family: inherit;
     }
     .doc-attachment-btn:hover {
       background: #4a148c;
@@ -1486,25 +1454,46 @@ export function generateClinicalHistoryHtml(patient) {
       object-fit: contain;
       background: #ffffff;
     }
-    .doc-pdf-frame {
-      width: 100%;
-      height: 600px;
-      background: #ffffff;
+    .doc-pages-container {
+      padding: 16px;
+      background: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      border-top: 1px solid var(--slate-200);
     }
-    .doc-pdf-iframe {
+    .doc-page-wrapper {
+      max-width: 820px;
       width: 100%;
-      height: 100%;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--slate-200);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      page-break-inside: avoid;
+    }
+    .doc-page-badge {
+      width: 100%;
+      padding: 6px 12px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 10px;
+      color: #64748b;
+      font-family: monospace;
+      text-align: right;
+    }
+    .doc-page-wrapper .doc-image-content {
+      width: 100%;
+      max-height: none;
+      height: auto;
+      border-radius: 0;
+      box-shadow: none;
       border: none;
       display: block;
-    }
-    .doc-pdf-print-fallback {
-      display: none;
-      padding: 12px;
-      font-size: 11px;
-      color: var(--slate-600);
-      background: #f8fafc;
-      border-top: 1px solid var(--slate-200);
-      font-style: italic;
     }
 
     /* Reglas para Impresión / PDF */
@@ -1540,12 +1529,19 @@ export function generateClinicalHistoryHtml(patient) {
         box-shadow: none;
         border: 1px solid #94a3b8;
       }
-      .doc-pdf-frame {
-        height: 500px;
-        page-break-inside: avoid;
+      .doc-pages-container {
+        background: transparent;
+        padding: 0;
+        gap: 20px;
       }
-      .doc-pdf-print-fallback {
-        display: block;
+      .doc-page-wrapper {
+        box-shadow: none;
+        border: none;
+        page-break-inside: avoid;
+        margin-bottom: 20px;
+      }
+      .doc-page-badge {
+        display: none;
       }
     }
   </style>
@@ -1887,19 +1883,147 @@ export function generateClinicalHistoryHtml(patient) {
 
   </div>
 
+  <script>
+    // Registro autocontenido de archivos clínicos para descarga directa mediante Blob (sin bloqueo del navegador)
+    window.__CLINICAL_FILES__ = ${JSON.stringify(attachedFilesRegistry).replace(/<\/script/gi, '<\\/script')};
+
+    function downloadAttachedFile(fileKey) {
+      var item = window.__CLINICAL_FILES__ ? window.__CLINICAL_FILES__[fileKey] : null;
+      if (!item || !item.dataUrl) {
+        alert('Archivo no disponible para descarga directa.');
+        return;
+      }
+      var dataUrl = item.dataUrl;
+      var fileName = item.fileName || 'documento_clinico.pdf';
+
+      try {
+        if (dataUrl.indexOf('data:') === 0) {
+          var parts = dataUrl.split(',');
+          var mimeMatch = parts[0].match(/:(.*?);/);
+          var mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+          var byteCharacters = atob(parts[1]);
+          var byteNumbers = new Array(byteCharacters.length);
+          for (var i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          var byteArray = new Uint8Array(byteNumbers);
+          var blob = new Blob([byteArray], { type: mime });
+          var blobUrl = URL.createObjectURL(blob);
+          var link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setTimeout(function() {
+            URL.revokeObjectURL(blobUrl);
+          }, 30000);
+        } else {
+          var link = document.createElement('a');
+          link.href = dataUrl;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      } catch (err) {
+        console.error('Error al descargar archivo:', err);
+        window.open(dataUrl, '_blank');
+      }
+    }
+  </script>
 </body>
 </html>`;
 }
 
 /**
  * Dispara la descarga / visualización formal de la historia clínica en formato visual estructurado.
- * Abre una ventana con el diseño completo listo para Imprimir / Guardar en PDF,
+ * Pre-renderiza las páginas de cualquier PDF adjunto en imágenes de alta resolución,
+ * abre una ventana con el diseño completo listo para Imprimir / Guardar en PDF,
  * y descarga el archivo .html interactivo autocontenido.
  */
-export function downloadClinicalHistoryDocument(patient) {
+export async function downloadClinicalHistoryDocument(patient) {
   if (!patient) return;
 
-  const htmlContent = generateClinicalHistoryHtml(patient);
+  const clinicalDocs = Array.isArray(patient.clinicalDocuments)
+    ? patient.clinicalDocuments
+    : (SAMPLE_DOCS_BY_PATIENT[patient.id] || []);
+
+  const clinicalExams = Array.isArray(patient.clinicalExams)
+    ? patient.clinicalExams
+    : [];
+
+  const qpcrExams = Array.isArray(patient.qpcrExams)
+    ? patient.qpcrExams
+    : [];
+
+  // Convertir PDFs adjuntos a páginas de imagen en alta resolución si aún no las tienen
+  for (const doc of clinicalDocs) {
+    const fileSource = doc.fileDataUrl || (doc.fileUrl && doc.fileUrl !== '#' ? doc.fileUrl : null) || doc.file;
+    const isPdf = doc.fileType?.includes('pdf') || /\.pdf$/i.test(doc.fileName || '') || (fileSource && fileSource.startsWith('data:application/pdf'));
+    if (isPdf && fileSource && (!doc.previewPages || doc.previewPages.length === 0)) {
+      try {
+        const pages = await convertPdfToImages(fileSource);
+        if (pages && pages.length > 0) {
+          doc.previewPages = pages;
+        }
+      } catch (err) {
+        console.warn('Error al convertir documento PDF:', err);
+      }
+    }
+  }
+
+  for (const exam of clinicalExams) {
+    const fileSource = exam.fileDataUrl || (exam.fileUrl && exam.fileUrl !== '#' ? exam.fileUrl : null) || exam.file;
+    const isPdf = exam.fileType?.includes('pdf') || /\.pdf$/i.test(exam.fileName || '') || (fileSource && fileSource.startsWith('data:application/pdf'));
+    if (isPdf && fileSource && (!exam.previewPages || exam.previewPages.length === 0)) {
+      try {
+        const pages = await convertPdfToImages(fileSource);
+        if (pages && pages.length > 0) {
+          exam.previewPages = pages;
+        }
+      } catch (err) {
+        console.warn('Error al convertir examen PDF:', err);
+      }
+    }
+  }
+
+  for (const exam of qpcrExams) {
+    if (exam.cuadroHematico?.file) {
+      const isPdf = /\.pdf$/i.test(exam.cuadroHematico.fileName || '') || exam.cuadroHematico.file.startsWith('data:application/pdf');
+      if (isPdf && (!exam.cuadroHematico.previewPages || exam.cuadroHematico.previewPages.length === 0)) {
+        try {
+          const pages = await convertPdfToImages(exam.cuadroHematico.file);
+          if (pages && pages.length > 0) {
+            exam.cuadroHematico.previewPages = pages;
+          }
+        } catch (err) {
+          console.warn('Error al convertir cuadro hemático PDF:', err);
+        }
+      }
+    }
+    if (exam.historiaClinica?.file) {
+      const isPdf = /\.pdf$/i.test(exam.historiaClinica.fileName || '') || exam.historiaClinica.file.startsWith('data:application/pdf');
+      if (isPdf && (!exam.historiaClinica.previewPages || exam.historiaClinica.previewPages.length === 0)) {
+        try {
+          const pages = await convertPdfToImages(exam.historiaClinica.file);
+          if (pages && pages.length > 0) {
+            exam.historiaClinica.previewPages = pages;
+          }
+        } catch (err) {
+          console.warn('Error al convertir historia clínica PDF:', err);
+        }
+      }
+    }
+  }
+
+  const htmlContent = generateClinicalHistoryHtml({
+    ...patient,
+    clinicalDocuments: clinicalDocs,
+    clinicalExams,
+    qpcrExams,
+  });
+
   const patientId = patient.id || 'PAC';
   const patientName = (patient.name || 'Paciente').replace(/\s+/g, '_');
   const filename = `Historia_Clinica_${patientId}_${patientName}.html`;
@@ -1912,7 +2036,6 @@ export function downloadClinicalHistoryDocument(patient) {
       printWindow.document.open();
       printWindow.document.write(htmlContent);
       printWindow.document.close();
-      // Pequeño timeout para asegurar que el DOM cargue estilos antes de llamar al diálogo de impresión
       setTimeout(() => {
         try {
           printWindow.focus();

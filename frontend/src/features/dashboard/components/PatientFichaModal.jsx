@@ -172,13 +172,18 @@ export default function PatientFichaModal({
   const sampleStyle = getSampleBadgeInfo();
 
   // Descarga de Historia Clínica Integral con diseño visual estructurado (no TXT)
-  const handleDownloadHistory = () => {
-    downloadClinicalHistoryDocument({
-      ...patient,
-      clinicalDocuments: clinicalDocs,
-      clinicalExams: clinicalExamsList,
-      qpcrExams: qpcrExamsList,
-    });
+  const handleDownloadHistory = async () => {
+    try {
+      await downloadClinicalHistoryDocument({
+        ...patient,
+        clinicalDocuments: clinicalDocs,
+        clinicalExams: clinicalExamsList,
+        qpcrExams: qpcrExamsList,
+      });
+    } catch (err) {
+      console.error('Error al exportar historia clínica:', err);
+      showAestheticAlert({ title: 'Exportación de Historia', message: 'No se pudo generar el expediente con los archivos adjuntos.', type: 'danger' });
+    }
   };
 
   const handleSaveConsultation = async (consultationData) => {

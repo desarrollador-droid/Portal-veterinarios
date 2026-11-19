@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { showAestheticAlert } from './AestheticModal.jsx';
+import { convertPdfToImages } from '../utils/pdfToImages.js';
 
 export const CLINICAL_FINDINGS_BY_TYPE = {
   laboratorio: [
@@ -103,6 +104,27 @@ export const CLINICAL_FINDINGS_BY_TYPE = {
   ],
 };
 
+export function dataUrlToBlob(dataUrl) {
+  if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) {
+    return null;
+  }
+  try {
+    const parts = dataUrl.split(',');
+    const mimeMatch = parts[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+    const byteString = atob(parts[1]);
+    const arrayBuffer = new ArrayBuffer(byteString.length);
+    const uint8Array = new Uint8Array(arrayBuffer);
+    for (let i = 0; i < byteString.length; i++) {
+      uint8Array[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([uint8Array], { type: mime });
+  } catch (err) {
+    console.error('Error al convertir Data URL a Blob:', err);
+    return null;
+  }
+}
+
 export default function PatientDocumentsTab({
   patient,
   documents = [],
@@ -113,6 +135,73 @@ export default function PatientDocumentsTab({
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [docViewMode, setDocViewMode] = useState('viewer'); // 'viewer' | 'summary'
+
+  // Descarga confiable usando Blobs para evitar el bloqueo del navegador
+  const handleDownloadDoc = (doc) => {
+    if (!doc) return;
+    const activeUrl = doc.fileDataUrl || (doc.fileUrl && doc.fileUrl !== '#' ? doc.fileUrl : null);
+    if (!activeUrl) {
+      showAestheticAlert({
+        title: 'Documento Histórico Certificado',
+        message: `El documento "${doc.fileName || doc.title}" se encuentra registrado en el expediente digital. Abre el visor para consultar la hoja analítica oficial.`,
+        type: 'info',
+      });
+      return;
+    }
+
+    if (activeUrl.startsWith('data:')) {
+      const blob = dataUrlToBlob(activeUrl);
+      if (blob) {
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = doc.fileName || `${doc.title || 'Documento_Clinico'}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+        return;
+      }
+    }
+
+    const link = document.createElement('a');
+    link.href = activeUrl;
+    link.download = doc.fileName || `${doc.title || 'Documento_Clinico'}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleOpenDocInNewTab = (doc) => {
+    if (!doc) return;
+    const activeUrl = doc.fileDataUrl || (doc.fileUrl && doc.fileUrl !== '#' ? doc.fileUrl : null);
+    if (!activeUrl) return;
+    if (activeUrl.startsWith('data:')) {
+      const blob = dataUrlToBlob(activeUrl);
+      if (blob) {
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+        return;
+      }
+    }
+    window.open(activeUrl, '_blank');
+  };
+
+  // Efecto para renderizar páginas de PDF en imágenes automáticamente si no están pre-renderizadas
+  useEffect(() => {
+    if (selectedDoc && (!selectedDoc.previewPages || selectedDoc.previewPages.length === 0)) {
+      const fileSource = selectedDoc.fileDataUrl || (selectedDoc.fileUrl && selectedDoc.fileUrl !== '#' ? selectedDoc.fileUrl : null);
+      const isPdf = selectedDoc.fileType?.includes('pdf') || /\.pdf$/i.test(selectedDoc.fileName || '');
+      if (isPdf && fileSource) {
+        convertPdfToImages(fileSource).then((pages) => {
+          if (pages && pages.length > 0) {
+            setSelectedDoc((prev) => (prev && prev.id === selectedDoc.id ? { ...prev, previewPages: pages } : prev));
+          }
+        });
+      }
+    }
+  }, [selectedDoc?.id]);
 
   // Formulario de nuevo documento con campos clínicos estructurados
   const [formData, setFormData] = useState({
@@ -125,6 +214,7 @@ export default function PatientDocumentsTab({
     fileType: '',
     fileUrl: null,
     fileDataUrl: null,
+    previewPages: [],
     keyFindings: [],
     // Laboratorio / Hemograma
     hematocrito: '',
@@ -254,18 +344,34 @@ export default function PatientDocumentsTab({
         fileType: inferredType,
         fileUrl: objectUrl,
         fileDataUrl: null,
+        previewPages: [],
         title: prev.title || file.name.replace(/\.[^/.]+$/, ''),
       }));
 
       // Convertir a Data URL (Base64) para exportes de historia clínica
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         const dataUrl = event.target?.result;
         setFormData((prev) => ({
           ...prev,
           fileDataUrl: dataUrl,
           fileUrl: prev.fileUrl || dataUrl,
         }));
+
+        // Si es PDF, convertir las páginas a imágenes para previsualización inmediata
+        if (!isImg && (file.type?.includes('pdf') || /\.pdf$/i.test(file.name))) {
+          try {
+            const pages = await convertPdfToImages(dataUrl);
+            if (pages && pages.length > 0) {
+              setFormData((prev) => ({
+                ...prev,
+                previewPages: pages,
+              }));
+            }
+          } catch (err) {
+            console.warn('No se pudo convertir páginas del PDF:', err);
+          }
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -293,6 +399,7 @@ export default function PatientDocumentsTab({
       fileType: resolvedType,
       fileUrl: formData.fileUrl || formData.fileDataUrl || null,
       fileDataUrl: formData.fileDataUrl || formData.fileUrl || null,
+      previewPages: formData.previewPages || [],
       notes: formData.notes.trim(),
       keyFindings: formData.keyFindings,
       structuredData: {
@@ -335,6 +442,7 @@ export default function PatientDocumentsTab({
       fileType: '',
       fileUrl: null,
       fileDataUrl: null,
+      previewPages: [],
       keyFindings: [],
       hematocrito: '',
       plaquetas: '',
@@ -638,7 +746,7 @@ export default function PatientDocumentsTab({
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => showAestheticAlert({ title: 'Descarga en Proceso', message: `Descargando archivo ${doc.fileName}...`, type: 'info' })}
+                    onClick={() => handleDownloadDoc(doc)}
                     className="px-2.5 py-1.5 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold transition-all cursor-pointer"
                     title="Descargar archivo"
                   >
@@ -1147,8 +1255,32 @@ export default function PatientDocumentsTab({
               {docViewMode === 'viewer' ? (
                 /* VISTA PREVIA DEL DOCUMENTO COMPLETO (PDF / IMAGEN / HOJA CLÍNICA SIMULADA) */
                 <div className="h-full flex flex-col space-y-4">
-                  {(selectedDoc.fileDataUrl || (selectedDoc.fileUrl && selectedDoc.fileUrl !== '#')) ? (
-                    // Archivo real cargado por el usuario con Blob o Data URL
+                  {selectedDoc.previewPages && selectedDoc.previewPages.length > 0 ? (
+                    <div className="flex-1 flex flex-col items-center bg-slate-200/50 dark:bg-[#15102a] rounded-2xl p-4 gap-4 overflow-y-auto max-h-[720px]">
+                      <div className="w-full flex items-center justify-between text-xs font-mono text-slate-500 bg-white dark:bg-[#1f163d] px-4 py-2.5 rounded-xl border border-slate-200 dark:border-[#2e2358] shadow-xs">
+                        <span className="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                          <span>📄</span> {selectedDoc.fileName} ({selectedDoc.previewPages.length} {selectedDoc.previewPages.length === 1 ? 'página' : 'páginas'})
+                        </span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-[11px] flex items-center gap-1">
+                          ✓ Documento visible en pantalla sin necesidad de descarga
+                        </span>
+                      </div>
+                      {selectedDoc.previewPages.map((pageImg, idx) => (
+                        <div key={idx} className="w-full max-w-3xl bg-white dark:bg-[#1a1338] rounded-2xl shadow-md p-3 sm:p-4 flex flex-col items-center border border-slate-200 dark:border-[#2e2358]">
+                          <div className="w-full flex items-center justify-between text-[11px] font-mono text-slate-400 mb-2 px-1">
+                            <span>Documento del Expediente Clínico</span>
+                            <span>Página {idx + 1} de {selectedDoc.previewPages.length}</span>
+                          </div>
+                          <img
+                            src={pageImg}
+                            alt={`Página ${idx + 1} de ${selectedDoc.title}`}
+                            className="w-full h-auto rounded-xl object-contain border border-slate-100 dark:border-slate-800 shadow-xs"
+                            loading="lazy"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (selectedDoc.fileDataUrl || (selectedDoc.fileUrl && selectedDoc.fileUrl !== '#')) ? (
                     (selectedDoc.fileType?.startsWith('image/') || /\.(png|jpe?g|webp|gif)$/i.test(selectedDoc.fileName)) ? (
                       <div className="flex-1 flex flex-col items-center justify-center bg-white dark:bg-[#1a1338] border border-slate-200 dark:border-[#2e2358] rounded-2xl p-4 shadow-sm min-h-[480px]">
                         <img
@@ -1161,20 +1293,23 @@ export default function PatientDocumentsTab({
                         </p>
                       </div>
                     ) : (
-                      <div className="flex-1 flex flex-col bg-white dark:bg-[#1a1338] border border-slate-200 dark:border-[#2e2358] rounded-2xl overflow-hidden shadow-sm min-h-[540px]">
-                        <div className="px-4 py-2 bg-slate-200 dark:bg-[#251b4d] flex items-center justify-between text-xs text-slate-700 dark:text-slate-200 border-b border-slate-300 dark:border-[#382b61]">
-                          <span className="font-mono font-bold flex items-center gap-2">
-                            <span>📄</span> {selectedDoc.fileName} ({selectedDoc.fileSize})
-                          </span>
-                          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                            ✓ Documento cargado disponible para lectura directa en pantalla
-                          </span>
+                      <div className="flex-1 flex flex-col items-center justify-center bg-white dark:bg-[#1a1338] border border-slate-200 dark:border-[#2e2358] rounded-2xl p-8 shadow-sm min-h-[420px] text-center space-y-3">
+                        <div className="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-950 flex items-center justify-center text-2xl text-[#6F2BCC] mx-auto animate-pulse">
+                          📄
                         </div>
-                        <iframe
-                          src={selectedDoc.fileDataUrl || selectedDoc.fileUrl}
-                          title={selectedDoc.title}
-                          className="w-full flex-1 min-h-[500px] border-0 bg-white"
-                        />
+                        <h4 className="text-sm font-black text-slate-800 dark:text-slate-100">
+                          {selectedDoc.fileName} ({selectedDoc.fileSize})
+                        </h4>
+                        <p className="text-xs text-slate-500 max-w-md">
+                          Documento PDF adjunto al expediente clínico.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadDoc(selectedDoc)}
+                          className="px-4 py-2 bg-[#6F2BCC] text-white rounded-xl text-xs font-bold hover:bg-[#581ea3] transition-colors cursor-pointer"
+                        >
+                          📥 Descargar PDF Original
+                        </button>
                       </div>
                     )
                   ) : (
@@ -1601,28 +1736,17 @@ export default function PatientDocumentsTab({
               </span>
               <div className="flex items-center gap-3">
                 {(selectedDoc.fileDataUrl || (selectedDoc.fileUrl && selectedDoc.fileUrl !== '#')) && (
-                  <a
-                    href={selectedDoc.fileDataUrl || selectedDoc.fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => handleOpenDocInNewTab(selectedDoc)}
                     className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                   >
                     <span>↗</span> Abrir en Pestaña Nueva
-                  </a>
+                  </button>
                 )}
                 <button
                   type="button"
-                  onClick={() => {
-                    const activeUrl = selectedDoc.fileDataUrl || (selectedDoc.fileUrl && selectedDoc.fileUrl !== '#' ? selectedDoc.fileUrl : null);
-                    if (activeUrl) {
-                      const link = document.createElement('a');
-                      link.href = activeUrl;
-                      link.download = selectedDoc.fileName || 'Documento_Clinico.pdf';
-                      link.click();
-                    } else {
-                      showAestheticAlert({ title: 'Descarga de Archivo', message: `Descargando copia local de ${selectedDoc.fileName}...`, type: 'info' });
-                    }
-                  }}
+                  onClick={() => handleDownloadDoc(selectedDoc)}
                   className="px-4 py-2 bg-[#6F2BCC] text-white rounded-xl text-xs font-bold hover:bg-[#581ea3] transition-colors cursor-pointer"
                 >
                   📥 Descargar Copia
