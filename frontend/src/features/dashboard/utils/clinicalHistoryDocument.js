@@ -287,7 +287,138 @@ export function generateClinicalHistoryHtml(patient) {
         <span class="weight-val">${w.weight}</span>
       </div>
     `).join('')
-    : `<div class="weight-row"><span class="weight-date">${patient.lastVisit}</span><span class="weight-val">${patient.weight}</span></div>`;
+    : `<div class="weight-row"><span class="weight-date">${patient.lastVisit || 'Fecha inicial'}</span><span class="weight-val">${patient.weight || 'Sin registrar'}</span></div>`;
+
+  const clinicalDocs = (patient.clinicalDocuments && Array.isArray(patient.clinicalDocuments)) ? patient.clinicalDocuments : [];
+  const clinicalDocsHtml = clinicalDocs.length > 0
+    ? clinicalDocs.map((doc) => {
+        const findings = doc.keyFindings && doc.keyFindings.length > 0
+          ? `<div style="margin-top: 8px;"><strong style="font-size: 11px; color: #475569; display: block; margin-bottom: 4px;">Hallazgos Clínicos Notificados:</strong>` +
+            doc.keyFindings.map((f) => `<span class="chip chip-purple" style="margin-right: 4px; margin-bottom: 4px; display: inline-block;">✓ ${f}</span>`).join(' ') +
+            `</div>`
+          : '';
+
+        let paramsHtml = '';
+        const sd = doc.structuredData || {};
+        const hasHemo = doc.hematocrito || doc.plaquetas || doc.leucocitos || doc.hemoglobina || sd.hemoglobina;
+        const hasBioq = doc.creatinina || doc.bun || doc.alt || doc.fa || sd.creatinina;
+        const hasUro = doc.densidadUrinaria || doc.phUrinario || sd.densidadUrinaria;
+        const hasCopr = doc.consistenciaHeces || doc.parasitoFecal || sd.consistenciaHeces;
+        const hasImag = doc.conclusionDiagnostica || doc.regionEvaluada || sd.conclusionDiagnostica;
+        const hasRem = doc.diagnosticoPresuntivo || doc.tratamientoPrevio || sd.diagnosticoPresuntivo;
+
+        if (hasHemo || hasBioq || hasUro || hasCopr || hasImag || hasRem) {
+          paramsHtml = `<div style="margin-top: 8px; padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 11px;">
+            <strong style="display: block; margin-bottom: 5px; color: #1e293b; font-size: 11px;">Parámetros Analíticos & Datos del Documento:</strong>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+              ${doc.hematocrito ? `<span><strong>Hto:</strong> ${doc.hematocrito}%</span>` : ''}
+              ${doc.hemoglobina || sd.hemoglobina ? `<span><strong>Hb:</strong> ${doc.hemoglobina || sd.hemoglobina} g/dL</span>` : ''}
+              ${doc.plaquetas ? `<span><strong>Plaquetas:</strong> ${doc.plaquetas.toLocaleString('es-CO')} /µL</span>` : ''}
+              ${doc.leucocitos ? `<span><strong>Leucocitos:</strong> ${doc.leucocitos.toLocaleString('es-CO')} /µL</span>` : ''}
+              ${doc.creatinina || sd.creatinina ? `<span><strong>Creatinina:</strong> ${doc.creatinina || sd.creatinina} mg/dL</span>` : ''}
+              ${doc.bun || sd.bun ? `<span><strong>BUN:</strong> ${doc.bun || sd.bun} mg/dL</span>` : ''}
+              ${doc.alt || sd.alt ? `<span><strong>ALT:</strong> ${doc.alt || sd.alt} U/L</span>` : ''}
+              ${doc.fa || sd.fa ? `<span><strong>FA:</strong> ${doc.fa || sd.fa} U/L</span>` : ''}
+              ${doc.densidadUrinaria || sd.densidadUrinaria ? `<span><strong>Densidad:</strong> ${doc.densidadUrinaria || sd.densidadUrinaria}</span>` : ''}
+              ${doc.phUrinario || sd.phUrinario ? `<span><strong>pH:</strong> ${doc.phUrinario || sd.phUrinario}</span>` : ''}
+              ${doc.proteinasOrina || sd.proteinasOrina ? `<span><strong>Proteínas:</strong> ${doc.proteinasOrina || sd.proteinasOrina}</span>` : ''}
+              ${doc.consistenciaHeces || sd.consistenciaHeces ? `<span><strong>Consistencia:</strong> ${doc.consistenciaHeces || sd.consistenciaHeces}</span>` : ''}
+              ${doc.parasitoFecal || sd.parasitoFecal ? `<span><strong>Parásito:</strong> ${doc.parasitoFecal || sd.parasitoFecal}</span>` : ''}
+              ${doc.conclusionDiagnostica || sd.conclusionDiagnostica ? `<span><strong>Conclusión Imagen:</strong> ${doc.conclusionDiagnostica || sd.conclusionDiagnostica}</span>` : ''}
+              ${doc.diagnosticoPresuntivo || sd.diagnosticoPresuntivo ? `<span><strong>Dx Presuntivo:</strong> ${doc.diagnosticoPresuntivo || sd.diagnosticoPresuntivo}</span>` : ''}
+            </div>
+          </div>`;
+        }
+
+        return `
+          <div class="exam-card" style="margin-bottom: 12px; padding: 14px 16px; border-left: 4px solid var(--primary);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <div>
+                <span style="font-weight: 800; font-size: 13px; color: var(--primary); display: block;">
+                  📄 ${doc.title || 'Documento Clínico'}
+                </span>
+                <span style="font-size: 10.5px; color: #64748b; font-family: monospace;">
+                  [Folio: ${doc.id}] Archivo adjunto: <strong>${doc.fileName || 'Documento.pdf'}</strong> (${doc.fileSize || 'N/A'}) · Subido el ${doc.date || 'N/A'} por ${doc.uploadedBy || 'Veterinario Tratante'}
+                </span>
+              </div>
+              <span class="badge badge-purple" style="font-size: 10.5px; font-weight: 700;">
+                ${doc.documentTypeLabel || doc.documentType || 'Estudio Clínico'}
+              </span>
+            </div>
+            ${findings}
+            ${paramsHtml}
+            ${doc.notes ? `
+              <div style="margin-top: 8px; font-size: 11.5px; color: #334155; font-style: italic; background: #fafafa; padding: 6px 10px; border-radius: 6px; border: 1px solid #f1f5f9;">
+                "${doc.notes}"
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('')
+    : '<div class="empty-state">No registra documentos clínicos ni archivos cargados en el expediente.</div>';
+
+  const clinicalExams = (patient.clinicalExams && Array.isArray(patient.clinicalExams)) ? patient.clinicalExams : [];
+  const clinicalExamsHtml = clinicalExams.length > 0
+    ? clinicalExams.map((exam) => `
+        <div class="exam-card" style="margin-bottom: 12px; padding: 14px 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+            <div>
+              <span style="font-weight: 800; font-size: 13px; color: #0f172a;">🧪 ${exam.name || exam.testName || 'Prueba de Laboratorio Clínico'}</span>
+              <span style="font-size: 10.5px; color: #64748b; display: block;">ID: ${exam.id} · Fecha: ${exam.date || exam.orderDate || 'N/A'} · Solicitado por: ${exam.vet || patient.attendingVet || 'Dr. Alejandro Morales'}</span>
+            </div>
+            <span class="badge ${exam.status === 'Completado' || exam.status === 'Resultado enviado' ? 'badge-emerald' : 'badge-blue'}">
+              ${exam.status || 'Completado'}
+            </span>
+          </div>
+          ${exam.resultsSummary || exam.resultSummary ? `
+            <div style="margin-top: 6px; font-size: 11.5px; color: #334155;">
+              <strong>Resumen de Resultado:</strong> ${exam.resultsSummary || exam.resultSummary}
+            </div>
+          ` : ''}
+          ${exam.notes ? `
+            <div style="margin-top: 4px; font-size: 11px; color: #64748b; font-style: italic;">
+              ${exam.notes}
+            </div>
+          ` : ''}
+        </div>
+      `).join('')
+    : '<div class="empty-state">No registra pruebas de laboratorio convencionales adicionales.</div>';
+
+  const auditHistory = Array.isArray(patient.auditHistory) && patient.auditHistory.length > 0
+    ? patient.auditHistory
+    : [
+        {
+          id: 'AUD-INIT',
+          fecha: patient.lastVisit || new Date().toLocaleDateString('es-CO'),
+          veterinario: patient.attendingVet || 'Dr. Alejandro Morales',
+          rol: 'Director Médico / Admin',
+          accion: 'Apertura y custodia inicial de la historia clínica digital',
+          cambios: [
+            { campo: 'Ficha Médica', categoria: 'General', anterior: 'No existía', nuevo: 'Expediente Verificado' }
+          ]
+        }
+      ];
+
+  const auditHistoryHtml = auditHistory.map((item) => `
+    <div style="padding: 10px 14px; background: #ffffff; border: 1px solid var(--slate-200); border-radius: 10px; margin-bottom: 8px; font-size: 11.5px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <span style="font-weight: 800; color: #1e293b;">🕒 ${item.fecha} · <span style="color: var(--primary);">${item.accion}</span></span>
+        <span style="font-size: 10.5px; color: #64748b; font-family: monospace;">Por: ${item.veterinario} (${item.rol || 'Médico'})</span>
+      </div>
+      ${item.cambios && item.cambios.length > 0 ? `
+        <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 4px;">
+          ${item.cambios.map((c) => `
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #475569; background: #f8fafc; padding: 3px 8px; border-radius: 6px;">
+              <span style="font-weight: 700; color: #0f172a;">[${c.categoria || 'Registro'}] ${c.campo}:</span>
+              <span style="text-decoration: line-through; color: #94a3b8;">${c.anterior}</span>
+              <span>→</span>
+              <strong style="color: #047857;">${c.nuevo}</strong>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `).join('');
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -1143,6 +1274,10 @@ export function generateClinicalHistoryHtml(patient) {
               <span class="vital-label">Mucosas</span>
               <span class="vital-val">${vs.mucosa || 'Rosadas y húmedas'}</span>
             </div>
+            <div class="vital-item">
+              <span class="vital-label">TLLC</span>
+              <span class="vital-val">${vs.capillaryRefillTime ? `${vs.capillaryRefillTime} seg` : '1 - 2 seg'}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -1158,6 +1293,36 @@ export function generateClinicalHistoryHtml(patient) {
     <section class="section-block">
       <h2 class="section-title">🔬 Exámenes de Biología Molecular qPCR (${patient.qpcrExams?.length || 0})</h2>
       ${qpcrExamsHtml}
+    </section>
+
+    <!-- CASILLA 7: PRUEBAS DE LABORATORIO CLÍNICO CONVENCIONALES -->
+    <section class="section-block">
+      <h2 class="section-title">🧪 Pruebas de Laboratorio Clínico Convencionales (${clinicalExams.length})</h2>
+      ${clinicalExamsHtml}
+    </section>
+
+    <!-- CASILLA 8: DOCUMENTOS CLÍNICOS, ARCHIVOS CARGADOS & EXÁMENES PREVIOS -->
+    <section class="section-block">
+      <h2 class="section-title">📁 Documentos Clínicos, Archivos Cargados & Exámenes Previos (${clinicalDocs.length})</h2>
+      ${clinicalDocsHtml}
+    </section>
+
+    <!-- CASILLA 9: HISTORIAL EVOLUTIVO DE PESO CORPORAL -->
+    <section class="section-block">
+      <h2 class="section-title">📈 Historial Evolutivo de Peso Corporal</h2>
+      <div class="card-panel">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px;">
+          ${weightHistoryHtml}
+        </div>
+      </div>
+    </section>
+
+    <!-- CASILLA 10: TRAZABILIDAD & HISTORIAL DE AUDITORÍA MÉDICA -->
+    <section class="section-block">
+      <h2 class="section-title">📝 Historial de Auditoría & Trazabilidad de Cambios (${auditHistory.length})</h2>
+      <div class="card-panel" style="max-height: 400px; overflow-y: auto;">
+        ${auditHistoryHtml}
+      </div>
     </section>
 
     <!-- PIE DE PÁGINA MÉDICO LEGAL -->

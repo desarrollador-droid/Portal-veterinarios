@@ -250,7 +250,12 @@ export default function PatientFichaModal({
 
   // Descarga de Historia Clínica Integral con diseño visual estructurado (no TXT)
   const handleDownloadHistory = () => {
-    downloadClinicalHistoryDocument(patient);
+    downloadClinicalHistoryDocument({
+      ...patient,
+      clinicalDocuments: clinicalDocs,
+      clinicalExams: clinicalExamsList,
+      qpcrExams: qpcrExamsList,
+    });
   };
 
   const handleSaveConsultation = async (consultationData) => {

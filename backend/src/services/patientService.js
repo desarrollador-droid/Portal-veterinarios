@@ -226,13 +226,30 @@ export const patientService = {
     // Campos inmutables protegidos: name, lastName, sex, birthDate
     const { name, lastName, sex, birthDate, age, id: ignoredId, ...allowedUpdates } = updateData;
 
-    // Calcular historial de auditoría de todos los campos editados
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
+      ' ' + now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const dateOnlyStr = now.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+    // Calcular historial de auditoría y registros evolutivos
     const auditChanges = [];
+
+    // 1. Historial Evolutivo de Peso
+    let updatedWeightHistory = Array.isArray(currentPatient.healthMetrics?.weightHistory)
+      ? [...currentPatient.healthMetrics.weightHistory]
+      : [];
+    if (updateData.weight && updateData.weight !== currentPatient.weight) {
+      auditChanges.push({
+        campo: 'Peso Corporal',
+        categoria: 'Medidas e Histórico',
+        anterior: currentPatient.weight || 'N/A',
+        nuevo: updateData.weight,
+      });
+      updatedWeightHistory = [{ date: dateOnlyStr, weight: updateData.weight }, ...updatedWeightHistory];
+    }
+
     if (updateData.status && updateData.status !== currentPatient.status) {
       auditChanges.push({ campo: 'Estado Clínico', categoria: 'Clínica', anterior: currentPatient.status, nuevo: updateData.status });
-    }
-    if (updateData.weight && updateData.weight !== currentPatient.weight) {
-      auditChanges.push({ campo: 'Peso', categoria: 'Medidas', anterior: currentPatient.weight || 'N/A', nuevo: updateData.weight });
     }
     if (updateData.isSterilized !== undefined && Boolean(updateData.isSterilized) !== Boolean(currentPatient.isSterilized)) {
       auditChanges.push({ campo: 'Esterilización', categoria: 'Reproducción', anterior: currentPatient.isSterilized ? 'Esterilizado' : 'Entero', nuevo: updateData.isSterilized ? 'Esterilizado' : 'Entero' });
@@ -259,25 +276,90 @@ export const patientService = {
         auditChanges.push({ campo: 'Exposición a Parásitos', categoria: 'Factores de Riesgo', anterior: crf.parasiteExposure ? 'Sí' : 'No', nuevo: rf.parasiteExposure ? 'Sí' : 'No' });
       }
     }
-    if (updateData.vitalSigns) {
-      const vs = updateData.vitalSigns;
+
+    // 2. Historial de Constantes Vitales
+    let updatedVitalSignsHistory = Array.isArray(currentPatient.healthMetrics?.vitalSignsHistory)
+      ? [...currentPatient.healthMetrics.vitalSignsHistory]
+      : [];
+    let hasVitalSignsChange = false;
+    if (updateData.vitalSigns || updateData.healthMetrics?.vitalSigns) {
+      const vs = updateData.vitalSigns || updateData.healthMetrics?.vitalSigns;
       const cvs = currentPatient.healthMetrics?.vitalSigns || {};
       if (vs.temperature && vs.temperature !== cvs.temperature) {
+        hasVitalSignsChange = true;
         auditChanges.push({ campo: 'Temperatura', categoria: 'Constantes Vitales', anterior: cvs.temperature || 'N/A', nuevo: vs.temperature });
       }
       if (vs.heartRate && vs.heartRate !== cvs.heartRate) {
+        hasVitalSignsChange = true;
         auditChanges.push({ campo: 'Frecuencia Cardíaca', categoria: 'Constantes Vitales', anterior: cvs.heartRate || 'N/A', nuevo: vs.heartRate });
       }
       if (vs.respiratoryRate && vs.respiratoryRate !== cvs.respiratoryRate) {
+        hasVitalSignsChange = true;
         auditChanges.push({ campo: 'Frecuencia Respiratoria', categoria: 'Constantes Vitales', anterior: cvs.respiratoryRate || 'N/A', nuevo: vs.respiratoryRate });
       }
       if (vs.mucosa && vs.mucosa !== cvs.mucosa) {
+        hasVitalSignsChange = true;
         auditChanges.push({ campo: 'Color de Mucosas', categoria: 'Constantes Vitales', anterior: cvs.mucosa || 'N/A', nuevo: vs.mucosa });
       }
       if (vs.capillaryRefillTime && vs.capillaryRefillTime !== cvs.capillaryRefillTime) {
-        auditChanges.push({ campo: 'TLLC', categoria: 'Constantes Vitales', anterior: cvs.capillaryRefillTime || 'N/A', nuevo: `${vs.capillaryRefillTime} seg` });
+        hasVitalSignsChange = true;
+        auditChanges.push({ campo: 'TLLC (Llenado Capilar)', categoria: 'Constantes Vitales', anterior: cvs.capillaryRefillTime ? `${cvs.capillaryRefillTime} seg` : 'N/A', nuevo: `${vs.capillaryRefillTime} seg` });
+      }
+      if (hasVitalSignsChange) {
+        updatedVitalSignsHistory = [
+          {
+            id: `VS-${Date.now()}`,
+            date: dateStr,
+            temperature: vs.temperature || cvs.temperature || 'N/A',
+            heartRate: vs.heartRate || cvs.heartRate || 'N/A',
+            respiratoryRate: vs.respiratoryRate || cvs.respiratoryRate || 'N/A',
+            mucosa: vs.mucosa || cvs.mucosa || 'N/A',
+            capillaryRefillTime: vs.capillaryRefillTime || cvs.capillaryRefillTime || 'N/A',
+          },
+          ...updatedVitalSignsHistory,
+        ];
       }
     }
+
+    // 3. Historial de Estado Preventivo (Vacunación y Desparasitación)
+    let updatedPreventiveHistory = Array.isArray(currentPatient.medicalAdmission?.preventiveHistory)
+      ? [...currentPatient.medicalAdmission.preventiveHistory]
+      : [];
+    let hasPreventiveChange = false;
+    if (updateData.medicalAdmission) {
+      const ma = updateData.medicalAdmission;
+      const cma = currentPatient.medicalAdmission || {};
+      if (ma.vaccinationStatus && ma.vaccinationStatus !== cma.vaccinationStatus) {
+        hasPreventiveChange = true;
+        auditChanges.push({ campo: 'Estado de Vacunación', categoria: 'Estado Preventivo', anterior: cma.vaccinationStatus || 'N/A', nuevo: ma.vaccinationStatus });
+      }
+      if (ma.lastVaccinationDate && ma.lastVaccinationDate !== cma.lastVaccinationDate) {
+        hasPreventiveChange = true;
+        auditChanges.push({ campo: 'Fecha Última Vacunación', categoria: 'Estado Preventivo', anterior: cma.lastVaccinationDate || 'N/A', nuevo: ma.lastVaccinationDate });
+      }
+      if (ma.dewormingStatus && ma.dewormingStatus !== cma.dewormingStatus) {
+        hasPreventiveChange = true;
+        auditChanges.push({ campo: 'Estado de Desparasitación', categoria: 'Estado Preventivo', anterior: cma.dewormingStatus || 'N/A', nuevo: ma.dewormingStatus });
+      }
+      if (ma.lastDewormingDate && ma.lastDewormingDate !== cma.lastDewormingDate) {
+        hasPreventiveChange = true;
+        auditChanges.push({ campo: 'Fecha Última Desparasitación', categoria: 'Estado Preventivo', anterior: cma.lastDewormingDate || 'N/A', nuevo: ma.lastDewormingDate });
+      }
+      if (hasPreventiveChange) {
+        updatedPreventiveHistory = [
+          {
+            id: `PREV-${Date.now()}`,
+            date: dateStr,
+            vaccinationStatus: ma.vaccinationStatus || cma.vaccinationStatus || 'Al día',
+            lastVaccinationDate: ma.lastVaccinationDate || cma.lastVaccinationDate || '',
+            dewormingStatus: ma.dewormingStatus || cma.dewormingStatus || 'Al día',
+            lastDewormingDate: ma.lastDewormingDate || cma.lastDewormingDate || '',
+          },
+          ...updatedPreventiveHistory,
+        ];
+      }
+    }
+
     if (updateData.owner) {
       const ow = updateData.owner;
       const cow = currentPatient.owner || {};
@@ -288,10 +370,6 @@ export const patientService = {
         auditChanges.push({ campo: 'Dirección Tutor', categoria: 'Tutor', anterior: cow.address || 'N/A', nuevo: ow.address });
       }
     }
-
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
-      ' ' + now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true });
 
     const auditEntry = {
       id: `AUD-${Date.now()}`,
@@ -339,10 +417,13 @@ export const patientService = {
       medicalAdmission: {
         ...currentPatient.medicalAdmission,
         ...(allowedUpdates.medicalAdmission || {}),
+        preventiveHistory: updatedPreventiveHistory,
       },
       healthMetrics: {
         ...currentPatient.healthMetrics,
         ...(allowedUpdates.healthMetrics || {}),
+        weightHistory: updatedWeightHistory,
+        vitalSignsHistory: updatedVitalSignsHistory,
         vitalSigns: {
           ...currentPatient.healthMetrics?.vitalSigns,
           ...(allowedUpdates.vitalSigns || allowedUpdates.healthMetrics?.vitalSigns || {}),
