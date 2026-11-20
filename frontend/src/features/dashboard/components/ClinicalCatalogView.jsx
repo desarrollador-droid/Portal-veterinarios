@@ -182,20 +182,20 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
 
       {/* 2. RECOMENDACIONES PREANALÍTICAS DE LA CATEGORÍA ACTIVA */}
       {activeCategoryObj && (
-        <div className="bg-gradient-to-r from-purple-50 via-indigo-50/50 to-purple-50/30 border border-purple-200/80 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 shadow-2xs animate-in fade-in duration-300">
-          <div className="p-2.5 bg-white rounded-xl shadow-xs border border-purple-100 text-xl shrink-0">
+        <div className="bg-gradient-to-r from-purple-50 via-indigo-50/50 to-purple-50/30 dark:from-[#201840] dark:via-[#1a1435] dark:to-[#201840] border border-purple-200/80 dark:border-[#2f2257] rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 shadow-2xs animate-in fade-in duration-300">
+          <div className="p-2.5 bg-white dark:bg-[#251b47] rounded-xl shadow-xs border border-purple-100 dark:border-purple-800/40 text-xl shrink-0">
             {activeCategoryObj.icon}
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-xs sm:text-sm font-black text-[#2B017C] uppercase tracking-wider">
+              <h3 className="text-xs sm:text-sm font-black text-[#2B017C] dark:!text-[#01FADA] uppercase tracking-wider">
                 Manejo Preanalítico · {activeCategoryObj.nombre}
               </h3>
-              <span className="px-2 py-0.5 bg-purple-200/70 text-[#2B017C] text-[10px] font-bold rounded-full">
+              <span className="px-2 py-0.5 bg-purple-200/70 dark:bg-purple-950/70 text-[#2B017C] dark:text-[#c4b5fd] text-[10px] font-bold rounded-full">
                 Página {activeCategoryObj.paginaInicio} Portafolio
               </span>
             </div>
-            <p className="text-xs text-slate-700 leading-relaxed font-medium">
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
               {activeCategoryObj.preparacionMuestra}
             </p>
           </div>
@@ -203,7 +203,7 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
       )}
 
       {/* 3. BARRA DE BÚSQUEDA Y FILTROS */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs space-y-4">
+      <div className="bg-white dark:bg-[#181232] rounded-2xl border border-slate-200/90 dark:border-[#2f2257] p-4 sm:p-5 shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
           {/* Buscador General de Pruebas */}
           <div className="relative flex-1">
@@ -215,13 +215,13 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar prueba clínica por nombre, analito, tubo (EDTA, suero, orina) o precio..."
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC] focus:bg-white transition-all"
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-[#13002E] border border-slate-200 dark:border-[#2f2257] rounded-xl text-xs sm:text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC] focus:bg-white dark:focus:bg-[#13002E] transition-all"
             />
             {searchTerm && (
               <button
                 type="button"
                 onClick={() => setSearchTerm('')}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs text-slate-400 hover:text-slate-600"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 ✕
               </button>
@@ -236,7 +236,7 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
                 setActiveCategory(e.target.value);
                 setCategorySearchQuery('');
               }}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC] focus:bg-white transition-all cursor-pointer shadow-2xs"
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#13002E] border border-slate-200 dark:border-[#2f2257] rounded-xl text-xs font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC] focus:bg-white dark:focus:bg-[#13002E] transition-all cursor-pointer shadow-2xs"
             >
               <option value="all">📁 Todas las Categorías ({CLINICAL_EXAMS.length})</option>
               {CLINICAL_CATEGORIES.map((cat) => (
@@ -253,7 +253,7 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
             <select
               value={sampleMatrixFilter}
               onChange={(e) => setSampleMatrixFilter(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC]"
+              className="px-3 py-2 bg-slate-50 dark:bg-[#13002E] border border-slate-200 dark:border-[#2f2257] rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC]"
             >
               {sampleMatrices.map((sm) => (
                 <option key={sm.id} value={sm.id}>
@@ -266,7 +266,7 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
             <select
               value={turnaroundFilter}
               onChange={(e) => setTurnaroundFilter(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC]"
+              className="px-3 py-2 bg-slate-50 dark:bg-[#13002E] border border-slate-200 dark:border-[#2f2257] rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#6F2BCC]"
             >
               {turnaroundOptions.map((to) => (
                 <option key={to.id} value={to.id}>
@@ -276,14 +276,14 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
             </select>
 
             {/* Botones Grid / Table */}
-            <div className="flex items-center border border-slate-200 rounded-xl p-0.5 bg-slate-50">
+            <div className="flex items-center border border-slate-200 dark:border-[#2f2257] rounded-xl p-0.5 bg-slate-50 dark:bg-[#13002E]">
               <button
                 type="button"
                 onClick={() => setViewMode('grid')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                   viewMode === 'grid'
-                    ? 'bg-white text-[#2B017C] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800'
+                    ? 'bg-white dark:bg-[#251b47] text-[#2B017C] dark:!text-[#01FADA] shadow-xs'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'
                 }`}
                 title="Vista en Cuadrícula"
               >
@@ -294,8 +294,8 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
                 onClick={() => setViewMode('table')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                   viewMode === 'table'
-                    ? 'bg-white text-[#2B017C] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800'
+                    ? 'bg-white dark:bg-[#251b47] text-[#2B017C] dark:!text-[#01FADA] shadow-xs'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'
                 }`}
                 title="Vista en Tabla"
               >
@@ -307,10 +307,10 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
       </div>
 
       {/* 5. CONTADOR DE RESULTADOS */}
-      <div className="flex items-center justify-between text-xs text-slate-500 px-1">
+      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
         <span>
-          Mostrando <strong className="text-slate-800">{filteredExams.length}</strong> de{' '}
-          <strong>{CLINICAL_EXAMS.length}</strong> pruebas diagnósticas disponibles
+          Mostrando <strong className="text-slate-800 dark:text-slate-200">{filteredExams.length}</strong> de{' '}
+          <strong className="text-slate-800 dark:text-slate-200">{CLINICAL_EXAMS.length}</strong> pruebas diagnósticas disponibles
         </span>
         {(searchTerm || sampleMatrixFilter !== 'all' || turnaroundFilter !== 'all' || activeCategory !== 'all') && (
           <button
@@ -322,7 +322,7 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
               setTurnaroundFilter('all');
               setSortBy('name-asc');
             }}
-            className="text-[#6F2BCC] font-bold hover:underline cursor-pointer"
+            className="text-[#6F2BCC] dark:!text-[#01FADA] font-bold hover:underline cursor-pointer"
           >
             Limpiar todos los filtros ✕
           </button>
@@ -335,32 +335,32 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
           {filteredExams.map((exam) => (
             <div
               key={exam.id}
-              className="bg-white rounded-2xl border border-slate-200/90 hover:border-purple-300 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+              className="bg-white dark:bg-[#181232] rounded-2xl border border-slate-200/90 dark:border-[#2f2257] hover:border-purple-300 dark:hover:border-purple-500 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
             >
               <div className="space-y-3">
                 {/* Header de la tarjeta: Categoría y Precio */}
                 <div className="flex items-start justify-between gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-50 text-[#6F2BCC] border border-purple-100">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-50 dark:bg-purple-950/60 text-[#6F2BCC] dark:text-[#c4b5fd] border border-purple-100 dark:border-purple-800/50">
                     <span>{exam.categoriaIcon || '🔬'}</span>
                     <span className="truncate max-w-[170px]">{exam.categoria}</span>
                   </span>
 
-                  <span className="px-2.5 py-1 rounded-xl font-mono font-black text-xs text-[#2B017C] bg-purple-100/70 border border-purple-200">
+                  <span className="px-2.5 py-1 rounded-xl font-mono font-black text-xs text-[#2B017C] dark:!text-[#01FADA] bg-purple-100/70 dark:bg-teal-950/60 border border-purple-200 dark:border-[#01FADA]/40 shadow-2xs">
                     {exam.precioFormateado}
                   </span>
                 </div>
 
                 {/* Nombre de la prueba */}
-                <h3 className="font-extrabold text-slate-900 text-sm sm:text-base group-hover:text-[#6F2BCC] transition-colors leading-snug">
+                <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-sm sm:text-base group-hover:text-[#6F2BCC] dark:group-hover:text-[#01FADA] transition-colors leading-snug">
                   {exam.nombre}
                 </h3>
 
                 {/* Matriz de muestra */}
-                <div className="flex items-start gap-1.5 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <div className="flex items-start gap-1.5 text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-[#13002E]/70 p-2.5 rounded-xl border border-slate-100 dark:border-[#2f2257]">
                   <span className="text-sm shrink-0">🧪</span>
                   <div className="min-w-0">
                     <span className="text-[10px] uppercase font-bold text-slate-400 block">Muestra / Tubo</span>
-                    <span className="font-semibold text-slate-800 text-xs line-clamp-2">
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs line-clamp-2">
                       {exam.muestra || 'Sangre entera / Suero'}
                     </span>
                   </div>
@@ -368,15 +368,15 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
 
                 {/* Observaciones técnicas si existen */}
                 {exam.observaciones && (
-                  <p className="text-[11px] text-slate-500 line-clamp-2 italic leading-relaxed">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 italic leading-relaxed">
                     💡 {exam.observaciones}
                   </p>
                 )}
               </div>
 
               {/* Footer de la tarjeta: Tiempo y botón de detalles */}
-              <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between gap-2">
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500">
+              <div className="pt-4 mt-4 border-t border-slate-100 dark:border-[#2f2257] flex items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
                   <span>⏱️</span>
                   <span className="truncate max-w-[130px]">{exam.tiempoResultado}</span>
                 </span>
@@ -385,7 +385,7 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
                   <button
                     type="button"
                     onClick={() => handleCopyExamInfo(exam)}
-                    className="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
+                    className="p-1.5 text-slate-400 hover:text-purple-600 dark:hover:text-[#01FADA] hover:bg-purple-50 dark:hover:bg-purple-950/50 rounded-lg transition-colors cursor-pointer"
                     title="Copiar información de la prueba"
                   >
                     {copiedId === exam.id ? '✓' : '📋'}
@@ -394,7 +394,7 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
                   <button
                     type="button"
                     onClick={() => setSelectedExam(exam)}
-                    className="px-3 py-1.5 bg-[#2B017C] hover:bg-[#6F2BCC] text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+                    className="px-3 py-1.5 bg-[#2B017C] hover:bg-[#6F2BCC] text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs dark:bg-[#251b47] dark:hover:bg-[#342464] dark:border dark:border-[#6F2BCC]/50"
                   >
                     Ficha Técnica
                   </button>
@@ -419,11 +419,11 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
 
       {/* 7. LISTADO DE PRUEBAS: MODO TABLA COMPACTA */}
       {viewMode === 'table' && (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+        <div className="bg-white dark:bg-[#181232] rounded-2xl border border-slate-200 dark:border-[#2f2257] overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-extrabold text-[10px]">
+                <tr className="bg-slate-50 dark:bg-[#13002E] border-b border-slate-200 dark:border-[#2f2257] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-extrabold text-[10px]">
                   <th className="py-3 px-4">Cód.</th>
                   <th className="py-3 px-4">Prueba Diagnóstica</th>
                   <th className="py-3 px-4">Categoría</th>
@@ -433,31 +433,31 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
                   <th className="py-3 px-4 text-center">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
+              <tbody className="divide-y divide-slate-100 dark:divide-[#2f2257] text-slate-700 dark:text-slate-300 font-medium">
                 {filteredExams.map((exam) => (
-                  <tr key={exam.id} className="hover:bg-purple-50/50 transition-colors">
-                    <td className="py-3 px-4 font-mono text-[11px] text-slate-400">{exam.id}</td>
+                  <tr key={exam.id} className="hover:bg-purple-50/50 dark:hover:bg-[#251b47]/40 transition-colors">
+                    <td className="py-3 px-4 font-mono text-[11px] text-slate-400 dark:text-slate-500">{exam.id}</td>
                     <td className="py-3 px-4">
-                      <span className="font-bold text-slate-900 block">{exam.nombre}</span>
+                      <span className="font-bold text-slate-900 dark:text-slate-100 block">{exam.nombre}</span>
                       {exam.observaciones && (
-                        <span className="text-[10px] text-slate-400 italic block truncate max-w-sm">
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 italic block truncate max-w-sm">
                           {exam.observaciones}
                         </span>
                       )}
                     </td>
                     <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-purple-700 dark:text-[#c4b5fd] bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800/40 px-2 py-0.5 rounded-md">
                         <span>{exam.categoriaIcon}</span>
                         <span>{exam.categoria}</span>
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-slate-600 max-w-xs truncate" title={exam.muestra}>
+                    <td className="py-3 px-4 text-slate-600 dark:text-slate-300 max-w-xs truncate" title={exam.muestra}>
                       {exam.muestra}
                     </td>
-                    <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
+                    <td className="py-3 px-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
                       ⏱️ {exam.tiempoResultado}
                     </td>
-                    <td className="py-3 px-4 text-right font-mono font-black text-[#2B017C]">
+                    <td className="py-3 px-4 text-right font-mono font-black text-[#2B017C] dark:!text-[#01FADA] text-sm">
                       {exam.precioFormateado}
                     </td>
                     <td className="py-3 px-4 text-center">
@@ -465,7 +465,7 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
                         <button
                           type="button"
                           onClick={() => setSelectedExam(exam)}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-[#6F2BCC] hover:text-white rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
+                          className="px-2.5 py-1 bg-slate-100 dark:bg-[#201840] hover:bg-[#6F2BCC] hover:text-white dark:text-slate-200 rounded-lg text-[11px] font-bold transition-colors cursor-pointer border border-transparent dark:border-[#2f2257]"
                         >
                           Ver Detalle
                         </button>
@@ -491,15 +491,15 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
 
       {/* ESTADO VACÍO SI NO HAY RESULTADOS */}
       {filteredExams.length === 0 && (
-        <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-4 shadow-xs">
-          <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center text-3xl mx-auto text-[#6F2BCC]">
+        <div className="bg-white dark:bg-[#181232] rounded-3xl border border-slate-200 dark:border-[#2f2257] p-12 text-center space-y-4 shadow-xs">
+          <div className="w-16 h-16 bg-purple-50 dark:bg-[#251b47] rounded-full flex items-center justify-center text-3xl mx-auto text-[#6F2BCC] dark:text-[#01FADA]">
             🔍
           </div>
           <div className="space-y-1">
-            <h3 className="text-base font-extrabold text-slate-800">
+            <h3 className="text-base font-extrabold text-slate-800 dark:text-slate-100">
               No se encontraron exámenes para el criterio especificado
             </h3>
-            <p className="text-xs text-slate-500 max-w-md mx-auto">
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
               Intente ajustar el término de búsqueda o seleccione otra categoría diagnóstica.
             </p>
           </div>
@@ -511,7 +511,7 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
               setSampleMatrixFilter('all');
               setTurnaroundFilter('all');
             }}
-            className="px-4 py-2 bg-[#6F2BCC] text-white rounded-xl text-xs font-bold hover:bg-[#581ea3] transition-colors cursor-pointer"
+            className="px-4 py-2 bg-[#2B017C] hover:bg-[#6F2BCC] dark:bg-[#251b47] dark:hover:bg-[#342464] dark:border dark:border-[#6F2BCC]/50 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
           >
             Restablecer Filtros
           </button>
@@ -520,23 +520,23 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
 
       {/* 8. MODAL DE FICHA TÉCNICA DETALLADA */}
       {selectedExam && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl border border-slate-200 max-w-xl w-full p-6 sm:p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#181232] rounded-3xl border border-slate-200 dark:border-[#2f2257] max-w-xl w-full p-6 sm:p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
             {/* Cabecera del modal */}
-            <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100">
+            <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100 dark:border-[#2f2257]">
               <div className="space-y-1">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-purple-100 text-[#2B017C]">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-purple-100 dark:bg-purple-950/60 text-[#2B017C] dark:text-[#c4b5fd]">
                   <span>{selectedExam.categoriaIcon || '🔬'}</span>
                   <span>{selectedExam.categoria}</span>
                 </span>
-                <h2 className="text-xl font-black text-slate-900 leading-snug">
+                <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 leading-snug">
                   {selectedExam.nombre}
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedExam(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-sm font-bold transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-[#201840] hover:bg-slate-200 dark:hover:bg-[#2e2358] text-slate-500 dark:text-slate-300 flex items-center justify-center text-sm font-bold transition-colors cursor-pointer"
               >
                 ✕
               </button>
@@ -544,41 +544,41 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
 
             {/* Tarifa y tiempos destacados */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-purple-50/80 p-3.5 rounded-2xl border border-purple-100">
-                <span className="text-[10px] uppercase font-bold text-purple-600 block">Tarifa Oficial</span>
-                <span className="text-xl font-black font-mono text-[#2B017C] block">
+              <div className="bg-purple-50/80 dark:bg-[#1f173d] p-3.5 rounded-2xl border border-purple-100 dark:border-[#6F2BCC]/40">
+                <span className="text-[10px] uppercase font-bold text-purple-600 dark:text-[#a78bfa] block">Tarifa Oficial</span>
+                <span className="text-xl font-black font-mono text-[#2B017C] dark:!text-[#01FADA] block">
                   {selectedExam.precioFormateado}
                 </span>
-                <span className="text-[10px] text-purple-500 block">IVA incluido</span>
+                <span className="text-[10px] text-purple-500 dark:text-purple-300 block">IVA incluido</span>
               </div>
 
-              <div className="bg-sky-50/80 p-3.5 rounded-2xl border border-sky-100">
-                <span className="text-[10px] uppercase font-bold text-sky-600 block">Tiempo de Entrega</span>
-                <span className="text-base font-extrabold text-sky-950 block">
+              <div className="bg-sky-50/80 dark:bg-[#132238] p-3.5 rounded-2xl border border-sky-100 dark:border-sky-800/40">
+                <span className="text-[10px] uppercase font-bold text-sky-600 dark:text-sky-300 block">Tiempo de Entrega</span>
+                <span className="text-base font-extrabold text-sky-950 dark:text-sky-100 block">
                   ⏱️ {selectedExam.tiempoResultado}
                 </span>
-                <span className="text-[10px] text-sky-600 block">Días / horas hábiles</span>
+                <span className="text-[10px] text-sky-600 dark:text-sky-400 block">Días / horas hábiles</span>
               </div>
             </div>
 
             {/* Muestra Requerida */}
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+            <div className="bg-slate-50 dark:bg-[#13002E]/70 p-4 rounded-2xl border border-slate-200/80 dark:border-[#2f2257] space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400 block">
                 Matriz Biológica / Tipo de Tubo
               </span>
-              <p className="text-xs sm:text-sm font-bold text-slate-800">
+              <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
                 🧪 {selectedExam.muestra || 'Consulte al laboratorio'}
               </p>
             </div>
 
             {/* Indicaciones Preanalíticas */}
             {selectedExam.preparacionMuestra && (
-              <div className="bg-amber-50/70 p-4 rounded-2xl border border-amber-200/80 space-y-1">
-                <div className="flex items-center gap-1.5 text-amber-800 font-bold text-xs uppercase tracking-wider">
+              <div className="bg-amber-50/70 dark:bg-amber-950/30 p-4 rounded-2xl border border-amber-200/80 dark:border-amber-800/40 space-y-1">
+                <div className="flex items-center gap-1.5 text-amber-800 dark:text-amber-300 font-bold text-xs uppercase tracking-wider">
                   <span>💡</span>
                   <span>Indicaciones de Preparación y Manejo</span>
                 </div>
-                <p className="text-xs text-amber-950 leading-relaxed font-medium">
+                <p className="text-xs text-amber-950 dark:text-amber-200 leading-relaxed font-medium">
                   {selectedExam.preparacionMuestra}
                 </p>
               </div>
@@ -586,26 +586,26 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
 
             {/* Observaciones o Metodología */}
             {selectedExam.observaciones && (
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+              <div className="bg-slate-50 dark:bg-[#13002E]/70 p-4 rounded-2xl border border-slate-200/80 dark:border-[#2f2257] space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400 block">
                   Metodología & Alcance Diagnóstico
                 </span>
-                <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
                   {selectedExam.observaciones}
                 </p>
               </div>
             )}
 
             {/* Información de Soporte OSD */}
-            <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-100 text-xs text-indigo-900 flex items-center justify-between gap-3">
+            <div className="p-3.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/40 text-xs text-indigo-900 dark:text-indigo-200 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <span className="text-lg">📞</span>
                 <div>
                   <strong className="block text-[11px]">Asesoría Médica OSD VetLab:</strong>
-                  <span className="text-[11px] text-indigo-700">300 514 3626 · 300 514 3701</span>
+                  <span className="text-[11px] text-indigo-700 dark:text-[#01FADA]">300 514 3626 · 300 514 3701</span>
                 </div>
               </div>
-              <span className="text-[10px] px-2 py-1 bg-white rounded-lg font-bold text-indigo-800 border border-indigo-200">
+              <span className="text-[10px] px-2 py-1 bg-white dark:bg-[#1f173d] rounded-lg font-bold text-indigo-800 dark:text-indigo-200 border border-indigo-200 dark:border-indigo-800/40">
                 L-V 7am - 6pm · Sáb 7am - 2pm
               </span>
             </div>
@@ -615,7 +615,7 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
               <button
                 type="button"
                 onClick={() => handleCopyExamInfo(selectedExam)}
-                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2.5 bg-slate-100 dark:bg-[#201840] hover:bg-slate-200 dark:hover:bg-[#2e2358] text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <span>{copiedId === selectedExam.id ? '✓ Copiado' : '📋 Copiar Ficha'}</span>
               </button>
@@ -623,7 +623,7 @@ export default function ClinicalCatalogView({ onNavigateToRequestExam, patients 
               <button
                 type="button"
                 onClick={() => setSelectedExam(null)}
-                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                className="px-4 py-2.5 bg-slate-100 dark:bg-[#201840] hover:bg-slate-200 dark:hover:bg-[#2e2358] text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all cursor-pointer"
               >
                 Cerrar
               </button>

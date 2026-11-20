@@ -1366,13 +1366,13 @@ export default function ClinicalOrderForm({
                       </div>
 
                       <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-100/30 dark:border-[#2f2257]/60">
-                        <span className={`font-black text-xs ${isSelected ? 'text-white' : 'text-teal-700 dark:text-[#01FADA]'}`}>
+                        <span className={`font-black text-xs ${isSelected ? 'text-white' : 'text-teal-700 dark:!text-[#01FADA]'}`}>
                           ${examPrice.toLocaleString('es-CO')} COP
                         </span>
                         <span className={`text-[11px] font-bold px-2 py-0.5 rounded-lg ${
                           isSelected
                             ? 'bg-white text-teal-900'
-                            : 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-[#01FADA] border border-transparent dark:border-teal-800/60'
+                            : 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:!text-[#01FADA] border border-transparent dark:border-teal-800/60'
                         }`}>
                           {isSelected ? '✓ Agregada' : '+ Añadir'}
                         </span>
@@ -1409,7 +1409,7 @@ export default function ClinicalOrderForm({
                   Pruebas Configuradas para la Orden ({selectedCatalogExams.length}) *
                 </label>
                 {selectedCatalogExams.length > 0 && (
-                  <span className="text-xs font-bold text-teal-800 dark:text-[#01FADA]">
+                  <span className="text-xs font-bold text-teal-800 dark:!text-[#01FADA]">
                     Subtotal: ${totalCatalogPrice.toLocaleString('es-CO')} COP
                   </span>
                 )}
@@ -1439,7 +1439,7 @@ export default function ClinicalOrderForm({
 
                         {/* Código VetPlus para esta prueba */}
                         <div className="flex items-center gap-2.5 flex-wrap">
-                          <span className="font-black text-teal-950 dark:text-[#01FADA] text-xs sm:text-sm">
+                          <span className="font-black text-teal-950 dark:!text-[#01FADA] text-xs sm:text-sm">
                             ${examPrice.toLocaleString('es-CO')} COP
                           </span>
 
@@ -1555,7 +1555,7 @@ export default function ClinicalOrderForm({
               <div className="flex items-center gap-3">
                 <div className="text-right">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block">Total a Facturar</span>
-                  <span className="text-base sm:text-lg font-black text-teal-800 dark:text-[#01FADA]">
+                  <span className="text-base sm:text-lg font-black text-teal-800 dark:!text-[#01FADA]">
                     ${totalCatalogPrice.toLocaleString('es-CO')} COP
                   </span>
                 </div>

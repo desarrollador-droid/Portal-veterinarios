@@ -2408,17 +2408,17 @@ export default function RequestExamModal({
           ) : (
             <>
               {!isModal && (
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-[#2f2257]">
                   <button
                     type="button"
                     onClick={onClose}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#1f173d] hover:bg-slate-200 dark:hover:bg-[#2c2055] text-slate-700 dark:text-slate-200 text-xs font-bold transition-all cursor-pointer border border-transparent dark:border-[#3d2b6b]"
                   >
                     <span>←</span> Volver a Pacientes
                   </button>
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[11px] font-extrabold text-[#6F2BCC] uppercase tracking-wider">
+                    <span className="text-[11px] font-extrabold text-[#6F2BCC] dark:text-[#a78bfa] uppercase tracking-wider">
                       {requestCategory === 'qpcr' && 'Módulo Clínico · Solicitud de Examen qPCR'}
                       {requestCategory === 'clinicas' && 'Módulo Clínico · Solicitud de Clínicas (223 Pruebas)'}
                       {requestCategory === 'microbiota' && 'Módulo Clínico · Solicitud de Microbiota (Kit & Recolección)'}
@@ -2430,10 +2430,10 @@ export default function RequestExamModal({
                 <div className="flex items-center gap-2 flex-wrap">
                   {requestCategory ? (
                     <>
-                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider ${
-                        requestCategory === 'clinicas' ? 'bg-teal-100 text-teal-800' :
-                        requestCategory === 'qpcr' ? 'bg-purple-100 text-[#6F2BCC]' :
-                        'bg-emerald-100 text-emerald-800'
+                      <span className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider ${
+                        requestCategory === 'clinicas' ? 'bg-teal-100 dark:bg-teal-950/70 text-teal-800 dark:text-[#01FADA] border border-teal-200 dark:border-teal-800/80' :
+                        requestCategory === 'qpcr' ? 'bg-purple-100 dark:bg-purple-950/70 text-[#6F2BCC] dark:text-[#a78bfa] border border-purple-200 dark:border-purple-800/80' :
+                        'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-[#34d399] border border-emerald-200 dark:border-emerald-800/80'
                       }`}>
                         {requestCategory === 'clinicas' && '🏥 1. CATÁLOGO DE CLÍNICAS (223 PRUEBAS)'}
                         {requestCategory === 'qpcr' && (examType === 'control' ? '🔄 2. SEGUIMIENTO / CONTROL qPCR' : '🧬 2. BIOLOGÍA MOLECULAR qPCR')}
@@ -2442,13 +2442,13 @@ export default function RequestExamModal({
                       <button
                         type="button"
                         onClick={() => setRequestCategory(null)}
-                        className="text-[11px] text-[#6F2BCC] hover:underline font-bold cursor-pointer ml-1"
+                        className="text-[11px] text-[#6F2BCC] dark:text-[#a78bfa] hover:text-[#2B017C] dark:hover:text-[#01FADA] hover:underline font-bold cursor-pointer ml-1.5"
                       >
                         ← Cambiar examen
                       </button>
                     </>
                   ) : (
-                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-purple-100 text-[#6F2BCC]">
+                    <span className="px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-purple-100 dark:bg-purple-950/70 text-[#6F2BCC] dark:text-[#a78bfa] border border-purple-200 dark:border-purple-800/80">
                       📋 NUEVA SOLICITUD DIAGNÓSTICA
                     </span>
                   )}
@@ -2456,7 +2456,7 @@ export default function RequestExamModal({
                 {isModal && (
                   <button
                     onClick={onClose}
-                    className="text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer transition-colors"
+                    className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-bold text-lg cursor-pointer transition-colors"
                   >
                     ✕
                   </button>
@@ -2465,20 +2465,28 @@ export default function RequestExamModal({
 
               {/* Selector de Modalidad Principal (Orden Oficial: 1. Clínicas, 2. qPCR, 3. Microbiota) */}
               {requestCategory && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1.5 bg-slate-100/90 rounded-2xl mb-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1.5 bg-slate-100/90 dark:bg-[#13002E] border border-slate-200/80 dark:border-[#2f2257] rounded-2xl mb-3 shadow-inner">
                   <button
                     type="button"
                     onClick={() => setRequestCategory('clinicas')}
                     className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
                       requestCategory === 'clinicas'
-                        ? 'bg-white text-[#2B017C] shadow-xs ring-1 ring-slate-200'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                        ? 'bg-white dark:bg-[#251b47] text-[#2B017C] dark:text-white shadow-xs ring-1 ring-slate-200 dark:ring-[#6F2BCC]/60'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/10'
                     }`}
                   >
                     <span className="text-lg">🏥</span>
                     <div className="min-w-0">
-                      <div className="font-extrabold truncate">1. Solicitud de Clínicas</div>
-                      <div className="text-[10px] text-teal-700 font-semibold truncate">223 Pruebas · Sin ayudas</div>
+                      <div className={`font-extrabold truncate ${
+                        requestCategory === 'clinicas' ? 'text-[#2B017C] dark:text-white' : 'text-slate-700 dark:text-slate-200'
+                      }`}>
+                        1. Solicitud de Clínicas
+                      </div>
+                      <div className={`text-[10px] font-semibold truncate ${
+                        requestCategory === 'clinicas' ? 'text-teal-700 dark:text-[#01FADA]' : 'text-teal-600 dark:text-teal-400'
+                      }`}>
+                        223 Pruebas · Sin ayudas
+                      </div>
                     </div>
                   </button>
 
@@ -2487,14 +2495,22 @@ export default function RequestExamModal({
                     onClick={() => setRequestCategory('qpcr')}
                     className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
                       requestCategory === 'qpcr'
-                        ? 'bg-white text-[#2B017C] shadow-xs ring-1 ring-slate-200'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                        ? 'bg-white dark:bg-[#251b47] text-[#2B017C] dark:text-white shadow-xs ring-1 ring-slate-200 dark:ring-[#6F2BCC]/60'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/10'
                     }`}
                   >
                     <span className="text-lg">🧬</span>
                     <div className="min-w-0">
-                      <div className="font-extrabold truncate">2. Biología Molecular (qPCR)</div>
-                      <div className="text-[10px] text-[#6F2BCC] font-semibold truncate">Con ayudas diagnósticas</div>
+                      <div className={`font-extrabold truncate ${
+                        requestCategory === 'qpcr' ? 'text-[#2B017C] dark:text-white' : 'text-slate-700 dark:text-slate-200'
+                      }`}>
+                        2. Biología Molecular (qPCR)
+                      </div>
+                      <div className={`text-[10px] font-semibold truncate ${
+                        requestCategory === 'qpcr' ? 'text-[#6F2BCC] dark:text-[#a78bfa]' : 'text-[#6F2BCC]/80 dark:text-purple-300'
+                      }`}>
+                        Con ayudas diagnósticas
+                      </div>
                     </div>
                   </button>
 
@@ -2503,14 +2519,22 @@ export default function RequestExamModal({
                     onClick={() => setRequestCategory('microbiota')}
                     className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
                       requestCategory === 'microbiota'
-                        ? 'bg-white text-[#2B017C] shadow-xs ring-1 ring-slate-200'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                        ? 'bg-white dark:bg-[#251b47] text-[#2B017C] dark:text-white shadow-xs ring-1 ring-slate-200 dark:ring-[#6F2BCC]/60'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/10'
                     }`}
                   >
                     <span className="text-lg">🦠</span>
                     <div className="min-w-0">
-                      <div className="font-extrabold truncate">3. Solicitud de Microbiota</div>
-                      <div className="text-[10px] text-emerald-700 font-semibold truncate">Kit o Recolección · Sin ayudas</div>
+                      <div className={`font-extrabold truncate ${
+                        requestCategory === 'microbiota' ? 'text-[#2B017C] dark:text-white' : 'text-slate-700 dark:text-slate-200'
+                      }`}>
+                        3. Solicitud de Microbiota
+                      </div>
+                      <div className={`text-[10px] font-semibold truncate ${
+                        requestCategory === 'microbiota' ? 'text-emerald-700 dark:text-[#34d399]' : 'text-emerald-600 dark:text-emerald-400'
+                      }`}>
+                        Kit o Recolección · Sin ayudas
+                      </div>
                     </div>
                   </button>
                 </div>
@@ -2519,9 +2543,9 @@ export default function RequestExamModal({
               {/* Barra de progreso según modalidad */}
               {requestCategory === 'qpcr' && (
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
-                    <span>PASO {currentStep <= 5 ? currentStep : 5} DE 5</span>
-                    <span className="text-[#6F2BCC]">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    <span className="dark:text-slate-300">PASO {currentStep <= 5 ? currentStep : 5} DE 5</span>
+                    <span className="text-[#6F2BCC] dark:text-[#a78bfa]">
                       {currentStep === 1 && '1. Paciente & Esterilización'}
                       {currentStep === 2 && '2. Factores de riesgo'}
                       {currentStep === 3 && '3. Evaluación clínica & Historia'}
@@ -2530,36 +2554,36 @@ export default function RequestExamModal({
                     </span>
                   </div>
                   <div className="grid grid-cols-5 gap-2">
-                    <div className={`h-1.5 rounded-full transition-all ${currentStep >= 1 ? 'bg-[#6F2BCC]' : 'bg-slate-200'}`} />
-                    <div className={`h-1.5 rounded-full transition-all ${currentStep >= 2 ? 'bg-[#6F2BCC]' : 'bg-slate-200'}`} />
-                    <div className={`h-1.5 rounded-full transition-all ${currentStep >= 3 ? 'bg-[#6F2BCC]' : 'bg-slate-200'}`} />
-                    <div className={`h-1.5 rounded-full transition-all ${currentStep >= 4 ? 'bg-[#6F2BCC]' : 'bg-slate-200'}`} />
-                    <div className={`h-1.5 rounded-full transition-all ${currentStep >= 5 ? 'bg-[#6F2BCC]' : 'bg-slate-200'}`} />
+                    <div className={`h-1.5 rounded-full transition-all ${currentStep >= 1 ? 'bg-[#6F2BCC]' : 'bg-slate-200 dark:bg-[#2f2257]'}`} />
+                    <div className={`h-1.5 rounded-full transition-all ${currentStep >= 2 ? 'bg-[#6F2BCC]' : 'bg-slate-200 dark:bg-[#2f2257]'}`} />
+                    <div className={`h-1.5 rounded-full transition-all ${currentStep >= 3 ? 'bg-[#6F2BCC]' : 'bg-slate-200 dark:bg-[#2f2257]'}`} />
+                    <div className={`h-1.5 rounded-full transition-all ${currentStep >= 4 ? 'bg-[#6F2BCC]' : 'bg-slate-200 dark:bg-[#2f2257]'}`} />
+                    <div className={`h-1.5 rounded-full transition-all ${currentStep >= 5 ? 'bg-[#6F2BCC]' : 'bg-slate-200 dark:bg-[#2f2257]'}`} />
                   </div>
                 </div>
               )}
 
               {requestCategory === 'clinicas' && (
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
-                    <span>SOLICITUD DE CLÍNICAS — FORMULARIO OFICIAL OSD</span>
-                    <span className="text-teal-700 font-bold">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    <span className="dark:text-slate-300 font-extrabold">SOLICITUD DE CLÍNICAS — FORMULARIO OFICIAL OSD</span>
+                    <span className="text-teal-700 dark:text-[#01FADA] font-extrabold">
                       Portafolio Oficial 2026 (223 Pruebas) · Sin qPCR
                     </span>
                   </div>
-                  <div className="w-full bg-teal-600 h-1.5 rounded-full" />
+                  <div className="w-full bg-teal-600 dark:bg-[#01FADA] h-1.5 rounded-full" />
                 </div>
               )}
 
               {requestCategory === 'microbiota' && (
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
-                    <span>MICROBIOTA GASTROINTESTINAL</span>
-                    <span className="text-emerald-700 font-bold">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    <span className="dark:text-slate-300 font-extrabold">MICROBIOTA GASTROINTESTINAL</span>
+                    <span className="text-emerald-700 dark:text-[#34d399] font-extrabold">
                       {microbiotaSubtype === 'kit' ? '📦 Modalidad: Solicitud de Kit de Toma' : '🚚 Modalidad: Solicitud de Recolección'}
                     </span>
                   </div>
-                  <div className="w-full bg-emerald-500 h-1.5 rounded-full" />
+                  <div className="w-full bg-emerald-500 dark:bg-[#34d399] h-1.5 rounded-full" />
                 </div>
               )}
             </>

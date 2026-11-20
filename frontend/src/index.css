@@ -163,7 +163,8 @@ html.dark {
 .dark .bg-slate-100\/50,
 .dark .bg-slate-100\/60,
 .dark .bg-slate-100\/70,
-.dark .bg-slate-100\/80 {
+.dark .bg-slate-100\/80,
+.dark .bg-slate-100\/90 {
   background-color: #1c1538 !important;
   color: #cbd5e1 !important;
 }
@@ -217,6 +218,8 @@ html.dark {
 .dark .bg-purple-50\/80,
 .dark .bg-purple-50\/90,
 .dark .bg-purple-100,
+.dark .bg-purple-100\/70,
+.dark .bg-purple-100\/80,
 .dark .bg-purple-200 {
   background-color: rgba(111, 43, 204, 0.18) !important;
 }
