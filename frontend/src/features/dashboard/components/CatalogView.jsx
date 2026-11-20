@@ -160,17 +160,17 @@ export default function CatalogView({ onNavigateToRequestExam }) {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex-1 min-w-0 max-w-xl">
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-100 text-[#6F2BCC] border border-purple-200/60">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-100 dark:bg-purple-950/60 text-[#6F2BCC] dark:text-[#c4b5fd] border border-purple-200/60 dark:border-purple-800/40">
               Catálogo Clínico Molecular
             </span>
-            <span className="text-xs text-slate-400 font-medium">
+            <span className="text-xs text-slate-400 dark:text-slate-400 font-medium">
               · Base de Datos Biomédica qPCR
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2B017C] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2B017C] dark:text-white tracking-tight">
             Catálogo de Perfiles y Agentes qPCR
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
             Paneles validados, patógenos clasificados por familias, patogenia, signos clínicos, hallazgos de laboratorio y matrices biológicas pertinentes.
           </p>
         </div>
@@ -178,19 +178,19 @@ export default function CatalogView({ onNavigateToRequestExam }) {
         {/* Acciones principales: Pestañas + Botón Solicitar */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 shrink-0 self-start lg:self-auto">
           {/* Pestañas: Perfiles qPCR vs Agentes Infecciosos */}
-          <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-bold gap-1 shadow-2xs">
+          <div className="inline-flex rounded-xl bg-slate-100 dark:bg-[#13002E] p-1 border border-slate-200 dark:border-[#2f2257] text-xs font-bold gap-1 shadow-2xs">
             <button
               onClick={() => setActiveTab('perfiles')}
               className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 activeTab === 'perfiles'
                   ? 'bg-[#6F2BCC] text-white shadow-xs font-extrabold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10'
               }`}
             >
               <span>📋</span>
               <span>Perfiles qPCR</span>
               <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${
-                activeTab === 'perfiles' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                activeTab === 'perfiles' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-[#201840] text-slate-700 dark:text-slate-300'
               }`}>
                 {LOCAL_QPCR_PROFILES_MASTER.length}
               </span>
@@ -200,13 +200,13 @@ export default function CatalogView({ onNavigateToRequestExam }) {
               className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 activeTab === 'agentes'
                   ? 'bg-[#6F2BCC] text-white shadow-xs font-extrabold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10'
               }`}
             >
               <span>🧬</span>
               <span>Base de Patógenos</span>
               <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${
-                activeTab === 'agentes' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                activeTab === 'agentes' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-[#201840] text-slate-700 dark:text-slate-300'
               }`}>
                 {LOCAL_INFECTIOUS_AGENTS_DB.length}
               </span>
@@ -228,16 +228,16 @@ export default function CatalogView({ onNavigateToRequestExam }) {
 
       {/* OBSERVACIÓN GENERAL CLÍNICA Y PREANALÍTICA OFICIAL */}
       {LOCAL_QPCR_GENERAL_OBSERVATION && (
-        <div className="bg-gradient-to-r from-amber-50 via-purple-50/70 to-teal-50/40 rounded-3xl p-5 sm:p-6 border-2 border-amber-300/80 shadow-xs space-y-3">
+        <div className="bg-gradient-to-r from-amber-50 via-purple-50/70 to-teal-50/40 dark:from-[#21160a]/70 dark:via-[#191030] dark:to-[#121c2e] rounded-3xl p-5 sm:p-6 border border-amber-300/80 dark:border-amber-500/40 shadow-xs space-y-3">
           <div className="flex items-center gap-2.5">
-            <span className="w-9 h-9 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-base font-black shadow-xs shrink-0">
+            <span className="w-9 h-9 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-base font-black shadow-xs shrink-0 ring-4 ring-amber-100 dark:ring-amber-500/20">
               ⚠️
             </span>
             <div>
-              <h2 className="text-sm sm:text-base font-black text-amber-950 uppercase tracking-wide">
+              <h2 className="text-sm sm:text-base font-black text-amber-950 dark:text-amber-300 uppercase tracking-wide">
                 {LOCAL_QPCR_GENERAL_OBSERVATION.title}
               </h2>
-              <p className="text-[11px] text-amber-800/85 font-semibold">
+              <p className="text-[11px] text-amber-800/85 dark:text-amber-200/90 font-semibold">
                 Directrices técnicas y preanalíticas oficiales de VetLab para la toma, preservación y envío de muestras moleculares
               </p>
             </div>
@@ -249,12 +249,14 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                 key={idx}
                 className={`p-3.5 rounded-2xl border transition-all text-xs leading-relaxed flex items-start gap-2.5 ${
                   idx === 2
-                    ? 'bg-purple-100/70 border-purple-300 text-[#2B017C] font-black shadow-2xs'
-                    : 'bg-white/85 border-amber-200/80 text-slate-800 font-medium'
+                    ? 'bg-purple-100/70 dark:bg-[#251b47] border-purple-300 dark:border-[#6F2BCC]/60 text-[#2B017C] dark:!text-[#01FADA] font-black shadow-2xs'
+                    : 'bg-white/85 dark:bg-[#181232] border-amber-200/80 dark:border-[#2f2257] text-slate-800 dark:text-slate-100 font-medium'
                 }`}
               >
                 <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
-                  idx === 2 ? 'bg-[#2B017C] text-white' : 'bg-amber-100 text-amber-900'
+                  idx === 2
+                    ? 'bg-[#2B017C] dark:bg-[#01FADA] text-white dark:text-[#13002E]'
+                    : 'bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300 border border-transparent dark:border-amber-500/30'
                 }`}>
                   {idx + 1}
                 </span>
@@ -268,10 +270,10 @@ export default function CatalogView({ onNavigateToRequestExam }) {
       )}
 
       {/* 2. BARRA DE FILTROS: CANINO, FELINO, SOLO AMBAS ESPECIES Y TODOS */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#181232] rounded-2xl p-4 border border-slate-200 dark:border-[#2f2257] shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
         {/* Buscador libre */}
-        <div className="flex items-center gap-2.5 flex-1 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200">
-          <span className="text-slate-400 text-sm">🔍</span>
+        <div className="flex items-center gap-2.5 flex-1 bg-slate-50 dark:bg-[#13002E] px-3.5 py-2 rounded-xl border border-slate-200 dark:border-[#2f2257]">
+          <span className="text-slate-400 dark:text-slate-400 text-sm">🔍</span>
           <input
             type="text"
             value={searchTerm}
@@ -281,12 +283,12 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                 ? 'Buscar perfil por nombre, agente o síndrome...'
                 : 'Buscar agente por nombre, órgano, vector o signo clínico...'
             }
-            className="w-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none font-medium bg-transparent"
+            className="w-full text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none font-medium bg-transparent"
           />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
-              className="text-xs text-slate-400 hover:text-slate-600 font-bold px-1"
+              className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold px-1"
             >
               ✕
             </button>
@@ -295,14 +297,14 @@ export default function CatalogView({ onNavigateToRequestExam }) {
 
         {/* 4 Filtros de Especie */}
         <div className="flex items-center gap-2 flex-wrap shrink-0">
-          <span className="text-xs font-bold text-[#2B017C] mr-1">Especie:</span>
-          <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-bold gap-1">
+          <span className="text-xs font-bold text-[#2B017C] dark:!text-[#01FADA] mr-1">Especie:</span>
+          <div className="inline-flex rounded-xl bg-slate-100 dark:bg-[#13002E] p-1 border border-slate-200 dark:border-[#2f2257] text-xs font-bold gap-1">
             <button
               onClick={() => setSpeciesFilter('all')}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                 speciesFilter === 'all'
                   ? 'bg-[#6F2BCC] text-white shadow-xs font-extrabold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10'
               }`}
             >
               Todos ({profileCounts.all})
@@ -313,7 +315,7 @@ export default function CatalogView({ onNavigateToRequestExam }) {
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
                 speciesFilter === 'canino'
                   ? 'bg-[#6F2BCC] text-white shadow-xs font-extrabold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10'
               }`}
             >
               <span>🐶</span>
@@ -325,7 +327,7 @@ export default function CatalogView({ onNavigateToRequestExam }) {
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
                 speciesFilter === 'felino'
                   ? 'bg-[#6F2BCC] text-white shadow-xs font-extrabold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10'
               }`}
             >
               <span>🐱</span>
@@ -337,7 +339,7 @@ export default function CatalogView({ onNavigateToRequestExam }) {
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
                 speciesFilter === 'ambas'
                   ? 'bg-[#01FADA] text-[#2B017C] shadow-xs font-black'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10'
               }`}
             >
               <span>🐾</span>
@@ -349,16 +351,16 @@ export default function CatalogView({ onNavigateToRequestExam }) {
 
       {/* Sub-barra de Síndromes (Lista Desplegable) para la pestaña de Perfiles */}
       {activeTab === 'perfiles' && (
-        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="bg-white dark:bg-[#181232] rounded-2xl p-4 border border-slate-200 dark:border-[#2f2257] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <span className="w-9 h-9 rounded-xl bg-purple-50 text-[#6F2BCC] flex items-center justify-center text-lg font-bold border border-purple-100 shrink-0">
+            <span className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-[#251b47] text-[#6F2BCC] dark:text-[#01FADA] flex items-center justify-center text-lg font-bold border border-purple-100 dark:border-[#6F2BCC]/40 shrink-0">
               🩺
             </span>
             <div>
-              <label htmlFor="syndrome-filter-select" className="text-xs font-extrabold text-[#2B017C] block">
+              <label htmlFor="syndrome-filter-select" className="text-xs font-extrabold text-[#2B017C] dark:text-slate-100 block">
                 Filtrar por Síndrome Clínico:
               </label>
-              <span className="text-[11px] text-slate-500">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">
                 Seleccione un síndrome de la lista desplegable ({filteredProfiles.length} perfiles encontrados)
               </span>
             </div>
@@ -370,12 +372,12 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                 id="syndrome-filter-select"
                 value={CLINICAL_SYNDROMES_LIST.find((cs) => matchSyndromeTokens(cs.id, syndromeFilter))?.id || syndromeFilter}
                 onChange={(e) => setSyndromeFilter(e.target.value)}
-                className="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 hover:bg-slate-100/90 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none cursor-pointer appearance-none transition-all shadow-2xs"
+                className="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 dark:bg-[#13002E] hover:bg-slate-100/90 dark:hover:bg-[#1b143a] border border-slate-300 dark:border-[#2f2257] rounded-xl text-xs font-bold text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#6F2BCC] focus:outline-none cursor-pointer appearance-none transition-all shadow-2xs"
               >
                 {CLINICAL_SYNDROMES_LIST.map((syn) => {
                   const count = syndromeCounts[syn.id] ?? 0;
                   return (
-                    <option key={syn.id} value={syn.id} className="py-1">
+                    <option key={syn.id} value={syn.id} className="py-1 dark:bg-[#181232]">
                       {syn.icon} {syn.label} ({count} {count === 1 ? 'perfil' : 'perfiles'})
                     </option>
                   );
@@ -391,7 +393,7 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                 type="button"
                 onClick={() => setSyndromeFilter('all')}
                 title="Mostrar todos los perfiles"
-                className="px-3.5 py-2.5 bg-slate-100 hover:bg-purple-100 text-slate-700 hover:text-[#6F2BCC] border border-slate-200 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0"
+                className="px-3.5 py-2.5 bg-slate-100 dark:bg-[#201840] hover:bg-purple-100 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 hover:text-[#6F2BCC] dark:hover:text-[#01FADA] border border-slate-200 dark:border-[#2f2257] rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0"
               >
                 ✕ Limpiar
               </button>
@@ -403,7 +405,7 @@ export default function CatalogView({ onNavigateToRequestExam }) {
       {/* Sub-barra de Grupos para la pestaña de Agentes */}
       {activeTab === 'agentes' && (
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5">
-          <span className="text-xs font-bold text-slate-500 shrink-0 mr-1">Grupo:</span>
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 shrink-0 mr-1">Grupo:</span>
           {agentGroups.map((g) => {
             const isSel = groupFilter === g.id;
             return (
@@ -412,8 +414,8 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                 onClick={() => setGroupFilter(g.id)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
                   isSel
-                    ? 'bg-[#2B017C] text-white shadow-2xs'
-                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                    ? 'bg-[#2B017C] dark:bg-[#6F2BCC] text-white shadow-2xs'
+                    : 'bg-white dark:bg-[#181232] border border-slate-200 dark:border-[#2f2257] text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#201840]'
                 }`}
               >
                 {g.label}
@@ -459,11 +461,11 @@ export default function CatalogView({ onNavigateToRequestExam }) {
               return (
                 <div
                   key={profile.id}
-                  className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-sm hover:border-[#6F2BCC]/40 transition-all flex flex-col justify-between space-y-4"
+                  className="bg-white dark:bg-[#181232] rounded-3xl border border-slate-200/90 dark:border-[#2f2257] p-5 sm:p-6 shadow-sm hover:border-[#6F2BCC]/40 dark:hover:border-[#6F2BCC]/60 transition-all flex flex-col justify-between space-y-4"
                 >
                   <div className="space-y-3.5">
                     {/* Encabezado del Perfil */}
-                    <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
+                    <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100 dark:border-[#2f2257]">
                       <div>
                         <div className="flex items-center gap-2 flex-wrap mb-1.5">
                           {profile.code && (
@@ -474,10 +476,10 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                           <span
                             className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${
                               profile.species.toLowerCase() === 'canino'
-                                ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                                ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-700/40'
                                 : profile.species.toLowerCase() === 'felino'
-                                ? 'bg-pink-100 text-pink-900 border border-pink-200'
-                                : 'bg-[#c7f2e5] text-[#0f766e] border border-[#99f6e4]'
+                                ? 'bg-pink-100 dark:bg-pink-950/60 text-pink-900 dark:text-pink-300 border border-pink-200 dark:border-pink-700/40'
+                                : 'bg-[#c7f2e5] dark:bg-teal-950/60 text-[#0f766e] dark:text-[#01FADA] border border-[#99f6e4] dark:border-teal-700/40'
                             }`}
                           >
                             {profile.species === 'Canino' && '🐶 '}
@@ -485,32 +487,32 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                             {profile.species.includes('Amb') && '🐾 '}
                             {profile.species}
                           </span>
-                          <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-purple-50 text-[#6F2BCC] border border-purple-200">
+                          <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-[#6F2BCC] dark:text-[#c4b5fd] border border-purple-200 dark:border-purple-800/40">
                             {profile.type}
                           </span>
                         </div>
-                        <h3 className="text-base font-extrabold text-slate-900 leading-snug">
+                        <h3 className="text-base font-extrabold text-slate-900 dark:text-slate-100 leading-snug">
                           {profile.title}
                         </h3>
                       </div>
-                      <span className="w-9 h-9 rounded-2xl bg-purple-50 text-[#6F2BCC] flex items-center justify-center text-lg shrink-0">
+                      <span className="w-9 h-9 rounded-2xl bg-purple-50 dark:bg-[#251b47] text-[#6F2BCC] dark:text-[#01FADA] flex items-center justify-center text-lg shrink-0">
                         🔬
                       </span>
                     </div>
 
                     {/* Descripción Clínica */}
-                    <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                       {profile.description}
                     </p>
 
                     {/* Eco-Epidemiología */}
                     {profile.ecoEpidemiology && (
-                      <div className="p-3 rounded-2xl bg-purple-50/60 border border-purple-100/90 text-xs space-y-1">
-                        <div className="flex items-center gap-1.5 text-[10px] font-black text-[#2B017C] uppercase tracking-wider">
+                      <div className="p-3 rounded-2xl bg-purple-50/60 dark:bg-purple-950/40 border border-purple-100/90 dark:border-purple-800/40 text-xs space-y-1">
+                        <div className="flex items-center gap-1.5 text-[10px] font-black text-[#2B017C] dark:text-[#a78bfa] uppercase tracking-wider">
                           <span>🌍</span>
                           <span>Eco-Epidemiología</span>
                         </div>
-                        <p className="text-slate-700 leading-relaxed font-normal">
+                        <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
                           {profile.ecoEpidemiology}
                         </p>
                       </div>
@@ -518,12 +520,12 @@ export default function CatalogView({ onNavigateToRequestExam }) {
 
                     {/* Hallazgos de Laboratorio */}
                     {profile.labFindings && (
-                      <div className="p-3 rounded-2xl bg-sky-50/60 border border-sky-100/90 text-xs space-y-1">
-                        <div className="flex items-center gap-1.5 text-[10px] font-black text-sky-900 uppercase tracking-wider">
+                      <div className="p-3 rounded-2xl bg-sky-50/60 dark:bg-sky-950/40 border border-sky-100/90 dark:border-sky-800/40 text-xs space-y-1">
+                        <div className="flex items-center gap-1.5 text-[10px] font-black text-sky-900 dark:text-sky-300 uppercase tracking-wider">
                           <span>🔬</span>
                           <span>Hallazgos de Laboratorio</span>
                         </div>
-                        <p className="text-slate-700 leading-relaxed font-normal">
+                        <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
                           {profile.labFindings}
                         </p>
                       </div>
@@ -532,7 +534,7 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                     {/* Síndromes Asociados - Clickeables para filtrar */}
                     {profile.syndromes && profile.syndromes.length > 0 && (
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
                           Síndromes:
                         </span>
                         {profile.syndromes.map((syn, sIdx) => {
@@ -548,8 +550,8 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                               title={`Filtrar catálogo por síndrome: ${syn}`}
                               className={`px-2 py-0.5 rounded-md text-[10px] font-semibold transition-all cursor-pointer ${
                                 isCurrentActive
-                                  ? 'bg-[#2B017C] text-white shadow-2xs ring-2 ring-purple-300 font-bold'
-                                  : 'bg-slate-100 text-slate-700 hover:bg-purple-100 hover:text-[#6F2BCC]'
+                                  ? 'bg-[#2B017C] dark:bg-[#6F2BCC] text-white shadow-2xs ring-2 ring-purple-300 dark:ring-[#6F2BCC]/60 font-bold'
+                                  : 'bg-slate-100 dark:bg-[#201840] text-slate-700 dark:text-slate-300 hover:bg-purple-100 dark:hover:bg-purple-900/40 hover:text-[#6F2BCC] dark:hover:text-[#01FADA]'
                               }`}
                             >
                               {syn}
@@ -560,16 +562,16 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                     )}
 
                     {/* Agentes Incluidos - Alcance Molecular Completo */}
-                    <div className="space-y-2 pt-2 border-t border-slate-100">
+                    <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-[#2f2257]">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                           <span>🧬</span>
                           <span>Alcance Molecular: {profile.agents?.length || (profile.agentIds || []).length} Patógenos Diana</span>
                         </span>
                         <button
                           type="button"
                           onClick={() => toggleProfileDetails(profile.id)}
-                          className="text-[11px] font-bold text-[#6F2BCC] hover:text-[#581ea3] transition-colors cursor-pointer flex items-center gap-1"
+                          className="text-[11px] font-bold text-[#6F2BCC] dark:text-[#01FADA] hover:text-[#581ea3] transition-colors cursor-pointer flex items-center gap-1"
                         >
                           <span>{isExpanded ? 'Ocultar desglose clínico' : 'Ver alcance clínico detallado'}</span>
                           <span>{isExpanded ? '▲' : '▼'}</span>
@@ -581,12 +583,12 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                         {(profile.agentObjects || (profile.agents || []).map(name => ({ name }))).map((ag, idx) => (
                           <span
                             key={ag.id || idx}
-                            className="px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-sky-50 text-[#2B017C] border border-sky-100 flex items-center gap-1.5 shadow-2xs hover:bg-sky-100/70 transition-colors"
+                            className="px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-sky-50 dark:bg-[#1f173d] text-[#2B017C] dark:text-slate-200 border border-sky-100 dark:border-[#2f2257] flex items-center gap-1.5 shadow-2xs hover:bg-sky-100/70 transition-colors"
                           >
                             <span className="text-xs">🧬</span>
                             <span className="italic">{ag.name}</span>
                             {ag.group && (
-                              <span className="text-[9px] px-1.5 py-0.2 rounded-full font-bold bg-purple-100 text-[#6F2BCC] border border-purple-200 uppercase">
+                              <span className="text-[9px] px-1.5 py-0.2 rounded-full font-bold bg-purple-100 dark:bg-purple-950/60 text-[#6F2BCC] dark:text-[#c4b5fd] border border-purple-200 dark:border-purple-800/40 uppercase">
                                 {ag.group}
                               </span>
                             )}
@@ -596,8 +598,8 @@ export default function CatalogView({ onNavigateToRequestExam }) {
 
                       {/* Vista expandida con ficha técnica de cada patógeno diana */}
                       {isExpanded && (
-                        <div className="mt-3 p-3 bg-purple-50/50 rounded-2xl border border-purple-100 space-y-2.5 animate-in fade-in duration-200">
-                          <div className="text-[11px] font-extrabold text-[#2B017C] uppercase tracking-wider flex items-center gap-1">
+                        <div className="mt-3 p-3 bg-purple-50/50 dark:bg-[#1a1236] rounded-2xl border border-purple-100 dark:border-purple-800/40 space-y-2.5 animate-in fade-in duration-200">
+                          <div className="text-[11px] font-extrabold text-[#2B017C] dark:text-[#01FADA] uppercase tracking-wider flex items-center gap-1">
                             <span>📋</span>
                             <span>Desglose Clínico de Patógenos Incluidos en este Panel</span>
                           </div>
@@ -605,34 +607,34 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                             {(profile.agentObjects || []).map((ag, idx) => (
                               <div
                                 key={ag.id || idx}
-                                className="bg-white p-3 rounded-xl border border-purple-100/80 shadow-2xs space-y-1.5 text-xs"
+                                className="bg-white dark:bg-[#1f173d] p-3 rounded-xl border border-purple-100/80 dark:border-[#2f2257] shadow-2xs space-y-1.5 text-xs"
                               >
                                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                                  <span className="font-extrabold text-[#2B017C] italic text-xs">
+                                  <span className="font-extrabold text-[#2B017C] dark:text-[#01FADA] italic text-xs">
                                     {ag.name}
                                   </span>
-                                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-100 text-[#6F2BCC]">
+                                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-[#6F2BCC] dark:text-[#c4b5fd]">
                                     {ag.group || 'Infeccioso'}
                                   </span>
                                 </div>
                                 {ag.targetOrgans && (
-                                  <div className="text-[11px] text-slate-600">
-                                    <strong className="text-slate-700">Órganos blanco / tropismo:</strong> {ag.targetOrgans}
+                                  <div className="text-[11px] text-slate-600 dark:text-slate-300">
+                                    <strong className="text-slate-700 dark:text-slate-200">Órganos blanco / tropismo:</strong> {ag.targetOrgans}
                                   </div>
                                 )}
                                 {ag.transmission && (
-                                  <div className="text-[11px] text-slate-600">
-                                    <strong className="text-slate-700">Vector / transmisión:</strong> {ag.transmission}
+                                  <div className="text-[11px] text-slate-600 dark:text-slate-300">
+                                    <strong className="text-slate-700 dark:text-slate-200">Vector / transmisión:</strong> {ag.transmission}
                                   </div>
                                 )}
                                 {ag.symptomsDescription && (
-                                  <div className="text-[11px] text-slate-600">
-                                    <strong className="text-slate-700">Cuadro clínico:</strong> {ag.symptomsDescription}
+                                  <div className="text-[11px] text-slate-600 dark:text-slate-300">
+                                    <strong className="text-slate-700 dark:text-slate-200">Cuadro clínico:</strong> {ag.symptomsDescription}
                                   </div>
                                 )}
                                 {ag.labDescription && (
-                                  <div className="text-[11px] text-slate-600">
-                                    <strong className="text-slate-700">Hallazgos de lab:</strong> {ag.labDescription}
+                                  <div className="text-[11px] text-slate-600 dark:text-slate-300">
+                                    <strong className="text-slate-700 dark:text-slate-200">Hallazgos de lab:</strong> {ag.labDescription}
                                   </div>
                                 )}
                               </div>
@@ -644,10 +646,10 @@ export default function CatalogView({ onNavigateToRequestExam }) {
 
                     {/* Matriz Requerida */}
                     <div className="pt-1">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 block mb-1">
                         Matriz de Muestra Requerida
                       </span>
-                      <div className="text-xs font-semibold text-slate-700 flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2 bg-slate-50 dark:bg-[#13002E] p-2.5 rounded-xl border border-slate-100 dark:border-[#2f2257]">
                         <span className="text-sm">🧪</span>
                         <span className="leading-snug">{profile.matrix || profile.sampleSummary}</span>
                       </div>
@@ -681,18 +683,18 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                   </div>
 
                   {/* Pie de tarjeta con precio e información de entrega */}
-                  <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <div className="pt-3 border-t border-slate-100 dark:border-[#2f2257] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400 block">
                         Precio IVA incluido 2026
                       </span>
-                      <span className="text-base font-extrabold text-[#2B017C]">
+                      <span className="text-base font-extrabold text-[#2B017C] dark:!text-[#01FADA]">
                         ${(profile.basePrice || profile.price || 160000).toLocaleString('es-CO')} COP
                       </span>
                     </div>
 
                     <div className="flex items-center gap-2 self-end sm:self-auto">
-                      <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full">
+                      <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-[#201840] px-3 py-1.5 rounded-full border border-transparent dark:border-[#2f2257]">
                         ⏱ Entrega en 24h
                       </span>
                       {onNavigateToRequestExam && (
@@ -749,43 +751,43 @@ export default function CatalogView({ onNavigateToRequestExam }) {
             {filteredAgents.map((agent) => (
               <div
                 key={agent.id}
-                className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-sm space-y-4 hover:border-purple-300 transition-all flex flex-col justify-between"
+                className="bg-white dark:bg-[#181232] rounded-3xl border border-slate-200/90 dark:border-[#2f2257] p-5 shadow-sm space-y-4 hover:border-purple-300 dark:hover:border-purple-500 transition-all flex flex-col justify-between"
               >
                 <div className="space-y-3.5">
                   {/* Encabezado del Agente */}
-                  <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
+                  <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100 dark:border-[#2f2257]">
                     <div>
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-purple-100 text-[#2B017C] border border-purple-200">
+                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-[#6F2BCC] dark:text-[#c4b5fd] border border-purple-200 dark:border-purple-800/40">
                           {agent.group}
                         </span>
                         {agent.species.map((sp, i) => (
                           <span
                             key={i}
-                            className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700"
+                            className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#201840] text-slate-700 dark:text-slate-300"
                           >
                             {sp}
                           </span>
                         ))}
                       </div>
-                      <h3 className="text-base font-black italic text-[#2B017C]">
+                      <h3 className="text-base font-black italic text-[#2B017C] dark:!text-[#01FADA]">
                         {agent.name}
                       </h3>
                       {agent.countries && (
-                        <p className="text-[11px] text-slate-500 mt-0.5">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                           📍 {agent.countries}
                         </p>
                       )}
                     </div>
-                    <span className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 flex items-center justify-center text-sm shrink-0">
+                    <span className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-[#201840] border border-slate-200 dark:border-[#2f2257] text-slate-700 dark:text-slate-300 flex items-center justify-center text-sm shrink-0">
                       🧬
                     </span>
                   </div>
 
                   {/* Transmisión y Vectores */}
                   {agent.transmission && (
-                    <div className="p-2.5 bg-amber-50/60 rounded-xl border border-amber-200/70 text-xs text-amber-950">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 block mb-0.5">
+                    <div className="p-2.5 bg-amber-50/60 dark:bg-amber-950/40 rounded-xl border border-amber-200/70 dark:border-amber-800/40 text-xs text-amber-950 dark:text-amber-200">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 dark:text-amber-300 block mb-0.5">
                         Transmisión & Vectores Comprobados
                       </span>
                       <p className="text-[11px] leading-snug">
@@ -797,10 +799,10 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                   {/* Órganos Blanco */}
                   {agent.targetOrgans && (
                     <div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-0.5">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 block mb-0.5">
                         Órganos y Tejidos Blanco
                       </span>
-                      <p className="text-xs text-slate-800 font-medium">
+                      <p className="text-xs text-slate-800 dark:text-slate-200 font-medium">
                         {agent.targetOrgans}
                       </p>
                     </div>
@@ -809,10 +811,10 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                   {/* Interacción Hospedero-Parásito / Patogenia */}
                   {agent.pathogenesis && (
                     <div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-0.5">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 block mb-0.5">
                         Patogenia & Respuesta Inmune
                       </span>
-                      <p className="text-xs text-slate-600 leading-relaxed">
+                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                         {agent.pathogenesis}
                       </p>
                     </div>
@@ -820,28 +822,28 @@ export default function CatalogView({ onNavigateToRequestExam }) {
 
                   {/* Síntomas y Signos Clínicos */}
                   <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-0.5">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 block mb-0.5">
                       Signos Clínicos Principales
                     </span>
-                    <p className="text-xs text-slate-700 leading-relaxed font-normal">
+                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
                       {agent.symptomsDescription}
                     </p>
                   </div>
 
                   {/* Hallazgos de Laboratorio */}
                   <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-0.5">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 block mb-0.5">
                       Hallazgos de Laboratorio Clínico / Hemograma
                     </span>
-                    <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-[#13002E] p-2.5 rounded-xl border border-slate-100 dark:border-[#2f2257]">
                       {agent.labDescription}
                     </p>
                   </div>
 
                   {/* Diagnóstico Molecular */}
                   {agent.diagnosticMethods && (
-                    <div className="text-[11px] text-sky-950 bg-sky-50/60 p-2.5 rounded-xl border border-sky-100">
-                      <strong className="block text-[10px] uppercase font-bold text-sky-800 mb-0.5">
+                    <div className="text-[11px] text-sky-950 dark:text-sky-200 bg-sky-50/60 dark:bg-sky-950/40 p-2.5 rounded-xl border border-sky-100 dark:border-sky-800/40">
+                      <strong className="block text-[10px] uppercase font-bold text-sky-800 dark:text-sky-300 mb-0.5">
                         Diagnóstico & Matriz Recomendada
                       </strong>
                       <span>{agent.diagnosticMethods}</span>
@@ -850,21 +852,21 @@ export default function CatalogView({ onNavigateToRequestExam }) {
 
                   {/* Observaciones relevantes */}
                   {agent.relevantNotes && (
-                    <div className="text-[11px] text-slate-500 italic">
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 italic">
                       * {agent.relevantNotes}
                     </div>
                   )}
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                <div className="pt-3 border-t border-slate-100 dark:border-[#2f2257] flex items-center justify-between text-[11px]">
                   {agent.doi ? (
-                    <span className="font-mono text-purple-700 font-semibold text-[10px]">
+                    <span className="font-mono text-purple-700 dark:text-[#a78bfa] font-semibold text-[10px]">
                       DOI: {agent.doi}
                     </span>
                   ) : (
-                    <span className="text-slate-400 text-[10px]">VetLab Biomédica</span>
+                    <span className="text-slate-400 dark:text-slate-500 text-[10px]">VetLab Biomédica</span>
                   )}
-                  <span className="text-[10px] text-slate-400 font-mono">
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
                     ID: {agent.id}
                   </span>
                 </div>
