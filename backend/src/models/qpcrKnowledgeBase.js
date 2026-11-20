@@ -1440,398 +1440,727 @@ export const INFECTIOUS_AGENTS_DB = [
       sialorrea: 'Sialorrea profusa debida a la imposibilidad de deglutir por dolor lingual severo.',
       cojera: 'Cojera transitoria aguda debida a sinovitis inflamatoria inmunomediada por complejos virales.'
     }
+  },
+  {
+    id: 'genes-resistencia-tetraciclinas',
+    name: 'Detección in vitro de genes de resistencia a tetraciclinas',
+    group: 'RESISTENCIA ANTIMICROBIANA',
+    species: ['Canino', 'Felino'],
+    hostDetails: 'Caninos y Felinos',
+    countries: 'Colombia; global',
+    transmission: 'Transferencia horizontal / clonal bacteriana',
+    targetOrgans: 'Sistémico / Infección bacteriana activa',
+    pathogenesis: 'Presencia de genes tet (bombas de eflujo, protección ribosomal o inactivación enzimática) que confieren resistencia a tetraciclinas y doxiciclina.',
+    symptomsDescription: 'Fallo terapéutico o ausencia de respuesta clínica adecuada a tratamientos con derivados de tetraciclinas.',
+    labDescription: 'Detección molecular de determinantes genéticos de resistencia antimicrobiana in vitro.',
+    diagnosticMethods: 'qPCR específico para genes de resistencia a tetraciclinas.',
+    relevantNotes: 'Permite optimizar oportunamente el esquema antimicrobiano antes o durante el tratamiento.',
+    keywords: ['resistencia', 'tetraciclina', 'doxiciclina', 'genes de resistencia', 'fallo terapeutico']
+  },
+  {
+    id: 'trichomona-spp',
+    name: 'Trichomona spp.',
+    group: 'PROTOZOOS ENTÉRICOS',
+    species: ['Canino', 'Felino'],
+    hostDetails: 'Canino y Felino',
+    countries: 'Colombia; global',
+    transmission: 'Fecal-oral, agua contaminada, convivencia en criaderos o refugios',
+    targetOrgans: 'Colon e intestino grueso',
+    pathogenesis: 'Colonización de la mucosa del colon con inflamación linfoplasmocítica y colítica.',
+    symptomsDescription: 'Diarrea de intestino grueso, heces pastosas o semilíquidas con moco y hematoquecia ocasional, tenesmo, aumento en la frecuencia de defecación.',
+    labDescription: 'Trofozoítos móviles en frotis fecal directo fresco; confirmación y diferenciación definitiva por qPCR.',
+    diagnosticMethods: 'qPCR tiempo real en materia fecal fresca o hisopado rectal.',
+    relevantNotes: 'Causa común de diarrea crónica de colon refractaria a tratamientos antibacterianos convencionales.',
+    keywords: ['trichomona', 'diarrea', 'moco', 'colon', 'tenesmo', 'heces pastosas']
+  },
+  {
+    id: 'pentatrichomona-spp',
+    name: 'Pentatrichomona spp.',
+    group: 'PROTOZOOS ENTÉRICOS',
+    species: ['Canino', 'Felino'],
+    hostDetails: 'Canino y Felino (Pentatrichomonas hominis)',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Fecal-oral, hacinamiento, colectividades animales',
+    targetOrgans: 'Ciego y colon',
+    pathogenesis: 'Asociada a disbiosis entérica y diarrea de colon, con potencial zoonótico.',
+    symptomsDescription: 'Diarrea crónica o recurrente de intestino grueso, flatulencias, heces con mucus y tenesmo fecal.',
+    labDescription: 'Presencia de flagelados en heces; identificación molecular específica por qPCR.',
+    diagnosticMethods: 'qPCR en muestra de materia fecal o hisopado rectal.',
+    relevantNotes: 'Frecuente en cachorros, gatitos y animales de albergues o criaderos.',
+    keywords: ['pentatrichomonas', 'pentatrichomona', 'diarrea cronica', 'moco', 'colon']
+  },
+  {
+    id: 'giardia-spp',
+    name: 'Giardia spp.',
+    group: 'PROTOZOOS ENTÉRICOS',
+    species: ['Canino', 'Felino'],
+    hostDetails: 'Canino y Felino (ensamblajes caninos, felinos y zoonóticos A/B)',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Ingestión de quistes viables en agua o alimentos contaminados, fómites, coprofagia',
+    targetOrgans: 'Duodeno y yeyuno (intestino delgado)',
+    pathogenesis: 'Adhesión al ribete en cepillo mediante disco ventral, causando atrofia de microvellosidades, malabsorción de grasas y disbiosis.',
+    symptomsDescription: 'Diarrea acuosa o esteatorreica, pérdida de peso, dolor abdominal, deshidratación, vómito intermitente y retraso en el crecimiento.',
+    labDescription: 'Quistes en coprológico por flotación con sulfato de zinc; qPCR con máxima sensibilidad diagnóstica.',
+    diagnosticMethods: 'qPCR tiempo real gen beta-giardina / gdh / 18S rRNA en materia fecal.',
+    relevantNotes: 'Potencial zoonótico importante. Gran persistencia ambiental de los quistes.',
+    keywords: ['giardia', 'diarrea esteatorreica', 'malabsorcion', 'perdida de peso', 'quistes']
+  },
+  {
+    id: 'salmonella-spp',
+    name: 'Salmonella spp.',
+    group: 'BACTERIAS ENTÉRICAS',
+    species: ['Canino', 'Felino'],
+    hostDetails: 'Canino y Felino (reservorios asintomáticos o enfermedad activa)',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Alimentos contaminados (dietas BARF / crudas), agua contaminada, coprofagia',
+    targetOrgans: 'Íleon, colon, ganglios linfáticos mesentéricos; bacteriemia sistémica',
+    pathogenesis: 'Invasión de células M y enterocitos, secreción de enterotoxinas, inflamación neutrofílica severa con bacteriemia y sepsis.',
+    symptomsDescription: 'Fiebre alta, diarrea acuosa profusa a sanguinolenta, vómito, dolor abdominal agudo, letargia profunda y anorexia.',
+    labDescription: 'Leucopenia con desviación a la izquierda en sepsis, o leucocitosis neutrofílica severa; hipoalbuminemia e hipocaliemia.',
+    diagnosticMethods: 'qPCR específico gen invA / ttr de Salmonella spp. en materia fecal o sangre.',
+    relevantNotes: 'Riesgo zoonótico crítico para los tutores del paciente.',
+    keywords: ['salmonella', 'diarrea sanguinolenta', 'fiebre', 'sepsis', 'barf', 'dieta cruda']
+  },
+  {
+    id: 'helicobacter-spp',
+    name: 'Helicobacter spp.',
+    group: 'BACTERIAS ENTÉRICAS',
+    species: ['Canino', 'Felino'],
+    hostDetails: 'Canino y Felino (H. felis, H. bizzozeronii, H. heilmannii)',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Oral-oral, fecal-oral, vómitos',
+    targetOrgans: 'Mucosa y glándulas gástricas (antro y fundus)',
+    pathogenesis: 'Producción de ureasa y citotoxinas que alteran la barrera mucosa gástrica e inducen gastritis linfoplasmocítica crónica.',
+    symptomsDescription: 'Vómitos crónicos recurrentes (con o sin contenido alimentario o bilis), hiporexia, náuseas, dolor a la palpación epigástrica, eructos y pérdida de peso.',
+    labDescription: 'Prueba de ureasa rápida positiva en biopsia gástrica; detección no invasiva por qPCR.',
+    diagnosticMethods: 'qPCR gen 16S rRNA / ureB en materia fecal, hisopado gástrico o biopsia.',
+    relevantNotes: 'Frecuente en pacientes con gastritis crónica refractaria a protectores gástricos convencionales.',
+    keywords: ['helicobacter', 'vomito cronico', 'gastritis', 'nauseas', 'reflujo']
+  },
+  {
+    id: 'panleucopenia-felina',
+    name: 'Panleucopenia felina',
+    group: 'VIRAL',
+    species: ['Felino'],
+    hostDetails: 'Felino (Parvovirus felino FPV)',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Fecal-oral, fómites altamente resistentes, transplacentaria',
+    targetOrgans: 'Células en mitosis activa: médula ósea, criptas intestinales, timo, bazo, cerebelo en neonatos',
+    pathogenesis: 'Destrucción masiva de células madre hematopoyéticas y enterocitos en las criptas intestinales, provocando panleucopenia severa y colapso de la barrera intestinal.',
+    symptomsDescription: 'Fiebre alta bifásica, vómito incoercible, diarrea acuosa a fétida sanguinolenta, deshidratación fulminante, letargia profunda, caquexia y alta mortalidad.',
+    labDescription: 'Panleucopenia marcada (leucocitos frecuentemente < 2.000/µL o indetectables), anemia no regenerativa, hipoalbuminemia e hipocaliemia.',
+    diagnosticMethods: 'qPCR tiempo real gen VP2 de Parvovirus felino en hisopado rectal o sangre EDTA.',
+    relevantNotes: 'Enfermedad viral hiperaguda de alta contagiosidad y severidad en gatitos no inmunizados.',
+    keywords: ['panleucopenia', 'fpv', 'parvovirus felino', 'vomito', 'diarrea sanguinolenta', 'leucopenia severa']
+  },
+  {
+    id: 'cryptococcus-spp',
+    name: 'Cryptococcus spp.',
+    group: 'HONGOS OPORTUNISTAS',
+    species: ['Canino', 'Felino'],
+    hostDetails: 'Canino y Felino (C. neoformans / C. gattii)',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Inhalación de basidiosporas en materia fecal de aves (palomas) o restos de madera (eucaliptos)',
+    targetOrgans: 'Cavidad nasal, encéfalo y meninges, ojos, pulmones y piel',
+    pathogenesis: 'Cápsula de glucuronoxilomanano antifagocítica; diseminación neurotrópica provocando meningoencefalitis criptococócica y granulomas del SNC.',
+    symptomsDescription: 'Signos neurológicos (convulsiones, ceguera súbita, ataxia, depresión mental, déficit de pares craneales), secreción nasal mucopurulenta crónica o masa facial ("nariz de payaso"), nódulos cutáneos ulcerados.',
+    labDescription: 'Trombocitopenia ocasional; pleocitosis mononuclear en LCR; levaduras capsuladas en tinción con tinta china; antígeno capsular en suero o LCR.',
+    diagnosticMethods: 'qPCR gen ITS / URA5 en LCR, sangre EDTA, hisopado nasal o biopsia.',
+    relevantNotes: 'Principal micosis sistémica con tropismo marcado hacia el sistema nervioso central en pequeñas especies.',
+    keywords: ['cryptococcus', 'meningoencefalitis', 'convulsiones', 'ceguera', 'signos neurologicos', 'hongo']
+  },
+  {
+    id: 'herpesvirus-canino',
+    name: 'Herpesvirus canino (CHV-1)',
+    group: 'VIRAL',
+    species: ['Canino'],
+    hostDetails: 'Canino (Canis lupus familiaris)',
+    countries: 'Colombia; cosmopolita',
+    transmission: 'Contacto venéreo, oronasal con secreciones, transplacentario o durante el parto',
+    targetOrgans: 'Tracto reproductivo, mucosa genital, fetos, neonatos (riñón, hígado, pulmones)',
+    pathogenesis: 'Infección latente en ganglios sensoriales lumbosacros/trigéminos; causa abortos, momificación, reabsorción embrionaria y enfermedad hemorrágica mortal en neonatos (< 3 semanas).',
+    symptomsDescription: 'Infertilidad, muerte embrionaria temprana, abortos en el último tercio de gestación, lesiones vesiculares genitales, muerte súbita en cachorros neonatos.',
+    labDescription: 'Trombocitopenia e hiperbilirrubinemia en neonatos con necrosis focal múltiple en necropsia.',
+    diagnosticMethods: 'qPCR tiempo real gen gB de CHV-1 en hisopado vaginal, prepucial, semen o tejidos fetales.',
+    relevantNotes: 'Patógeno reproductivo y neonatal primario de gran impacto en criaderos caninos.',
+    keywords: ['herpesvirus canino', 'chv', 'abortos', 'infertilidad', 'muerte neonatal', 'reproductor']
   }
 ];
 
 // ============================================================================
-// CATÁLOGO MAESTRO OFICIAL DE PERFILES qPCR DE DIAGNÓSTICO MOLECULAR
+// OBSERVACIÓN GENERAL CLÍNICA Y PREANALÍTICA OFICIAL
+// ============================================================================
+export const QPCR_GENERAL_OBSERVATION = {
+  title: 'OBSERVACIÓN GENERAL',
+  points: [
+    'Recuerde que el éxito de la prueba depende de la matriz escogida. Por favor, priorice la fase preanalítica de la muestra.',
+    'Todo perfil de qPCR debe ir correlacionado con paraclínicos (Hemograma, Química sanguínea, Urianálisis, Coprológico y/o Imágenes diagnósticas).',
+    'SE RECOMIENDA SOLICITAR FROTIS SANGUÍNEO Y CITOLOGÍAS COMO APOYO DIAGNÓSTICO.'
+  ]
+};
+
+// ============================================================================
+// CATÁLOGO MAESTRO OFICIAL DE PERFILES qPCR DE DIAGNÓSTICO MOLECULAR (15 PERFILES)
 // ============================================================================
 export const QPCR_PROFILES_MASTER = [
-  // --- PANELES CANINOS ---
+  // --------------------------------------------------------------------------
+  // P1: Perfil Joe
+  // --------------------------------------------------------------------------
   {
-    id: 'panel-hemotropico-canino',
-    title: 'Panel Hemotrópico & Vectorial Canino Completo (TBP)',
-    species: 'Canino',
-    type: 'Amplio',
-    basePrice: 175000,
+    id: 'p1-perfil-joe',
+    code: 'P1',
+    title: 'Perfil Joe',
+    species: 'Ambos',
+    type: 'Perfil Amplio',
+    basePrice: 234000,
+    price: 234000,
     discount: false,
-    sampleSummary: 'Sangre total con EDTA (2 ml) - Tubo tapón lila',
+    ecoEpidemiology: 'Paciente outside, que tengan contacto con otras especies dentro de su ecosistema (Perros, otros gatos u otros animales silvestres)',
+    labFindings: 'Paciente con algún grado afectacción de la línea mileoide, linfoide y/o plaquetaría. En algunos casos puede presentarse alteraciones de enzimas hepáticas y hallazgos en los estudios de imagenología',
+    matrix: 'Sangre en tubo tapa lila (EDTA) y orina (Si hay afectación de enzimas hepáticas)',
+    sampleSummary: 'Sangre en tubo tapa lila (EDTA) y orina (Si hay afectación de enzimas hepáticas)',
+    samples: [
+      { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado (4°C)' },
+      { name: 'Orina estéril (3-5 ml)', desc: 'Tubo estéril si hay afectación de enzimas hepáticas' }
+    ],
+    syndromes: ['Hemotrópico/Sistémico', 'Digestivo-Hepático'],
+    agents: [
+      'Anaplasma spp.',
+      'Ehrlichia spp.',
+      'Rickettsia spp.',
+      'Wolbachia spp.',
+      'Mycoplasma spp.',
+      'Bartonella spp.',
+      'Hepatozoon spp.',
+      'Babesia spp.',
+      'Toxoplasma gondii',
+      'Filarias diferenciadas (D. immitis, D. repens, D. striata, B. pahangi)'
+    ],
+    description: 'Perfil de amplio espectro para pacientes con hábitos de vida exterior o contacto interespecie. Detección molecular de hemotrópicos, rickettsiales, haemoplasmas, filarias diferenciadas y Toxoplasma ante citopenias o compromiso linfohematopoyético y hepático.'
+  },
+
+  // --------------------------------------------------------------------------
+  // P2: qPCR Detección de genes de resistencia (Muestra vieja)
+  // --------------------------------------------------------------------------
+  {
+    id: 'p2-genes-resistencia-muestra-vieja',
+    code: 'P2',
+    title: 'qPCR Detección de genes de resistencia (Muestra vieja)',
+    species: 'Ambos',
+    type: 'Resistencia Antimicrobiana',
+    basePrice: 120000,
+    price: 120000,
+    discount: false,
+    ecoEpidemiology: 'Paciente con resultado positivo a una infección bacteriana, cuyo tratamiento involucre un derivado de tetraciclinas. Puede ser al inicio de la terapía o si no se observa respuesta satisfactoria',
+    labFindings: 'Paciente con diagnóstico de infección bacteriana confirmado por laboratorio o cuadro clínico compatible',
+    matrix: 'Código de la muestra tomada previamente y guardada en OSD por 15 días',
+    sampleSummary: 'Código de la muestra tomada previamente y guardada en OSD por 15 días',
+    samples: [
+      { name: 'Muestra previa en OSD', desc: 'Identificador / código de muestra almacenada en custodia VetLab (hasta 15 días)' }
+    ],
+    syndromes: ['Hemotrópico/Sistémico', 'Infeccioso viral'],
+    agents: [
+      'Detección in vitro de genes de resistencia a tetraciclinas'
+    ],
+    description: 'Detección in vitro de determinantes genéticos y genes de resistencia a derivados de tetraciclinas a partir de muestra biológica previamente procesada y conservada en OSD (hasta 15 días).'
+  },
+
+  // --------------------------------------------------------------------------
+  // P3: qPCR Detección de genes de resistencia (Muestra nueva)
+  // --------------------------------------------------------------------------
+  {
+    id: 'p3-genes-resistencia-muestra-nueva',
+    code: 'P3',
+    title: 'qPCR Detección de genes de resistencia (Muestra nueva)',
+    species: 'Ambos',
+    type: 'Resistencia Antimicrobiana',
+    basePrice: 185000,
+    price: 185000,
+    discount: false,
+    ecoEpidemiology: 'Paciente con resultado positivo a una infección bacteriana, cuyo tratamiento involucre un derivado de tetraciclinas. Puede ser al inicio de la terapía o si no se observa respuesta satisfactoria',
+    labFindings: 'Paciente con diagnóstico de infección bacteriana confirmado por laboratorio o cuadro clínico compatible',
+    matrix: 'Sangre en tubo tapa lila (EDTA)',
+    sampleSummary: 'Sangre en tubo tapa lila (EDTA)',
     samples: [
       { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado (4°C)' }
     ],
-    syndromes: ['Hemotrópico/Sistémico', 'Infeccioso viral', 'Dermatológico / Cutáneo (Piel)', 'Digestivo-Hepático', 'Nefrológico', 'Cardíaco'],
-    agentIds: [
-      'ehrlichia-canis',
-      'anaplasma-platys',
-      'anaplasma-phagocytophilum',
-      'babesia-canis',
-      'hepatozoon-canis',
-      'mycoplasma-haemocanis',
-      'rickettsia-rickettsii',
-      'bartonella-canina',
-      'leptospira-spp',
-      'trypanosoma-spp',
-      'leishmania-spp'
+    syndromes: ['Hemotrópico/Sistémico', 'Infeccioso viral'],
+    agents: [
+      'Detección in vitro de genes de resistencia a tetraciclinas'
     ],
-    description: 'Diagnóstico molecular integral de patógenos transmitidos por vectores y hemotrópicos en caninos según tabla clínica de referencia: Ehrlichia canis, Anaplasma (platys/phagocytophilum), Babesia canis, Hepatozoon canis, Mycoplasma haemocanis, Rickettsia rickettsii, Bartonella spp., Leptospira spp., Trypanosoma spp. y Leishmania spp.'
+    description: 'Detección in vitro de determinantes genéticos y genes de resistencia a tetraciclinas en muestra sanguínea nueva, para guiar la elección terapéutica oportuna o ante fallo de respuesta clínica.'
   },
+
+  // --------------------------------------------------------------------------
+  // P4: qPCR Gastrointestinal Canino PLUS
+  // --------------------------------------------------------------------------
   {
-    id: 'panel-leptospirosis-integral',
-    title: 'Panel Leptospirosis Patogénica (qPCR)',
+    id: 'p4-gastrointestinal-canino-plus',
+    code: 'P4',
+    title: 'qPCR Gastrointestinal Canino PLUS',
     species: 'Canino',
-    type: 'Específico',
-    basePrice: 165000,
+    type: 'Panel Gastrointestinal',
+    basePrice: 420000,
+    price: 420000,
     discount: false,
-    sampleSummary: 'Sangre total con EDTA (2 ml) + Orina estéril por cistocentesis (5 ml)',
+    ecoEpidemiology: 'Paciente con factores de riesgo epidemiológico como hacinamiento, parques o contacto con otros perros',
+    labFindings: 'Paciente con cuadro gastroentérico agudo o crónico (vómito, diarrea mucoide o con melena, dolor abdominal, anorexia, pérdida de peso, etc.)',
+    matrix: 'Materia fecal y/o hisopado rectal',
+    sampleSummary: 'Materia fecal y/o hisopado rectal',
     samples: [
-      { name: 'Sangre total con EDTA (2 ml)', desc: 'Fase leptospirémica temprana (<7-10 días)' },
-      { name: 'Orina estéril por cistocentesis (5 ml)', desc: 'Fase leptospirúrica de excreción renal (>7 días)' }
+      { name: 'Materia fecal fresca y/o hisopado rectal', desc: 'Frasco estéril sin fijador refrigerado (4°C)' }
     ],
-    syndromes: ['Nefrológico', 'Digestivo-Hepático', 'Hemotrópico/Sistémico', 'Respiratorio'],
-    agentIds: [
-      'leptospira-spp',
-      'leptospira-interrogans',
-      'leptospira-kirschneri',
-      'leptospira-canicola',
-      'leptospira-icterohaemorrhagiae'
+    syndromes: ['Digestivo-Hepático', 'Infeccioso viral'],
+    agents: [
+      'Trichomona spp.',
+      'Pentatrichomona spp.',
+      'Giardia spp.',
+      'Salmonella spp.',
+      'Helicobacter spp.',
+      'Coronavirus canino',
+      'Parvovirus canino',
+      'Distemper canino'
     ],
-    description: 'Detección cuantitativa molecular de serovares y especies patógenas de Leptospira (lipL32, 16S, secY). Diagnóstico específico ante cuadros de leptospirosis sistémica que cursan con falla renal aguda, hepatitis/ictericia o síndrome de hemorragia pulmonar.'
+    description: 'Abordaje molecular integral de gastroenteritis aguda o crónica en caninos expuestos a parques o colectividades. Identificación de protozoos entéricos flagelados, bacterias enteropatógenas y virus caninos mayores.'
   },
+
+  // --------------------------------------------------------------------------
+  // P5: qPCR Gastrointestinal Felino PLUS
+  // --------------------------------------------------------------------------
   {
-    id: 'panel-nefrologico-infeccioso',
-    title: 'Panel Nefrológico & Glomerulonefritis Infecciosa Canina',
-    species: 'Canino',
-    type: 'Específico',
-    basePrice: 170000,
+    id: 'p5-gastrointestinal-felino-plus',
+    code: 'P5',
+    title: 'qPCR Gastrointestinal Felino PLUS',
+    species: 'Felino',
+    type: 'Panel Gastrointestinal',
+    basePrice: 300000,
+    price: 300000,
     discount: false,
-    sampleSummary: 'Sangre total con EDTA (2 ml) + Orina estéril por cistocentesis (5 ml)',
+    ecoEpidemiology: 'Pacientes que conviven con otros felinos o tienen acceso al exterior',
+    labFindings: 'Pacientes con diarrea crónica, heces con moco o sangre, vómito recurrente, pérdida de peso o falta de respuesta a desparasitaciones y antibióticos empíricos',
+    matrix: 'Materia fecal y/o hisopado rectal',
+    sampleSummary: 'Materia fecal y/o hisopado rectal',
+    samples: [
+      { name: 'Materia fecal fresca y/o hisopado rectal', desc: 'Frasco estéril sin fijador refrigerado (4°C)' }
+    ],
+    syndromes: ['Digestivo-Hepático', 'Infeccioso viral'],
+    agents: [
+      'Trichomona spp.',
+      'Pentatrichomona spp.',
+      'Giardia spp.',
+      'Salmonella spp.',
+      'Helicobacter spp.',
+      'Coronavirus felino',
+      'Panleucopenia felina'
+    ],
+    description: 'Diagnóstico molecular de diarreas crónicas refractarias o vómito recurrente en felinos con acceso exterior o multicat. Cobertura de tricomonas felinas, giardiasis, enterobacterias patógenas, FCoV y Panleucopenia.'
+  },
+
+  // --------------------------------------------------------------------------
+  // P6: Perfil Joe, FIV y FeLV
+  // --------------------------------------------------------------------------
+  {
+    id: 'p6-perfil-joe-fiv-felv',
+    code: 'P6',
+    title: 'Perfil Joe, FIV y FeLV',
+    species: 'Felino',
+    type: 'Perfil Amplio',
+    basePrice: 390000,
+    price: 390000,
+    discount: false,
+    ecoEpidemiology: 'Paciente outside, que conviva con otros gatos o animales silvestres',
+    labFindings: 'Paciente con citopenias, afección de enzimas hepáticas, estomatitis o signos compatibles con retrovirus felinos',
+    matrix: 'Sangre en tubo tapa lila (EDTA), orina y/o hisopado gingival en gatos menores de 8 meses',
+    sampleSummary: 'Sangre en tubo tapa lila (EDTA), orina y/o hisopado gingival en gatos menores de 8 meses',
     samples: [
       { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado (4°C)' },
-      { name: 'Orina estéril por cistocentesis (5 ml)', desc: 'Tubo estéril sin aditivos refrigerado' }
+      { name: 'Orina estéril / Hisopado gingival', desc: 'Orina por cistocentesis y/o hisopado gingival en gatos < 8 meses' }
     ],
-    syndromes: ['Nefrológico', 'Hemotrópico/Sistémico'],
-    agentIds: [
-      'leptospira-interrogans',
-      'leptospira-icterohaemorrhagiae',
-      'ehrlichia-canis',
-      'anaplasma-phagocytophilum',
-      'bartonella-canina'
+    syndromes: ['Hemotrópico/Sistémico', 'Infeccioso viral', 'Digestivo-Hepático'],
+    agents: [
+      'Anaplasma spp.',
+      'Rickettsia spp.',
+      'Ehrlichia spp.',
+      'Mycoplasma spp.',
+      'Hepatozoon spp.',
+      'Toxoplasma gondii',
+      'Bartonella spp.',
+      'Babesia spp.',
+      'Filarias diferenciadas (D. immitis, D. repens, D. striata, B. pahangi)',
+      'FIV (VIF y PVIF)',
+      'FeLV (ViLeF y PViLeF)'
     ],
-    description: 'Abordaje molecular de glomerulonefritis membranoproliferativa mediada por inmunocomplejos, vasculitis renal, proteinuria y azotemia según la base clínica oficial.'
+    description: 'Perfil integral para felinos de exterior o con sospecha retroviral y vectorial. Incluye el espectro completo del Perfil Joe junto con la detección proviral y viral de FIV y FeLV.'
   },
+
+  // --------------------------------------------------------------------------
+  // P7: qPCR Infecto Contagiosas Felina
+  // --------------------------------------------------------------------------
   {
-    id: 'panel-digestivo-hepatico-canino',
-    title: 'Panel Digestivo-Hepático Canino',
-    species: 'Canino',
-    type: 'Específico',
-    basePrice: 165000,
+    id: 'p7-infecto-contagiosas-felina',
+    code: 'P7',
+    title: 'qPCR Infecto Contagiosas Felina',
+    species: 'Felino',
+    type: 'Panel Infeccioso',
+    basePrice: 345000,
+    price: 345000,
     discount: false,
-    sampleSummary: 'Sangre total con EDTA (2 ml) + Hisopado rectal / Materia fecal + Orina estéril (5 ml)',
+    ecoEpidemiology: 'Pacientes felinos en comunidad, refugios o pacientes sintomáticos',
+    labFindings: 'Cuadros crónicos, uveítis, efusión pleural/peritoneal, fiebre de origen desconocido, citopenias',
+    matrix: 'Sangre en tubo tapa lila (EDTA) y Materia fecal y/o Líquido cavitario',
+    sampleSummary: 'Sangre en tubo tapa lila (EDTA) y Materia fecal y/o Líquido cavitario',
     samples: [
       { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado (4°C)' },
-      { name: 'Hisopado rectal / Materia fecal', desc: 'Para detección de virus entéricos (Parvovirus, Coronavirus, Distemper)' },
-      { name: 'Orina estéril (5 ml)', desc: 'Para evaluación de hemoglobinuria / bilirrubinuria' }
+      { name: 'Materia fecal / Líquido cavitario', desc: 'Frasco estéril para líquido ascítico, efusión pleural o heces' }
     ],
-    syndromes: ['Digestivo-Hepático', 'Hemotrópico/Sistémico', 'Infeccioso viral'],
-    agentIds: [
-      'babesia-canis',
-      'leptospira-icterohaemorrhagiae',
-      'hepatozoon-canis',
-      'toxoplasma-gondii',
-      'ehrlichia-canis',
-      'anaplasma-spp',
-      'parvovirus-canino',
-      'distemper-canino',
-      'adenovirus-canino',
-      'coronavirus-canino'
+    syndromes: ['Infeccioso viral', 'Ocular', 'Hemotrópico/Sistémico'],
+    agents: [
+      'FIV',
+      'FeLV',
+      'Coronavirus Entérico Causante de PIF',
+      'Toxoplasma gondii',
+      'Mycoplasma spp.',
+      'Bartonella spp.'
     ],
-    description: 'Abordaje molecular integral de gastroenteritis viral, hepatitis infecciosa, daño hepático y síndrome ictérico canino: Anaplasma spp., Parvovirus canino, Virus del Distemper, Adenovirus canino (CAV-1/CAV-2), Coronavirus canino, Babesia canis, Leptospira icterohaemorrhagiae, Hepatozoon canis, Toxoplasma gondii y Ehrlichia canis.'
+    description: 'Evaluación molecular orientada a felinos de refugio o colectividades con sospecha de enfermedades infecciosas crónicas sistémicas: Retrovirus (FIV, FeLV), Coronavirus / PIF, Toxoplasma, Mycoplasma y Bartonella.'
   },
+
+  // --------------------------------------------------------------------------
+  // P8: qPCR Neurológico Completo
+  // --------------------------------------------------------------------------
   {
-    id: 'panel-cardiopulmonar-filarial-canino',
-    title: 'Panel Cardiopulmonar & Endovascular Filarial Canino',
+    id: 'p8-neurologico-completo',
+    code: 'P8',
+    title: 'qPCR Neurológico Completo',
     species: 'Canino',
-    type: 'Específico',
-    basePrice: 160000,
+    type: 'Panel Neurológico',
+    basePrice: 517500,
+    price: 517500,
     discount: false,
-    sampleSummary: 'Sangre total con EDTA (2 ml)',
+    ecoEpidemiology: 'Paciente canino con signos neurológicos centrales o periféricos',
+    labFindings: 'Convulsiones, ataxia, paresia/plejía, hiperestesia, alteraciones de pares craneales, cambios de comportamiento',
+    matrix: 'Líquido cefalorraquídeo (LCR) y/o Sangre en tubo tapa lila (EDTA) (Si no es posible LCR: Sangre con EDTA + Heces + Orina)',
+    sampleSummary: 'Líquido cefalorraquídeo (LCR) y/o Sangre en tubo tapa lila (EDTA) (Si no es posible LCR: Sangre con EDTA + Heces + Orina)',
     samples: [
-      { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado (4°C)' }
-    ],
-    syndromes: ['Cardíaco', 'Respiratorio', 'Hemotrópico/Sistémico'],
-    agentIds: [
-      'dirofilaria-immitis',
-      'wolbachia-pipientis',
-      'bartonella-canina',
-      'rickettsia-rickettsii',
-      'trypanosoma-spp'
-    ],
-    description: 'Evaluación molecular de endocarditis valvular, miocarditis por Trypanosoma spp. (Enfermedad de Chagas), vasculitis endotelial, dirofilariosis e infección filarial mediada por Wolbachia pipientis (tos, soplos, disnea, arritmias, hipertensión pulmonar).'
-  },
-  {
-    id: 'panel-musculoesqueletico-canino',
-    title: 'Panel Músculo-Esquelético & Poliartritis Infecciosa Canina',
-    species: 'Canino',
-    type: 'Específico',
-    basePrice: 165000,
-    discount: false,
-    sampleSummary: 'Sangre total con EDTA (2 ml) / Líquido sinovial articular',
-    samples: [
-      { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado' },
-      { name: 'Líquido sinovial articular / Biopsia muscular', desc: 'Aspirado estéril sin anticoagulante o EDTA' }
-    ],
-    syndromes: ['Neurológico', 'Hemotrópico/Sistémico'],
-    agentIds: [
-      'hepatozoon-canis',
-      'hepatozoon-americanum',
-      'anaplasma-phagocytophilum',
-      'bartonella-canina',
-      'toxoplasma-gondii',
-      'ehrlichia-canis',
-      'brucella-spp',
-      'borrelia-spp'
-    ],
-    description: 'Panel enfocado en cojera intermitente, poliartritis infecciosa / inmunomediada neutrofílica, discoespondilitis por Brucella spp., artritis de Lyme por Borrelia spp., atrofia muscular severa y miositis (Ehrlichia, Brucella, Borrelia, Hepatozoon, Anaplasma, Bartonella y Toxoplasma).'
-  },
-  {
-    id: 'panel-neuro-infeccioso-canino',
-    title: 'Panel Neuro-Infeccioso & Encefalitis / Meningitis Canina',
-    species: 'Canino',
-    type: 'Específico',
-    basePrice: 175000,
-    discount: false,
-    sampleSummary: 'Sangre total con EDTA / Líquido Cefalorraquídeo (LCR)',
-    samples: [
-      { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado' },
-      { name: 'Líquido cefalorraquídeo (LCR)', desc: 'Tubo estéril sin aditivos refrigerado' }
+      { name: 'LCR y/o Sangre EDTA', desc: 'Tubo estéril sin aditivos para LCR (1-2 ml) y tubo EDTA (2 ml)' },
+      { name: 'Alternativa sin LCR', desc: 'Sangre con EDTA + Heces en frasco estéril + Orina estéril' }
     ],
     syndromes: ['Neurológico', 'Hemotrópico/Sistémico', 'Infeccioso viral'],
-    agentIds: [
-      'toxoplasma-gondii',
-      'ehrlichia-canis',
-      'rickettsia-rickettsii',
-      'bartonella-canina',
-      'hepatozoon-americanum',
-      'distemper-canino',
-      'anaplasma-spp',
-      'neospora-spp'
+    agents: [
+      'Anaplasma spp.',
+      'Rickettsia spp.',
+      'Ehrlichia spp.',
+      'Mycoplasma spp.',
+      'Bartonella spp.',
+      'Hepatozoon spp.',
+      'Babesia spp.',
+      'Filarias diferenciadas (D. immitis, D. repens, D. striata, B. pahangi)',
+      'Toxoplasma gondii',
+      'Borrelia spp.',
+      'Neospora caninum',
+      'Cryptococcus spp.',
+      'Distemper canino',
+      'Parvovirus canino'
     ],
-    description: 'Abordaje molecular de convulsiones, mioclonías por Distemper, parálisis ascendente por Neospora caninum, meningitis, pleocitosis en LCR y vasculitis del sistema nervioso central (Distemper canino, Anaplasma spp., Neospora caninum, Toxoplasma gondii, Ehrlichia canis, Rickettsia rickettsii, Bartonella canina, Hepatozoon americanum).'
-  },
-  {
-    id: 'panel-ocular-uveitis-canino',
-    title: 'Panel Oftálmico & Uveítis Infecciosa Canina',
-    species: 'Canino',
-    type: 'Específico',
-    basePrice: 155000,
-    discount: false,
-    sampleSummary: 'Sangre total con EDTA / Humor acuoso / Hisopado conjuntival',
-    samples: [
-      { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado' },
-      { name: 'Humor acuoso o hisopado conjuntival', desc: 'Muestra estéril en tubo sin conservantes' }
-    ],
-    syndromes: ['Ocular', 'Hemotrópico/Sistémico'],
-    agentIds: [
-      'ehrlichia-canis',
-      'hepatozoon-canis',
-      'toxoplasma-gondii',
-      'bartonella-canina',
-      'leptospira-interrogans'
-    ],
-    description: 'Detección de agentes causantes de uveítis anterior, hipema, glaucoma secundario, coriorretinitis y desprendimiento de retina.'
-  },
-  {
-    id: 'panel-dermatologico-cutaneo-canino',
-    title: 'Panel Dermatológico, Cutáneo & Nódulos Subcutáneos Canino',
-    species: 'Canino',
-    type: 'Específico',
-    basePrice: 160000,
-    discount: false,
-    sampleSummary: 'Sangre total con EDTA / Biopsia de nódulo subcutáneo / Raspado profundo',
-    samples: [
-      { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila' },
-      { name: 'Biopsia de piel o nódulo', desc: 'Frasco estéril con solución salina estéril sin formol' }
-    ],
-    syndromes: ['Dermatológico / Cutáneo (Piel)', 'Hemotrópico/Sistémico'],
-    agentIds: [
-      'dirofilaria-repens',
-      'dirofilaria-striata',
-      'rickettsia-conorii',
-      'rickettsia-rickettsii',
-      'rickettsia-felis',
-      'ehrlichia-canis',
-      'leishmania-spp'
-    ],
-    description: 'Panel para dermatitis descamativa, alopecia periocular y úlceras por Leishmania spp., nódulos subcutáneos filariales, dermatitis papular, alopecia focal, prurito, vasculitis necrotizante cutánea, petequias y equimosis.'
+    description: 'Panel de alta especificidad para pacientes caninos con encefalitis, mielitis, convulsiones, paresias o ataxia. Análisis exhaustivo de 14 patógenos neurotrópicos infecciosos bacterianos, parasitarios, fúngicos y virales.'
   },
 
-  // --- PANELES FELINOS ---
+  // --------------------------------------------------------------------------
+  // P9: qPCR Ocular y Respiratorio Felino
+  // --------------------------------------------------------------------------
   {
-    id: 'panel-hemotropico-felino',
-    title: 'Panel Hemotrópico & Infeccioso Felino Completo',
+    id: 'p9-ocular-respiratorio-felino',
+    code: 'P9',
+    title: 'qPCR Ocular y Respiratorio Felino',
     species: 'Felino',
-    type: 'Amplio',
-    basePrice: 170000,
+    type: 'Panel Ocular / Respiratorio',
+    basePrice: 407000,
+    price: 407000,
     discount: false,
-    sampleSummary: 'Sangre total con EDTA (2 ml) - Tubo tapón lila',
+    ecoEpidemiology: 'Felinos con conjuntivitis, descarga nasal, rinitis o blefaritis',
+    labFindings: 'Conjuntivitis bilateral o unilateral, queratitis, rinitis crónica, úlceras corneales',
+    matrix: 'Hisopado profundo ocular, nasal, bucal y/o raspado de lesiones',
+    sampleSummary: 'Hisopado profundo ocular, nasal, bucal y/o raspado de lesiones',
     samples: [
-      { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado (4°C)' }
+      { name: 'Hisopado profundo conjuntival, nasal o bucal', desc: 'Hisopo estéril de dacrón/rayon sin medio bacteriano de transporte' },
+      { name: 'Raspado de lesiones', desc: 'Muestra de raspado o hisopado de úlceras' }
     ],
-    syndromes: ['Hemotrópico/Sistémico', 'Digestivo-Hepático', 'Infeccioso viral', 'Dermatológico / Cutáneo (Piel)'],
-    agentIds: [
-      'mycoplasma-haemofelis',
-      'bartonella-felina',
-      'rickettsia-felis',
-      'anaplasma-phagocytophilum',
-      'hepatozoon-felis',
-      'toxoplasma-gondii',
-      'vif-fiv',
-      'vilef-felv'
+    syndromes: ['Ocular', 'Respiratorio', 'Infeccioso viral'],
+    agents: [
+      'Calicivirus',
+      'Herpesvirus',
+      'Panleucopenia',
+      'Chlamydia spp.',
+      'Mycoplasma spp.',
+      'Bartonella spp.'
     ],
-    description: 'Panel qPCR felino integral enfocado en hemoplasmas (anemia hemolítica cíclica), retrovirus inmunosupresores mayores (VIF / FIV y ViLeF / FeLV), toxoplasmosis felina, bartonelosis felina y coinfecciones vectoriales.'
-  },
-  {
-    id: 'panel-toxoplasmosis-neuro-ocular-felino',
-    title: 'Panel Toxoplasmosis & Neuro-Ocular Felino (qPCR)',
-    species: 'Felino',
-    type: 'Específico',
-    basePrice: 165000,
-    discount: false,
-    sampleSummary: 'Sangre total con EDTA (2 ml) + Hisopado conjuntival / Humor acuoso / LCR',
-    samples: [
-      { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado' },
-      { name: 'Hisopado conjuntival / Humor acuoso o LCR', desc: 'Muestra estéril refrigerada' }
-    ],
-    syndromes: ['Ocular', 'Neurológico', 'Infeccioso viral', 'Respiratorio'],
-    agentIds: [
-      'toxoplasma-gondii',
-      'bartonella-felina',
-      'mycoplasma-haemofelis',
-      'chlamydia-spp',
-      'herpesvirus-felino',
-      'vif-fiv',
-      'vilef-felv',
-      'pif-fcov'
-    ],
-    description: 'Evaluación molecular integral del complejo neuro-ocular y respiratorio felino: Toxoplasma gondii, Chlamydia spp., Herpesvirus felino (FHV-1), VIF (FIV), ViLeF (FeLV), Coronavirus / PIF (FCoV), Bartonella felina y Mycoplasma haemofelis (uveítis anterior, coriorretinitis, queratitis dendrítica, quemosis, convulsiones, ataxia y neumonitis).'
-  },
-  {
-    id: 'panel-cardiorespiratorio-hard-felino',
-    title: 'Panel Cardiorespiratorio & Filarial Felino (HARD)',
-    species: 'Felino',
-    type: 'Específico',
-    basePrice: 165000,
-    discount: false,
-    sampleSummary: 'Sangre total con EDTA (2 ml) / Lavado broncoalveolar',
-    samples: [
-      { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado' }
-    ],
-    syndromes: ['Cardíaco', 'Respiratorio', 'Digestivo-Hepático'],
-    agentIds: [
-      'dirofilaria-immitis',
-      'wolbachia-pipientis',
-      'toxoplasma-gondii',
-      'bartonella-felina'
-    ],
-    description: 'Diagnóstico molecular de enfermedad respiratoria asociada a filariosis felina (HARD), endocarditis / miocarditis por Bartonella spp., neumonitis por Toxoplasma gondii, tos asmática refractaria, vómitos agudos no digestivos y disnea paroxística.'
-  },
-  {
-    id: 'panel-digestivo-hepatico-felino',
-    title: 'Panel Digestivo-Hepático Felino',
-    species: 'Felino',
-    type: 'Específico',
-    basePrice: 160000,
-    discount: false,
-    sampleSummary: 'Sangre total con EDTA (2 ml) + Hisopado orofaríngeo / Materia fecal (2 ml)',
-    samples: [
-      { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado' },
-      { name: 'Hisopado orofaríngeo / Materia fecal', desc: 'Para Calicivirus felino (FCV) y Coronavirus / PIF' }
-    ],
-    syndromes: ['Digestivo-Hepático', 'Hemotrópico/Sistémico', 'Infeccioso viral'],
-    agentIds: [
-      'mycoplasma-haemofelis',
-      'toxoplasma-gondii',
-      'hepatozoon-felis',
-      'bartonella-felina',
-      'leptospira-spp',
-      'calicivirus-felino',
-      'pif-fcov'
-    ],
-    description: 'Abordaje molecular integral digestivo, oral y hepatobiliar felino: Leptospira spp., Calicivirus felino (FCV con úlceras orales), Coronavirus / PIF (FCoV), Mycoplasma haemofelis, Toxoplasma gondii, Hepatozoon felis y Bartonella felina.'
-  },
-  {
-    id: 'panel-nefrologico-uveitis-felina',
-    title: 'Panel Nefrológico Felino',
-    species: 'Felino',
-    type: 'Específico',
-    basePrice: 160000,
-    discount: false,
-    sampleSummary: 'Sangre total con EDTA (2 ml) + Orina por cistocentesis (3-5 ml)',
-    samples: [
-      { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado' },
-      { name: 'Orina estéril por cistocentesis (3-5 ml)', desc: 'Tubo estéril refrigerado' }
-    ],
-    syndromes: ['Nefrológico', 'Ocular', 'Hemotrópico/Sistémico'],
-    agentIds: [
-      'leptospira-spp',
-      'bartonella-felina',
-      'toxoplasma-gondii',
-      'ehrlichia-canis',
-      'anaplasma-spp'
-    ],
-    description: 'Diagnóstico molecular de nefropatía infecciosa felina, nefritis intersticial, proteinuria y glomerulopatía asociada a Leptospira spp., Ehrlichia spp., Anaplasma spp., Bartonella felina y Toxoplasma gondii.'
+    description: 'Diagnóstico molecular de afecciones del complejo respiratorio y ocular felino: Calicivirus, Herpesvirus felino (FHV-1), Panleucopenia, Chlamydia felis, Mycoplasma spp. y Bartonella spp.'
   },
 
-  // --- PANELES MULTIESPECIE / ZOONOSIS ---
+  // --------------------------------------------------------------------------
+  // P10: qPCR Perfil Ictérico
+  // --------------------------------------------------------------------------
   {
-    id: 'panel-zoonosis-vectoriales',
-    title: 'Panel Zoonosis & Vectoriales One Health (qPCR)',
+    id: 'p10-perfil-icterico',
+    code: 'P10',
+    title: 'qPCR Perfil Ictérico',
     species: 'Ambos',
-    type: 'Amplio',
-    basePrice: 185000,
+    type: 'Panel Digestivo-Hepático',
+    basePrice: 368000,
+    price: 368000,
     discount: false,
-    sampleSummary: 'Sangre total con EDTA (2 ml) + Orina estéril',
+    ecoEpidemiology: 'Pacientes caninos o felinos con exposición a garrapatas, pulgas o vectores acuáticos/roedores',
+    labFindings: 'Ictericia, bilirrubina elevada, enzimas hepáticas alteradas, anemia hemolítica',
+    matrix: 'Sangre en tubo tapa lila (EDTA) y Orina',
+    sampleSummary: 'Sangre en tubo tapa lila (EDTA) y Orina',
+    samples: [
+      { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado (4°C)' },
+      { name: 'Orina estéril (3-5 ml)', desc: 'Tubo estéril por cistocentesis para Leptospira' }
+    ],
+    syndromes: ['Digestivo-Hepático', 'Hemotrópico/Sistémico', 'Nefrológico'],
+    agents: [
+      'Anaplasma spp.',
+      'Ehrlichia spp.',
+      'Mycoplasma spp.',
+      'Bartonella spp.',
+      'Hepatozoon spp.',
+      'Babesia spp.',
+      'Filarias diferenciadas (D. immitis, D. repens, D. striata, B. pahangi)',
+      'Leptospira spp.',
+      'Adenovirus canino tipo 1 y 2'
+    ],
+    description: 'Diagnóstico diferencial del síndrome ictérico y daño hepatobiliar / hemolítico en caninos y felinos. Detección de hemoparásitos hemolíticos, Leptospira spp., Adenovirus canino (hepatitis infecciosa) y bacterias afines.'
+  },
+
+  // --------------------------------------------------------------------------
+  // P11: qPCR Respiratorio Canino Completo
+  // --------------------------------------------------------------------------
+  {
+    id: 'p11-respiratorio-canino-completo',
+    code: 'P11',
+    title: 'qPCR Respiratorio Canino Completo',
+    species: 'Canino',
+    type: 'Panel Respiratorio',
+    basePrice: 300000,
+    price: 300000,
+    discount: false,
+    ecoEpidemiology: 'Pacientes caninos con tos de las perreras, tos crónica o descarga nasal',
+    labFindings: 'Tos paroxística, neumonía, secreción mucopurulenta nasal/ocular',
+    matrix: 'Hisopado profundo ocular, gingival, nasal y/o raspado de lesiones',
+    sampleSummary: 'Hisopado profundo ocular, gingival, nasal y/o raspado de lesiones',
+    samples: [
+      { name: 'Hisopado profundo nasofaríngeo, ocular o gingival', desc: 'Hisopo estéril de dacrón en tubo estéril refrigerado' }
+    ],
+    syndromes: ['Respiratorio', 'Infeccioso viral', 'Ocular'],
+    agents: [
+      'Anaplasma spp.',
+      'Ehrlichia spp.',
+      'Mycoplasma spp.',
+      'Bartonella spp.',
+      'Babesia spp.',
+      'Toxoplasma gondii',
+      'Filarias (D. immitis, D. repens, D. striata, B. pahangi)',
+      'Adenovirus tipo 1 y 2',
+      'Distemper canino',
+      'Herpesvirus'
+    ],
+    description: 'Panel completo para el complejo infeccioso respiratorio canino (CIRD), tos de las perreras, neumonía o descarga mucopurulenta. Cubre adenovirus, distemper, herpesvirus, filarias y agentes bacterianos/parasitarios asociados.'
+  },
+
+  // --------------------------------------------------------------------------
+  // P12: qPCR Reproductor para pequeñas especies
+  // --------------------------------------------------------------------------
+  {
+    id: 'p12-reproductor-pequenas-especies',
+    code: 'P12',
+    title: 'qPCR Reproductor para pequeñas especies',
+    species: 'Ambos',
+    type: 'Panel Reproductor',
+    basePrice: 195000,
+    price: 195000,
+    discount: false,
+    ecoEpidemiology: 'Reproductores en criaderos o pacientes con problemas reproductivos',
+    labFindings: 'Infertilidad, abortos, pérdidas embrionarias, orquitis, vaginitis, piometra',
+    matrix: 'Semen y/o hisopados vaginales/prepuciales y/o líquidos uterinos/biopsias',
+    sampleSummary: 'Semen y/o hisopados vaginales/prepuciales y/o líquidos uterinos/biopsias',
+    samples: [
+      { name: 'Semen / Hisopado vaginal o prepucial', desc: 'Tubo estéril o hisopo estéril sin medio de transporte' },
+      { name: 'Líquido uterino / Biopsia', desc: 'Recipiente estéril con solución salina estéril refrigerado' }
+    ],
+    syndromes: ['Hemotrópico/Sistémico', 'Infeccioso viral'],
+    agents: [
+      'Neospora caninum',
+      'Brucella spp.',
+      'Trichomona spp.',
+      'Leptospira spp.',
+      'Herpesvirus canino'
+    ],
+    description: 'Panel enfocado en patología reproductiva, infertilidad y pérdidas perinatales en caninos y felinos. Detección precisa de Brucella spp., Neospora caninum, Leptospira spp., Herpesvirus canino y Trichomona spp.'
+  },
+
+  // --------------------------------------------------------------------------
+  // P13: qPCR Rutina Canino
+  // --------------------------------------------------------------------------
+  {
+    id: 'p13-rutina-canino',
+    code: 'P13',
+    title: 'qPCR Rutina Canino',
+    species: 'Canino',
+    type: 'Perfil Rutina / Amplio',
+    basePrice: 418000,
+    price: 418000,
+    discount: false,
+    ecoEpidemiology: 'Chequeo integral o paciente canino polimórbido',
+    labFindings: 'Cuadros multisistémicos, fiebre no resuelta, citopenias, alteraciones bioquímicas múltiples',
+    matrix: 'Sangre EDTA, Orina y Materia fecal y/o LCR',
+    sampleSummary: 'Sangre EDTA, Orina y Materia fecal y/o LCR',
+    samples: [
+      { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado (4°C)' },
+      { name: 'Orina estéril (3-5 ml)', desc: 'Tubo estéril para detección de Leptospira' },
+      { name: 'Materia fecal y/o LCR', desc: 'Frasco estéril para heces y/o tubo para LCR según sospecha clínica' }
+    ],
+    syndromes: ['Hemotrópico/Sistémico', 'Digestivo-Hepático', 'Neurológico', 'Infeccioso viral', 'Nefrológico'],
+    agents: [
+      'Distemper canino',
+      'Coronavirus canino',
+      'Parvovirus canino',
+      'Anaplasma spp.',
+      'Ehrlichia spp.',
+      'Rickettsia spp.',
+      'Mycoplasma spp.',
+      'Hepatozoon spp.',
+      'Toxoplasma gondii',
+      'Bartonella spp.',
+      'Leptospira spp.',
+      'Babesia spp.',
+      'Filarias diferenciadas (D. immitis, D. repens, D. striata, B. pahangi)'
+    ],
+    description: 'Perfil de chequeo rutinario y exhaustivo para pacientes caninos con presentaciones complejas o polimórbidas. Integra los virus entéricos y respiratorios principales con la totalidad de hemotrópicos y zoonosis mayores.'
+  },
+
+  // --------------------------------------------------------------------------
+  // P14: qPCR Rutina Felino
+  // --------------------------------------------------------------------------
+  {
+    id: 'p14-rutina-felino',
+    code: 'P14',
+    title: 'qPCR Rutina Felino',
+    species: 'Felino',
+    type: 'Perfil Rutina / Amplio',
+    basePrice: 498000,
+    price: 498000,
+    discount: false,
+    ecoEpidemiology: 'Chequeo integral felino o paciente felino polimórbido',
+    labFindings: 'Cuadros multisistémicos, pérdida de peso crónica, fiebre idiopática, gingivostomatitis, efusiones',
+    matrix: 'Hisopado oronasal/ocular, Sangre EDTA, Orina, Materia fecal y/o Líquido efusión',
+    sampleSummary: 'Hisopado oronasal/ocular, Sangre EDTA, Orina, Materia fecal y/o Líquido efusión',
     samples: [
       { name: 'Sangre total con EDTA (2 ml)', desc: 'Tubo tapón lila refrigerado' },
-      { name: 'Orina estéril (5 ml)', desc: 'Para Leptospira' }
+      { name: 'Hisopado oronasal / ocular', desc: 'Hisopo de dacrón sin medio para virus respiratorios y Chlamydia' },
+      { name: 'Orina / Heces / Líquido efusión', desc: 'Muestras biológicas complementarias en frascos estériles' }
     ],
-    syndromes: ['Hemotrópico/Sistémico', 'Nefrológico', 'Infeccioso viral', 'Dermatológico / Cutáneo (Piel)'],
-    agentIds: [
-      'leptospira-spp',
-      'rickettsia-rickettsii',
-      'bartonella-felina',
-      'bartonella-canina',
-      'toxoplasma-gondii',
-      'dirofilaria-immitis',
-      'leishmania-spp',
-      'brucella-spp'
+    syndromes: ['Hemotrópico/Sistémico', 'Digestivo-Hepático', 'Ocular', 'Respiratorio', 'Infeccioso viral'],
+    agents: [
+      'FIV',
+      'FeLV',
+      'Coronavirus Entérico Causante de PIF',
+      'Calicivirus',
+      'Herpesvirus',
+      'Panleucopenia',
+      'Chlamydia spp.',
+      'Anaplasma spp.',
+      'Ehrlichia spp.',
+      'Rickettsia spp.',
+      'Mycoplasma spp.',
+      'Hepatozoon spp.',
+      'Toxoplasma gondii',
+      'Bartonella spp.',
+      'Babesia spp.'
     ],
-    description: 'Panel integral de vigilancia epidemiológica One Health para patógenos zoonóticos mayores de alto riesgo transmitidos por vectores y agua en perros y gatos: Leptospira spp., Leishmania spp., Brucella spp., Bartonella (felina/canina), Toxoplasma gondii, Rickettsia rickettsii y Dirofilaria immitis.'
+    description: 'La máxima cobertura diagnóstica molecular para medicina felina. Chequeo integral que engloba retrovirus, coronavirus causante de PIF, virus del tracto respiratorio y ocular, hemotrópicos y parásitos tisulares.'
+  },
+
+  // --------------------------------------------------------------------------
+  // P15: qPCR Viral Felino
+  // --------------------------------------------------------------------------
+  {
+    id: 'p15-viral-felino',
+    code: 'P15',
+    title: 'qPCR Viral Felino',
+    species: 'Felino',
+    type: 'Panel Viral',
+    basePrice: 365000,
+    price: 365000,
+    discount: false,
+    ecoEpidemiology: 'Pacientes felinos jóvenes o adultos con sospecha de cuadro viral agudo o crónico',
+    labFindings: 'Fiebre, estomatitis, rinitis, conjuntivitis, leucopenia, gastroenteritis',
+    matrix: 'Hisopado nasobucal/conjuntival, Sangre en tubo tapa lila (EDTA) y Materia fecal',
+    sampleSummary: 'Hisopado nasobucal/conjuntival, Sangre en tubo tapa lila (EDTA) y Materia fecal',
+    samples: [
+      { name: 'Hisopado nasobucal y conjuntival', desc: 'Para Calicivirus y Herpesvirus felino' },
+      { name: 'Sangre total con EDTA (2 ml)', desc: 'Para FIV y FeLV' },
+      { name: 'Materia fecal en frasco estéril', desc: 'Para Coronavirus entérico / PIF y Panleucopenia felina' }
+    ],
+    syndromes: ['Infeccioso viral', 'Digestivo-Hepático', 'Respiratorio', 'Ocular'],
+    agents: [
+      'FIV',
+      'FeLV',
+      'Coronavirus Entérico Causante de PIF',
+      'Calicivirus',
+      'Herpesvirus',
+      'Panleucopenia'
+    ],
+    description: 'Panel enfocado específicamente en los 6 virus de mayor relevancia y letalidad en gatos: FIV, FeLV, Coronavirus entérico causante de PIF, Calicivirus felino, Herpesvirus felino y Panleucopenia felina.'
   }
 ];
 
 // Enriquecer canónicamente cada perfil con sus agentes diana resueltos y objetos de patógenos
 QPCR_PROFILES_MASTER.forEach((profile) => {
-  const resolvedAgentObjects = (profile.agentIds || []).map((id) => {
-    return (
-      INFECTIOUS_AGENTS_DB.find((a) => a.id === id) || {
-        id,
-        name: id,
-        group: 'General',
-        targetOrgans: 'Sistémico',
-        transmission: 'Vectorial / Contacto',
-        symptomsDescription: '',
-        labDescription: '',
-      }
-    );
-  });
-  profile.agents = resolvedAgentObjects.map((a) => a.name);
-  profile.agentObjects = resolvedAgentObjects;
-  profile.agentCount = profile.agents.length;
+  if (profile.agentIds && profile.agentIds.length > 0) {
+    const resolvedAgentObjects = profile.agentIds.map((id) => {
+      return (
+        INFECTIOUS_AGENTS_DB.find((a) => a.id === id) || {
+          id,
+          name: id,
+          group: 'Infeccioso',
+          targetOrgans: 'Sistémico',
+          transmission: 'Vectorial / Contacto',
+          symptomsDescription: '',
+          labDescription: '',
+        }
+      );
+    });
+    profile.agentObjects = resolvedAgentObjects;
+    if (!profile.agents || profile.agents.length === 0) {
+      profile.agents = resolvedAgentObjects.map((a) => a.name);
+    }
+  } else if (profile.agents && profile.agents.length > 0) {
+    profile.agentObjects = profile.agents.map((name) => {
+      const cleanName = name.replace(/\(.*?\)/g, '').trim().toLowerCase();
+      const found = INFECTIOUS_AGENTS_DB.find((a) => {
+        const aName = a.name.toLowerCase();
+        return aName === cleanName || aName.includes(cleanName) || cleanName.includes(aName);
+      });
+      return (
+        found || {
+          id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          name,
+          group: 'Infeccioso',
+          targetOrgans: 'Sistémico',
+          transmission: 'Contacto / Vectorial',
+          symptomsDescription: '',
+          labDescription: '',
+        }
+      );
+    });
+  }
+  profile.agentCount = (profile.agents || []).length;
   if (!profile.price) profile.price = profile.basePrice;
 });
 
 export default {
   INFECTIOUS_AGENTS_DB,
-  QPCR_PROFILES_MASTER
+  QPCR_PROFILES_MASTER,
+  QPCR_GENERAL_OBSERVATION
 };
+

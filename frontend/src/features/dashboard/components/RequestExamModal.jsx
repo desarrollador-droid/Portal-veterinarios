@@ -5129,6 +5129,11 @@ export default function RequestExamModal({
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
                         <div className="flex items-center gap-2 flex-wrap">
+                          {profile.code && (
+                            <span className="px-2 py-0.5 rounded-lg text-xs font-black bg-[#2B017C] text-[#01FADA]">
+                              {profile.code}
+                            </span>
+                          )}
                           <h4 className="text-sm font-extrabold text-slate-900">
                             {profile.title}
                           </h4>
@@ -5147,6 +5152,28 @@ export default function RequestExamModal({
                           </span>
                         </div>
                       </div>
+
+                      {/* Eco-Epidemiología y Hallazgos de Laboratorio */}
+                      {(profile.ecoEpidemiology || profile.labFindings) && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 my-2.5 text-xs">
+                          {profile.ecoEpidemiology && (
+                            <div className="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100">
+                              <span className="text-[10px] font-extrabold text-[#2B017C] uppercase block mb-0.5">
+                                🌍 Eco-Epidemiología
+                              </span>
+                              <p className="text-slate-700 leading-snug font-normal">{profile.ecoEpidemiology}</p>
+                            </div>
+                          )}
+                          {profile.labFindings && (
+                            <div className="p-2.5 rounded-xl bg-sky-50/60 border border-sky-100">
+                              <span className="text-[10px] font-extrabold text-sky-900 uppercase block mb-0.5">
+                                🔬 Hallazgos de Laboratorio
+                              </span>
+                              <p className="text-slate-700 leading-snug font-normal">{profile.labFindings}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       {/* Agentes incluidos - TODOS a simple vista */}
                       <div className="py-3">
@@ -5309,10 +5336,10 @@ export default function RequestExamModal({
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
                         <div className="flex items-center gap-4">
                           <span className="text-base font-extrabold text-[#6F2BCC]">
-                            ${profile.basePrice.toLocaleString('es-CO')}
+                            ${(profile.basePrice || profile.price || 0).toLocaleString('es-CO')}
                           </span>
                           <span className="text-xs text-slate-500 flex items-center gap-1 font-medium">
-                            <span>🧪</span> {profile.sampleSummary}
+                            <span>🧪</span> {profile.matrix || profile.sampleSummary}
                           </span>
                         </div>
 

@@ -60,10 +60,25 @@ export const CLINICAL_SYNDROMES_LIST = [
 ];
 
 // Re-exportamos la base de datos de agentes y perfiles desde la estructura canónica
-export { INFECTIOUS_AGENTS_DB as LOCAL_INFECTIOUS_AGENTS_DB, QPCR_PROFILES_MASTER as LOCAL_QPCR_PROFILES_MASTER } from '../../../../../backend/src/models/qpcrKnowledgeBase.js';
-import { INFECTIOUS_AGENTS_DB as LOCAL_AGENTS, QPCR_PROFILES_MASTER as LOCAL_PROFILES } from '../../../../../backend/src/models/qpcrKnowledgeBase.js';
+export {
+  INFECTIOUS_AGENTS_DB as LOCAL_INFECTIOUS_AGENTS_DB,
+  QPCR_PROFILES_MASTER as LOCAL_QPCR_PROFILES_MASTER,
+  QPCR_GENERAL_OBSERVATION as LOCAL_QPCR_GENERAL_OBSERVATION,
+} from '../../../../../backend/src/models/qpcrKnowledgeBase.js';
+import {
+  INFECTIOUS_AGENTS_DB as LOCAL_AGENTS,
+  QPCR_PROFILES_MASTER as LOCAL_PROFILES,
+  QPCR_GENERAL_OBSERVATION as LOCAL_OBSERVATION,
+} from '../../../../../backend/src/models/qpcrKnowledgeBase.js';
 
 export const qpcrApi = {
+  /**
+   * Obtiene la observación general preanalítica y clínica
+   */
+  getGeneralObservation() {
+    return LOCAL_OBSERVATION;
+  },
+
   /**
    * Obtiene todos los perfiles qPCR con sus nombres de agentes resueltos
    * Soporta filtrado opcional por síndrome clínico, especie y búsqueda textual
@@ -78,11 +93,13 @@ export const qpcrApi = {
 
     let list = LOCAL_PROFILES.map((p) => ({
       ...p,
-      price: p.basePrice,
-      agents: (p.agentIds || []).map((id) => {
-        const ag = LOCAL_AGENTS.find((a) => a.id === id);
-        return ag ? ag.name : id;
-      }),
+      price: p.basePrice || p.price,
+      agents: (p.agentIds && p.agentIds.length > 0)
+        ? p.agentIds.map((id) => {
+            const ag = LOCAL_AGENTS.find((a) => a.id === id);
+            return ag ? ag.name : id;
+          })
+        : (p.agents || []),
     }));
 
     if (params.species && params.species !== 'all') {
@@ -107,7 +124,11 @@ export const qpcrApi = {
       list = list.filter((p) => {
         return (
           norm(p.title).includes(q) ||
+          norm(p.code || '').includes(q) ||
           norm(p.description).includes(q) ||
+          norm(p.ecoEpidemiology || '').includes(q) ||
+          norm(p.labFindings || '').includes(q) ||
+          norm(p.matrix || '').includes(q) ||
           (p.agents || []).some((ag) => norm(ag).includes(q)) ||
           (p.syndromes || []).some((syn) => norm(syn).includes(q))
         );

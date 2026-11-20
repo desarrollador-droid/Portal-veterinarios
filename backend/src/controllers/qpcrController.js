@@ -32,10 +32,12 @@ export const getProfiles = async (req, res) => {
   try {
     const { syndrome, species, search } = req.query || {};
     const profiles = qpcrService.getAllProfiles({ syndrome, species, search });
+    const observation = qpcrService.getGeneralObservation();
     return res.status(200).json({
       success: true,
       total: profiles.length,
       data: profiles,
+      observation,
     });
   } catch (error) {
     console.error('Error al listar perfiles qPCR:', error);

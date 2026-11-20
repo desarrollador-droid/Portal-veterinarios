@@ -4,7 +4,7 @@
  * síndromes y factores de riesgo epidemiológicos según la Base de Datos Oficial en Excel.
  */
 
-import { INFECTIOUS_AGENTS_DB, QPCR_PROFILES_MASTER } from '../models/qpcrKnowledgeBase.js';
+import { INFECTIOUS_AGENTS_DB, QPCR_PROFILES_MASTER, QPCR_GENERAL_OBSERVATION } from '../models/qpcrKnowledgeBase.js';
 
 function normalizeText(text) {
   if (!text) return '';
@@ -49,6 +49,13 @@ function matchSyndromeTokens(sNorm, psNorm) {
 
 export const qpcrService = {
   /**
+   * Obtiene la observación general preanalítica y clínica
+   */
+  getGeneralObservation() {
+    return QPCR_GENERAL_OBSERVATION;
+  },
+
+  /**
    * Obtiene todos los agentes infecciosos de la base de conocimiento oficial
    */
   getAllAgents() {
@@ -61,15 +68,17 @@ export const qpcrService = {
    */
   getAllProfiles({ syndrome, species, search } = {}) {
     let profiles = QPCR_PROFILES_MASTER.map((profile) => {
-      const resolvedAgents = (profile.agentIds || []).map((agentId) => {
-        const found = INFECTIOUS_AGENTS_DB.find((a) => a.id === agentId);
-        return found ? found.name : agentId;
-      });
+      const resolvedAgents = (profile.agentIds && profile.agentIds.length > 0)
+        ? profile.agentIds.map((agentId) => {
+            const found = INFECTIOUS_AGENTS_DB.find((a) => a.id === agentId);
+            return found ? found.name : agentId;
+          })
+        : (profile.agents || []);
 
       return {
         ...profile,
         agents: resolvedAgents,
-        price: profile.basePrice,
+        price: profile.basePrice || profile.price,
       };
     });
 
@@ -96,7 +105,11 @@ export const qpcrService = {
       profiles = profiles.filter((p) => {
         return (
           normalizeText(p.title).includes(q) ||
+          normalizeText(p.code || '').includes(q) ||
           normalizeText(p.description).includes(q) ||
+          normalizeText(p.ecoEpidemiology || '').includes(q) ||
+          normalizeText(p.labFindings || '').includes(q) ||
+          normalizeText(p.matrix || '').includes(q) ||
           (p.agents || []).some((ag) => normalizeText(ag).includes(q)) ||
           (p.syndromes || []).some((syn) => normalizeText(syn).includes(q))
         );

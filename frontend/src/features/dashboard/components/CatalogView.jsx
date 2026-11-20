@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import {
   LOCAL_INFECTIOUS_AGENTS_DB,
   LOCAL_QPCR_PROFILES_MASTER,
+  LOCAL_QPCR_GENERAL_OBSERVATION,
   CLINICAL_SYNDROMES_LIST,
   matchSyndromeTokens,
 } from '../services/qpcrApi.js';
@@ -9,7 +10,8 @@ import {
 /**
  * Catálogo Oficial de Perfiles qPCR y Agentes Infecciosos - VetLab
  * Basado en la Base de Datos Biomédica y Epidemiológica (Excel).
- * Grupos: HEPATOZOON, RICKETTSIALES, HAEMOPLASMAS, APICOMPLEXOS, NEMÁTODOS, LEPTOSPIRA
+ * Grupos: HEPATOZOON, RICKETTSIALES, HAEMOPLASMAS, APICOMPLEXOS, NEMÁTODOS, LEPTOSPIRA,
+ * PROTOZOOS ENTÉRICOS, BACTERIAS ENTÉRICAS, RESISTENCIA ANTIMICROBIANA, VIRAL, HONGOS
  */
 export default function CatalogView({ onNavigateToRequestExam }) {
   const [activeTab, setActiveTab] = useState('perfiles'); // 'perfiles' | 'agentes'
@@ -27,6 +29,11 @@ export default function CatalogView({ onNavigateToRequestExam }) {
     { id: 'APICOMPLEXOS', label: 'Apicomplexos' },
     { id: 'NEMÁTODOS', label: 'Nemátodos' },
     { id: 'LEPTOSPIRA', label: 'Leptospira' },
+    { id: 'PROTOZOOS ENTÉRICOS', label: 'Protozoos Entéricos' },
+    { id: 'BACTERIAS ENTÉRICAS', label: 'Bacterias Entéricas' },
+    { id: 'RESISTENCIA ANTIMICROBIANA', label: 'Resistencia Antimicrobiana' },
+    { id: 'VIRAL', label: 'Viral' },
+    { id: 'HONGOS OPORTUNISTAS', label: 'Hongos' },
   ];
 
   // Conteo de perfiles por especie
@@ -94,7 +101,11 @@ export default function CatalogView({ onNavigateToRequestExam }) {
       const q = searchTerm.trim().toLowerCase();
       const matchesSearch =
         !q ||
+        (profile.code && profile.code.toLowerCase().includes(q)) ||
         profile.title.toLowerCase().includes(q) ||
+        (profile.ecoEpidemiology && profile.ecoEpidemiology.toLowerCase().includes(q)) ||
+        (profile.labFindings && profile.labFindings.toLowerCase().includes(q)) ||
+        (profile.matrix && profile.matrix.toLowerCase().includes(q)) ||
         profile.description.toLowerCase().includes(q) ||
         (profile.agents && profile.agents.some((ag) => ag.toLowerCase().includes(q))) ||
         (profile.syndromes && profile.syndromes.some((syn) => syn.toLowerCase().includes(q)));
@@ -214,6 +225,47 @@ export default function CatalogView({ onNavigateToRequestExam }) {
           )}
         </div>
       </div>
+
+      {/* OBSERVACIÓN GENERAL CLÍNICA Y PREANALÍTICA OFICIAL */}
+      {LOCAL_QPCR_GENERAL_OBSERVATION && (
+        <div className="bg-gradient-to-r from-amber-50 via-purple-50/70 to-teal-50/40 rounded-3xl p-5 sm:p-6 border-2 border-amber-300/80 shadow-xs space-y-3">
+          <div className="flex items-center gap-2.5">
+            <span className="w-9 h-9 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-base font-black shadow-xs shrink-0">
+              ⚠️
+            </span>
+            <div>
+              <h2 className="text-sm sm:text-base font-black text-amber-950 uppercase tracking-wide">
+                {LOCAL_QPCR_GENERAL_OBSERVATION.title}
+              </h2>
+              <p className="text-[11px] text-amber-800/85 font-semibold">
+                Directrices técnicas y preanalíticas oficiales de VetLab para la toma, preservación y envío de muestras moleculares
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+            {LOCAL_QPCR_GENERAL_OBSERVATION.points.map((pt, idx) => (
+              <div
+                key={idx}
+                className={`p-3.5 rounded-2xl border transition-all text-xs leading-relaxed flex items-start gap-2.5 ${
+                  idx === 2
+                    ? 'bg-purple-100/70 border-purple-300 text-[#2B017C] font-black shadow-2xs'
+                    : 'bg-white/85 border-amber-200/80 text-slate-800 font-medium'
+                }`}
+              >
+                <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
+                  idx === 2 ? 'bg-[#2B017C] text-white' : 'bg-amber-100 text-amber-900'
+                }`}>
+                  {idx + 1}
+                </span>
+                <p className="flex-1">
+                  {pt}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 2. BARRA DE FILTROS: CANINO, FELINO, SOLO AMBAS ESPECIES Y TODOS */}
       <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
@@ -413,7 +465,12 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                     {/* Encabezado del Perfil */}
                     <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
                       <div>
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                          {profile.code && (
+                            <span className="text-xs font-black px-2.5 py-0.5 rounded-lg bg-[#2B017C] text-[#01FADA] shadow-2xs">
+                              {profile.code}
+                            </span>
+                          )}
                           <span
                             className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${
                               profile.species.toLowerCase() === 'canino'
@@ -445,6 +502,32 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                     <p className="text-xs text-slate-600 leading-relaxed font-normal">
                       {profile.description}
                     </p>
+
+                    {/* Eco-Epidemiología */}
+                    {profile.ecoEpidemiology && (
+                      <div className="p-3 rounded-2xl bg-purple-50/60 border border-purple-100/90 text-xs space-y-1">
+                        <div className="flex items-center gap-1.5 text-[10px] font-black text-[#2B017C] uppercase tracking-wider">
+                          <span>🌍</span>
+                          <span>Eco-Epidemiología</span>
+                        </div>
+                        <p className="text-slate-700 leading-relaxed font-normal">
+                          {profile.ecoEpidemiology}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Hallazgos de Laboratorio */}
+                    {profile.labFindings && (
+                      <div className="p-3 rounded-2xl bg-sky-50/60 border border-sky-100/90 text-xs space-y-1">
+                        <div className="flex items-center gap-1.5 text-[10px] font-black text-sky-900 uppercase tracking-wider">
+                          <span>🔬</span>
+                          <span>Hallazgos de Laboratorio</span>
+                        </div>
+                        <p className="text-slate-700 leading-relaxed font-normal">
+                          {profile.labFindings}
+                        </p>
+                      </div>
+                    )}
 
                     {/* Síndromes Asociados - Clickeables para filtrar */}
                     {profile.syndromes && profile.syndromes.length > 0 && (
@@ -559,14 +642,14 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                       )}
                     </div>
 
-                    {/* Muestras Biológicas Requeridas */}
+                    {/* Matriz Requerida */}
                     <div className="pt-1">
                       <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">
-                        Muestra Requerida
+                        Matriz de Muestra Requerida
                       </span>
-                      <div className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                        <span>🧪</span>
-                        <span>{profile.sampleSummary}</span>
+                      <div className="text-xs font-semibold text-slate-700 flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                        <span className="text-sm">🧪</span>
+                        <span className="leading-snug">{profile.matrix || profile.sampleSummary}</span>
                       </div>
                     </div>
 
@@ -601,7 +684,7 @@ export default function CatalogView({ onNavigateToRequestExam }) {
                   <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                        Precio de referencia
+                        Precio IVA incluido 2026
                       </span>
                       <span className="text-base font-extrabold text-[#2B017C]">
                         ${(profile.basePrice || profile.price || 160000).toLocaleString('es-CO')} COP
