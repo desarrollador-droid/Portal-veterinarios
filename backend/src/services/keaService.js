@@ -502,7 +502,7 @@ export const keaService = {
     // Propietario en Kea es relación foránea obligatoria con la base PROPIETARIO
     const preferredOwner = patientData.owner?.code || patientData.ownerCode || patientData.owner?.documentNumber || patientData.ownerDocumentNumber || patientData.owner?.name || patientData.ownerName || 'PROP-PRUEBA-01';
 
-    const buildPayload = (ownerVal) => ({
+    const buildPayload = (ownerVal, nitVal = nit) => ({
       CODIGO_PACIENTE: patientCode,
       NOMBRE: fullName,
       ESPECIE: species,
@@ -514,7 +514,7 @@ export const keaService = {
       FECHA_NACIMIENTO: birthDateStr,
       VETERINARIO: vetValue,
       PROPIETARIO: ownerVal,
-      VETERINARIA: nit,
+      VETERINARIA: nitVal,
       ESTADO: patientData.status || 'activo',
       SINTOMAS: symptoms,
       CONDICION_CORPORAL: patientData.medicalAdmission?.bodyCondition || patientData.bodyCondition || '3/5',
@@ -540,8 +540,10 @@ export const keaService = {
 
     let data = await response.json();
 
-    // Si Kea rechaza el Propietario por ser clave foránea que no existe aún en su tabla, reintentar con tutor base 'PROP-PRUEBA-01'
-    if (!response.ok && String(data.data?.message || data.message || '').includes('Propietario')) {
+    // Si Kea rechaza el Propietario o Veterinaria por ser clave foránea que no existe aún en su tabla, reintentar con valores seguros
+    if (!response.ok && (String(data.data?.message || data.message || '').includes('Propietario') || String(data.data?.message || data.message || '').includes('Veterinaria'))) {
+      const fallbackOwner = String(data.data?.message || data.message || '').includes('Propietario') ? 'PROP-PRUEBA-01' : preferredOwner;
+      const fallbackNit = String(data.data?.message || data.message || '').includes('Veterinaria') ? '900000001' : nit;
       response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -549,7 +551,7 @@ export const keaService = {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify(buildPayload('PROP-PRUEBA-01')),
+        body: JSON.stringify(buildPayload(fallbackOwner, fallbackNit)),
       });
       data = await response.json();
     }

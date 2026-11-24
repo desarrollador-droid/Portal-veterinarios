@@ -2,7 +2,7 @@ import { patientsStore, PATIENT_STATUSES, calculateAgeFromBirthDate, savePatient
 import { keaService } from './keaService.js';
 import { clinicService } from './clinicService.js';
 
-export const PAUSE_DATABASE_CONNECTION = true;
+export const PAUSE_DATABASE_CONNECTION = false;
 
 let hasInitialKeaSyncCompleted = false;
 let initialSyncPromise = null;
@@ -17,6 +17,13 @@ function cleanNumber(val) {
  */
 function isPatientAssociatedWithClinic(patient, targetNit, targetClinicId) {
   if (!targetNit && !targetClinicId) return true;
+
+  // Soporte para clínica Animal Health IPS (clínica principal por defecto con Dr. Alejandro Morales)
+  // que utiliza el conjunto de pacientes de demostración y pruebas (NIT 900000001 o ID cli-001)
+  const isDefaultClinic = targetNit === '900845129' || targetClinicId === 'clinica-animal-health';
+  const isDemoPatient = cleanNumber(patient.clinicNit) === '900000001' || cleanNumber(patient.nit) === '900000001' || patient.clinicId === 'cli-001';
+
+  if (isDefaultClinic && isDemoPatient) return true;
 
   // 1. Coincidencia por NIT o código de sede / consecutivo NIT
   if (targetNit) {
@@ -936,19 +943,56 @@ export const patientService = {
           )
         );
         if (existingIdx !== -1) {
-          const currentAttending = patientsStore[existingIdx].attendingVet;
+          const current = patientsStore[existingIdx];
+          const currentAttending = current.attendingVet;
           const keaAttending = keaPat.attendingVet;
           const resolvedAttending = (currentAttending && currentAttending !== 'Dr. Asignado')
             ? currentAttending
             : (keaAttending || currentAttending);
 
           patientsStore[existingIdx] = {
-            ...patientsStore[existingIdx],
+            ...current,
             ...keaPat,
+            // Conservar información enriquecida local/histórica que Kea no almacena
+            name: current.name || keaPat.name,
+            lastName: (current.lastName && !current.lastName.includes('PRUEBA')) ? current.lastName : (keaPat.lastName || current.lastName),
+            fullName: (current.fullName && !current.fullName.includes('(PRUEBA)')) ? current.fullName : (keaPat.fullName || current.fullName),
             attendingVet: resolvedAttending,
-            activeExamOrder: patientsStore[existingIdx].activeExamOrder || keaPat.activeExamOrder,
-            consultations: patientsStore[existingIdx].consultations || keaPat.consultations,
-            documents: patientsStore[existingIdx].documents || [],
+            owner: {
+              ...keaPat.owner,
+              ...(current.owner || {}),
+              name: (current.owner?.name && !current.owner.name.startsWith('PROP-')) ? current.owner.name : (keaPat.owner?.name || current.owner?.name),
+            },
+            riskFactors: {
+              ...keaPat.riskFactors,
+              ...(current.riskFactors || {}),
+            },
+            medicalAdmission: {
+              ...keaPat.medicalAdmission,
+              ...(current.medicalAdmission || {}),
+              cuadroHematico: current.medicalAdmission?.cuadroHematico || current.cuadroHematico || null,
+              historiaClinica: current.medicalAdmission?.historiaClinica || current.historiaClinica || null,
+            },
+            healthMetrics: {
+              ...keaPat.healthMetrics,
+              ...(current.healthMetrics || {}),
+              weightHistory: current.healthMetrics?.weightHistory || [{ date: keaPat.lastVisit || 'Hoy', weight: keaPat.weight || '5 kg' }],
+              vitalSignsHistory: current.healthMetrics?.vitalSignsHistory || [],
+              vitalSigns: current.healthMetrics?.vitalSigns || {
+                heartRate: 'No registrada',
+                temperature: 'No registrada',
+                respiratoryRate: 'No registrada',
+                mucosa: 'No registrada',
+              },
+            },
+            activeExamOrder: current.activeExamOrder || keaPat.activeExamOrder || null,
+            consultations: (current.consultations && current.consultations.length > 0) ? current.consultations : (keaPat.consultations || []),
+            qpcrExams: current.qpcrExams || [],
+            clinicalExams: current.clinicalExams || [],
+            microbiotaExams: current.microbiotaExams || [],
+            documents: current.documents || [],
+            clinicalDocuments: current.clinicalDocuments || [],
+            auditHistory: current.auditHistory || [],
           };
           updated++;
         } else {

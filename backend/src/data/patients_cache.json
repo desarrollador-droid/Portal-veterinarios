@@ -1,5 +1,872 @@
 [
   {
+    "id": "PAC-CC-100021556-LUCAS",
+    "keaRecordId": 24,
+    "name": "lucas",
+    "lastName": "",
+    "fullName": "lucas",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "frespudel",
+    "sex": "Hembra",
+    "birthDate": "2025-11-01",
+    "age": "1 año, 1 mes",
+    "weight": "Sin registrar",
+    "clinicNit": "900949599",
+    "nit": "900949599",
+    "clinicId": "kea-vet-900949599",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-900949599",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "CC-100021556",
+      "firstName": "CC-100021556",
+      "lastName": "",
+      "phone": "+57 300 000 0000",
+      "email": "tutor@ejemplo.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": null,
+      "ruralAccess": false
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": false,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable."
+    },
+    "status": "activo",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB"
+  },
+  {
+    "id": "PAC-4968",
+    "keaRecordId": 23,
+    "name": "Aguacate",
+    "lastName": "Ruiz",
+    "fullName": "Aguacate Ruiz",
+    "avatar": "🐱",
+    "species": "Felino",
+    "otherSpecies": "",
+    "breed": "Persa",
+    "sex": "Hembra",
+    "birthDate": "2026-08-04",
+    "age": "3 meses",
+    "weight": "4.5 kg",
+    "clinicNit": "123456789",
+    "nit": "123456789",
+    "clinicId": "kea-vet-123456789",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-123456789",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "PROP-PRUEBA-01",
+      "firstName": "PROP-PRUEBA-01",
+      "lastName": "",
+      "phone": "+57 300 000 0000",
+      "email": "tutor@ejemplo.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": null,
+      "ruralAccess": false
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": true,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable."
+    },
+    "status": "activo",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB"
+  },
+  {
+    "id": "PAC-2644",
+    "keaRecordId": 22,
+    "name": "carlos",
+    "lastName": "Vence",
+    "fullName": "carlos Vence",
+    "avatar": "🐱",
+    "species": "Felino",
+    "otherSpecies": "",
+    "breed": "Persa",
+    "sex": "Hembra",
+    "birthDate": "2026-08-09",
+    "age": "3 meses",
+    "weight": "4.5 kg",
+    "clinicNit": "123456789",
+    "nit": "123456789",
+    "clinicId": "kea-vet-123456789",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-123456789",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "PROP-PRUEBA-01",
+      "firstName": "PROP-PRUEBA-01",
+      "lastName": "",
+      "phone": "+57 300 000 0000",
+      "email": "tutor@ejemplo.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": null,
+      "ruralAccess": false
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": true,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable."
+    },
+    "status": "activo",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB"
+  },
+  {
+    "id": "PAC-1974",
+    "keaRecordId": 21,
+    "name": "TestPersistence",
+    "lastName": "",
+    "fullName": "TestPersistence",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "Beagle",
+    "sex": "Macho",
+    "birthDate": "2026-11-11",
+    "age": "0 meses",
+    "weight": "5 kg",
+    "clinicNit": "123456789",
+    "nit": "123456789",
+    "clinicId": "kea-vet-123456789",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-123456789",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "PROP-PRUEBA-01",
+      "firstName": "PROP-PRUEBA-01",
+      "lastName": "",
+      "phone": "+57 300 000 0000",
+      "email": "tutor@ejemplo.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": null,
+      "ruralAccess": false
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": true,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable."
+    },
+    "status": "inactivo",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB"
+  },
+  {
+    "id": "PAC-6238",
+    "keaRecordId": 20,
+    "name": "bruno",
+    "lastName": "Ruiz",
+    "fullName": "bruno Ruiz",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "Poodle (Caniche)",
+    "sex": "Macho",
+    "birthDate": "2026-08-09",
+    "age": "3 meses",
+    "weight": "4.2 kg",
+    "clinicNit": "123456789",
+    "nit": "123456789",
+    "clinicId": "kea-vet-123456789",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-123456789",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "PROP-PRUEBA-01",
+      "firstName": "PROP-PRUEBA-01",
+      "lastName": "",
+      "phone": "+57 300 000 0000",
+      "email": "tutor@ejemplo.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": null,
+      "ruralAccess": false
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": true,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable."
+    },
+    "status": "activo",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB"
+  },
+  {
+    "id": "PAC-1402",
+    "keaRecordId": 19,
+    "name": "Ell",
+    "lastName": "Gomez",
+    "fullName": "Ell Gomez",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "Golden Retriever",
+    "sex": "Macho",
+    "birthDate": "2026-08-05",
+    "age": "3 meses",
+    "weight": "4.2 kg",
+    "clinicNit": "123456789",
+    "nit": "123456789",
+    "clinicId": "kea-vet-123456789",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-123456789",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "PROP-PRUEBA-01",
+      "firstName": "PROP-PRUEBA-01",
+      "lastName": "",
+      "phone": "+57 300 000 0000",
+      "email": "tutor@ejemplo.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": null,
+      "ruralAccess": false
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": true,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable."
+    },
+    "status": "activo",
+    "isSterilized": true,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB"
+  },
+  {
+    "id": "PAC-4082",
+    "keaRecordId": 18,
+    "name": "Toby",
+    "lastName": "Martinez",
+    "fullName": "Toby Martinez",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "Beagle",
+    "sex": "Macho",
+    "birthDate": "2022-05-10",
+    "age": "4 años, 6 meses",
+    "weight": "12.5 kg",
+    "clinicNit": "123456789",
+    "nit": "123456789",
+    "clinicId": "kea-vet-123456789",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-123456789",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "PROP-PRUEBA-01",
+      "firstName": "PROP-PRUEBA-01",
+      "lastName": "",
+      "phone": "+57 300 000 0000",
+      "email": "tutor@ejemplo.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": null,
+      "ruralAccess": false
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": true,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable."
+    },
+    "status": "inactivo",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB"
+  },
+  {
+    "id": "PAC-1348",
+    "keaRecordId": 17,
+    "name": "Copito",
+    "lastName": "Diaz",
+    "fullName": "Copito Diaz",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "Golden Retriever",
+    "sex": "Macho",
+    "birthDate": "2026-07-06",
+    "age": "4 meses",
+    "weight": "4.5 kg",
+    "clinicNit": "123456789",
+    "nit": "123456789",
+    "clinicId": "kea-vet-123456789",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-123456789",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "PROP-PRUEBA-01",
+      "firstName": "PROP-PRUEBA-01",
+      "lastName": "",
+      "phone": "+57 300 000 0000",
+      "email": "tutor@ejemplo.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": null,
+      "ruralAccess": false
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": true,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable."
+    },
+    "status": "activo",
+    "isSterilized": true,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB"
+  },
+  {
+    "id": "PAC-6131",
+    "keaRecordId": 16,
+    "name": "Max",
+    "lastName": "Prueba Perez",
+    "fullName": "Max Prueba Perez",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "Labrador",
+    "sex": "Macho",
+    "birthDate": "2023-01-01",
+    "age": "3 años, 11 meses",
+    "weight": "25 kg",
+    "clinicNit": "123456789",
+    "nit": "123456789",
+    "clinicId": "kea-vet-123456789",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-123456789",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "PROP-PRUEBA-01",
+      "firstName": "PROP-PRUEBA-01",
+      "lastName": "",
+      "phone": "+57 300 000 0000",
+      "email": "tutor@ejemplo.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": null,
+      "ruralAccess": false
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": true,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable."
+    },
+    "status": "inactivo",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB"
+  },
+  {
+    "id": "PAC-TEST-NIT",
+    "keaRecordId": 15,
+    "name": "Paciente",
+    "lastName": "Test NIT",
+    "fullName": "Paciente Test NIT",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "Mestizo",
+    "sex": "Macho",
+    "birthDate": "2024-01-01",
+    "age": "2 años, 11 meses",
+    "weight": "10 kg",
+    "clinicNit": "123456789",
+    "nit": "123456789",
+    "clinicId": "kea-vet-123456789",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-123456789",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "PROP-PRUEBA-01",
+      "firstName": "PROP-PRUEBA-01",
+      "lastName": "",
+      "phone": "+57 300 000 0000",
+      "email": "tutor@ejemplo.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": null,
+      "ruralAccess": false
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": false,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable."
+    },
+    "status": "inactivo",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB"
+  },
+  {
+    "id": "PAC-542134",
+    "keaRecordId": 14,
+    "name": "Chispas",
+    "lastName": "Cuartas",
+    "fullName": "Chispas Cuartas",
+    "avatar": "🐱",
+    "species": "Felino",
+    "otherSpecies": "",
+    "breed": "Persa",
+    "sex": "Macho",
+    "birthDate": "2026-09-07",
+    "age": "2 meses",
+    "weight": "20 kg",
+    "clinicNit": "900000001",
+    "nit": "900000001",
+    "clinicId": "kea-vet-900000001",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-900000001",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "PROP-PRUEBA-01",
+      "firstName": "PROP-PRUEBA-01",
+      "lastName": "",
+      "phone": "+57 300 000 0000",
+      "email": "tutor@ejemplo.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": null,
+      "ruralAccess": false
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": true,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable."
+    },
+    "status": "activo",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB"
+  },
+  {
+    "id": "PAC-TEST-AUTOHEAL",
+    "keaRecordId": 13,
+    "name": "Firulais",
+    "lastName": "Gomez",
+    "fullName": "Firulais Gomez",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "Beagle",
+    "sex": "Macho",
+    "birthDate": "2023-04-12",
+    "age": "3 años, 7 meses",
+    "weight": "14 kg",
+    "clinicNit": "900000001",
+    "nit": "900000001",
+    "clinicId": "kea-vet-900000001",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-900000001",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "PROP-PRUEBA-01",
+      "firstName": "PROP-PRUEBA-01",
+      "lastName": "",
+      "phone": "+57 300 000 0000",
+      "email": "tutor@ejemplo.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": null,
+      "ruralAccess": false
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": false,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable."
+    },
+    "status": "inactivo",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB"
+  },
+  {
+    "id": "PAC-TEST-RETRY",
+    "keaRecordId": 12,
+    "name": "Copito",
+    "lastName": "Perez",
+    "fullName": "Copito Perez",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "Poodle",
+    "sex": "Macho",
+    "birthDate": "2023-05-01",
+    "age": "3 años, 7 meses",
+    "weight": "Sin registrar",
+    "clinicNit": "900000001",
+    "nit": "900000001",
+    "clinicId": "kea-vet-900000001",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-900000001",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "PROP-PRUEBA-01",
+      "firstName": "PROP-PRUEBA-01",
+      "lastName": "",
+      "phone": "+57 300 000 0000",
+      "email": "tutor@ejemplo.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": null,
+      "ruralAccess": false
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": false,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable."
+    },
+    "status": "inactivo",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB"
+  },
+  {
+    "id": "PAC-TEST-SEX",
+    "keaRecordId": 11,
+    "name": "Test",
+    "lastName": "Sex",
+    "fullName": "Test Sex",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "Mestizo",
+    "sex": "Macho",
+    "birthDate": "2024-01-01",
+    "age": "2 años, 11 meses",
+    "weight": "Sin registrar",
+    "clinicNit": "1",
+    "nit": "1",
+    "clinicId": "kea-vet-1",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-1",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "PROP-PRUEBA-01",
+      "firstName": "PROP-PRUEBA-01",
+      "lastName": "",
+      "phone": "+57 300 000 0000",
+      "email": "tutor@ejemplo.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": null,
+      "ruralAccess": false
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": false,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable."
+    },
+    "status": "inactivo",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB"
+  },
+  {
+    "id": "PAC-TEST-05",
+    "keaRecordId": 9,
+    "name": "Test",
+    "lastName": "Vet Vacio",
+    "fullName": "Test Vet Vacio",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "Mestizo",
+    "sex": "Macho",
+    "birthDate": "2024-01-01",
+    "age": "2 años, 11 meses",
+    "weight": "Sin registrar",
+    "clinicNit": "1",
+    "nit": "1",
+    "clinicId": "kea-vet-1",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-1",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "PROP-PRUEBA-01",
+      "firstName": "PROP-PRUEBA-01",
+      "lastName": "",
+      "phone": "+57 300 000 0000",
+      "email": "tutor@ejemplo.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": null,
+      "ruralAccess": false
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": false,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable."
+    },
+    "status": "inactivo",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB"
+  },
+  {
+    "id": "PAC-PROP-PRUEBA-01-LOLA",
+    "keaRecordId": 5,
+    "name": "Lola",
+    "lastName": "",
+    "fullName": "Lola",
+    "avatar": "🐱",
+    "species": "Felino",
+    "otherSpecies": "",
+    "breed": "idk",
+    "sex": "Macho",
+    "birthDate": "2026-11-02",
+    "age": "0 meses",
+    "weight": "Sin registrar",
+    "clinicNit": "1000087681",
+    "nit": "1000087681",
+    "clinicId": "kea-vet-1000087681",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-1000087681",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "PROP-PRUEBA-01",
+      "firstName": "PROP-PRUEBA-01",
+      "lastName": "",
+      "phone": "+57 300 000 0000",
+      "email": "tutor@ejemplo.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": null,
+      "ruralAccess": false
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": false,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable."
+    },
+    "status": "activo",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "TP-PRUEBA-01",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB"
+  },
+  {
+    "id": "PAC-R01",
+    "keaRecordId": 4,
+    "name": "Sotia",
+    "lastName": "",
+    "fullName": "Sotia",
+    "avatar": "🐕",
+    "species": "Canino",
+    "otherSpecies": "",
+    "breed": "Labrador",
+    "sex": "Macho",
+    "birthDate": "2026-08-04",
+    "age": "3 meses",
+    "weight": "Sin registrar",
+    "clinicNit": "900949599",
+    "nit": "900949599",
+    "clinicId": "kea-vet-900949599",
+    "sedeId": "sede-principal-80",
+    "sedeNombre": "Sede Principal - Calle 80",
+    "codigoSedeNit": "#nit-900949599",
+    "microchip": "Sin microchip",
+    "owner": {
+      "name": "001",
+      "firstName": "001",
+      "lastName": "",
+      "phone": "+57 300 000 0000",
+      "email": "tutor@ejemplo.com",
+      "city": "Bogotá"
+    },
+    "riskFactors": {
+      "habitat": "",
+      "recentTravel": false,
+      "lastVisitedCountry": "Ninguno",
+      "livesWithOtherAnimals": null,
+      "ruralAccess": false
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": false,
+      "symptoms": [],
+      "bodyCondition": "3/5",
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable."
+    },
+    "status": "activo",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "attendingVet": "Dr. Alejandro Morales",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB"
+  },
+  {
     "id": "PAC-PRUEBA-01",
     "keaRecordId": 1,
     "name": "Luna",
@@ -11,14 +878,14 @@
     "breed": "Mestizo",
     "sex": "Hembra",
     "birthDate": "2022-03-01",
-    "age": "4 años, 8 meses",
+    "age": "4 años, 9 meses",
     "weight": "18 kg",
     "sedeId": "sede-principal-80",
     "sedeNombre": "Sede Principal - Calle 80",
     "codigoSedeNit": "#nit-900000001",
     "clinicNit": "900000001",
-    "clinicId": "cli-001",
-    "microchip": "981098104523001",
+    "clinicId": "kea-vet-900000001",
+    "microchip": "Sin microchip",
     "owner": {
       "name": "Carlos Mendoza",
       "firstName": "Carlos",
@@ -30,11 +897,11 @@
     },
     "riskFactors": {
       "habitat": "Interiores / Mixto",
-      "housingType": "Casa con jardín / patio",
       "recentTravel": true,
       "lastVisitedCountry": "Melgar, Tolima (Zona cálida)",
       "livesWithOtherAnimals": true,
       "ruralAccess": true,
+      "housingType": "Casa con jardín / patio",
       "coastalRescue": false,
       "parasiteExposure": true,
       "otherRiskFactors": "Presencia previa de garrapatas Rhipicephalus sanguineus"
@@ -68,12 +935,12 @@
       }
     },
     "status": "activo",
-    "isSterilized": true,
-    "hasAllergies": true,
-    "allergies": "Dipirona, Cefalexina",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
-    "lastVisit": "12/11/2026",
-    "source": "VetLab Demostración",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB",
     "sampleStatus": "En análisis qPCR",
     "activeExamOrder": {
       "id": "QPCR-2026-784",
@@ -296,7 +1163,24 @@
         ]
       }
     ],
-    "clinicalDocuments": []
+    "clinicalDocuments": [],
+    "nit": "900000001",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "18 kg"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "documents": []
   },
   {
     "id": "PAC-PRUEBA-02",
@@ -309,14 +1193,14 @@
     "otherSpecies": "",
     "breed": "Mestizo",
     "sex": "Macho",
-    "birthDate": "2023-01-15",
-    "age": "3 años, 9 meses",
-    "weight": "4.2 kg",
+    "birthDate": "2022-03-01",
+    "age": "4 años, 9 meses",
+    "weight": "4 kg",
     "sedeId": "sede-principal-80",
     "sedeNombre": "Sede Principal - Calle 80",
     "codigoSedeNit": "#nit-900000001",
     "clinicNit": "900000001",
-    "clinicId": "cli-001",
+    "clinicId": "kea-vet-900000001",
     "microchip": "Sin microchip",
     "owner": {
       "name": "Carlos Mendoza",
@@ -329,11 +1213,11 @@
     },
     "riskFactors": {
       "habitat": "Exclusivo interior",
-      "housingType": "Apartamento",
       "recentTravel": false,
       "lastVisitedCountry": "Ninguno",
       "livesWithOtherAnimals": true,
-      "ruralAccess": false
+      "ruralAccess": false,
+      "housingType": "Apartamento"
     },
     "medicalAdmission": {
       "isAsymptomatic": false,
@@ -343,15 +1227,17 @@
       ],
       "bodyCondition": "3/5",
       "generalCondition": "En tratamiento",
-      "physicalFindings": "Condición 3/5. Faringe ligeramente hiperémica."
+      "physicalFindings": "Condición 3/5. Faringe ligeramente hiperémica.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
-    "status": "en tratamiento",
-    "isSterilized": true,
+    "status": "activo",
+    "isSterilized": false,
     "hasAllergies": false,
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
-    "lastVisit": "12/11/2026",
-    "source": "VetLab Demostración",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB",
     "sampleStatus": "Muestra recibida",
     "activeExamOrder": {
       "id": "QPCR-2026-512",
@@ -514,7 +1400,24 @@
     "microbiotaExams": [],
     "consultations": [],
     "auditHistory": [],
-    "clinicalDocuments": []
+    "clinicalDocuments": [],
+    "nit": "900000001",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "4 kg"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "documents": []
   },
   {
     "id": "PAC-PRUEBA-03",
@@ -525,17 +1428,17 @@
     "avatar": "🐕",
     "species": "Canino",
     "otherSpecies": "",
-    "breed": "Boxer",
+    "breed": "Mestizo",
     "sex": "Macho",
-    "birthDate": "2021-06-20",
-    "age": "5 años, 5 meses",
-    "weight": "31 kg",
+    "birthDate": "2022-03-01",
+    "age": "4 años, 9 meses",
+    "weight": "30 kg",
     "sedeId": "sede-principal-80",
     "sedeNombre": "Sede Principal - Calle 80",
-    "codigoSedeNit": "#nit-900000001",
-    "clinicNit": "900000001",
-    "clinicId": "cli-001",
-    "microchip": "981098104523003",
+    "codigoSedeNit": "#nit-900000002",
+    "clinicNit": "900000002",
+    "clinicId": "kea-vet-900000002",
+    "microchip": "Sin microchip",
     "owner": {
       "name": "Marcela Gómez",
       "firstName": "Marcela",
@@ -546,11 +1449,11 @@
     },
     "riskFactors": {
       "habitat": "Casa cerrada (sin patio)",
-      "housingType": "Casa cerrada (sin patio)",
       "recentTravel": true,
       "lastVisitedCountry": "Villeta, Cundinamarca",
       "livesWithOtherAnimals": false,
-      "ruralAccess": true
+      "ruralAccess": true,
+      "housingType": "Casa cerrada (sin patio)"
     },
     "medicalAdmission": {
       "isAsymptomatic": false,
@@ -559,15 +1462,18 @@
         "Mialgia"
       ],
       "bodyCondition": "3/5",
-      "generalCondition": "En observación"
+      "generalCondition": "En observación",
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
-    "status": "en observación",
-    "isSterilized": true,
+    "status": "activo",
+    "isSterilized": false,
     "hasAllergies": false,
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
-    "lastVisit": "12/11/2026",
-    "source": "VetLab Demostración",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB",
     "sampleStatus": "Validación médica",
     "activeExamOrder": {
       "id": "QPCR-2026-903",
@@ -684,7 +1590,24 @@
     ],
     "consultations": [],
     "auditHistory": [],
-    "clinicalDocuments": []
+    "clinicalDocuments": [],
+    "nit": "900000002",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "30 kg"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "documents": []
   },
   {
     "id": "PAC-542133",
@@ -695,16 +1618,16 @@
     "avatar": "🐱",
     "species": "Felino",
     "otherSpecies": "",
-    "breed": "Siamés Cruce",
+    "breed": "cruce",
     "sex": "Macho",
-    "birthDate": "2024-05-10",
-    "age": "2 años, 6 meses",
-    "weight": "3.8 kg",
+    "birthDate": "2026-11-02",
+    "age": "0 meses",
+    "weight": "Sin registrar",
     "sedeId": "sede-principal-80",
     "sedeNombre": "Sede Principal - Calle 80",
-    "codigoSedeNit": "#nit-900000001",
-    "clinicNit": "900000001",
-    "clinicId": "cli-001",
+    "codigoSedeNit": "#nit-900949599",
+    "clinicNit": "900949599",
+    "clinicId": "kea-vet-900949599",
     "microchip": "Sin microchip",
     "owner": {
       "name": "Andrea Rincón",
@@ -716,25 +1639,28 @@
     },
     "riskFactors": {
       "habitat": "Exclusivo interior",
-      "housingType": "Apartamento",
       "recentTravel": false,
       "lastVisitedCountry": "Ninguno",
       "livesWithOtherAnimals": false,
-      "ruralAccess": false
+      "ruralAccess": false,
+      "housingType": "Apartamento"
     },
     "medicalAdmission": {
       "isAsymptomatic": true,
       "symptoms": [],
       "bodyCondition": "3/5",
-      "generalCondition": "Estable"
+      "generalCondition": "Estable",
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "activo",
-    "isSterilized": true,
+    "isSterilized": false,
     "hasAllergies": false,
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
-    "lastVisit": "12/11/2026",
-    "source": "VetLab Demostración",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB",
     "sampleStatus": "Solicitud creada",
     "activeExamOrder": {
       "id": "CLN-2026-620",
@@ -828,7 +1754,24 @@
     "microbiotaExams": [],
     "consultations": [],
     "auditHistory": [],
-    "clinicalDocuments": []
+    "clinicalDocuments": [],
+    "nit": "900949599",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "Sin registrar"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "documents": []
   },
   {
     "id": "PAC-TEST-03",
@@ -839,16 +1782,16 @@
     "avatar": "🐱",
     "species": "Felino",
     "otherSpecies": "",
-    "breed": "Criollo",
+    "breed": "Siamés",
     "sex": "Macho",
-    "birthDate": "2023-08-10",
-    "age": "3 años, 3 meses",
-    "weight": "3.1 kg",
+    "birthDate": "2024-01-01",
+    "age": "2 años, 11 meses",
+    "weight": "Sin registrar",
     "sedeId": "sede-principal-80",
     "sedeNombre": "Sede Principal - Calle 80",
-    "codigoSedeNit": "#nit-900000001",
-    "clinicNit": "900000001",
-    "clinicId": "cli-001",
+    "codigoSedeNit": "#nit-1",
+    "clinicNit": "1",
+    "clinicId": "kea-vet-1",
     "microchip": "Sin microchip",
     "owner": {
       "name": "Laura Restrepo",
@@ -860,11 +1803,11 @@
     },
     "riskFactors": {
       "habitat": "Interiores / Mixto",
-      "housingType": "Casa con jardín / patio",
       "recentTravel": false,
       "lastVisitedCountry": "Ninguno",
       "livesWithOtherAnimals": true,
-      "ruralAccess": true
+      "ruralAccess": true,
+      "housingType": "Casa con jardín / patio"
     },
     "medicalAdmission": {
       "isAsymptomatic": false,
@@ -876,15 +1819,17 @@
       ],
       "bodyCondition": "2/5",
       "generalCondition": "Crítico",
-      "physicalFindings": "Condición corporal 2/5. Caquexia leve, mucosas en porcelana, soplo hemic grado II/VI."
+      "physicalFindings": "Condición corporal 2/5. Caquexia leve, mucosas en porcelana, soplo hemic grado II/VI.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
-    "status": "critico",
+    "status": "inactivo",
     "isSterilized": false,
     "hasAllergies": false,
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
-    "lastVisit": "11/11/2026",
-    "source": "VetLab Demostración",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB",
     "sampleStatus": "Resultado enviado",
     "activeExamOrder": null,
     "qpcrExams": [
@@ -995,7 +1940,24 @@
     "microbiotaExams": [],
     "consultations": [],
     "auditHistory": [],
-    "clinicalDocuments": []
+    "clinicalDocuments": [],
+    "nit": "1",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "Sin registrar"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "documents": []
   },
   {
     "id": "PAC-TEST-01",
@@ -1008,14 +1970,14 @@
     "otherSpecies": "",
     "breed": "Beagle",
     "sex": "Macho",
-    "birthDate": "2025-12-01",
-    "age": "11 meses",
-    "weight": "9.4 kg",
+    "birthDate": "2023-01-15",
+    "age": "3 años, 10 meses",
+    "weight": "16 kg",
     "sedeId": "sede-principal-80",
     "sedeNombre": "Sede Principal - Calle 80",
-    "codigoSedeNit": "#nit-900000001",
-    "clinicNit": "900000001",
-    "clinicId": "cli-001",
+    "codigoSedeNit": "#nit-1",
+    "clinicNit": "1",
+    "clinicId": "kea-vet-1",
     "microchip": "Sin microchip",
     "owner": {
       "name": "Jorge Silva",
@@ -1027,11 +1989,11 @@
     },
     "riskFactors": {
       "habitat": "Casa con jardín / patio",
-      "housingType": "Casa con jardín / patio",
       "recentTravel": false,
       "lastVisitedCountry": "Ninguno",
       "livesWithOtherAnimals": false,
-      "ruralAccess": false
+      "ruralAccess": false,
+      "housingType": "Casa con jardín / patio"
     },
     "medicalAdmission": {
       "isAsymptomatic": false,
@@ -1041,15 +2003,18 @@
         "Vómito incoercible"
       ],
       "bodyCondition": "3/5",
-      "generalCondition": "Internado"
+      "generalCondition": "Internado",
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
-    "status": "internado",
+    "status": "inactivo",
     "isSterilized": false,
     "hasAllergies": false,
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
-    "lastVisit": "10/11/2026",
-    "source": "VetLab Demostración",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB",
     "sampleStatus": "Resultado enviado",
     "activeExamOrder": null,
     "qpcrExams": [
@@ -1133,7 +2098,24 @@
     "microbiotaExams": [],
     "consultations": [],
     "auditHistory": [],
-    "clinicalDocuments": []
+    "clinicalDocuments": [],
+    "nit": "1",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "16 kg"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "documents": []
   },
   {
     "id": "PAC-TEST-ALL",
@@ -1144,17 +2126,17 @@
     "avatar": "🐕",
     "species": "Canino",
     "otherSpecies": "",
-    "breed": "Pastor Alemán",
+    "breed": "Labrador",
     "sex": "Macho",
-    "birthDate": "2020-04-12",
-    "age": "6 años, 7 meses",
-    "weight": "36 kg",
+    "birthDate": "2023-01-01",
+    "age": "3 años, 11 meses",
+    "weight": "25 kg",
     "sedeId": "sede-principal-80",
     "sedeNombre": "Sede Principal - Calle 80",
     "codigoSedeNit": "#nit-900000001",
     "clinicNit": "900000001",
-    "clinicId": "cli-001",
-    "microchip": "981098104523010",
+    "clinicId": "kea-vet-900000001",
+    "microchip": "981098123456789",
     "owner": {
       "name": "Andrés Caicedo",
       "firstName": "Andrés",
@@ -1165,25 +2147,28 @@
     },
     "riskFactors": {
       "habitat": "Casa con jardín / patio",
-      "housingType": "Casa con jardín / patio",
       "recentTravel": false,
       "lastVisitedCountry": "Ninguno",
       "livesWithOtherAnimals": true,
-      "ruralAccess": true
+      "ruralAccess": true,
+      "housingType": "Casa con jardín / patio"
     },
     "medicalAdmission": {
       "isAsymptomatic": true,
       "symptoms": [],
       "bodyCondition": "4/5",
-      "generalCondition": "Dado de alta"
+      "generalCondition": "Dado de alta",
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
-    "status": "dado de alta",
+    "status": "inactivo",
     "isSterilized": true,
-    "hasAllergies": false,
-    "allergies": "",
+    "hasAllergies": true,
+    "allergies": "Polen",
     "attendingVet": "Dr. Alejandro Morales",
-    "lastVisit": "09/11/2026",
-    "source": "VetLab Demostración",
+    "lastVisit": "24/11/2026",
+    "source": "Kea Tools DB",
     "sampleStatus": "Resultado enviado",
     "activeExamOrder": null,
     "qpcrExams": [
@@ -1273,7 +2258,24 @@
     "microbiotaExams": [],
     "consultations": [],
     "auditHistory": [],
-    "clinicalDocuments": []
+    "clinicalDocuments": [],
+    "nit": "900000001",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "25 kg"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "documents": []
   },
   {
     "id": "PAC-FALLECIDO-01",

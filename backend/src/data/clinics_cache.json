@@ -6480,7 +6480,7 @@
         "rol": "veterinario_planta",
         "rolNombre": "Veterinario de Planta",
         "esDirector": false,
-        "fechaVinculacion": "2026-11-11"
+        "fechaVinculacion": "2026-11-24"
       }
     ],
     "source": "Kea Tools DB",
@@ -6567,7 +6567,7 @@
         "rol": "veterinario_planta",
         "rolNombre": "Veterinario de Planta",
         "esDirector": false,
-        "fechaVinculacion": "2026-11-11"
+        "fechaVinculacion": "2026-11-24"
       }
     ],
     "source": "Kea Tools DB",
@@ -6983,7 +6983,7 @@
         "rol": "veterinario_planta",
         "rolNombre": "Veterinario de Planta",
         "esDirector": false,
-        "fechaVinculacion": "2026-11-11"
+        "fechaVinculacion": "2026-11-24"
       },
       {
         "id": "kea-mv-9",
@@ -7005,7 +7005,7 @@
         "rol": "veterinario_planta",
         "rolNombre": "Veterinario de Planta",
         "esDirector": false,
-        "fechaVinculacion": "2026-11-11"
+        "fechaVinculacion": "2026-11-24"
       }
     ],
     "source": "Kea Tools DB",

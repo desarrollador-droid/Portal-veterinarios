@@ -28,7 +28,7 @@ import { MOCK_PATIENTS_SCENARIOS } from '../data/mockPatientsData.js';
  * Toda creación o edición persiste en localStorage para que no se pierdan datos al recargar.
  * Para reactivar las conexiones reales, solo cambiar este valor a FALSE.
  */
-export const PAUSE_DATABASE_CONNECTION = true;
+export const PAUSE_DATABASE_CONNECTION = false;
 export const DEMO_STORAGE_KEY = 'vetlab_demo_patients_v4';
 
 export const getStoredMockPatients = () => {
@@ -221,6 +221,10 @@ export const patientApi = {
       const targetClinicId = params.clinicId ? String(params.clinicId).trim().toLowerCase() : '';
       if (targetNit || targetClinicId) {
         list = list.filter((p) => {
+          const isDefaultClinic = targetNit === '900845129' || targetClinicId === 'clinica-animal-health';
+          const isDemoPatient = String(p.clinicNit || p.nit || '').replace(/[^0-9]/g, '') === '900000001' || p.clinicId === 'cli-001';
+          if (isDefaultClinic && isDemoPatient) return true;
+
           if (targetNit) {
             const pNit = String(p.clinicNit || p.nit || p.veterinaria || '').replace(/[^0-9]/g, '').trim();
             if (pNit && pNit === targetNit) return true;
@@ -287,6 +291,10 @@ export const patientApi = {
       const targetClinicId = filters.clinicId ? String(filters.clinicId).trim().toLowerCase() : '';
       if (targetNit || targetClinicId) {
         list = list.filter((p) => {
+          const isDefaultClinic = targetNit === '900845129' || targetClinicId === 'clinica-animal-health';
+          const isDemoPatient = String(p.clinicNit || p.nit || '').replace(/[^0-9]/g, '') === '900000001' || p.clinicId === 'cli-001';
+          if (isDefaultClinic && isDemoPatient) return true;
+
           if (targetNit) {
             const pNit = String(p.clinicNit || p.nit || p.veterinaria || '').replace(/[^0-9]/g, '').trim();
             if (pNit && pNit === targetNit) return true;
@@ -1424,7 +1432,7 @@ export const patientApi = {
         // Propietario en Kea es relación foránea obligatoria con la base PROPIETARIO
         const preferredOwner = patientData.ownerCode || patientData.owner?.code || patientData.ownerDocumentNumber || ownerName || 'PROP-PRUEBA-01';
 
-        const buildKeaPayload = (ownerVal) => ({
+        const buildKeaPayload = (ownerVal, nitVal = nit) => ({
           CODIGO_PACIENTE: newId,
           NOMBRE: `${patientData.name || ''} ${patientData.lastName || ''}`.trim() || 'Paciente sin nombre',
           ESPECIE: patientData.species || 'Canino',
@@ -1436,7 +1444,7 @@ export const patientApi = {
           FECHA_NACIMIENTO: birthDateStr,
           VETERINARIO: vetValue,
           PROPIETARIO: ownerVal,
-          VETERINARIA: nit,
+          VETERINARIA: nitVal,
           ESTADO: patientData.status || 'activo',
           SINTOMAS: symptoms,
           CONDICION_CORPORAL: patientData.medicalAdmission?.bodyCondition || patientData.bodyCondition || '3/5',
@@ -1462,8 +1470,10 @@ export const patientApi = {
 
         let keaJson = await keaRes.json();
 
-        // Si falla por clave foránea de propietario no existente, auto-reintentar con tutor base 'PROP-PRUEBA-01'
-        if (!keaRes.ok && String(keaJson.data?.message || keaJson.message || '').includes('Propietario')) {
+        // Si falla por clave foránea de propietario o veterinaria no existente, auto-reintentar con valores seguros
+        if (!keaRes.ok && (String(keaJson.data?.message || keaJson.message || '').includes('Propietario') || String(keaJson.data?.message || keaJson.message || '').includes('Veterinaria'))) {
+          const fallbackOwner = String(keaJson.data?.message || keaJson.message || '').includes('Propietario') ? 'PROP-PRUEBA-01' : preferredOwner;
+          const fallbackNit = String(keaJson.data?.message || keaJson.message || '').includes('Veterinaria') ? '900000001' : nit;
           keaRes = await fetch(KEA_API_URL, {
             method: 'POST',
             headers: {
@@ -1471,7 +1481,7 @@ export const patientApi = {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
             },
-            body: JSON.stringify(buildKeaPayload('PROP-PRUEBA-01')),
+            body: JSON.stringify(buildKeaPayload(fallbackOwner, fallbackNit)),
           });
           keaJson = await keaRes.json();
         }
@@ -1652,11 +1662,49 @@ export const patientApi = {
                 p.lastName.toLowerCase() === mapped.lastName.toLowerCase())
           );
           if (existingIdx !== -1) {
+            const current = localPatientsStore[existingIdx];
             localPatientsStore[existingIdx] = {
-              ...localPatientsStore[existingIdx],
+              ...current,
               ...mapped,
-              activeExamOrder: localPatientsStore[existingIdx].activeExamOrder || mapped.activeExamOrder,
-              clinicalDocuments: localPatientsStore[existingIdx].clinicalDocuments || [],
+              name: current.name || mapped.name,
+              lastName: (current.lastName && !current.lastName.includes('PRUEBA')) ? current.lastName : (mapped.lastName || current.lastName),
+              fullName: (current.fullName && !current.fullName.includes('(PRUEBA)')) ? current.fullName : (mapped.fullName || current.fullName),
+              attendingVet: (current.attendingVet && current.attendingVet !== 'Dr. Asignado') ? current.attendingVet : (mapped.attendingVet || current.attendingVet),
+              owner: {
+                ...mapped.owner,
+                ...(current.owner || {}),
+                name: (current.owner?.name && !current.owner.name.startsWith('PROP-')) ? current.owner.name : (mapped.owner?.name || current.owner?.name),
+              },
+              riskFactors: {
+                ...mapped.riskFactors,
+                ...(current.riskFactors || {}),
+              },
+              medicalAdmission: {
+                ...mapped.medicalAdmission,
+                ...(current.medicalAdmission || {}),
+                cuadroHematico: current.medicalAdmission?.cuadroHematico || current.cuadroHematico || null,
+                historiaClinica: current.medicalAdmission?.historiaClinica || current.historiaClinica || null,
+              },
+              healthMetrics: {
+                ...mapped.healthMetrics,
+                ...(current.healthMetrics || {}),
+                weightHistory: current.healthMetrics?.weightHistory || [{ date: mapped.lastVisit || 'Hoy', weight: mapped.weight || '5 kg' }],
+                vitalSignsHistory: current.healthMetrics?.vitalSignsHistory || [],
+                vitalSigns: current.healthMetrics?.vitalSigns || {
+                  heartRate: 'No registrada',
+                  temperature: 'No registrada',
+                  respiratoryRate: 'No registrada',
+                  mucosa: 'No registrada',
+                },
+              },
+              activeExamOrder: current.activeExamOrder || mapped.activeExamOrder || null,
+              consultations: (current.consultations && current.consultations.length > 0) ? current.consultations : (mapped.consultations || []),
+              qpcrExams: current.qpcrExams || [],
+              clinicalExams: current.clinicalExams || [],
+              microbiotaExams: current.microbiotaExams || [],
+              documents: current.documents || [],
+              clinicalDocuments: current.clinicalDocuments || [],
+              auditHistory: current.auditHistory || [],
             };
             updated++;
           } else {
