@@ -40,7 +40,9 @@
       "symptoms": [],
       "bodyCondition": "3/5",
       "generalCondition": "Estable",
-      "physicalFindings": "Condición corporal 3/5, Estable."
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "activo",
     "isSterilized": false,
@@ -48,7 +50,30 @@
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
     "lastVisit": "24/11/2026",
-    "source": "Kea Tools DB"
+    "source": "Kea Tools DB",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "Sin registrar"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "activeExamOrder": null,
+    "consultations": [],
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "documents": [],
+    "clinicalDocuments": [],
+    "auditHistory": []
   },
   {
     "id": "PAC-4968",
@@ -91,7 +116,9 @@
       "symptoms": [],
       "bodyCondition": "3/5",
       "generalCondition": "Estable",
-      "physicalFindings": "Condición corporal 3/5, Estable."
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "activo",
     "isSterilized": false,
@@ -99,7 +126,30 @@
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
     "lastVisit": "24/11/2026",
-    "source": "Kea Tools DB"
+    "source": "Kea Tools DB",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "4.5 kg"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "activeExamOrder": null,
+    "consultations": [],
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "documents": [],
+    "clinicalDocuments": [],
+    "auditHistory": []
   },
   {
     "id": "PAC-2644",
@@ -142,7 +192,9 @@
       "symptoms": [],
       "bodyCondition": "3/5",
       "generalCondition": "Estable",
-      "physicalFindings": "Condición corporal 3/5, Estable."
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "activo",
     "isSterilized": false,
@@ -150,7 +202,30 @@
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
     "lastVisit": "24/11/2026",
-    "source": "Kea Tools DB"
+    "source": "Kea Tools DB",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "4.5 kg"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "activeExamOrder": null,
+    "consultations": [],
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "documents": [],
+    "clinicalDocuments": [],
+    "auditHistory": []
   },
   {
     "id": "PAC-1974",
@@ -193,7 +268,9 @@
       "symptoms": [],
       "bodyCondition": "3/5",
       "generalCondition": "Estable",
-      "physicalFindings": "Condición corporal 3/5, Estable."
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "inactivo",
     "isSterilized": false,
@@ -201,7 +278,30 @@
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
     "lastVisit": "24/11/2026",
-    "source": "Kea Tools DB"
+    "source": "Kea Tools DB",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "5 kg"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "activeExamOrder": null,
+    "consultations": [],
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "documents": [],
+    "clinicalDocuments": [],
+    "auditHistory": []
   },
   {
     "id": "PAC-6238",
@@ -244,7 +344,9 @@
       "symptoms": [],
       "bodyCondition": "3/5",
       "generalCondition": "Estable",
-      "physicalFindings": "Condición corporal 3/5, Estable."
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "activo",
     "isSterilized": false,
@@ -252,7 +354,30 @@
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
     "lastVisit": "24/11/2026",
-    "source": "Kea Tools DB"
+    "source": "Kea Tools DB",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "4.2 kg"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "activeExamOrder": null,
+    "consultations": [],
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "documents": [],
+    "clinicalDocuments": [],
+    "auditHistory": []
   },
   {
     "id": "PAC-1402",
@@ -295,7 +420,9 @@
       "symptoms": [],
       "bodyCondition": "3/5",
       "generalCondition": "Estable",
-      "physicalFindings": "Condición corporal 3/5, Estable."
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "activo",
     "isSterilized": true,
@@ -303,7 +430,30 @@
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
     "lastVisit": "24/11/2026",
-    "source": "Kea Tools DB"
+    "source": "Kea Tools DB",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "4.2 kg"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "activeExamOrder": null,
+    "consultations": [],
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "documents": [],
+    "clinicalDocuments": [],
+    "auditHistory": []
   },
   {
     "id": "PAC-4082",
@@ -346,7 +496,9 @@
       "symptoms": [],
       "bodyCondition": "3/5",
       "generalCondition": "Estable",
-      "physicalFindings": "Condición corporal 3/5, Estable."
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "inactivo",
     "isSterilized": false,
@@ -354,7 +506,30 @@
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
     "lastVisit": "24/11/2026",
-    "source": "Kea Tools DB"
+    "source": "Kea Tools DB",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "12.5 kg"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "activeExamOrder": null,
+    "consultations": [],
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "documents": [],
+    "clinicalDocuments": [],
+    "auditHistory": []
   },
   {
     "id": "PAC-1348",
@@ -397,7 +572,9 @@
       "symptoms": [],
       "bodyCondition": "3/5",
       "generalCondition": "Estable",
-      "physicalFindings": "Condición corporal 3/5, Estable."
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "activo",
     "isSterilized": true,
@@ -405,7 +582,30 @@
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
     "lastVisit": "24/11/2026",
-    "source": "Kea Tools DB"
+    "source": "Kea Tools DB",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "4.5 kg"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "activeExamOrder": null,
+    "consultations": [],
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "documents": [],
+    "clinicalDocuments": [],
+    "auditHistory": []
   },
   {
     "id": "PAC-6131",
@@ -448,7 +648,9 @@
       "symptoms": [],
       "bodyCondition": "3/5",
       "generalCondition": "Estable",
-      "physicalFindings": "Condición corporal 3/5, Estable."
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "inactivo",
     "isSterilized": false,
@@ -456,7 +658,30 @@
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
     "lastVisit": "24/11/2026",
-    "source": "Kea Tools DB"
+    "source": "Kea Tools DB",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "25 kg"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "activeExamOrder": null,
+    "consultations": [],
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "documents": [],
+    "clinicalDocuments": [],
+    "auditHistory": []
   },
   {
     "id": "PAC-TEST-NIT",
@@ -499,7 +724,9 @@
       "symptoms": [],
       "bodyCondition": "3/5",
       "generalCondition": "Estable",
-      "physicalFindings": "Condición corporal 3/5, Estable."
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "inactivo",
     "isSterilized": false,
@@ -507,7 +734,30 @@
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
     "lastVisit": "24/11/2026",
-    "source": "Kea Tools DB"
+    "source": "Kea Tools DB",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "10 kg"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "activeExamOrder": null,
+    "consultations": [],
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "documents": [],
+    "clinicalDocuments": [],
+    "auditHistory": []
   },
   {
     "id": "PAC-542134",
@@ -550,7 +800,9 @@
       "symptoms": [],
       "bodyCondition": "3/5",
       "generalCondition": "Estable",
-      "physicalFindings": "Condición corporal 3/5, Estable."
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "activo",
     "isSterilized": false,
@@ -558,7 +810,30 @@
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
     "lastVisit": "24/11/2026",
-    "source": "Kea Tools DB"
+    "source": "Kea Tools DB",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "20 kg"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "activeExamOrder": null,
+    "consultations": [],
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "documents": [],
+    "clinicalDocuments": [],
+    "auditHistory": []
   },
   {
     "id": "PAC-TEST-AUTOHEAL",
@@ -601,7 +876,9 @@
       "symptoms": [],
       "bodyCondition": "3/5",
       "generalCondition": "Estable",
-      "physicalFindings": "Condición corporal 3/5, Estable."
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "inactivo",
     "isSterilized": false,
@@ -609,7 +886,30 @@
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
     "lastVisit": "24/11/2026",
-    "source": "Kea Tools DB"
+    "source": "Kea Tools DB",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "14 kg"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "activeExamOrder": null,
+    "consultations": [],
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "documents": [],
+    "clinicalDocuments": [],
+    "auditHistory": []
   },
   {
     "id": "PAC-TEST-RETRY",
@@ -652,7 +952,9 @@
       "symptoms": [],
       "bodyCondition": "3/5",
       "generalCondition": "Estable",
-      "physicalFindings": "Condición corporal 3/5, Estable."
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "inactivo",
     "isSterilized": false,
@@ -660,7 +962,30 @@
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
     "lastVisit": "24/11/2026",
-    "source": "Kea Tools DB"
+    "source": "Kea Tools DB",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "Sin registrar"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "activeExamOrder": null,
+    "consultations": [],
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "documents": [],
+    "clinicalDocuments": [],
+    "auditHistory": []
   },
   {
     "id": "PAC-TEST-SEX",
@@ -703,7 +1028,9 @@
       "symptoms": [],
       "bodyCondition": "3/5",
       "generalCondition": "Estable",
-      "physicalFindings": "Condición corporal 3/5, Estable."
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "inactivo",
     "isSterilized": false,
@@ -711,7 +1038,30 @@
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
     "lastVisit": "24/11/2026",
-    "source": "Kea Tools DB"
+    "source": "Kea Tools DB",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "Sin registrar"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "activeExamOrder": null,
+    "consultations": [],
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "documents": [],
+    "clinicalDocuments": [],
+    "auditHistory": []
   },
   {
     "id": "PAC-TEST-05",
@@ -754,7 +1104,9 @@
       "symptoms": [],
       "bodyCondition": "3/5",
       "generalCondition": "Estable",
-      "physicalFindings": "Condición corporal 3/5, Estable."
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "inactivo",
     "isSterilized": false,
@@ -762,7 +1114,30 @@
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
     "lastVisit": "24/11/2026",
-    "source": "Kea Tools DB"
+    "source": "Kea Tools DB",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "Sin registrar"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "activeExamOrder": null,
+    "consultations": [],
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "documents": [],
+    "clinicalDocuments": [],
+    "auditHistory": []
   },
   {
     "id": "PAC-PROP-PRUEBA-01-LOLA",
@@ -805,7 +1180,9 @@
       "symptoms": [],
       "bodyCondition": "3/5",
       "generalCondition": "Estable",
-      "physicalFindings": "Condición corporal 3/5, Estable."
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "activo",
     "isSterilized": false,
@@ -813,7 +1190,30 @@
     "allergies": "",
     "attendingVet": "TP-PRUEBA-01",
     "lastVisit": "24/11/2026",
-    "source": "Kea Tools DB"
+    "source": "Kea Tools DB",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "Sin registrar"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "activeExamOrder": null,
+    "consultations": [],
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "documents": [],
+    "clinicalDocuments": [],
+    "auditHistory": []
   },
   {
     "id": "PAC-R01",
@@ -856,7 +1256,9 @@
       "symptoms": [],
       "bodyCondition": "3/5",
       "generalCondition": "Estable",
-      "physicalFindings": "Condición corporal 3/5, Estable."
+      "physicalFindings": "Condición corporal 3/5, Estable.",
+      "cuadroHematico": null,
+      "historiaClinica": null
     },
     "status": "activo",
     "isSterilized": false,
@@ -864,7 +1266,30 @@
     "allergies": "",
     "attendingVet": "Dr. Alejandro Morales",
     "lastVisit": "24/11/2026",
-    "source": "Kea Tools DB"
+    "source": "Kea Tools DB",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "24/11/2026",
+          "weight": "Sin registrar"
+        }
+      ],
+      "vitalSignsHistory": [],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada"
+      }
+    },
+    "activeExamOrder": null,
+    "consultations": [],
+    "qpcrExams": [],
+    "clinicalExams": [],
+    "microbiotaExams": [],
+    "documents": [],
+    "clinicalDocuments": [],
+    "auditHistory": []
   },
   {
     "id": "PAC-PRUEBA-01",
