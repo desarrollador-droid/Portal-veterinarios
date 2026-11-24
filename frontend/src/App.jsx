@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ThemeProvider } from './context/ThemeContext.jsx';
-import VeterinariansPortal from './features/dashboard/pages/VeterinariansPortal.jsx';
-import LoginPage from './features/auth/pages/LoginPage.jsx';
+import { ThemeProvider } from './context/ContextoTema.jsx';
+import PortalVeterinarios from './features/dashboard/pages/PortalVeterinarios.jsx';
+import PaginaLogin from './features/auth/pages/PaginaLogin.jsx';
 import { authService } from './features/auth/services/authService.js';
-import AestheticModalContainer from './features/dashboard/components/AestheticModal.jsx';
+import AestheticModalContainer from './features/dashboard/components/ModalEstetico.jsx';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(() => {
@@ -42,9 +42,9 @@ export default function App() {
   return (
     <ThemeProvider>
       {currentUser ? (
-        <VeterinariansPortal currentUser={currentUser} onLogout={handleLogout} />
+        <PortalVeterinarios currentUser={currentUser} onLogout={handleLogout} />
       ) : (
-        <LoginPage onLoginSuccess={handleLoginSuccess} />
+        <PaginaLogin onLoginSuccess={handleLoginSuccess} />
       )}
       {/* Diálogo y Alertas Estéticas centradas sobrepuestas */}
       <AestheticModalContainer />

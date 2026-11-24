@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { INITIAL_CLINICS, AVAILABLE_PERMISSIONS, ROLE_PRESETS } from '../../../../../backend/src/models/clinicModel.js';
+import { INITIAL_CLINICS, AVAILABLE_PERMISSIONS, ROLE_PRESETS } from '../data/clinicModelData.js';
 import { colombiaGeoApi } from './colombiaGeoApi.js';
 
 export { AVAILABLE_PERMISSIONS, ROLE_PRESETS };

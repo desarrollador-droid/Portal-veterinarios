@@ -59,17 +59,17 @@ export const CLINICAL_SYNDROMES_LIST = [
   { id: 'Infeccioso viral', label: 'Infeccioso Viral', icon: '🦠' },
 ];
 
-// Re-exportamos la base de datos de agentes y perfiles desde la estructura canónica
+// Re-exportamos la base de datos de agentes y perfiles desde la estructura canónica local
 export {
   INFECTIOUS_AGENTS_DB as LOCAL_INFECTIOUS_AGENTS_DB,
   QPCR_PROFILES_MASTER as LOCAL_QPCR_PROFILES_MASTER,
   QPCR_GENERAL_OBSERVATION as LOCAL_QPCR_GENERAL_OBSERVATION,
-} from '../../../../../backend/src/models/qpcrKnowledgeBase.js';
+} from '../data/qpcrKnowledgeBase.js';
 import {
   INFECTIOUS_AGENTS_DB as LOCAL_AGENTS,
   QPCR_PROFILES_MASTER as LOCAL_PROFILES,
   QPCR_GENERAL_OBSERVATION as LOCAL_OBSERVATION,
-} from '../../../../../backend/src/models/qpcrKnowledgeBase.js';
+} from '../data/qpcrKnowledgeBase.js';
 
 export const qpcrApi = {
   /**
