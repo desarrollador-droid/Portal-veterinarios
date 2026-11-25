@@ -597,15 +597,8 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
                           </span>
                         </div>
 
-                        {/* Texto Oficial Textual de Agentes */}
-                        {profile.agentesIncluidosTexto && (
-                          <p className="text-xs text-slate-800 dark:text-slate-100 font-medium leading-relaxed bg-white/70 dark:bg-[#13002E]/60 p-2.5 rounded-xl border border-emerald-100 dark:border-emerald-900/40">
-                            {profile.agentesIncluidosTexto}
-                          </p>
-                        )}
-
                         {/* Pills individuales de patógenos diana */}
-                        <div className="flex flex-wrap gap-1.5 pt-1">
+                        <div className="flex flex-wrap gap-1.5 pt-0.5">
                           {(profile.agents || []).map((agentName, idx) => (
                             <span
                               key={idx}
