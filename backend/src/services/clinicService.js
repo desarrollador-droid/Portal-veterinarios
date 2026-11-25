@@ -343,14 +343,21 @@ export const clinicService = {
           if (vetsRes?.veterinarians && Array.isArray(vetsRes.veterinarians)) {
             vetsRes.veterinarians.forEach((kv) => {
               const vetClinicNit = cleanNumber(kv.veterinariaNit);
-              if (!vetClinicNit) return;
-              const targetClinic = clinics.find((c) => cleanNumber(c.nit) === vetClinicNit);
+              let targetClinic = vetClinicNit ? clinics.find((c) => cleanNumber(c.nit) === vetClinicNit || cleanNumber(c.cedula) === vetClinicNit) : null;
+              
+              // Si no tiene clínica asociada o el NIT no se encontró, asociar a la clínica activa o la primera disponible
+              if (!targetClinic && clinics.length > 0) {
+                targetClinic = clinics.find((c) => c.esClinicaActiva) || clinics[0];
+              }
+
               if (targetClinic) {
                 if (!Array.isArray(targetClinic.veterinariosAsociados)) {
                   targetClinic.veterinariosAsociados = [];
                 }
                 const existingVetIdx = targetClinic.veterinariosAsociados.findIndex(
-                  (v) => (v.keaId && v.keaId === kv.keaId) || (v.tarjetaProfesional && v.tarjetaProfesional === kv.tarjetaProfesional)
+                  (v) => (v.keaId && v.keaId === kv.keaId) || 
+                         (v.tarjetaProfesional && v.tarjetaProfesional === kv.tarjetaProfesional) ||
+                         (cleanNumber(v.cedula) && cleanNumber(v.cedula) === cleanNumber(kv.cedula))
                 );
                 if (existingVetIdx !== -1) {
                   targetClinic.veterinariosAsociados[existingVetIdx] = {

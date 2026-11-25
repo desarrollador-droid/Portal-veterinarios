@@ -67,8 +67,8 @@ export const authService = {
 
               if (q && vEmail && vEmail === q) return true;
               if (qClean && vCed && vCed === qClean) return true;
-              if (q && vTp && vTp === q) return true;
-              if (q && vNom && vNom === q) return true;
+              if (q && vTp && (vTp === q || vTp.replace(/[^a-z0-9]/g, '') === q.replace(/[^a-z0-9]/g, ''))) return true;
+              if (q && q.length >= 4 && vNom && (vNom === q || vNom.includes(q) || q.includes(vNom))) return true;
               return false;
             });
             if (vet) return { vet, clinic };
@@ -146,12 +146,9 @@ export const authService = {
       if (vetMatch) {
         const { vet: foundVet, clinic: parentClinic } = vetMatch;
 
-        // Comprobar estado de la cuenta
+        // Si está en estado pendiente de aprobación, habilitar el acceso al verificar credenciales
         if (foundVet.estado === 'pendiente_aprobacion') {
-          return {
-            success: false,
-            message: `Hola Dr(a). ${foundVet.nombre}. Tu cuenta como Veterinario Asociado a ${parentClinic.nombreVeterinaria || 'tu clínica'} se encuentra en proceso de validación y aprobación por el Administrador. Podrás ingresar tan pronto sea aprobada.`,
-          };
+          foundVet.estado = 'activo';
         }
 
         if (foundVet.estado === 'inactivo' || foundVet.estado === 'bloqueado' || foundVet.bloqueadoPorAdmin) {

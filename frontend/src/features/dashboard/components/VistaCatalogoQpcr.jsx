@@ -39,15 +39,17 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
   // Conteo de perfiles por especie
   const profileCounts = useMemo(() => {
     const all = LOCAL_QPCR_PROFILES_MASTER.length;
-    const canino = LOCAL_QPCR_PROFILES_MASTER.filter(
-      (p) => (p.species || '').toLowerCase() === 'canino' || (p.species || '').toLowerCase() === 'ambos'
-    ).length;
-    const felino = LOCAL_QPCR_PROFILES_MASTER.filter(
-      (p) => (p.species || '').toLowerCase() === 'felino' || (p.species || '').toLowerCase() === 'ambos'
-    ).length;
+    const canino = LOCAL_QPCR_PROFILES_MASTER.filter((p) => {
+      const s = (p.species || '').toLowerCase();
+      return s.includes('canin');
+    }).length;
+    const felino = LOCAL_QPCR_PROFILES_MASTER.filter((p) => {
+      const s = (p.species || '').toLowerCase();
+      return s.includes('felin');
+    }).length;
     const ambas = LOCAL_QPCR_PROFILES_MASTER.filter((p) => {
       const s = (p.species || '').toLowerCase();
-      return s === 'ambos' || s.includes('amb');
+      return s.includes('amb') || (s.includes('felin') && s.includes('canin'));
     }).length;
 
     return { all, canino, felino, ambas };
@@ -56,10 +58,10 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
   // Conteo dinámico de perfiles por síndrome (respetando el filtro de especie seleccionado)
   const syndromeCounts = useMemo(() => {
     const baseProfiles = LOCAL_QPCR_PROFILES_MASTER.filter((profile) => {
-      const specNorm = (profile.species || '').toLowerCase();
-      if (speciesFilter === 'canino') return specNorm === 'canino' || specNorm === 'ambos';
-      if (speciesFilter === 'felino') return specNorm === 'felino' || specNorm === 'ambos';
-      if (speciesFilter === 'ambas') return specNorm === 'ambos' || specNorm.includes('amb');
+      const s = (profile.species || '').toLowerCase();
+      if (speciesFilter === 'canino') return s.includes('canin');
+      if (speciesFilter === 'felino') return s.includes('felin');
+      if (speciesFilter === 'ambas') return s.includes('amb') || (s.includes('felin') && s.includes('canin'));
       return true;
     });
 
@@ -77,16 +79,16 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
   // Perfiles filtrados por especie, síndrome clínico y texto
   const filteredProfiles = useMemo(() => {
     return LOCAL_QPCR_PROFILES_MASTER.filter((profile) => {
-      // 1. Filtro de especie estricto
+      // 1. Filtro de especie flexible
       let matchesSpecies = true;
-      const specNorm = (profile.species || '').toLowerCase();
+      const s = (profile.species || '').toLowerCase();
 
       if (speciesFilter === 'canino') {
-        matchesSpecies = specNorm === 'canino' || specNorm === 'ambos';
+        matchesSpecies = s.includes('canin');
       } else if (speciesFilter === 'felino') {
-        matchesSpecies = specNorm === 'felino' || specNorm === 'ambos';
+        matchesSpecies = s.includes('felin');
       } else if (speciesFilter === 'ambas') {
-        matchesSpecies = specNorm === 'ambos' || specNorm.includes('amb');
+        matchesSpecies = s.includes('amb') || (s.includes('felin') && s.includes('canin'));
       }
 
       // 2. Filtro de síndrome clínico
@@ -475,16 +477,16 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
                           )}
                           <span
                             className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${
-                              profile.species.toLowerCase() === 'canino'
+                              profile.species.toLowerCase().includes('canin') && !profile.species.toLowerCase().includes('felin')
                                 ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-700/40'
-                                : profile.species.toLowerCase() === 'felino'
+                                : profile.species.toLowerCase().includes('felin') && !profile.species.toLowerCase().includes('canin')
                                 ? 'bg-pink-100 dark:bg-pink-950/60 text-pink-900 dark:text-pink-300 border border-pink-200 dark:border-pink-700/40'
                                 : 'bg-[#c7f2e5] dark:bg-teal-950/60 text-[#0f766e] dark:text-[#01FADA] border border-[#99f6e4] dark:border-teal-700/40'
                             }`}
                           >
-                            {profile.species === 'Canino' && '🐶 '}
-                            {profile.species === 'Felino' && '🐱 '}
-                            {profile.species.includes('Amb') && '🐾 '}
+                            {profile.species.toLowerCase().includes('canin') && !profile.species.toLowerCase().includes('felin') && '🐶 '}
+                            {profile.species.toLowerCase().includes('felin') && !profile.species.toLowerCase().includes('canin') && '🐱 '}
+                            {profile.species.toLowerCase().includes('canin') && profile.species.toLowerCase().includes('felin') && '🐾 '}
                             {profile.species}
                           </span>
                           <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-[#6F2BCC] dark:text-[#c4b5fd] border border-purple-200 dark:border-purple-800/40">
@@ -561,39 +563,50 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
                       </div>
                     )}
 
-                    {/* Agentes Incluidos - Alcance Molecular Completo */}
-                    <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-[#2f2257]">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                          <span>🧬</span>
-                          <span>Alcance Molecular: {profile.agents?.length || (profile.agentIds || []).length} Patógenos Diana</span>
-                        </span>
+                    {/* Agentes Incluidos - Desglose Oficial y Alcance Molecular */}
+                    <div className="space-y-2.5 pt-2 border-t border-slate-100 dark:border-[#2f2257]">
+                      {/* Bloque Destacado de Agentes Incluidos */}
+                      <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50/80 via-teal-50/40 to-sky-50/30 dark:from-emerald-950/40 dark:via-[#1f173d] dark:to-[#181232] border border-emerald-200/80 dark:border-emerald-800/50 shadow-2xs space-y-2">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <span className="text-[11px] font-black uppercase tracking-wider text-emerald-900 dark:text-[#01FADA] flex items-center gap-1.5">
+                            <span className="text-sm">🦠</span>
+                            <span>Agentes Incluidos ({profile.agents?.length || 1}):</span>
+                          </span>
+                          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-700/50">
+                            {profile.code} · Panel Completo
+                          </span>
+                        </div>
+
+                        {/* Texto Oficial Textual de Agentes */}
+                        {profile.agentesIncluidosTexto && (
+                          <p className="text-xs text-slate-800 dark:text-slate-100 font-medium leading-relaxed bg-white/70 dark:bg-[#13002E]/60 p-2.5 rounded-xl border border-emerald-100 dark:border-emerald-900/40">
+                            {profile.agentesIncluidosTexto}
+                          </p>
+                        )}
+
+                        {/* Pills individuales de patógenos diana */}
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {(profile.agents || []).map((agentName, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold bg-white dark:bg-[#1e173e] text-slate-800 dark:text-slate-100 border border-emerald-200/90 dark:border-emerald-700/50 shadow-2xs hover:border-[#6F2BCC] transition-colors"
+                            >
+                              <span className="text-xs">🧬</span>
+                              <span className="italic">{agentName}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-end">
                         <button
                           type="button"
                           onClick={() => toggleProfileDetails(profile.id)}
                           className="text-[11px] font-bold text-[#6F2BCC] dark:text-[#01FADA] hover:text-[#581ea3] transition-colors cursor-pointer flex items-center gap-1"
                         >
-                          <span>{isExpanded ? 'Ocultar desglose clínico' : 'Ver alcance clínico detallado'}</span>
+                          <span>{isExpanded ? 'Ocultar tropismo y clínica' : 'Ver órganos blanco y detalles clínicos'}</span>
                           <span>{isExpanded ? '▲' : '▼'}</span>
                         </button>
-                      </div>
-
-                      {/* Pills de todos los agentes con sus nombres científicos y familias */}
-                      <div className="flex flex-wrap gap-1.5">
-                        {(profile.agentObjects || (profile.agents || []).map(name => ({ name }))).map((ag, idx) => (
-                          <span
-                            key={ag.id || idx}
-                            className="px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-sky-50 dark:bg-[#1f173d] text-[#2B017C] dark:text-slate-200 border border-sky-100 dark:border-[#2f2257] flex items-center gap-1.5 shadow-2xs hover:bg-sky-100/70 transition-colors"
-                          >
-                            <span className="text-xs">🧬</span>
-                            <span className="italic">{ag.name}</span>
-                            {ag.group && (
-                              <span className="text-[9px] px-1.5 py-0.2 rounded-full font-bold bg-purple-100 dark:bg-purple-950/60 text-[#6F2BCC] dark:text-[#c4b5fd] border border-purple-200 dark:border-purple-800/40 uppercase">
-                                {ag.group}
-                              </span>
-                            )}
-                          </span>
-                        ))}
                       </div>
 
                       {/* Vista expandida con ficha técnica de cada patógeno diana */}

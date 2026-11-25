@@ -25,6 +25,9 @@ export default function VistaPermisosEquipo({ onNotify }) {
   // Form State para Nuevo Veterinario
   const [newVetForm, setNewVetForm] = useState({
     nombre: '',
+    cedula: '',
+    password: '',
+    confirmPassword: '',
     especialidad: 'Medicina General',
     tarjetaProfesional: '',
     email: '',
@@ -243,14 +246,32 @@ export default function VistaPermisosEquipo({ onNotify }) {
       return;
     }
 
+    if (!newVetForm.cedula.trim()) {
+      showAestheticAlert({ title: 'Campo Requerido', message: 'La cédula de ciudadanía o documento es obligatorio para el acceso del médico', type: 'warning' });
+      return;
+    }
+    if (newVetForm.password && newVetForm.password.length < 6) {
+      showAestheticAlert({ title: 'Contraseña Corta', message: 'La contraseña de acceso debe tener al menos 6 caracteres', type: 'warning' });
+      return;
+    }
+    if (newVetForm.password && newVetForm.confirmPassword && newVetForm.password !== newVetForm.confirmPassword) {
+      showAestheticAlert({ title: 'Contraseña no coincide', message: 'Las contraseñas ingresadas no coinciden', type: 'warning' });
+      return;
+    }
+
     try {
       const primarySedeObj = (activeClinic.sedes || []).find((s) => s.id === newVetForm.sedeId);
       const rotativeNames = (activeClinic.sedes || [])
         .filter((s) => newVetForm.sedesRotativas.includes(s.id))
         .map((s) => `${s.nombreSede} (${s.codigoSedeNit || ''})`);
 
+      const finalPass = String(newVetForm.password || newVetForm.cedula).trim();
+
       const payload = {
         nombre: newVetForm.nombre.trim(),
+        cedula: newVetForm.cedula.trim(),
+        password: finalPass,
+        contrasena: finalPass,
         especialidad: newVetForm.especialidad.trim(),
         tarjetaProfesional: newVetForm.tarjetaProfesional.trim().toUpperCase(),
         email: newVetForm.email.trim(),
@@ -275,6 +296,9 @@ export default function VistaPermisosEquipo({ onNotify }) {
       setModalAddVetOpen(false);
       setNewVetForm({
         nombre: '',
+        cedula: '',
+        password: '',
+        confirmPassword: '',
         especialidad: 'Medicina General',
         tarjetaProfesional: '',
         email: '',
@@ -1182,9 +1206,9 @@ export default function VistaPermisosEquipo({ onNotify }) {
             </div>
 
             <form onSubmit={handleCreateVeterinarian} className="space-y-4">
-              {/* Datos Personales */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
+              {/* Datos Personales y Documentos */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-1 sm:col-span-1">
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
                     Nombre Completo Dr(a).: *
                   </label>
@@ -1200,7 +1224,21 @@ export default function VistaPermisosEquipo({ onNotify }) {
 
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Tarjeta Profesional COMVEZCOL: *
+                    Cédula / Documento: *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newVetForm.cedula}
+                    onChange={(e) => setNewVetForm((p) => ({ ...p, cedula: e.target.value }))}
+                    placeholder="Ej: 1020304050"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#6F2BCC]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Tarjeta COMVEZCOL: *
                   </label>
                   <input
                     type="text"
@@ -1210,6 +1248,42 @@ export default function VistaPermisosEquipo({ onNotify }) {
                     placeholder="Ej: COMVEZCOL-35890"
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#6F2BCC]"
                   />
+                </div>
+              </div>
+
+              {/* Credenciales de Acceso al Portal */}
+              <div className="p-3 bg-purple-50/60 dark:bg-[#1f173d] rounded-2xl border border-purple-100 dark:border-purple-800/40 space-y-2">
+                <span className="text-[11px] font-black uppercase tracking-wider text-[#2B017C] dark:text-[#01FADA] flex items-center gap-1.5">
+                  <span>🔐</span>
+                  <span>Credenciales para Inicio de Sesión del Veterinario:</span>
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      Contraseña de Acceso: *
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={newVetForm.password}
+                      onChange={(e) => setNewVetForm((p) => ({ ...p, password: e.target.value }))}
+                      placeholder="Mínimo 6 caracteres"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#6F2BCC]"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      Confirmar Contraseña: *
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={newVetForm.confirmPassword}
+                      onChange={(e) => setNewVetForm((p) => ({ ...p, confirmPassword: e.target.value }))}
+                      placeholder="Repita la contraseña"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#6F2BCC]"
+                    />
+                  </div>
                 </div>
               </div>
 

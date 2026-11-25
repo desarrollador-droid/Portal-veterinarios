@@ -327,6 +327,9 @@ export const mapKeaRecordToVeterinarian = (record, index = 0) => {
   const pwdMatch = obs.match(/\[PWD:([^\]]+)\]/i);
   const contrasenaFromObs = pwdMatch ? pwdMatch[1].trim() : '';
 
+  const clinicNitMatch = obs.match(/\[(?:CLINIC_NIT|NIT):([^\]]+)\]/i);
+  const resolvedClinicNit = clinicaNit || (clinicNitMatch ? clinicNitMatch[1].trim() : '');
+
   const contrasena = String(
     record.contrasena ||
     record.CONTRASENA ||
@@ -349,7 +352,7 @@ export const mapKeaRecordToVeterinarian = (record, index = 0) => {
     contrasena,
     password: contrasena,
     observaciones: obs,
-    veterinariaNit: clinicaNit,
+    veterinariaNit: resolvedClinicNit,
     sedeId: 'sede-principal',
     sedeNombre: sede || 'Sede Principal',
     email,
@@ -889,37 +892,70 @@ export const keaService = {
 
     const cleanNit = String(clinicNit || vetData.veterinariaNit || '').replace(/[^0-9]/g, '').trim();
     const rawPass = String(vetData.password || vetData.contrasena || vetData.pin || '').trim();
-    const rawObs = String(vetData.observaciones || '').trim();
-    const observacionesWithPwd = rawPass 
-      ? (rawObs.includes('[PWD:') ? rawObs.replace(/\[PWD:[^\]]+\]/i, `[PWD:${rawPass}]`) : (rawObs ? `[PWD:${rawPass}] ${rawObs}` : `[PWD:${rawPass}]`))
-      : rawObs;
+    let rawObs = String(vetData.observaciones || '').trim();
 
-    const payload = {
+    if (rawPass) {
+      if (rawObs.includes('[PWD:')) {
+        rawObs = rawObs.replace(/\[PWD:[^\]]+\]/i, `[PWD:${rawPass}]`);
+      } else {
+        rawObs = `[PWD:${rawPass}] ${rawObs}`.trim();
+      }
+    }
+    if (cleanNit) {
+      if (rawObs.includes('[CLINIC_NIT:')) {
+        rawObs = rawObs.replace(/\[CLINIC_NIT:[^\]]+\]/i, `[CLINIC_NIT:${cleanNit}]`);
+      } else {
+        rawObs = `[CLINIC_NIT:${cleanNit}] ${rawObs}`.trim();
+      }
+    }
+
+    const rawCity = (vetData.ciudad || '').trim();
+    if (rawCity && !rawObs.includes('[CIUDAD:')) {
+      rawObs = `[CIUDAD:${rawCity}] ${rawObs}`.trim();
+    }
+
+    const makePayload = (withNit = true, withCity = true) => ({
       NOMBRE: (vetData.nombre || '').trim(),
       TARJETA_PROFESIONAL: (vetData.tarjetaProfesional || '').trim(),
       NIT_CEDULA: String(vetData.cedula || '').replace(/[^0-9]/g, '').trim(),
-      VETERINARIA: cleanNit,
+      VETERINARIA: withNit ? cleanNit : '',
       SEDE: '', // Omitido/vacío para cumplir restricción FK de Kea
       TELEFONO: String(vetData.telefono || '').trim(),
       EMAIL: (vetData.email || '').trim().toLowerCase(),
       CORREO_FACTURACION: (vetData.correoFacturacion || vetData.email || '').trim().toLowerCase(),
-      CIUDAD: (vetData.ciudad || '').trim(),
+      CIUDAD: withCity ? rawCity : '',
       ESPECIALIDAD: (vetData.especialidad || 'Medicina General').trim(),
       ESTADO: vetData.estado || 'activo',
-      OBSERVACIONES: observacionesWithPwd,
-    };
+      OBSERVACIONES: rawObs,
+    });
 
-    const response = await fetch(url, {
+    let response = await fetch(url, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(makePayload(Boolean(cleanNit), Boolean(rawCity))),
     });
 
-    const data = await response.json();
+    let data = await response.json();
+
+    // Si Kea falla por restricción de clave foránea en VETERINARIA o CIUDAD, reintentar sin las FK conflictivas
+    const errMsg = String(data.data?.message || data.message || '');
+    if (!response.ok || data.status === 'error' || data.status === 'fail' || errMsg.includes('referenciada')) {
+      console.warn(`[Kea DB] Restricción FK en Kea Tools (${errMsg}). Reintentando inserción con campos referenciados normalizados...`);
+      response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(makePayload(false, false)),
+      });
+      data = await response.json();
+    }
 
     if (!response.ok || data.status === 'error' || data.status === 'fail') {
       const msg = data.data?.message || data.message || `Error al crear veterinario en Kea Tools (HTTP ${response.status})`;

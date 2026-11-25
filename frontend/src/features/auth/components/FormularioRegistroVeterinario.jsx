@@ -130,7 +130,7 @@ export default function FormularioRegistroVeterinario({ onBackToLogin }) {
         rol: 'veterinario_planta',
         sedeId: selectedSede?.id || '',
         sedeNombre: selectedSede?.nombreSede || 'Sede Principal',
-        estado: 'pendiente_aprobacion', // Requiere validación del admin
+        estado: 'activo', // Habilitado inmediatamente para inicio de sesión
         fechaSolicitud: new Date().toISOString(),
       };
 
