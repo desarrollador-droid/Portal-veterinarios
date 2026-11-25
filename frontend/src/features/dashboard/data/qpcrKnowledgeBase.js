@@ -1609,7 +1609,9 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p1-perfil-joe',
     code: 'P1',
-    title: 'Perfil Joe',
+    title: 'PERFIL-JOE',
+    nombrePlataformaPropuesto: 'PERFIL-JOE',
+    nombreCesar: 'Perfil Joe',
     species: 'Felinos y Caninos',
     type: 'Perfil Amplio',
     basePrice: 234000,
@@ -1647,7 +1649,9 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p2-genes-resistencia-muestra-vieja',
     code: 'P2',
-    title: 'qPCR Detección de genes de resistencia ( Muestra vieja)',
+    title: 'RESIST-TETRA-V',
+    nombrePlataformaPropuesto: 'RESIST-TETRA-V',
+    nombreCesar: 'qPCR Detección de genes de resistencia ( Muestra vieja)',
     species: 'Felinos y Caninos',
     type: 'Resistencia Antimicrobiana',
     basePrice: 120000,
@@ -1675,7 +1679,9 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p3-genes-resistencia-muestra-nueva',
     code: 'P3',
-    title: 'qPCR Detección de genes de resistencia (Muestra nueva)',
+    title: 'RESIST-TETRA-N',
+    nombrePlataformaPropuesto: 'RESIST-TETRA-N',
+    nombreCesar: 'qPCR Detección de genes de resistencia (Muestra nueva)',
     species: 'Felinos y Caninos',
     type: 'Resistencia Antimicrobiana',
     basePrice: 185000,
@@ -1703,7 +1709,9 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p4-gastrointestinal-canino-plus',
     code: 'P4',
-    title: 'qPCR Gastrointestinal Canino PLUS',
+    title: 'CAN-GASTRO-PLUS',
+    nombrePlataformaPropuesto: 'CAN-GASTRO-PLUS',
+    nombreCesar: 'qPCR Gastrointestinal Canino PLUS',
     species: 'Canino',
     type: 'Panel Gastrointestinal',
     basePrice: 420000,
@@ -1738,7 +1746,9 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p5-gastrointestinal-felino-plus',
     code: 'P5',
-    title: 'qPCR Gastrointestinal Felino PLUS',
+    title: 'FELI-GASTRO-PLUS',
+    nombrePlataformaPropuesto: 'FELI-GASTRO-PLUS',
+    nombreCesar: 'qPCR Gastrointestinal Felino PLUS',
     species: 'Felino',
     type: 'Panel Gastrointestinal',
     basePrice: 300000,
@@ -1772,7 +1782,9 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p6-perfil-joe-fiv-felv',
     code: 'P6',
-    title: 'Perfil Joe , FIV y FeLV',
+    title: 'JOE-RETRO-FEL',
+    nombrePlataformaPropuesto: 'JOE-RETRO-FEL',
+    nombreCesar: 'Perfil Joe , FIV y FeLV',
     species: 'Felino',
     type: 'Perfil Amplio',
     basePrice: 390000,
@@ -1811,7 +1823,9 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p7-infecto-contagiosas-felina',
     code: 'P7',
-    title: 'qPCR Infecto Contagiosas Felina',
+    title: 'FELI-INFECTO',
+    nombrePlataformaPropuesto: 'FELI-INFECTO',
+    nombreCesar: 'qPCR Infecto Contagiosas Felina',
     species: 'Felinos',
     type: 'Panel Infeccioso',
     basePrice: 345000,
@@ -1845,7 +1859,9 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p8-neurologico-completo',
     code: 'P8',
-    title: 'qPCR Neurológico Completo',
+    title: 'CAN-NEURO-FULL',
+    nombrePlataformaPropuesto: 'CAN-NEURO-FULL',
+    nombreCesar: 'qPCR Neurológico Completo',
     species: 'Canino',
     type: 'Panel Neurológico',
     basePrice: 517500,
@@ -1887,7 +1903,9 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p9-ocular-respiratorio-felino',
     code: 'P9',
-    title: 'qPCR Ocular y Respiratorio Felino',
+    title: 'FELI-OCURESP',
+    nombrePlataformaPropuesto: 'FELI-OCURESP',
+    nombreCesar: 'qPCR Ocular y Respiratorio Felino',
     species: 'Felinos',
     type: 'Panel Ocular / Respiratorio',
     basePrice: 407000,
@@ -1921,7 +1939,9 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p10-perfil-icterico',
     code: 'P10',
-    title: 'qPCR Perfil Ictérico',
+    title: 'ICTERO-PET',
+    nombrePlataformaPropuesto: 'ICTERO-PET',
+    nombreCesar: 'qPCR Perfil Ictérico',
     species: 'Felinos y Caninos',
     type: 'Panel Digestivo-Hepático',
     basePrice: 368000,
@@ -1958,7 +1978,9 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p11-respiratorio-canino-completo',
     code: 'P11',
-    title: 'qPCR Respiratorio Canino Completo',
+    title: 'CAN-RESP',
+    nombrePlataformaPropuesto: 'CAN-RESP',
+    nombreCesar: 'qPCR Respiratorio Canino Completo',
     species: 'Caninos',
     type: 'Panel Respiratorio',
     basePrice: 300000,
@@ -1995,7 +2017,9 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p12-reproductor-pequenas-especies',
     code: 'P12',
-    title: 'qPCR Reproductor para pequeñas especies',
+    title: 'REPRO-PET',
+    nombrePlataformaPropuesto: 'REPRO-PET',
+    nombreCesar: 'qPCR Reproductor para pequeñas especies',
     species: 'Felinos y Caninos',
     type: 'Panel Reproductor',
     basePrice: 195000,
@@ -2028,7 +2052,9 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p13-rutina-canino',
     code: 'P13',
-    title: 'qPCR Rutina Canino',
+    title: 'CANI-360',
+    nombrePlataformaPropuesto: 'CANI-360',
+    nombreCesar: 'qPCR Rutina Canino',
     species: 'Caninos',
     type: 'Perfil Rutina / Amplio',
     basePrice: 418000,
@@ -2070,7 +2096,9 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p14-rutina-felino',
     code: 'P14',
-    title: 'qPCR Rutina Felino',
+    title: 'FELI-360',
+    nombrePlataformaPropuesto: 'FELI-360',
+    nombreCesar: 'qPCR Rutina Felino',
     species: 'Felinos',
     type: 'Perfil Rutina / Amplio',
     basePrice: 498000,
@@ -2114,7 +2142,9 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p15-viral-felino',
     code: 'P15',
-    title: 'qPCR Viral Felino',
+    title: 'FELI-VIRAL',
+    nombrePlataformaPropuesto: 'FELI-VIRAL',
+    nombreCesar: 'qPCR Viral Felino',
     species: 'Felinos',
     type: 'Panel Viral',
     basePrice: 365000,
@@ -2148,7 +2178,9 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p16-hongos-secuenciacion',
     code: 'P16',
-    title: 'qPCR Detección de Hongos + Secuenciación',
+    title: 'FUNGI PET',
+    nombrePlataformaPropuesto: 'FUNGI PET',
+    nombreCesar: 'qPCR Detección de Hongos + Secuenciación',
     species: 'Felinos y Caninos',
     type: 'Panel Fúngico / Secuenciación',
     basePrice: 0,
@@ -2169,6 +2201,52 @@ export const QPCR_PROFILES_MASTER = [
       'Panfúngico (Secuenciación genética de hongos patógenos)'
     ],
     description: 'Diagnóstico molecular de alta especificidad para micosis mediante amplificación de regiones ribosomales conservadas y posterior secuenciación, permitiendo la identificación precisa de especies de hongos oportunistas y patógenos.'
+  },
+
+  // --------------------------------------------------------------------------
+  // P17: qPCR Neurológico Completo Felino (NEURO PET FELINO)
+  // --------------------------------------------------------------------------
+  {
+    id: 'p17-neurologico-completo-felino',
+    code: 'P17',
+    title: 'NEURO PET FELINO',
+    nombrePlataformaPropuesto: 'NEURO PET FELINO',
+    nombreCesar: 'qPCR Neurológico Completo Felino',
+    species: 'Felino',
+    type: 'Panel Neurológico',
+    basePrice: 0,
+    price: 0,
+    priceFormatted: 'Por cotizar',
+    discount: false,
+    ecoEpidemiology: 'Paciente felino con afectación del sistema nervioso de forma aguda y/o crónica.',
+    labFindings: 'Paciente con algún grado afectación de la línea mieloide, linfoide y/o plaquetaria con signos neurológicos.',
+    matrix: 'Líquido cefalorraquídeo (LCR) y/o Sangre en tubo tapa lila (EDTA). En casos donde no se puede enviar LCR: Sangre EDTA, Materia fecal y Orina',
+    sampleSummary: 'Líquido cefalorraquídeo (LCR) y/o Sangre en tubo tapa lila (EDTA)',
+    samples: [
+      { name: 'LCR y/o Sangre EDTA', desc: 'Tubo estéril para LCR y tubo EDTA (2 ml)' },
+      { name: 'Alternativa sin LCR', desc: 'Sangre EDTA + Materia fecal + Orina estéril' }
+    ],
+    syndromes: ['Neurológico', 'Hemotrópico/Sistémico', 'Infeccioso viral'],
+    cultivoAsociado: 'Cultivo de LCR',
+    agentesIncluidosTexto: 'Toxoplasma gondii, Cryptococcus spp, Virus de Inmunodeficiencia Felina (FIV y PFIV), Virus de la Leucemia Felina (FeLV y PFeLV), Coronavirus Entérico Causante de PIF, Bartonella spp, Mycoplasma spp, Anaplasma spp, Ehrlichia spp, Rickettsia spp, Borrelia spp, Hepatozoon spp, Babesia spp, Filarias diferenciadas y Panleucopenia felina',
+    agents: [
+      'Toxoplasma gondii',
+      'Cryptococcus spp.',
+      'Virus de Inmunodeficiencia Felina (FIV y PFIV)',
+      'Virus de la Leucemia Felina (FeLV y PFeLV)',
+      'Coronavirus Entérico Causante de PIF',
+      'Bartonella spp.',
+      'Mycoplasma spp.',
+      'Anaplasma spp.',
+      'Ehrlichia spp.',
+      'Rickettsia spp.',
+      'Borrelia spp.',
+      'Hepatozoon spp.',
+      'Babesia spp.',
+      'Filarias diferenciadas (D. immitis, D. striata, D. repens, Brugia pahangi)',
+      'Panleucopenia felina'
+    ],
+    description: 'Panel de alta resolución para felinos con signología neurológica aguda o crónica (convulsiones, ataxia, paresia, cambios de comportamiento). Detección exhaustiva de los 15 patógenos neurotrópicos e infecciosos clave en gatos.'
   }
 ];
 

@@ -142,9 +142,9 @@ export const qpcrService = {
         return (
           normalizeText(p.title).includes(q) ||
           normalizeText(p.code || '').includes(q) ||
+          normalizeText(p.nombrePlataformaPropuesto || '').includes(q) ||
+          normalizeText(p.nombreCesar || '').includes(q) ||
           normalizeText(p.description).includes(q) ||
-          normalizeText(p.ecoEpidemiology || '').includes(q) ||
-          normalizeText(p.labFindings || '').includes(q) ||
           normalizeText(p.matrix || '').includes(q) ||
           (p.agents || []).some((ag) => normalizeText(ag).includes(q)) ||
           (p.syndromes || []).some((syn) => normalizeText(syn).includes(q))

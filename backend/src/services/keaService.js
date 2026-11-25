@@ -432,13 +432,17 @@ export const mapKeaRecordToQpcrProfile = (record, canonicalMaster = QPCR_PROFILE
   const cultivoAsociado = String(record.CULTIVO_ASOCIADO || canonical?.cultivoAsociado || '').trim();
   const nAgentes = parseInt(record.N_AGENTES, 10) || canonical?.agents?.length || 0;
 
+  const targetTitle = nombrePropuesto || canonical?.nombrePlataformaPropuesto || canonical?.title || nombreCesar || `Perfil qPCR ${targetCode}`;
+
   if (canonical) {
     return {
       ...canonical,
       keaRecordId: record.id || null,
       idPerfil: rawIdPerfil || canonical.code,
-      nombreCesar: nombreCesar || canonical.title,
-      nombrePlataformaPropuesto: nombrePropuesto || canonical.code,
+      title: targetTitle,
+      name: targetTitle,
+      nombreCesar: nombreCesar || canonical.nombreCesar || canonical.title,
+      nombrePlataformaPropuesto: nombrePropuesto || canonical.nombrePlataformaPropuesto || canonical.code,
       linea: record.LINEA || 'qPCR',
       species: (species && species !== 'Por definir') ? species : canonical.species,
       ecoEpidemiology: ecoEpidemiology || canonical.ecoEpidemiology,
@@ -459,7 +463,10 @@ export const mapKeaRecordToQpcrProfile = (record, canonicalMaster = QPCR_PROFILE
   return {
     id: nombrePropuesto ? nombrePropuesto.toLowerCase().replace(/[^a-z0-9]+/g, '-') : `p-${record.id || profileNum}`,
     code: targetCode || `P${record.id || 'X'}`,
-    title: nombreCesar || nombrePropuesto || `Perfil qPCR ${targetCode}`,
+    title: targetTitle,
+    name: targetTitle,
+    nombreCesar: nombreCesar || targetTitle,
+    nombrePlataformaPropuesto: nombrePropuesto || targetTitle,
     species: (species && species !== 'Por definir') ? species : 'Felinos y Caninos',
     type: record.LINEA || 'Panel qPCR',
     basePrice: effectivePrice,

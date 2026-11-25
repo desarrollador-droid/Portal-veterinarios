@@ -125,9 +125,9 @@ export const qpcrApi = {
         return (
           norm(p.title).includes(q) ||
           norm(p.code || '').includes(q) ||
+          norm(p.nombrePlataformaPropuesto || '').includes(q) ||
+          norm(p.nombreCesar || '').includes(q) ||
           norm(p.description).includes(q) ||
-          norm(p.ecoEpidemiology || '').includes(q) ||
-          norm(p.labFindings || '').includes(q) ||
           norm(p.matrix || '').includes(q) ||
           (p.agents || []).some((ag) => norm(ag).includes(q)) ||
           (p.syndromes || []).some((syn) => norm(syn).includes(q))

@@ -5177,28 +5177,6 @@ export default function ModalSolicitudExamen({
                         </div>
                       </div>
 
-                      {/* Eco-Epidemiología y Hallazgos de Laboratorio */}
-                      {(profile.ecoEpidemiology || profile.labFindings) && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 my-2.5 text-xs">
-                          {profile.ecoEpidemiology && (
-                            <div className="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100">
-                              <span className="text-[10px] font-extrabold text-[#2B017C] uppercase block mb-0.5">
-                                🌍 Eco-Epidemiología
-                              </span>
-                              <p className="text-slate-700 leading-snug font-normal">{profile.ecoEpidemiology}</p>
-                            </div>
-                          )}
-                          {profile.labFindings && (
-                            <div className="p-2.5 rounded-xl bg-sky-50/60 border border-sky-100">
-                              <span className="text-[10px] font-extrabold text-sky-900 uppercase block mb-0.5">
-                                🔬 Hallazgos de Laboratorio
-                              </span>
-                              <p className="text-slate-700 leading-snug font-normal">{profile.labFindings}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
                       {/* Agentes incluidos - TODOS a simple vista */}
                       <div className="py-3">
                         <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1.5">

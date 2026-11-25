@@ -131,8 +131,8 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
         !q ||
         (profile.code && profile.code.toLowerCase().includes(q)) ||
         profile.title.toLowerCase().includes(q) ||
-        (profile.ecoEpidemiology && profile.ecoEpidemiology.toLowerCase().includes(q)) ||
-        (profile.labFindings && profile.labFindings.toLowerCase().includes(q)) ||
+        (profile.nombrePlataformaPropuesto && profile.nombrePlataformaPropuesto.toLowerCase().includes(q)) ||
+        (profile.nombreCesar && profile.nombreCesar.toLowerCase().includes(q)) ||
         (profile.matrix && profile.matrix.toLowerCase().includes(q)) ||
         profile.description.toLowerCase().includes(q) ||
         (profile.agents && profile.agents.some((ag) => ag.toLowerCase().includes(q))) ||
@@ -544,32 +544,6 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
                     <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                       {profile.description}
                     </p>
-
-                    {/* Eco-Epidemiología */}
-                    {profile.ecoEpidemiology && (
-                      <div className="p-3 rounded-2xl bg-purple-50/60 dark:bg-purple-950/40 border border-purple-100/90 dark:border-purple-800/40 text-xs space-y-1">
-                        <div className="flex items-center gap-1.5 text-[10px] font-black text-[#2B017C] dark:text-[#a78bfa] uppercase tracking-wider">
-                          <span>🌍</span>
-                          <span>Eco-Epidemiología</span>
-                        </div>
-                        <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
-                          {profile.ecoEpidemiology}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Hallazgos de Laboratorio */}
-                    {profile.labFindings && (
-                      <div className="p-3 rounded-2xl bg-sky-50/60 dark:bg-sky-950/40 border border-sky-100/90 dark:border-sky-800/40 text-xs space-y-1">
-                        <div className="flex items-center gap-1.5 text-[10px] font-black text-sky-900 dark:text-sky-300 uppercase tracking-wider">
-                          <span>🔬</span>
-                          <span>Hallazgos de Laboratorio</span>
-                        </div>
-                        <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
-                          {profile.labFindings}
-                        </p>
-                      </div>
-                    )}
 
                     {/* Síndromes Asociados - Clickeables para filtrar */}
                     {profile.syndromes && profile.syndromes.length > 0 && (
