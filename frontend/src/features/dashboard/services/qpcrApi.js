@@ -61,12 +61,14 @@ export const CLINICAL_SYNDROMES_LIST = [
 
 // Re-exportamos la base de datos de agentes y perfiles desde la estructura canónica local
 export {
-  INFECTIOUS_AGENTS_DB as LOCAL_INFECTIOUS_AGENTS_DB,
+  OFFICIAL_KEA_AGENTS_DB as LOCAL_INFECTIOUS_AGENTS_DB,
+  OFFICIAL_KEA_AGENTS_DB,
+  INFECTIOUS_AGENTS_DB,
   QPCR_PROFILES_MASTER as LOCAL_QPCR_PROFILES_MASTER,
   QPCR_GENERAL_OBSERVATION as LOCAL_QPCR_GENERAL_OBSERVATION,
 } from '../data/qpcrKnowledgeBase.js';
 import {
-  INFECTIOUS_AGENTS_DB as LOCAL_AGENTS,
+  OFFICIAL_KEA_AGENTS_DB as LOCAL_AGENTS,
   QPCR_PROFILES_MASTER as LOCAL_PROFILES,
   QPCR_GENERAL_OBSERVATION as LOCAL_OBSERVATION,
 } from '../data/qpcrKnowledgeBase.js';
@@ -350,12 +352,12 @@ export const qpcrApi = {
   },
 
   /**
-   * Obtiene la base de datos de agentes infecciosos
+   * Obtiene la base de datos de agentes infecciosos oficiales sincronizados desde Kea Tools
    */
-  async getAgents() {
+  async getAgents(params = {}) {
     try {
-      const response = await axios.get(`${API_BASE_URL}/agents`, { timeout: 3000 });
-      if (response.data?.success && response.data?.data) {
+      const response = await axios.get(`${API_BASE_URL}/agents`, { params, timeout: 3500 });
+      if (response.data?.success && Array.isArray(response.data?.data)) {
         return response.data.data;
       }
     } catch (_) {}

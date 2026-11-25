@@ -56,7 +56,13 @@ export const getProfiles = async (req, res) => {
 
 export const getAgents = async (req, res) => {
   try {
-    const agents = qpcrService.getAllAgents();
+    const { species, group, search, refresh } = req.query || {};
+    const agents = await qpcrService.getAllAgents({
+      species,
+      group,
+      search,
+      forceRefresh: refresh === 'true' || refresh === true,
+    });
     return res.status(200).json({
       success: true,
       total: agents.length,

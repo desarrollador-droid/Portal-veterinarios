@@ -22,19 +22,26 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedProfileDetails, setExpandedProfileDetails] = useState({});
 
-  // Perfiles sincronizados con la base de datos Kea Tools (ZZ_PLAT_PERFIL)
+  // Perfiles y agentes sincronizados con la base de datos Kea Tools (ZZ_PLAT_PERFIL y ZZ_PLAT_AGENTE)
   const [profiles, setProfiles] = useState(LOCAL_QPCR_PROFILES_MASTER);
+  const [agents, setAgents] = useState(LOCAL_INFECTIOUS_AGENTS_DB);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState('conectado');
 
-  const fetchProfiles = async (forceRefresh = false) => {
+  const fetchCatalogData = async (forceRefresh = false) => {
     setIsSyncing(true);
     try {
-      const data = await qpcrApi.getProfiles(forceRefresh ? { refresh: 'true' } : {});
-      if (Array.isArray(data) && data.length > 0) {
-        setProfiles(data);
-        setSyncStatus('conectado');
+      const [profilesData, agentsData] = await Promise.all([
+        qpcrApi.getProfiles(forceRefresh ? { refresh: 'true' } : {}),
+        qpcrApi.getAgents(forceRefresh ? { refresh: 'true' } : {}),
+      ]);
+      if (Array.isArray(profilesData) && profilesData.length > 0) {
+        setProfiles(profilesData);
       }
+      if (Array.isArray(agentsData) && agentsData.length > 0) {
+        setAgents(agentsData);
+      }
+      setSyncStatus('conectado');
     } catch (err) {
       console.warn('Usando catálogo local:', err);
       setSyncStatus('local');
@@ -44,23 +51,21 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
   };
 
   useEffect(() => {
-    fetchProfiles();
+    fetchCatalogData();
   }, []);
 
-  const agentGroups = [
-    { id: 'all', label: 'Todos los Grupos' },
-    { id: 'HEPATOZOON', label: 'Hepatozoon' },
-    { id: 'RICKETTSIALES', label: 'Rickettsiales' },
-    { id: 'HAEMOPLASMAS', label: 'Haemoplasmas' },
-    { id: 'APICOMPLEXOS', label: 'Apicomplexos' },
-    { id: 'NEMÁTODOS', label: 'Nemátodos' },
-    { id: 'LEPTOSPIRA', label: 'Leptospira' },
-    { id: 'PROTOZOOS ENTÉRICOS', label: 'Protozoos Entéricos' },
-    { id: 'BACTERIAS ENTÉRICAS', label: 'Bacterias Entéricas' },
-    { id: 'RESISTENCIA ANTIMICROBIANA', label: 'Resistencia Antimicrobiana' },
-    { id: 'VIRAL', label: 'Viral' },
-    { id: 'HONGOS OPORTUNISTAS', label: 'Hongos' },
-  ];
+  // Grupos taxonómicos dinámicos a partir de los agentes cargados
+  const agentGroups = useMemo(() => {
+    const set = new Set();
+    agents.forEach((a) => {
+      if (a.group) set.add(a.group);
+    });
+    const sorted = Array.from(set).sort();
+    return [
+      { id: 'all', label: 'Todos los Grupos' },
+      ...sorted.map((g) => ({ id: g, label: g })),
+    ];
+  }, [agents]);
 
   // Conteo de perfiles por especie
   const profileCounts = useMemo(() => {
@@ -144,9 +149,9 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
 
   // Agentes filtrados para la pestaña de patógenos individuales
   const filteredAgents = useMemo(() => {
-    return LOCAL_INFECTIOUS_AGENTS_DB.filter((agent) => {
+    return agents.filter((agent) => {
       let matchesSpecies = true;
-      const agentSpeciesLower = agent.species.map((s) => s.toLowerCase());
+      const agentSpeciesLower = (agent.species || []).map((s) => s.toLowerCase());
 
       if (speciesFilter === 'canino') {
         matchesSpecies = agentSpeciesLower.includes('canino');
@@ -163,17 +168,20 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
       const q = searchTerm.trim().toLowerCase();
       const matchesSearch =
         !q ||
-        agent.name.toLowerCase().includes(q) ||
+        (agent.id && agent.id.toLowerCase().includes(q)) ||
+        (agent.name && agent.name.toLowerCase().includes(q)) ||
+        (agent.tipoMuestra && agent.tipoMuestra.toLowerCase().includes(q)) ||
         (agent.group && agent.group.toLowerCase().includes(q)) ||
         (agent.transmission && agent.transmission.toLowerCase().includes(q)) ||
         (agent.targetOrgans && agent.targetOrgans.toLowerCase().includes(q)) ||
         (agent.symptomsDescription && agent.symptomsDescription.toLowerCase().includes(q)) ||
         (agent.labDescription && agent.labDescription.toLowerCase().includes(q)) ||
-        (agent.countries && agent.countries.toLowerCase().includes(q));
+        (agent.countries && agent.countries.toLowerCase().includes(q)) ||
+        (agent.profiles && agent.profiles.some((p) => (p.title || p.name || p.code || '').toLowerCase().includes(q)));
 
       return matchesSpecies && matchesGroup && matchesSearch;
     });
-  }, [speciesFilter, groupFilter, searchTerm]);
+  }, [agents, speciesFilter, groupFilter, searchTerm]);
 
   const toggleProfileDetails = (id) => {
     setExpandedProfileDetails((prev) => ({
@@ -196,10 +204,10 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
             </span>
             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40">
               <span className={`w-1.5 h-1.5 rounded-full ${isSyncing ? 'bg-amber-400 animate-ping' : 'bg-emerald-500'}`}></span>
-              Kea DB ({profiles.length} perfiles)
+              Kea DB ({profiles.length} perfiles · {agents.length} agentes)
             </span>
             <button
-              onClick={() => fetchProfiles(true)}
+              onClick={() => fetchCatalogData(true)}
               disabled={isSyncing}
               title="Refrescar catálogo desde Kea Tools DB"
               className="p-1 rounded-lg text-slate-400 hover:text-[#6F2BCC] hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-all cursor-pointer disabled:opacity-50"
@@ -244,11 +252,11 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
               }`}
             >
               <span>🧬</span>
-              <span>Base de Patógenos</span>
+              <span>Agentes Oficiales</span>
               <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${
                 activeTab === 'agentes' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-[#201840] text-slate-700 dark:text-slate-300'
               }`}>
-                {LOCAL_INFECTIOUS_AGENTS_DB.length}
+                {agents.length}
               </span>
             </button>
           </div>
@@ -782,11 +790,16 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
                   {/* Encabezado del Agente */}
                   <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100 dark:border-[#2f2257]">
                     <div>
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-[#6F2BCC] dark:text-[#c4b5fd] border border-purple-200 dark:border-purple-800/40">
-                          {agent.group}
+                      <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                        <span className="text-[10px] font-black font-mono px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 text-[#6F2BCC] dark:text-[#01FADA] border border-purple-200 dark:border-purple-800/40">
+                          {agent.id}
                         </span>
-                        {agent.species.map((sp, i) => (
+                        {agent.group && (
+                          <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-[#201840] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#2f2257]">
+                            {agent.group}
+                          </span>
+                        )}
+                        {(agent.species || []).map((sp, i) => (
                           <span
                             key={i}
                             className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#201840] text-slate-700 dark:text-slate-300"
@@ -794,6 +807,9 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
                             {sp}
                           </span>
                         ))}
+                        <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800/40">
+                          {agent.status || 'ACTIVO'}
+                        </span>
                       </div>
                       <h3 className="text-base font-black italic text-[#2B017C] dark:!text-[#01FADA]">
                         {agent.name}
@@ -804,10 +820,59 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
                         </p>
                       )}
                     </div>
-                    <span className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-[#201840] border border-slate-200 dark:border-[#2f2257] text-slate-700 dark:text-slate-300 flex items-center justify-center text-sm shrink-0">
+                    <span className="w-8 h-8 rounded-xl bg-purple-50 dark:bg-[#201840] border border-purple-200 dark:border-[#2f2257] text-[#6F2BCC] dark:text-[#01FADA] flex items-center justify-center text-sm shrink-0">
                       🧬
                     </span>
                   </div>
+
+                  {/* Tipo de Muestra / Matriz Oficial (Kea Tools ZZ_PLAT_AGENTE) */}
+                  {agent.tipoMuestra && (
+                    <div className="p-3 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200/80 dark:border-emerald-800/40 text-xs">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5 mb-1">
+                        <span>🧪</span>
+                        <span>Tipo de Muestra / Matriz Oficial (Kea DB)</span>
+                      </span>
+                      <p className="text-xs text-emerald-950 dark:text-emerald-100 font-semibold leading-relaxed">
+                        {agent.tipoMuestra}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Perfiles de la Plataforma Asociados */}
+                  {agent.profiles && agent.profiles.length > 0 && (
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          Perfiles qPCR Asociados ({agent.profiles.length})
+                        </span>
+                        <span className="text-[10px] text-[#6F2BCC] dark:text-[#01FADA] font-semibold">
+                          Click para ver en catálogo →
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {agent.profiles.map((prof, pIdx) => (
+                          <button
+                            key={pIdx}
+                            type="button"
+                            onClick={() => {
+                              setActiveTab('perfiles');
+                              setSearchTerm(prof.title || prof.name || prof.code || '');
+                            }}
+                            title={`Ver panel "${prof.title || prof.name}" en catálogo`}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/50 dark:hover:bg-purple-900/60 text-[#2B017C] dark:text-[#c4b5fd] border border-purple-200/70 dark:border-purple-800/50 transition-all cursor-pointer text-left shadow-2xs hover:scale-[1.02]"
+                          >
+                            <span className="text-[10px]">📋</span>
+                            <span>{prof.title || prof.name}</span>
+                            {prof.code && (
+                              <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-purple-200/60 dark:bg-purple-800/60">
+                                {prof.code}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Transmisión y Vectores */}
                   {agent.transmission && (
@@ -846,30 +911,34 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
                   )}
 
                   {/* Síntomas y Signos Clínicos */}
-                  <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 block mb-0.5">
-                      Signos Clínicos Principales
-                    </span>
-                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
-                      {agent.symptomsDescription}
-                    </p>
-                  </div>
+                  {agent.symptomsDescription && (
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 block mb-0.5">
+                        Signos Clínicos Principales
+                      </span>
+                      <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
+                        {agent.symptomsDescription}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Hallazgos de Laboratorio */}
-                  <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 block mb-0.5">
-                      Hallazgos de Laboratorio Clínico / Hemograma
-                    </span>
-                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-[#13002E] p-2.5 rounded-xl border border-slate-100 dark:border-[#2f2257]">
-                      {agent.labDescription}
-                    </p>
-                  </div>
+                  {agent.labDescription && (
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 block mb-0.5">
+                        Hallazgos de Laboratorio Clínico / Hemograma
+                      </span>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-[#13002E] p-2.5 rounded-xl border border-slate-100 dark:border-[#2f2257]">
+                        {agent.labDescription}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Diagnóstico Molecular */}
                   {agent.diagnosticMethods && (
                     <div className="text-[11px] text-sky-950 dark:text-sky-200 bg-sky-50/60 dark:bg-sky-950/40 p-2.5 rounded-xl border border-sky-100 dark:border-sky-800/40">
                       <strong className="block text-[10px] uppercase font-bold text-sky-800 dark:text-sky-300 mb-0.5">
-                        Diagnóstico & Matriz Recomendada
+                        Diagnóstico & Métodos Moleculares
                       </strong>
                       <span>{agent.diagnosticMethods}</span>
                     </div>
@@ -884,15 +953,11 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
                 </div>
 
                 <div className="pt-3 border-t border-slate-100 dark:border-[#2f2257] flex items-center justify-between text-[11px]">
-                  {agent.doi ? (
-                    <span className="font-mono text-purple-700 dark:text-[#a78bfa] font-semibold text-[10px]">
-                      DOI: {agent.doi}
-                    </span>
-                  ) : (
-                    <span className="text-slate-400 dark:text-slate-500 text-[10px]">VetLab Biomédica</span>
-                  )}
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
-                    ID: {agent.id}
+                  <span className="text-slate-400 dark:text-slate-500 text-[10px]">
+                    Kea DB · ZZ_PLAT_AGENTE
+                  </span>
+                  <span className="text-[10px] text-purple-700 dark:text-[#a78bfa] font-mono font-bold">
+                    Código: {agent.id}
                   </span>
                 </div>
               </div>

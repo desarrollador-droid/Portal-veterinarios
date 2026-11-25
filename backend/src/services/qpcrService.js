@@ -4,11 +4,13 @@
  * síndromes y factores de riesgo epidemiológicos según la Base de Datos Oficial en Excel.
  */
 
-import { INFECTIOUS_AGENTS_DB, QPCR_PROFILES_MASTER, QPCR_GENERAL_OBSERVATION } from '../models/qpcrKnowledgeBase.js';
+import { INFECTIOUS_AGENTS_DB, OFFICIAL_KEA_AGENTS_DB, QPCR_PROFILES_MASTER, QPCR_GENERAL_OBSERVATION } from '../models/qpcrKnowledgeBase.js';
 import { keaService } from './keaService.js';
 
 let cachedSynchronizedProfiles = null;
 let lastSyncTimestamp = 0;
+let cachedSynchronizedAgents = null;
+let lastAgentsSyncTimestamp = 0;
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos de caché en memoria
 
 function normalizeText(text) {
@@ -61,10 +63,74 @@ export const qpcrService = {
   },
 
   /**
-   * Obtiene todos los agentes infecciosos de la base de conocimiento oficial
+   * Obtiene los agentes oficiales sincronizados desde Kea Tools (ZZ_PLAT_AGENTE) con caché y fallback canónico
    */
-  getAllAgents() {
-    return INFECTIOUS_AGENTS_DB;
+  async getSynchronizedAgents(forceRefresh = false) {
+    const now = Date.now();
+    if (!forceRefresh && cachedSynchronizedAgents && (now - lastAgentsSyncTimestamp < CACHE_TTL_MS)) {
+      return cachedSynchronizedAgents;
+    }
+
+    try {
+      const liveAgents = await keaService.fetchAgentsFromKea();
+      if (Array.isArray(liveAgents) && liveAgents.length > 0) {
+        cachedSynchronizedAgents = liveAgents;
+        lastAgentsSyncTimestamp = now;
+        return cachedSynchronizedAgents;
+      }
+    } catch (err) {
+      console.warn('[qpcrService] Error sincronizando agentes con Kea DB, usando base local:', err.message);
+    }
+
+    if (cachedSynchronizedAgents) {
+      return cachedSynchronizedAgents;
+    }
+
+    // Fallback canónico oficial de los 34 agentes vinculados
+    cachedSynchronizedAgents = OFFICIAL_KEA_AGENTS_DB || INFECTIOUS_AGENTS_DB;
+    lastAgentsSyncTimestamp = now;
+    return cachedSynchronizedAgents;
+  },
+
+  /**
+   * Obtiene todos los agentes infecciosos oficiales de la plataforma
+   */
+  async getAllAgents({ species, group, search, forceRefresh = false } = {}) {
+    const masterAgents = await this.getSynchronizedAgents(forceRefresh);
+    let agents = [...masterAgents];
+
+    if (species && species !== 'all') {
+      const specNorm = normalizeText(species);
+      agents = agents.filter((a) => {
+        const aSpecies = (a.species || []).map((s) => normalizeText(s));
+        if (specNorm.includes('canin')) return aSpecies.some((s) => s.includes('canin'));
+        if (specNorm.includes('felin')) return aSpecies.some((s) => s.includes('felin'));
+        if (specNorm.includes('amb')) return aSpecies.length > 1 || aSpecies.some((s) => s.includes('amb'));
+        return true;
+      });
+    }
+
+    if (group && group !== 'all') {
+      const groupNorm = normalizeText(group);
+      agents = agents.filter((a) => normalizeText(a.group || '') === groupNorm);
+    }
+
+    if (search && search.trim()) {
+      const q = normalizeText(search);
+      agents = agents.filter((a) => {
+        return (
+          (a.id && normalizeText(a.id).includes(q)) ||
+          normalizeText(a.name || '').includes(q) ||
+          normalizeText(a.group || '').includes(q) ||
+          normalizeText(a.sampleType || a.tipoMuestra || '').includes(q) ||
+          normalizeText(a.targetOrgans || '').includes(q) ||
+          normalizeText(a.symptomsDescription || '').includes(q) ||
+          (a.profiles || []).some((p) => normalizeText(p.title || '').includes(q) || normalizeText(p.code || '').includes(q))
+        );
+      });
+    }
+
+    return agents;
   },
 
   /**

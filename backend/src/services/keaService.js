@@ -21,6 +21,10 @@ const DEFAULT_KEA_PERFILES_URL = process.env.KEA_PERFILES_URL || 'https://osd.ke
 const DEFAULT_KEA_PERFILES_TOKEN = process.env.KEA_PERFILES_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiZDIyNmQ4M2QwZDZhODRkZWU5N2M5NzA2ZjkyYTBmYjE2ZjRlNjYxNzM1OTUzN2JmZmIyMDQ0ZWZkOWZlMDUwN2FlMWZhYWEwNjA3YWNmYjEiLCJpYXQiOjE3OTU2MTcxMDEuMTQzMTA5LCJuYmYiOjE3OTU2MTcxMDEuMTQzMTEzLCJleHAiOjE4MjcxNTMxMDEuMTM2NDU4LCJzdWIiOiI0Iiwic2NvcGVzIjpbImtlYS5kYXRhYmFzZSJdfQ.cCzzf-ndNAUHmJ-kMx76dc415oQy7Y2TNMdUrCvawXdLz2yRULJOIvH8W37t9pgjGybkX-5whUhUrmDZZTSxuKUHkl-KshKjwW5-apYITDP2EMIy7Mwox7nTmt8XPshsDqkfmreDUIz7q1TXJE5hVLkbY19JPCqn2T20KtsT4F6oUG8VFmLF57v3KATRxhJjZORJSHIQqQrENqF9VxCrjt5xH9Ou_haP_fY6k3b0xNlrW0rkcSJNWc42z86Ui4f_e4FpwxE56KLJLz6UTiT10xOi3fvD1lwladhGik245T1H3Zh0Wk-V_bkZjXKCjUkigswvaaCo0cPq05vJgJxrKNU2UcGpUYYsMhtuokjk1vbW9mpDg5IOPj69NwplIvOEMJi4dPSuzWzlEqZkJk4iYrGkDsqiqHw1fczNTWHgziR1E9A5ypCnkpHa62QjwiUKRPRiiPP1KI5qmj-U_cj_ch4FtG1Mvpc4buwlPqU3w_offSTGb3fOg8K8swZ_F08l19MM4Y_NlnCtgJGokHrE54zkfyVU_NlXfZ_tmVOsGblohaYQyHza3Qa1pTEb9dQV34IPHDeKF9QbFu6lQ3az8ps75COXlGWvXiBiV2YUrtG-QJxclUUSCZS5_rMrV7XReVNPEfTuzp5xu63IZg0buQULTqloVmcXGMagal4tvmU';
 const DEFAULT_KEA_PERFILES_REFRESH_TOKEN = process.env.KEA_PERFILES_REFRESH_TOKEN || 'def50200ba8678dcc4e1944259b443566bf50499a9e9553c65c4018a562bab5ba2e3cad22c64f2bf26d0d28c1e5d007fa7945dc7d2b3c778bad71b00d9ed7766ec57c0fc6e57adbc842d4bac4f31daff2e41bad08134676f4c0cc5c406beb09835564d083621e91c8773dceaf77a534ca9bbc6061598b3e56154324ec7ff1a3f854ad80b1b7d1cee715566e6795d27f73dde8f5592d84142fb1769aacb4ad170a42a85a9ad1b0eb55ef98e219c00746b2eeb9b82357180712270f3af1142220c510dbc8800a6ea79fe46fb5acc61b13989b483edb0530fe88fa3fda97a9e88e9b37b21eb150f1541aad9b76ca790d3e621742d04cd3001b2f8c2ab76e60fa30189a75b72182a76e4d1fa33f3e3ff75b23fd261c8b7b6f6758b776fcb182a28a46147d069bb8e68528587a76d49edc0fab1590321b668fa8270b6ca10c4c381c8d51bc34c2976a66336b748c36c594158ff3fbb9379751718f21b5f1cf8f1c31769e7648541b3198a12bbdf40d00efbf5944e';
 
+const DEFAULT_KEA_AGENTES_URL = process.env.KEA_AGENTES_URL || 'https://osd.kea.tools/api/v1/databases/ZZ_PLAT_AGENTE';
+const DEFAULT_KEA_AGENTES_TOKEN = process.env.KEA_AGENTES_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiZDk1MWI0MTI4NDY0MGJiYTlkMzgzZjRjNjdkZjZlMzFiMzJmYzc3NDFhNjE5NzRkNzBmMTY0MjgyMmEwMmYxZTdmNTI1NjY0MjE0MTRhMjMiLCJpYXQiOjE3OTU2MTk2OTAuMDY2MTM0LCJuYmYiOjE3OTU2MTk2OTAuMDY2MTM4LCJleHAiOjE4MjcxNTU2OTAuMDU5NTQ3LCJzdWIiOiI0Iiwic2NvcGVzIjpbImtlYS5kYXRhYmFzZSJdfQ.gC9i_WrY47kCT9qrdy38ZrVi_WDUKipmNv9zLNKna2N0dNyed_iRzMi23vIacyo8nI_Dm88Bh2iBzbRde70_1OXyyeBDQWYR2VxVLv23_iQopiwVFXl-8E0_wJlLZcRCHdmzPBDyFkKSIKyUqQgDv_IZMOW6rB_zB6jgAV3q2fg9JngbCDvGWtdloF7YQlCw1S2LI2TLLRhV4ZTVXNP78fGnBFGLu0vA7bvA8-V0I2tXXylZxD4YfJWYkmT7_b_hWFFENrWIvijZnh4ZQsyDTnBTsULZgVZnbT1jpaDjV1FXRalAuFpxnTfRdQYHe-MTEahqFlfNopH7X7b09fs3zBQLOghOPPgvMqDpOc9OwYOIWzRBAVuW8KthyOkNVyaaMq7qfQjB_cSOVBKy4bI7enEIbGflzAVMgtAdTM9lOlnW6Yxzv9lgUBy_LuUdtBhP42Yxbtzo0rfwfWRgLMpQ-l9o5keY0zNsGW-hiLwy4mWc1Wi-5uEts7Q8ExowyKBizHqqRvJtA_DzNCQCkdWri4sYrwwadCcNsLFzjUckf8O-UwCtXyloYbXr7jhYAFbxazh4mM_cCtSuy6dKV2iP8BhzUj-nWnO0PuB-3J-oUaBtQ4AcQvIhMJ1q-NbjNYrc1o1NMbIPqmNCOSu9uY4I1HrMfR5t8-Ev2pbJekuZuZ8';
+
+
 /**
  * Normaliza nombres de campo para búsqueda flexible (sin tildes, minúsculas, sin espacios ni guiones)
  */
@@ -493,6 +497,412 @@ export const mapKeaRecordToQpcrProfile = (record, canonicalMaster = QPCR_PROFILE
     estadoRevision: record.ESTADO_REVISION || '',
     estado: record.ESTADO || 'activo',
     description: `Perfil molecular qPCR: ${nombreCesar || nombrePropuesto}.`
+  };
+};
+
+export const AGENT_PROFILE_MAP = {
+  'APL-001': ['P10', 'P11'],
+  'APL-002': ['P1', 'P6', 'P8', 'P10', 'P11', 'P13', 'P14', 'P17'],
+  'APL-003': ['P1', 'P6', 'P8', 'P10', 'P11', 'P13', 'P14', 'P17'],
+  'APL-004': ['P1', 'P6', 'P7', 'P8', 'P9', 'P10', 'P11', 'P13', 'P14', 'P17'],
+  'APL-005': ['P8', 'P17'],
+  'APL-006': ['P12'],
+  'APL-007': ['P9', 'P14', 'P15'],
+  'APL-008': ['P9', 'P14'],
+  'APL-009': ['P4', 'P13'],
+  'APL-010': ['P5', 'P7', 'P14', 'P15', 'P17'],
+  'APL-011': ['P8', 'P17'],
+  'APL-012': ['P1', 'P6', 'P8', 'P10', 'P11', 'P13', 'P17'],
+  'APL-013': ['P1', 'P6', 'P8', 'P10', 'P11', 'P13', 'P14', 'P17'],
+  'APL-014': ['P2', 'P3'],
+  'APL-015': ['P4', 'P5'],
+  'APL-016': ['P4', 'P5'],
+  'APL-017': ['P1', 'P6', 'P8', 'P10', 'P13', 'P14', 'P17'],
+  'APL-018': ['P9', 'P14', 'P15'],
+  'APL-019': ['P11', 'P12'],
+  'APL-020': ['P16'],
+  'APL-021': ['P10', 'P12', 'P13'],
+  'APL-022': ['P1', 'P6', 'P7', 'P8', 'P9', 'P10', 'P11', 'P13', 'P14', 'P17'],
+  'APL-023': ['P8', 'P12'],
+  'APL-024': ['P4', 'P8', 'P13'],
+  'APL-025': ['P4', 'P5'],
+  'APL-026': ['P1', 'P6', 'P8', 'P13', 'P14', 'P17'],
+  'APL-027': ['P4', 'P5'],
+  'APL-028': ['P1', 'P6', 'P7', 'P8', 'P11', 'P13', 'P14', 'P17'],
+  'APL-029': ['P4', 'P5', 'P12'],
+  'APL-030': ['P4', 'P8', 'P11', 'P13'],
+  'APL-031': ['P6', 'P7', 'P14', 'P15', 'P17'],
+  'APL-032': ['P6', 'P7', 'P14', 'P15', 'P17'],
+  'APL-033': ['P5', 'P9', 'P14', 'P15', 'P17'],
+  'APL-034': ['P1']
+};
+
+export const AGENT_METADATA_EXTENDED = {
+  'APL-001': {
+    group: 'VIRAL',
+    subgroup: 'Adenoviridae',
+    targetOrgans: 'Hígado (hepatocitos), endotelio vascular, endotelio corneal, tracto respiratorio superior y túbulos renales.',
+    transmission: 'Contacto directo con saliva, heces, orina o secreciones respiratorias de animales infectados; fómites.',
+    vectors: ['fomites', 'contacto directo', 'orina'],
+    symptomsDescription: 'CAV-1 (Hepatitis Infecciosa Canina): fiebre alta, dolor abdominal, hepatomegalia, edema corneal ("ojo azul"), diátesis hemorrágica. CAV-2: tos traqueobronquial (complejo tos de las perreras).',
+    labDescription: 'Leucopenia marcada inicial seguida de leucocitosis; elevación extrema de ALT, AST y FA; hiperbilirrubinemia, prolongación de tiempos de coagulación y proteinuria.'
+  },
+  'APL-002': {
+    group: 'RICKETTSIALES',
+    subgroup: 'Anaplasmataceae',
+    targetOrgans: 'Plaquetas (A. platys) o neutrófilos/leucocitos (A. phagocytophilum), bazo, endotelio vascular.',
+    transmission: 'Picadura de garrapatas Rhipicephalus sanguineus (A. platys) e Ixodes spp. (A. phagocytophilum).',
+    vectors: ['garrapata', 'rhipicephalus', 'ixodes'],
+    symptomsDescription: 'Fiebre, decaimiento, anorexia, cojera / poliartritis, linfadenomegalia, palidez de mucosas y sangrados espontáneos (epistaxis, petequias).',
+    labDescription: 'Trombocitopenia cíclica severa o profunda, anemia no regenerativa moderada, hipoalbuminemia e hiperglobulinemia.'
+  },
+  'APL-003': {
+    group: 'APICOMPLEXOS',
+    subgroup: 'Piroplasmida',
+    targetOrgans: 'Eritrocitos (glóbulos rojos), bazo, riñones, hígado.',
+    transmission: 'Garrapatas Rhipicephalus sanguineus (B. vogeli), Dermacentor (B. canis); transfusiones sanguíneas.',
+    vectors: ['garrapata', 'rhipicephalus', 'dermacentor', 'transfusion'],
+    symptomsDescription: 'Fiebre, letargia profunda, palidez intensa de mucosas, ictericia franca, esplenomegalia, orina oscura / hemoglobinuria.',
+    labDescription: 'Anemia hemolítica marcada (regenerativa o no regenerativa hiperaguda), trombocitopenia severa, hiperbilirrubinemia y hemoglobinuria.'
+  },
+  'APL-004': {
+    group: 'BARTONELLA',
+    subgroup: 'Bartonellaceae',
+    targetOrgans: 'Células endoteliales vasculares, válvulas cardíacas (aórtica/mitral), eritrocitos.',
+    transmission: 'Pulgas (Ctenocephalides felis), garrapatas, arañazo de gato.',
+    vectors: ['pulga', 'garrapata', 'arañazo'],
+    symptomsDescription: 'Endocarditis bacteriana vegetativa con soplo cardíaco de novo, fiebre persistente / FOD, poliartritis, uveítis y letargia.',
+    labDescription: 'Trombocitopenia en ~50% de casos, anemia no regenerativa, leucocitosis neutrofílica y monocitosis.'
+  },
+  'APL-005': {
+    group: 'ESPIROQUETAS',
+    subgroup: 'Spirochaetaceae',
+    targetOrgans: 'Articulaciones (membrana sinovial), riñones, SNC y tejido conectivo.',
+    transmission: 'Garrapatas duras del complejo Ixodes (Ixodes ricinus, Ixodes scapularis).',
+    vectors: ['garrapata', 'ixodes'],
+    symptomsDescription: 'Enfermedad de Lyme: cojera intermitente migratoria, inflamación articular dolorosa, fiebre, letargia y nefritis de Lyme.',
+    labDescription: 'Trombocitopenia, proteinuria glomerular severa con UPC elevado, azotemia progresiva en nefritis de Lyme.'
+  },
+  'APL-006': {
+    group: 'BRUCELLA',
+    subgroup: 'Brucellaceae',
+    targetOrgans: 'Tracto reproductivo (útero, placenta, epidídimo, próstata), discos intervertebrales (discoespóndilosis), ojos.',
+    transmission: 'Fluidos genitales, semen, secreciones vaginales, fetos abortados, orina; transmisión venérea u oronasal.',
+    vectors: ['semen', 'fluidos genitales', 'orina', 'aborto'],
+    symptomsDescription: 'Abortos en el último tercio de gestación, orquitis, epididimitis, prostatitis, infertilidad, dolor lumbar por discoespondilitis, uveítis.',
+    labDescription: 'Hipoalbuminemia, hiperglobulinemia policlonal, anemia normocítica normocrómica y piuria en sedimento.'
+  },
+  'APL-007': {
+    group: 'VIRAL',
+    subgroup: 'Caliciviridae',
+    targetOrgans: 'Epitelio lingual, paladar duro, fosas nasales, membrana sinovial articular y alvéolos pulmonares.',
+    transmission: 'Secreciones oculares, nasales y salivares por contacto directo o aerosoles a corta distancia; fómites.',
+    vectors: ['saliva', 'aerosoles', 'fomites', 'secrecion nasal'],
+    symptomsDescription: 'Úlceras linguales y orales dolorosas, sialorrea profusa, secreción nasal y ocular, estomatitis crónica y cojera transitoria por sinovitis.',
+    labDescription: 'Leucocitosis neutrofílica en infecciones secundarias bacterianas; anemia de enfermedad crónica en estomatitis severa.'
+  },
+  'APL-008': {
+    group: 'CHLAMYDIA',
+    subgroup: 'Chlamydiaceae',
+    targetOrgans: 'Epitelio conjuntival ocular y mucosa nasofaríngea.',
+    transmission: 'Contacto directo con exudados oculares y nasales de gatos infectados.',
+    vectors: ['contacto directo', 'secrecion ocular'],
+    symptomsDescription: 'Conjuntivitis severa unilateral que progresa a bilateral, quemosis conjuntival marcada (edema conjuntival enrojecido), blefaroespasmo y secreción mucopurulenta.',
+    labDescription: 'Citología conjuntival con inclusiones intracitoplasmáticas basófilas en epitelio; leucograma habitualmente normal.'
+  },
+  'APL-009': {
+    group: 'VIRAL',
+    subgroup: 'Coronaviridae',
+    targetOrgans: 'Enterocitos del tercio superior de las vellosidades intestinales (intestino delgado).',
+    transmission: 'Vía fecal-oral mediante heces o agua/alimentos contaminados.',
+    vectors: ['fecal-oral', 'heces', 'fomites'],
+    symptomsDescription: 'Enteritis catarral leve a moderada, diarrea líquida amarillenta/verdosa, vómitos esporádicos, anorexia y deshidratación (cuadros graves en coinfección con Parvovirus).',
+    labDescription: 'Habitualmente hemograma normal; leve deshidratación con hemoconcentración o desequilibrio electrolítico.'
+  },
+  'APL-010': {
+    group: 'VIRAL',
+    subgroup: 'Coronaviridae',
+    targetOrgans: 'Macrófagos / monocitos, endotelio vascular sistémico, peritoneo, pleura, meninges y ojos.',
+    transmission: 'Transmisión fecal-oral del coronavirus entérico felino (FECV) con mutación intra-hospedero a biotipo PIF (FIPV).',
+    vectors: ['heces', 'fecal-oral', 'mutacion viral'],
+    symptomsDescription: 'PIF húmedo (efusivo): ascitis no dolorosa, efusión pleural con disnea, fiebre refractaria a antibióticos. PIF seco: granulomas orgánicos, signos neurológicos, uveítis anterior.',
+    labDescription: 'Líquido de efusión amarillo cetrino denso y viscoso (alto contenido de proteínas >3.5 g/dL, Rivalta positivo); hiperglobulinemia masiva con relación A/G < 0.6, linfopenia y anemia arregenerativa.'
+  },
+  'APL-011': {
+    group: 'HONGOS',
+    subgroup: 'Tremellaceae (Levaduras capsuladas)',
+    targetOrgans: 'Cavidad nasal (cornetes y senos), SNC (meninges y cerebro), ojos (retina/úvea), piel y tejido celular subcutáneo.',
+    transmission: 'Inhalación de basidiosporas en polvo ambiental contaminado con heces de palomas / aves o material vegetal (eucalipto). Sin vector artrópodo.',
+    vectors: ['heces de aves', 'inhalacion', 'palomas', 'arboles'],
+    symptomsDescription: 'Deformidad del puente nasal, rinitis crónica con estornudos y descarga nasal mucopurulenta/sanguinolenta, nódulos cutáneos ulcerados ("en botón"), ceguera súbita, coriorretinitis y ataxia/convulsiones.',
+    labDescription: 'LCR con pleocitosis mononuclear/neutrofílica y proteínas elevadas; frotis/citología con levaduras esféricas gemantes rodeadas de halo capsular claro con tinción negativa.'
+  },
+  'APL-012': {
+    group: 'NEMÁTODOS',
+    subgroup: 'Filariidae (Onchocercidae)',
+    targetOrgans: 'Arterias pulmonares, ventrículo derecho, vena cava caudal (D. immitis); tejido subcutáneo y conjuntival (D. repens, D. striata, B. pahangi).',
+    transmission: 'Picadura de mosquitos Culicidae hematófagos infectados (Culex, Aedes, Anopheles).',
+    vectors: ['mosquito', 'aedes', 'culex', 'anopheles'],
+    symptomsDescription: 'Cardiopulmonar (D. immitis): tos crónica, disnea, intolerancia al esfuerzo, síncopes, ascitis y síndrome de vena cava. Subcutánea (D. repens, D. striata): nódulos cutáneos indurados pruriginosos.',
+    labDescription: 'Eosinofilia y basofilia periféricas marcadas, anemia normocítica normocrómica, microfilariemia en concentrado de Knott y proteinuria por glomerulonefritis inmunomediada.'
+  },
+  'APL-013': {
+    group: 'RICKETTSIALES',
+    subgroup: 'Anaplasmataceae',
+    targetOrgans: 'Monocitos y macrófagos tisulares (E. canis), granulocitos (E. ewingii), médula ósea, bazo, endotelio.',
+    transmission: 'Picadura de garrapatas Rhipicephalus sanguineus (garrapata marrón del perro).',
+    vectors: ['garrapata', 'rhipicephalus'],
+    symptomsDescription: 'Fiebre alta, petequias / equimosis, epistaxis profusa, letargo, linfadenomegalia, esplenomegalia, uveítis y palidez de mucosas.',
+    labDescription: 'Trombocitopenia severa profunda (<50.000/μL), pancitopenia en fase crónica por hipoplasia medular, hipergammaglobulinemia monoclonal o policlonal y proteinuria.'
+  },
+  'APL-014': {
+    group: 'RESISTENCIA ANTIMICROBIANA',
+    subgroup: 'Genes bacterianos tet(A), tet(B), tet(M)',
+    targetOrgans: 'Microbioma bacteriano sistémico y patógenos bacterianos oportunistas / hemotrópicos.',
+    transmission: 'Transferencia horizontal de genes vía plásmidos, transposones o integrones en poblaciones bacterianas.',
+    vectors: ['transferencia genetica bacteriana'],
+    symptomsDescription: 'Fallo terapéutico o recaída clínica tras el uso de doxiciclina / oxitetraciclina en infecciones bacterianas crónicas.',
+    labDescription: 'Persistencia de carga bacteriana en qPCR o recuentos bacterianos inalterados post-tratamiento antibiótico empírico.'
+  },
+  'APL-015': {
+    group: 'PROTOZOOS ENTÉRICOS',
+    subgroup: 'Diplomonadida',
+    targetOrgans: 'Duodeno y yeyuno (ribete en cepillo de enterocitos).',
+    transmission: 'Ingestión de quistes infectantes en agua contaminada, coprofagia o alimentos crudos.',
+    vectors: ['agua contaminada', 'quistes fecales', 'coprofagia'],
+    symptomsDescription: 'Diarrea de intestino delgado pastosa, fétida, con esteatorrea (grasa) y aspecto brillante; pérdida de peso, dolor abdominal y flatulencias.',
+    labDescription: 'Habitualmente hemograma sin alteraciones específicas; síndrome de malabsorción con hipoalbuminemia en casos crónicos; quistes/trofozoítos en flotación de sulfato de zinc.'
+  },
+  'APL-016': {
+    group: 'BACTERIAS ENTÉRICAS',
+    subgroup: 'Campylobacterales / Helicobacteraceae',
+    targetOrgans: 'Mucosa gástrica (antro y cuerpo gástrico), glándulas fúndicas y canalículos parietales.',
+    transmission: 'Vía oral-oral o fecal-oral mediante saliva, vómitos o alimentos compartidos.',
+    vectors: ['saliva', 'vomitos', 'fecal-oral'],
+    symptomsDescription: 'Gastritis crónica, vómitos recurrentes de contenido bilioso o alimenticio, náuseas, hiporexia, dolor epigástrico y eructos.',
+    labDescription: 'Anemia no regenerativa leve por sangrado gástrico microvascular; hipoalbuminemia leve en casos ulcerativos severos.'
+  },
+  'APL-017': {
+    group: 'HEPATOZOON',
+    subgroup: 'Hepatozoidae',
+    targetOrgans: 'Músculo esquelético, médula ósea, hígado, bazo y endotelio.',
+    transmission: 'Ingestión activa de la garrapata completa Rhipicephalus sanguineus (H. canis) o Amblyomma ovale (H. americanum). ¡No por picadura!',
+    vectors: ['ingestion de garrapata', 'rhipicephalus', 'amblyomma'],
+    symptomsDescription: 'Fiebre persistente, emaciación progresiva, dolor osteomuscular severo, dificultad motora para levantarse, hiperestesia espinal y secreción ocular purulenta.',
+    labDescription: 'Leucocitosis neutrofílica extrema patognomónica (frecuentemente >50.000 - 100.000/μL), anemia arregenerativa, fosfatasa alcalina elevada y gamontes elipsoides en neutrófilos.'
+  },
+  'APL-018': {
+    group: 'VIRAL',
+    subgroup: 'Herpesviridae (Herpesvirus felino / canino)',
+    targetOrgans: 'Epitelio corneal, conjuntival, epitelio respiratorio superior y ganglio trigémino (latencia neural).',
+    transmission: 'Contacto directo con secreciones oculonasales; reactivación por estrés o inmunosupresión.',
+    vectors: ['secreciones oronasales', 'contacto directo', 'estres'],
+    symptomsDescription: 'Rinotraqueítis felina / ocular: úlceras corneales dendríticas patognomónicas, queratitis, blefarospasmo, estornudos paroxísticos y rinitis severa.',
+    labDescription: 'Citología con cuerpos de inclusión intranucleares eosinófilos en células epiteliales; leucograma con neutrofilia en sobreinfección bacteriana.'
+  },
+  'APL-019': {
+    group: 'VIRAL',
+    subgroup: 'Herpesviridae (Herpesvirus canino tipo 1)',
+    targetOrgans: 'Cachorros neonatos (riñones, pulmones, hígado, encéfalo) y tracto genital en adultos.',
+    transmission: 'Transmisión transplacentaria, durante el parto por canal vaginal, o contacto oronasal con secreciones.',
+    vectors: ['canal de parto', 'secrecion genital', 'fomites'],
+    symptomsDescription: 'Muerte neonatal fulminante ("síndrome hemorrágico del cachorro"), hipotermia, llanto continuo, dolor abdominal agudo; en adultos lesiones vesiculares genitales y abortos.',
+    labDescription: 'Trombocitopenia severa neonatal, petequias corticales renales multifocales características en necropsia e hiperbilirrubinemia.'
+  },
+  'APL-020': {
+    group: 'HONGOS',
+    subgroup: 'Micosis oportunistas y profundas',
+    targetOrgans: 'Piel, tejido subcutáneo, nódulos linfáticos, senos paranasales, pulmón y hueso.',
+    transmission: 'Inoculación traumática (arañazos, espinas) o inhalación de esporas fúngicas ambientales.',
+    vectors: ['espinas', 'arañazos', 'suelo', 'inhalacion'],
+    symptomsDescription: 'Lesiones dérmicas ulceradas nodulares piogranulomatosas que no responden a antibióticos estándar, rinitis micótica destructiva o osteomielitis.',
+    labDescription: 'Hiperglobulinemia marcada, anemia de enfermedad crónica; citología/histopatología con hifas o levaduras; secuenciación genética de ITS / 18S.'
+  },
+  'APL-021': {
+    group: 'LEPTOSPIRA',
+    subgroup: 'Leptospiraceae',
+    targetOrgans: 'Túbulos renales proximales, endotelio vascular sistémico, hepatocitos (espacio de Disse) y tracto uveal.',
+    transmission: 'Contacto directo de mucosas o piel erosionada con agua estancada, orina de roedores / reservorios o lodo contaminado.',
+    vectors: ['agua estancada', 'roedor', 'orina', 'inundaciones'],
+    symptomsDescription: 'Fiebre, fallo renal agudo (oliguria/anuria, dolor lumbar), ictericia franca hepática, diátesis hemorrágica, vómitos y hemorragia pulmonar (SPHS).',
+    labDescription: 'Azotemia renal severa (BUN y creatinina elevados), trombocitopenia marcada, glucosuria normoglucémica, proteinuria, hiperbilirrubinemia y tiempos de coagulación prolongados.'
+  },
+  'APL-022': {
+    group: 'HAEMOPLASMAS',
+    subgroup: 'Mycoplasmataceae (M. haemocanis, M. haemofelis, etc.)',
+    targetOrgans: 'Membrana plasmática de los eritrocitos (glóbulos rojos), bazo.',
+    transmission: 'Pulgas (Ctenocephalides felis), garrapatas, arañazos y mordeduras entre animales; transfusiones.',
+    vectors: ['pulga', 'garrapata', 'mordedura', 'arañazo'],
+    symptomsDescription: 'Anemia Infecciosa Felina / Hemoplasmosis canina: debilidad intensa, palidez cérea de mucosas, fiebre recurrente, ictericia hemolítica, pérdida de peso y taquicardia.',
+    labDescription: 'Anemia hemolítica extravascular regenerativa severa con policromasia y reticulocitosis, trombocitopenia en fase aguda, bilirrubina elevada y cuerpos esferoidales sobre membrana eritrocitaria.'
+  },
+  'APL-023': {
+    group: 'APICOMPLEXOS',
+    subgroup: 'Sarcocystidae',
+    targetOrgans: 'Músculo esquelético, médula espinal (raíces nerviosas lumbosacras), encéfalo y miocardio.',
+    transmission: 'Vía transplacentaria congénita (madre a cachorro) o ingestión de tejidos / placentas con quistes.',
+    vectors: ['transplacentario', 'tejidos crudos', 'placenta'],
+    symptomsDescription: 'Paresia y rigidez progresiva de miembros posteriores con hiperextensión rígida permanente patognomónica en cachorros, ataxia, dificultad para deglutir y atrofia muscular.',
+    labDescription: 'Creatina quinasa (CK) y AST marcadamente elevadas por daño muscular necrosante; pleocitosis mixta en LCR.'
+  },
+  'APL-024': {
+    group: 'PARVOVIRUS',
+    subgroup: 'Parvoviridae (CPV-2a, 2b, 2c)',
+    targetOrgans: 'Criptas de Lieberkühn intestinales, médula ósea (mieloblastos), ganglios linfáticos mesentéricos y bazo.',
+    transmission: 'Fecal-oral mediante heces de cachorros infectados o fómites resistentes en el ambiente.',
+    vectors: ['heces', 'fomites', 'fecal-oral'],
+    symptomsDescription: 'Vómitos incontrolables, diarrea sanguinolenta fétida ("olor a parvovirus"), deshidratación hiperaguda, shock hipovolémico y sepsis por translocación bacteriana.',
+    labDescription: 'Leucopenia y panleucopenia extrema (<2.000/μL), linfopenia y neutropenia profunda; hipoproteinemia marcada con hipoalbuminemia y desequilibrio electrolítico severo.'
+  },
+  'APL-025': {
+    group: 'PROTOZOOS ENTÉRICOS',
+    subgroup: 'Trichomonadida',
+    targetOrgans: 'Ciego y colon proximal / distal.',
+    transmission: 'Vía fecal-oral por contacto estrecho o coprofagia en criaderos o albergues.',
+    vectors: ['fecal-oral', 'coprofagia'],
+    symptomsDescription: 'Diarrea de intestino grueso persistente o intermitente con moco abundante, tenesmo fecal y hematofagia (gotas de sangre fresca); sin afectación del estado general.',
+    labDescription: 'Hemograma habitualmente normal; ausencia de leucopenia; trofozoítos móviles en examen directo fresco de heces.'
+  },
+  'APL-026': {
+    group: 'RICKETTSIALES',
+    subgroup: 'Rickettsiaceae (R. rickettsii, R. parkeri)',
+    targetOrgans: 'Endotelio vascular de capilares y vénulas en todos los órganos (cerebro, riñón, piel, pulmón).',
+    transmission: 'Picadura de garrapatas Rhipicephalus sanguineus, Amblyomma patinoi o Dermacentor.',
+    vectors: ['garrapata', 'rhipicephalus', 'amblyomma'],
+    symptomsDescription: 'Fiebre de las Montañas Rocosas: fiebre abrupta elevada, edema de extremidades y escroto/vulva, petequias mucosas, dolor articular, tos y necrosis focal cutánea.',
+    labDescription: 'Trombocitopenia moderada a severa, hipoalbuminemia por fuga vascular endotelial, anemia no regenerativa y proteinuria.'
+  },
+  'APL-027': {
+    group: 'BACTERIAS ENTÉRICAS',
+    subgroup: 'Enterobacteriaceae (S. enterica)',
+    targetOrgans: 'Mucosa intestinal (íleon y colon), macrófagos mesentéricos, hígado y bazo.',
+    transmission: 'Consumo de dietas BARF / carne cruda contaminada, agua infectada o transmisión fecal-oral.',
+    vectors: ['carne cruda', 'dieta barf', 'fecal-oral'],
+    symptomsDescription: 'Gastroenteritis aguda severa con fiebre, diarrea mucosanguinolenta, dolor abdominal cólico, septicemia bacteriana y endotoxemia.',
+    labDescription: 'Leucocitosis con desviación a la izquierda marcada, o neutropenia en septicemia por endotoxinas; hipoalbuminemia.'
+  },
+  'APL-028': {
+    group: 'APICOMPLEXOS',
+    subgroup: 'Sarcocystidae',
+    targetOrgans: 'Células nucleadas sistémicas: SNC, retina / tracto uveal, pulmón, músculo esquelético y corazón.',
+    transmission: 'Consumo de carne cruda con quistes tisulares, ooquistes esporulados de heces felinas en agua/suelo, transplacentaria.',
+    vectors: ['carne cruda', 'heces felinas', 'agua contaminada'],
+    symptomsDescription: 'Fiebre, disnea por neumonía intersticial, uveítis anterior y coriorretinitis, signos neurológicos (convulsiones, ataxia, paresia) y miositis dolorosa.',
+    labDescription: 'Anemia no regenerativa, elevación de ALT, AST, creatina quinasa (CK), pleocitosis mononuclear en LCR.'
+  },
+  'APL-029': {
+    group: 'PROTOZOOS ENTÉRICOS',
+    subgroup: 'Trichomonadida (T. foetus / Trichomonas)',
+    targetOrgans: 'Colon felino / tracto reproductivo canino.',
+    transmission: 'Fecal-oral en gatos (albergues/criaderos) o venérea en caninos.',
+    vectors: ['fecal-oral', 'areneros compartidos', 'venereo'],
+    symptomsDescription: 'Colitis crónica rebelde con diarrea fétida en "pastas de dientes", moco, sangre fresca, ano irritado/eritematoso y tenesmo fecal crónico.',
+    labDescription: 'Hemograma normal; resistente a metronidazol (responde selectivamente a ronidazol); qPCR es el diagnóstico de elección.'
+  },
+  'APL-030': {
+    group: 'MORBILLIVIRUS',
+    subgroup: 'Paramyxoviridae (Virus del Moquillo Canino)',
+    targetOrgans: 'Epitelio respiratorio, digestivo, cutáneo y oligodendrocitos / astrocitos del sistema nervioso central.',
+    transmission: 'Aerosoles y secreciones respiratorias a corta distancia; contacto directo con orina o exudados.',
+    vectors: ['aerosoles', 'secrecion respiratoria', 'orina'],
+    symptomsDescription: 'Fase inicial respiratoria/digestiva: descarga oculonasal purulenta, tos, neumonía, vómitos, hiperqueratosis de almohadillas plantares y trufa. Fase neurológica: mioclonías rítmicas patognomónicas ("tics"), convulsiones de mandíbula ("chewing gum fits"), paresia.',
+    labDescription: 'Linfopenia severa y prolongada, trombocitopenia en fase aguda; pleocitosis y bandas oligoclonales en LCR.'
+  },
+  'APL-031': {
+    group: 'RETROVIRUS',
+    subgroup: 'Lentivirus (Virus de la Inmunodeficiencia Felina)',
+    targetOrgans: 'Linfocitos T CD4+, linfocitos T CD8+, monocitos/macrófagos y médula ósea.',
+    transmission: 'Mordeduras profundas (saliva rica en viriones), peleas entre gatos machos en exteriores; raramente vertical.',
+    vectors: ['mordedura', 'peleas territoriales', 'saliva'],
+    symptomsDescription: 'Complejo estomatitis-gingivitis crónica severa, infecciones bacterianas y fúngicas oportunistas recurrentes, pérdida progresiva de peso, linfadenopatía y neoplasias (linfoma).',
+    labDescription: 'Inversión de la relación CD4/CD8, neutropenia y leucopenia crónica, anemia no regenerativa y trombocitopenia progresiva.'
+  },
+  'APL-032': {
+    group: 'RETROVIRUS',
+    subgroup: 'Gammaretrovirus (Virus de la Leucemia Felina)',
+    targetOrgans: 'Células progenitoras de la médula ósea, células epiteliales de glándulas salivales y tejido linfoide.',
+    transmission: 'Contacto amistoso prolongado ("enfermedad de los gatos que se quieren"): acicalamiento mutuo, comederos compartidos, saliva, orina, leche materna o transplacentaria.',
+    vectors: ['acicalamiento', 'saliva', 'comederos compartidos', 'leche materna'],
+    symptomsDescription: 'Linfoma / leucemia linfoide, anemia arregenerativa severa profunda, síndrome de panleucopenia-like, glomerulonefritis por inmunocomplejos y abortos recurrentes.',
+    labDescription: 'Anemia macrocítica no regenerativa marcada con VCM aumentado sin reticulocitosis, citopenias refractarias en médula ósea; provirus detectable por qPCR.'
+  },
+  'APL-033': {
+    group: 'PARVOVIRUS',
+    subgroup: 'Parvoviridae (Parvovirus felino)',
+    targetOrgans: 'Células en rápida división mitótica: médula ósea, tejido linfoide (bazo, timo, ganglios) y criptas intestinales.',
+    transmission: 'Vía fecal-oral mediante heces contaminadas o fómites; altamente persistente en el medio ambiente.',
+    vectors: ['heces', 'fomites', 'areneros'],
+    symptomsDescription: 'Fiebre alta súbita, depresión extrema, anorexia, vómitos biliosos incoercibles, diarrea hemorrágica acuosa, deshidratación fulminante e hipoplasia cerebelar en gatitos infectados en útero (ataxia cerebelosa).',
+    labDescription: 'Panleucopenia crítica severa (<1.000/μL), linfopenia y neutropenia absoluta; hipoalbuminemia y desequilibrio electrolítico.'
+  },
+  'APL-034': {
+    group: 'RICKETTSIALES',
+    subgroup: 'Anaplasmataceae (Endosimbionte de filarias)',
+    targetOrgans: 'Hipotrofo intracelular obligado de hipodermis, ovarios y canal reproductivo de Dirofilaria immitis.',
+    transmission: 'Bacterias transmitidas verticalmente en las larvas microfilarias a través de mosquitos Culicidae vectores de Dirofilaria.',
+    vectors: ['mosquito', 'dirofilaria immitis'],
+    symptomsDescription: 'Inflamación vascular y endotelitis pulmonar exacerbada tras la muerte espontánea o inducida por fármacos de las filarias adultas.',
+    labDescription: 'Eosinofilia reactiva y proteinuria por inmunocomplejos antígeno de superficie de Wolbachia (WSP).'
+  }
+};
+
+/**
+ * Mapea un registro de la base de datos ZZ_PLAT_AGENTE de Kea Tools al formato estándar de la plataforma
+ */
+export const mapKeaRecordToAgent = (record, canonicalMaster = QPCR_PROFILES_MASTER) => {
+  const rawId = String(record.ID_AGENTE || record.id || '').trim();
+  const aplId = rawId.startsWith('APL-') ? rawId : `APL-${String(record.id || 1).padStart(3, '0')}`;
+  const nombre = String(record.NOMBRE || '').trim();
+  const tipoMuestra = String(record.TIPO_MUESTRA || 'Sangre EDTA').trim();
+  const estado = String(record.ESTADO || 'activo').toLowerCase();
+
+  const pCodes = AGENT_PROFILE_MAP[aplId] || [];
+  const profiles = pCodes.map((pc) => {
+    const foundProf = (canonicalMaster || []).find((p) => p.code === pc);
+    return {
+      code: pc,
+      title: foundProf?.title || foundProf?.nombrePlataformaPropuesto || pc,
+      species: foundProf?.species || 'Felinos y Caninos',
+      id: foundProf?.id || pc.toLowerCase()
+    };
+  });
+
+  const hasCanino = profiles.some((p) => p.species.toLowerCase().includes('canin'));
+  const hasFelino = profiles.some((p) => p.species.toLowerCase().includes('felin'));
+  let species = ['Canino', 'Felino'];
+  if (hasCanino && !hasFelino) species = ['Canino'];
+  else if (hasFelino && !hasCanino) species = ['Felino'];
+
+  const meta = AGENT_METADATA_EXTENDED[aplId] || {};
+
+  return {
+    id: aplId,
+    idAgente: aplId,
+    keaRecordId: record.id || null,
+    name: nombre,
+    sampleType: tipoMuestra,
+    tipoMuestra: tipoMuestra,
+    matrix: tipoMuestra,
+    diagnosticMethods: tipoMuestra,
+    estado,
+    group: meta.group || 'Infeccioso',
+    subgroup: meta.subgroup || '',
+    species,
+    profiles,
+    profileCodes: pCodes,
+    profilesCount: profiles.length,
+    targetOrgans: meta.targetOrgans || 'Sistémico',
+    transmission: meta.transmission || 'Vectorial / Contacto',
+    vectors: meta.vectors || [],
+    symptomsDescription: meta.symptomsDescription || '',
+    labDescription: meta.labDescription || '',
+    keywords: [
+      aplId.toLowerCase(),
+      nombre.toLowerCase(),
+      ...(meta.vectors || []),
+      ...species.map((s) => s.toLowerCase()),
+      ...profiles.map((p) => p.title.toLowerCase())
+    ]
   };
 };
 
@@ -1193,6 +1603,47 @@ export const keaService = {
       return mapped;
     } catch (err) {
       console.warn('[Kea DB ZZ_PLAT_PERFIL] Fallo de conexión:', err.message);
+      return null;
+    }
+  },
+
+  /**
+   * Consulta los agentes infecciosos directamente de la base de datos ZZ_PLAT_AGENTE en Kea Tools
+   */
+  async fetchAgentsFromKea() {
+    const url = `${(process.env.KEA_AGENTES_URL || DEFAULT_KEA_AGENTES_URL).replace(/\/$/, '')}/records?limit=100`;
+    const token = process.env.KEA_AGENTES_TOKEN || DEFAULT_KEA_AGENTES_TOKEN;
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        console.warn(`[Kea DB ZZ_PLAT_AGENTE] Error HTTP ${response.status} al consultar agentes en Kea Tools.`);
+        return null;
+      }
+
+      const data = await response.json();
+      const records = Array.isArray(data) ? data : (data.data || data.records || []);
+
+      if (!Array.isArray(records) || records.length === 0) {
+        console.warn('[Kea DB ZZ_PLAT_AGENTE] Respuesta vacía de agentes.');
+        return null;
+      }
+
+      const mapped = records
+        .map((rec) => mapKeaRecordToAgent(rec, QPCR_PROFILES_MASTER))
+        .filter(Boolean);
+
+      console.log(`[Kea DB ZZ_PLAT_AGENTE] Sincronizados exitosamente ${mapped.length} agentes oficiales desde Kea Tools.`);
+      return mapped;
+    } catch (err) {
+      console.warn('[Kea DB ZZ_PLAT_AGENTE] Fallo de conexión:', err.message);
       return null;
     }
   },

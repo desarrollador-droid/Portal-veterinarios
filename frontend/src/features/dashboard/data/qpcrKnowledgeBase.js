@@ -1609,8 +1609,20 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p1-perfil-joe',
     code: 'P1',
-    title: 'PERFIL-JOE',
-    nombrePlataformaPropuesto: 'PERFIL-JOE',
+    agentIds: [
+          "APL-002",
+          "APL-003",
+          "APL-004",
+          "APL-012",
+          "APL-013",
+          "APL-017",
+          "APL-022",
+          "APL-026",
+          "APL-028",
+          "APL-034"
+    ],
+    title: 'VECTOR PLUS',
+    nombrePlataformaPropuesto: 'VECTOR PLUS',
     nombreCesar: 'Perfil Joe',
     species: 'Felinos y Caninos',
     type: 'Perfil Amplio',
@@ -1629,16 +1641,16 @@ export const QPCR_PROFILES_MASTER = [
     syndromes: ['Hemotrópico/Sistémico', 'Digestivo-Hepático'],
     agentesIncluidosTexto: 'Anaplasma spp., Ehrlichia spp., Rickettsia spp., Wolbachia spp., Mycoplasma spp., Bartonella spp., Hepatozoon spp., Babesia spp., Toxoplasma gondii y Filarias diferenciadas (D. immitis, D. repens, D. striata, B. pahangi)',
     agents: [
-      'Anaplasma spp.',
-      'Ehrlichia spp.',
-      'Rickettsia spp.',
-      'Wolbachia spp.',
-      'Mycoplasma spp.',
-      'Bartonella spp.',
-      'Hepatozoon spp.',
-      'Babesia spp.',
-      'Toxoplasma gondii',
-      'Filarias diferenciadas (D. immitis, D. repens, D. striata, B. pahangi)'
+          "Anaplasma spp",
+          "Babesia spp",
+          "Bartonella spp",
+          "Dirofilaria immitis, D. striata, D. repens y Brugia pahangi",
+          "Ehrlichia spp",
+          "Hepatozoon spp",
+          "Mycoplasma spp",
+          "Rickettsia spp",
+          "Toxoplasma gondii",
+          "Wolbachia spp"
     ],
     description: 'Perfil de amplio espectro para pacientes con hábitos de vida exterior o contacto interespecie. Detección molecular de hemotrópicos, rickettsiales, haemoplasmas, filarias diferenciadas y Toxoplasma ante citopenias o compromiso linfohematopoyético y hepático.'
   },
@@ -1649,8 +1661,11 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p2-genes-resistencia-muestra-vieja',
     code: 'P2',
-    title: 'RESIST-TETRA-V',
-    nombrePlataformaPropuesto: 'RESIST-TETRA-V',
+    agentIds: [
+          "APL-014"
+    ],
+    title: 'TETRA R CONTROL (muestra vieja)',
+    nombrePlataformaPropuesto: 'TETRA R CONTROL (muestra vieja)',
     nombreCesar: 'qPCR Detección de genes de resistencia ( Muestra vieja)',
     species: 'Felinos y Caninos',
     type: 'Resistencia Antimicrobiana',
@@ -1668,7 +1683,7 @@ export const QPCR_PROFILES_MASTER = [
     syndromes: ['Hemotrópico/Sistémico', 'Infeccioso viral'],
     agentesIncluidosTexto: 'Ensayo cuantitativo para el detección in vitro de genes asociados a resistencia a tetraciclinas',
     agents: [
-      'Ensayo cuantitativo para detección in vitro de genes asociados a resistencia a tetraciclinas'
+          "Genes de resistencia a tetraciclinas"
     ],
     description: 'Detección cuantitativa in vitro de genes determinantes de resistencia bacteriana a tetraciclinas sobre muestra previa conservada en OSD durante 15 días.'
   },
@@ -1679,8 +1694,11 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p3-genes-resistencia-muestra-nueva',
     code: 'P3',
-    title: 'RESIST-TETRA-N',
-    nombrePlataformaPropuesto: 'RESIST-TETRA-N',
+    agentIds: [
+          "APL-014"
+    ],
+    title: 'TETRA R DIAGNOSTICO (muestra nueva)',
+    nombrePlataformaPropuesto: 'TETRA R DIAGNOSTICO (muestra nueva)',
     nombreCesar: 'qPCR Detección de genes de resistencia (Muestra nueva)',
     species: 'Felinos y Caninos',
     type: 'Resistencia Antimicrobiana',
@@ -1698,7 +1716,7 @@ export const QPCR_PROFILES_MASTER = [
     syndromes: ['Hemotrópico/Sistémico', 'Infeccioso viral'],
     agentesIncluidosTexto: 'Ensayo cuantitativo para el detección in vitro de genes asociados a resistencia a tetraciclinas',
     agents: [
-      'Ensayo cuantitativo para detección in vitro de genes asociados a resistencia a tetraciclinas'
+          "Genes de resistencia a tetraciclinas"
     ],
     description: 'Ensayo cuantitativo molecular para detección in vitro de determinantes genéticos de resistencia a tetraciclinas a partir de una nueva muestra sanguínea.'
   },
@@ -1709,8 +1727,18 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p4-gastrointestinal-canino-plus',
     code: 'P4',
-    title: 'CAN-GASTRO-PLUS',
-    nombrePlataformaPropuesto: 'CAN-GASTRO-PLUS',
+    agentIds: [
+          "APL-009",
+          "APL-015",
+          "APL-016",
+          "APL-024",
+          "APL-025",
+          "APL-027",
+          "APL-029",
+          "APL-030"
+    ],
+    title: 'GASTRO-PANEL CANINO',
+    nombrePlataformaPropuesto: 'GASTRO-PANEL CANINO',
     nombreCesar: 'qPCR Gastrointestinal Canino PLUS',
     species: 'Canino',
     type: 'Panel Gastrointestinal',
@@ -1728,14 +1756,14 @@ export const QPCR_PROFILES_MASTER = [
     syndromes: ['Digestivo-Hepático', 'Infeccioso viral'],
     agentesIncluidosTexto: 'Trichomona spp, Pentatrichomona spp, Giardia spp, Salmonella spp, Helicobacter spp, Coronavirus canino, Parvovirus canino y Distemper canino',
     agents: [
-      'Trichomona spp.',
-      'Pentatrichomona spp.',
-      'Giardia spp.',
-      'Salmonella spp.',
-      'Helicobacter spp.',
-      'Coronavirus canino',
-      'Parvovirus canino',
-      'Distemper canino'
+          "Coronavirus canino",
+          "Giardia spp",
+          "Helicobacter spp",
+          "Parvovirus canino",
+          "Pentatrichomona spp",
+          "Salmonella spp",
+          "Trichomona spp",
+          "Virus de Distemper canino"
     ],
     description: 'Abordaje molecular integral de gastroenteritis aguda o crónica en caninos con diarreas hemorrágicas o mucoides. Cobertura de protozoos entéricos flagelados, bacterias enteropatógenas y virus caninos mayores.'
   },
@@ -1746,8 +1774,17 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p5-gastrointestinal-felino-plus',
     code: 'P5',
-    title: 'FELI-GASTRO-PLUS',
-    nombrePlataformaPropuesto: 'FELI-GASTRO-PLUS',
+    agentIds: [
+          "APL-010",
+          "APL-015",
+          "APL-016",
+          "APL-025",
+          "APL-027",
+          "APL-029",
+          "APL-033"
+    ],
+    title: 'GASTRO-PANEL FELINO',
+    nombrePlataformaPropuesto: 'GASTRO-PANEL FELINO',
     nombreCesar: 'qPCR Gastrointestinal Felino PLUS',
     species: 'Felino',
     type: 'Panel Gastrointestinal',
@@ -1765,13 +1802,13 @@ export const QPCR_PROFILES_MASTER = [
     syndromes: ['Digestivo-Hepático', 'Infeccioso viral'],
     agentesIncluidosTexto: 'Trichomona spp, Pentatrichomona spp, Giardia spp, Salmonella spp, Helicobacter spp, Coronavirus felino y Panleucopenia felina',
     agents: [
-      'Trichomona spp.',
-      'Pentatrichomona spp.',
-      'Giardia spp.',
-      'Salmonella spp.',
-      'Helicobacter spp.',
-      'Coronavirus felino',
-      'Panleucopenia felina'
+          "Coronavirus entérico felino causante de PIF",
+          "Giardia spp",
+          "Helicobacter spp",
+          "Pentatrichomona spp",
+          "Salmonella spp",
+          "Trichomona spp",
+          "Virus de Panleucopenia felina"
     ],
     description: 'Diagnóstico molecular de diarreas agudas o crónicas en felinos. Cobertura de tricomonas flageladas felinas, giardiasis, enterobacterias patógenas, Coronavirus felino y Panleucopenia felina.'
   },
@@ -1782,8 +1819,21 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p6-perfil-joe-fiv-felv',
     code: 'P6',
-    title: 'JOE-RETRO-FEL',
-    nombrePlataformaPropuesto: 'JOE-RETRO-FEL',
+    agentIds: [
+          "APL-002",
+          "APL-003",
+          "APL-004",
+          "APL-012",
+          "APL-013",
+          "APL-017",
+          "APL-022",
+          "APL-026",
+          "APL-028",
+          "APL-031",
+          "APL-032"
+    ],
+    title: 'FELI-VECTOR',
+    nombrePlataformaPropuesto: 'FELI-VECTOR',
     nombreCesar: 'Perfil Joe , FIV y FeLV',
     species: 'Felino',
     type: 'Perfil Amplio',
@@ -1802,17 +1852,17 @@ export const QPCR_PROFILES_MASTER = [
     syndromes: ['Hemotrópico/Sistémico', 'Infeccioso viral', 'Digestivo-Hepático'],
     agentesIncluidosTexto: 'Anaplasma spp, Rickettsia spp, Ehrlichia spp, Mycoplasma spp, Hepatozoon spp, Toxoplasma gondii, Bartonella spp, Babesia spp y Filarias diferenciadas (D. immitis, D. repens, D. striata, Brugia pahangi) y Virus de Inmunodeficiencia Felina (FIV y PFIV), Virus de la Leucemia Felina (FeLV y PFeLV)',
     agents: [
-      'Anaplasma spp.',
-      'Rickettsia spp.',
-      'Ehrlichia spp.',
-      'Mycoplasma spp.',
-      'Hepatozoon spp.',
-      'Toxoplasma gondii',
-      'Bartonella spp.',
-      'Babesia spp.',
-      'Filarias diferenciadas (D. immitis, D. repens, D. striata, Brugia pahangi)',
-      'Virus de Inmunodeficiencia Felina (FIV y PFIV)',
-      'Virus de la Leucemia Felina (FeLV y PFeLV)'
+          "Anaplasma spp",
+          "Babesia spp",
+          "Bartonella spp",
+          "Dirofilaria immitis, D. striata, D. repens y Brugia pahangi",
+          "Ehrlichia spp",
+          "Hepatozoon spp",
+          "Mycoplasma spp",
+          "Rickettsia spp",
+          "Toxoplasma gondii",
+          "Virus de Inmunodeficiencia Felina (FIV y PFIV)",
+          "Virus de la Leucemia Felina (FeLV y PFeLV)"
     ],
     description: 'Perfil de amplio espectro felino para pacientes con hábitos de vida exterior o contacto interespecie. Detección completa de hemotrópicos, rickettsiales, filarias diferenciadas, Toxoplasma y diagnóstico proviral y viral de FIV y FeLV.'
   },
@@ -1823,8 +1873,16 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p7-infecto-contagiosas-felina',
     code: 'P7',
-    title: 'FELI-INFECTO',
-    nombrePlataformaPropuesto: 'FELI-INFECTO',
+    agentIds: [
+          "APL-004",
+          "APL-010",
+          "APL-022",
+          "APL-028",
+          "APL-031",
+          "APL-032"
+    ],
+    title: 'FELI-INFECT',
+    nombrePlataformaPropuesto: 'FELI-INFECT',
     nombreCesar: 'qPCR Infecto Contagiosas Felina',
     species: 'Felinos',
     type: 'Panel Infeccioso',
@@ -1843,12 +1901,12 @@ export const QPCR_PROFILES_MASTER = [
     syndromes: ['Infeccioso viral', 'Ocular', 'Hemotrópico/Sistémico'],
     agentesIncluidosTexto: 'Virus de Inmunodeficiencia Felina (FIV and PFIV), Virus de la Leucemia Felina (FeLV and PFeLV), Coronavirus Entérico Causante de PIF, Toxoplasma gondii, Mycoplasma spp y Bartonella spp',
     agents: [
-      'Virus de Inmunodeficiencia Felina (FIV y PFIV)',
-      'Virus de la Leucemia Felina (FeLV y PFeLV)',
-      'Coronavirus Entérico Causante de PIF',
-      'Toxoplasma gondii',
-      'Mycoplasma spp.',
-      'Bartonella spp.'
+          "Bartonella spp",
+          "Coronavirus entérico felino causante de PIF",
+          "Mycoplasma spp",
+          "Toxoplasma gondii",
+          "Virus de Inmunodeficiencia Felina (FIV y PFIV)",
+          "Virus de la Leucemia Felina (FeLV y PFeLV)"
     ],
     description: 'Evaluación molecular para felinos con riesgo de contagio o contacto con otros gatos. Detecta Retrovirus felinos (FIV/FeLV), Coronavirus causante de PIF, Toxoplasma gondii, Mycoplasma spp. y Bartonella spp.'
   },
@@ -1859,8 +1917,24 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p8-neurologico-completo',
     code: 'P8',
-    title: 'CAN-NEURO-FULL',
-    nombrePlataformaPropuesto: 'CAN-NEURO-FULL',
+    agentIds: [
+          "APL-002",
+          "APL-003",
+          "APL-004",
+          "APL-005",
+          "APL-011",
+          "APL-012",
+          "APL-013",
+          "APL-017",
+          "APL-022",
+          "APL-023",
+          "APL-024",
+          "APL-026",
+          "APL-028",
+          "APL-030"
+    ],
+    title: 'NEURO PET CANINO',
+    nombrePlataformaPropuesto: 'NEURO PET CANINO',
     nombreCesar: 'qPCR Neurológico Completo',
     species: 'Canino',
     type: 'Panel Neurológico',
@@ -1879,20 +1953,20 @@ export const QPCR_PROFILES_MASTER = [
     syndromes: ['Neurológico', 'Hemotrópico/Sistémico', 'Infeccioso viral'],
     agentesIncluidosTexto: 'Anaplasma spp, Rickettsia spp, Ehrlichia spp, Mycoplasma spp, Bartonella spp, Hepatozoon spp, Babesia spp, Filarias diferenciadas (D.immitis, D. striata, D. repens, Brugia pahangi), Toxoplasma gondii, Borrelia spp, Neospora caninum, Cryptococcus spp, Distemper canino y Parvovirus canino',
     agents: [
-      'Anaplasma spp.',
-      'Rickettsia spp.',
-      'Ehrlichia spp.',
-      'Mycoplasma spp.',
-      'Bartonella spp.',
-      'Hepatozoon spp.',
-      'Babesia spp.',
-      'Filarias diferenciadas (D. immitis, D. striata, D. repens, Brugia pahangi)',
-      'Toxoplasma gondii',
-      'Borrelia spp.',
-      'Neospora caninum',
-      'Cryptococcus spp.',
-      'Distemper canino',
-      'Parvovirus canino'
+          "Anaplasma spp",
+          "Babesia spp",
+          "Bartonella spp",
+          "Borrelia spp",
+          "Cryptococcus spp",
+          "Dirofilaria immitis, D. striata, D. repens y Brugia pahangi",
+          "Ehrlichia spp",
+          "Hepatozoon spp",
+          "Mycoplasma spp",
+          "Neospora caninum",
+          "Parvovirus canino",
+          "Rickettsia spp",
+          "Toxoplasma gondii",
+          "Virus de Distemper canino"
     ],
     description: 'Panel de alta resolución para pacientes caninos con signos neurológicos agudos o crónicos (convulsiones, ataxia, paresia). Análisis exhaustivo de 14 patógenos neurotrópicos infecciosos.'
   },
@@ -1903,6 +1977,14 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p9-ocular-respiratorio-felino',
     code: 'P9',
+    agentIds: [
+          "APL-004",
+          "APL-007",
+          "APL-008",
+          "APL-018",
+          "APL-022",
+          "APL-033"
+    ],
     title: 'FELI-OCURESP',
     nombrePlataformaPropuesto: 'FELI-OCURESP',
     nombreCesar: 'qPCR Ocular y Respiratorio Felino',
@@ -1923,12 +2005,12 @@ export const QPCR_PROFILES_MASTER = [
     syndromes: ['Ocular', 'Respiratorio', 'Infeccioso viral'],
     agentesIncluidosTexto: 'Calicivirus, Herpesvirus, Panleucopenia, Chlamydia spp, Mycoplasma spp y Bartonella spp',
     agents: [
-      'Calicivirus',
-      'Herpesvirus',
-      'Panleucopenia',
-      'Chlamydia spp.',
-      'Mycoplasma spp.',
-      'Bartonella spp.'
+          "Bartonella spp",
+          "Calicivirus felino",
+          "Chlamydia spp",
+          "Herpesvirus (sin especie)",
+          "Mycoplasma spp",
+          "Virus de Panleucopenia felina"
     ],
     description: 'Diagnóstico molecular de afecciones del complejo respiratorio y ocular felino: Calicivirus, Herpesvirus, Panleucopenia, Chlamydia spp., Mycoplasma spp. y Bartonella spp.'
   },
@@ -1939,6 +2021,17 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p10-perfil-icterico',
     code: 'P10',
+    agentIds: [
+          "APL-001",
+          "APL-002",
+          "APL-003",
+          "APL-004",
+          "APL-012",
+          "APL-013",
+          "APL-017",
+          "APL-021",
+          "APL-022"
+    ],
     title: 'ICTERO-PET',
     nombrePlataformaPropuesto: 'ICTERO-PET',
     nombreCesar: 'qPCR Perfil Ictérico',
@@ -1959,15 +2052,15 @@ export const QPCR_PROFILES_MASTER = [
     syndromes: ['Digestivo-Hepático', 'Hemotrópico/Sistémico', 'Nefrológico'],
     agentesIncluidosTexto: 'Anaplasma spp, Ehrlichia spp, Mycoplasma spp, Bartonella spp, Hepatozoon spp, Babesia spp, Filarias diferenciadas (D. immitis, D. striata, D. repens, Brugia pahangi), Leptospira spp y Adenovirus caninotipo 1 y 2',
     agents: [
-      'Anaplasma spp.',
-      'Ehrlichia spp.',
-      'Mycoplasma spp.',
-      'Bartonella spp.',
-      'Hepatozoon spp.',
-      'Babesia spp.',
-      'Filarias diferenciadas (D. immitis, D. striata, D. repens, Brugia pahangi)',
-      'Leptospira spp.',
-      'Adenovirus canino tipo 1 y 2'
+          "Adenovirus canino tipo 1 y 2",
+          "Anaplasma spp",
+          "Babesia spp",
+          "Bartonella spp",
+          "Dirofilaria immitis, D. striata, D. repens y Brugia pahangi",
+          "Ehrlichia spp",
+          "Hepatozoon spp",
+          "Leptospira spp",
+          "Mycoplasma spp"
     ],
     description: 'Diagnóstico diferencial del síndrome ictérico y daño hepatobiliar / hemolítico en caninos y felinos. Detección de hemotrópicos hemolíticos, Leptospira spp., Adenovirus canino (hepatitis infecciosa) y agentes afines.'
   },
@@ -1978,6 +2071,18 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p11-respiratorio-canino-completo',
     code: 'P11',
+    agentIds: [
+          "APL-001",
+          "APL-002",
+          "APL-003",
+          "APL-004",
+          "APL-012",
+          "APL-013",
+          "APL-019",
+          "APL-022",
+          "APL-028",
+          "APL-030"
+    ],
     title: 'CAN-RESP',
     nombrePlataformaPropuesto: 'CAN-RESP',
     nombreCesar: 'qPCR Respiratorio Canino Completo',
@@ -1997,16 +2102,16 @@ export const QPCR_PROFILES_MASTER = [
     syndromes: ['Respiratorio', 'Infeccioso viral', 'Ocular'],
     agentesIncluidosTexto: 'Anaplasma spp, Ehrlichia spp, Mycoplasma spp, Bartonella spp, Babesia spp, Toxoplasma gondii, Filarias (D. immitis, D. repens, D. striata y B. pahangi), Adenovirus tipo 1 y 2, Distemper canino, Herpesvirus',
     agents: [
-      'Anaplasma spp.',
-      'Ehrlichia spp.',
-      'Mycoplasma spp.',
-      'Bartonella spp.',
-      'Babesia spp.',
-      'Toxoplasma gondii',
-      'Filarias (D. immitis, D. repens, D. striata y B. pahangi)',
-      'Adenovirus tipo 1 y 2',
-      'Distemper canino',
-      'Herpesvirus'
+          "Adenovirus canino tipo 1 y 2",
+          "Anaplasma spp",
+          "Babesia spp",
+          "Bartonella spp",
+          "Dirofilaria immitis, D. striata, D. repens y Brugia pahangi",
+          "Ehrlichia spp",
+          "Herpesvirus canino",
+          "Mycoplasma spp",
+          "Toxoplasma gondii",
+          "Virus de Distemper canino"
     ],
     description: 'Panel completo para el complejo infeccioso respiratorio canino (CIRD) o descarga mucopurulenta. Cubre adenovirus, distemper, herpesvirus, filarias y agentes bacterianos/parasitarios respiratorios.'
   },
@@ -2017,6 +2122,13 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p12-reproductor-pequenas-especies',
     code: 'P12',
+    agentIds: [
+          "APL-006",
+          "APL-019",
+          "APL-021",
+          "APL-023",
+          "APL-029"
+    ],
     title: 'REPRO-PET',
     nombrePlataformaPropuesto: 'REPRO-PET',
     nombreCesar: 'qPCR Reproductor para pequeñas especies',
@@ -2037,11 +2149,11 @@ export const QPCR_PROFILES_MASTER = [
     syndromes: ['Hemotrópico/Sistémico', 'Infeccioso viral'],
     agentesIncluidosTexto: 'Neospora caninum, Brucella spp, Trichomona spp, Leptospira spp y Herpesvirus canino',
     agents: [
-      'Neospora caninum',
-      'Brucella spp.',
-      'Trichomona spp.',
-      'Leptospira spp.',
-      'Herpesvirus canino'
+          "Brucella spp",
+          "Herpesvirus canino",
+          "Leptospira spp",
+          "Neospora caninum",
+          "Trichomona spp"
     ],
     description: 'Panel enfocado en patología reproductiva, abortos e infertilidad en caninos y felinos. Detección precisa de Neospora caninum, Brucella spp., Trichomona spp., Leptospira spp. y Herpesvirus canino.'
   },
@@ -2052,6 +2164,21 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p13-rutina-canino',
     code: 'P13',
+    agentIds: [
+          "APL-002",
+          "APL-003",
+          "APL-004",
+          "APL-009",
+          "APL-012",
+          "APL-013",
+          "APL-017",
+          "APL-021",
+          "APL-022",
+          "APL-024",
+          "APL-026",
+          "APL-028",
+          "APL-030"
+    ],
     title: 'CANI-360',
     nombrePlataformaPropuesto: 'CANI-360',
     nombreCesar: 'qPCR Rutina Canino',
@@ -2073,19 +2200,19 @@ export const QPCR_PROFILES_MASTER = [
     syndromes: ['Hemotrópico/Sistémico', 'Digestivo-Hepático', 'Neurológico', 'Infeccioso viral', 'Nefrológico'],
     agentesIncluidosTexto: 'Distemper, Coronavirus, Parvovirus, Anaplasma spp, Ehrlichia spp, Rickettsia spp, Mycoplasma spp, Hepatozoon spp, Toxoplasma gondii, Bartonella spp, Leptospira spp, Babesia spp y Filarias diferenciadas (D.immitis, D. repens, D. striata, Brugia pahangi)',
     agents: [
-      'Distemper canino',
-      'Coronavirus canino',
-      'Parvovirus canino',
-      'Anaplasma spp.',
-      'Ehrlichia spp.',
-      'Rickettsia spp.',
-      'Mycoplasma spp.',
-      'Hepatozoon spp.',
-      'Toxoplasma gondii',
-      'Bartonella spp.',
-      'Leptospira spp.',
-      'Babesia spp.',
-      'Filarias diferenciadas (D. immitis, D. repens, D. striata, Brugia pahangi)'
+          "Anaplasma spp",
+          "Babesia spp",
+          "Bartonella spp",
+          "Coronavirus canino",
+          "Dirofilaria immitis, D. striata, D. repens y Brugia pahangi",
+          "Ehrlichia spp",
+          "Hepatozoon spp",
+          "Leptospira spp",
+          "Mycoplasma spp",
+          "Parvovirus canino",
+          "Rickettsia spp",
+          "Toxoplasma gondii",
+          "Virus de Distemper canino"
     ],
     description: 'Perfil de chequeo rutinario y exhaustivo para pacientes caninos con presentaciones complejas o polimórbidas. Integra los virus entéricos y respiratorios principales con la totalidad de hemotrópicos y zoonosis mayores.'
   },
@@ -2096,6 +2223,23 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p14-rutina-felino',
     code: 'P14',
+    agentIds: [
+          "APL-002",
+          "APL-003",
+          "APL-004",
+          "APL-007",
+          "APL-008",
+          "APL-010",
+          "APL-013",
+          "APL-017",
+          "APL-018",
+          "APL-022",
+          "APL-026",
+          "APL-028",
+          "APL-031",
+          "APL-032",
+          "APL-033"
+    ],
     title: 'FELI-360',
     nombrePlataformaPropuesto: 'FELI-360',
     nombreCesar: 'qPCR Rutina Felino',
@@ -2117,21 +2261,21 @@ export const QPCR_PROFILES_MASTER = [
     syndromes: ['Hemotrópico/Sistémico', 'Digestivo-Hepático', 'Ocular', 'Respiratorio', 'Infeccioso viral'],
     agentesIncluidosTexto: 'Virus de Inmunodeficiencia Felina (FIV and PFIV), Virus de la Leucemia Felina (FeLV and PFeLV), Coronavirus Entérico Causante de PIF, Calicivirus, Herpesvirus, Panleucopenia, Chlamydia spp, Anaplasma spp, Ehrlichia spp, Rickettsia spp, Mycoplasma spp, Hepatozoon spp, Toxoplasma gondii, Bartonella spp y Babesia spp',
     agents: [
-      'Virus de Inmunodeficiencia Felina (FIV y PFIV)',
-      'Virus de la Leucemia Felina (FeLV y PFeLV)',
-      'Coronavirus Entérico Causante de PIF',
-      'Calicivirus',
-      'Herpesvirus',
-      'Panleucopenia',
-      'Chlamydia spp.',
-      'Anaplasma spp.',
-      'Ehrlichia spp.',
-      'Rickettsia spp.',
-      'Mycoplasma spp.',
-      'Hepatozoon spp.',
-      'Toxoplasma gondii',
-      'Bartonella spp.',
-      'Babesia spp.'
+          "Anaplasma spp",
+          "Babesia spp",
+          "Bartonella spp",
+          "Calicivirus felino",
+          "Chlamydia spp",
+          "Coronavirus entérico felino causante de PIF",
+          "Ehrlichia spp",
+          "Hepatozoon spp",
+          "Herpesvirus (sin especie)",
+          "Mycoplasma spp",
+          "Rickettsia spp",
+          "Toxoplasma gondii",
+          "Virus de Inmunodeficiencia Felina (FIV y PFIV)",
+          "Virus de la Leucemia Felina (FeLV y PFeLV)",
+          "Virus de Panleucopenia felina"
     ],
     description: 'La máxima cobertura diagnóstica molecular para medicina felina. Chequeo integral que engloba retrovirus, coronavirus causante de PIF, virus del tracto respiratorio y ocular, hemotrópicos y parásitos tisulares.'
   },
@@ -2142,6 +2286,14 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p15-viral-felino',
     code: 'P15',
+    agentIds: [
+          "APL-007",
+          "APL-010",
+          "APL-018",
+          "APL-031",
+          "APL-032",
+          "APL-033"
+    ],
     title: 'FELI-VIRAL',
     nombrePlataformaPropuesto: 'FELI-VIRAL',
     nombreCesar: 'qPCR Viral Felino',
@@ -2162,12 +2314,12 @@ export const QPCR_PROFILES_MASTER = [
     syndromes: ['Infeccioso viral', 'Ocular', 'Respiratorio', 'Digestivo-Hepático'],
     agentesIncluidosTexto: 'Virus de Inmunodeficiencia Felina (FIV y PFIV), Virus de la Leucemia Felina (FeLV y PFeLV), Coronavirus Entérico Causante de PIF, Calicivirus, Herpesvirus y Panleucopenia',
     agents: [
-      'Virus de Inmunodeficiencia Felina (FIV y PFIV)',
-      'Virus de la Leucemia Felina (FeLV y PFeLV)',
-      'Coronavirus Entérico Causante de PIF',
-      'Calicivirus',
-      'Herpesvirus',
-      'Panleucopenia'
+          "Calicivirus felino",
+          "Coronavirus entérico felino causante de PIF",
+          "Herpesvirus (sin especie)",
+          "Virus de Inmunodeficiencia Felina (FIV y PFIV)",
+          "Virus de la Leucemia Felina (FeLV y PFeLV)",
+          "Virus de Panleucopenia felina"
     ],
     description: 'Panel enfocado específicamente en los 6 virus de mayor relevancia y letalidad en felinos: FIV, FeLV, Coronavirus entérico causante de PIF, Calicivirus felino, Herpesvirus felino y Panleucopenia felina.'
   },
@@ -2178,6 +2330,9 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p16-hongos-secuenciacion',
     code: 'P16',
+    agentIds: [
+          "APL-020"
+    ],
     title: 'FUNGI PET',
     nombrePlataformaPropuesto: 'FUNGI PET',
     nombreCesar: 'qPCR Detección de Hongos + Secuenciación',
@@ -2198,7 +2353,7 @@ export const QPCR_PROFILES_MASTER = [
     cultivoAsociado: 'Cultivo de hongos',
     agentesIncluidosTexto: 'Panfúngico (Identificación por PCR y secuenciación genética de hongos patógenos oportunistas, levaduras y mohos)',
     agents: [
-      'Panfúngico (Secuenciación genética de hongos patógenos)'
+          "Hongos (qPCR) + secuenciación"
     ],
     description: 'Diagnóstico molecular de alta especificidad para micosis mediante amplificación de regiones ribosomales conservadas y posterior secuenciación, permitiendo la identificación precisa de especies de hongos oportunistas y patógenos.'
   },
@@ -2209,6 +2364,23 @@ export const QPCR_PROFILES_MASTER = [
   {
     id: 'p17-neurologico-completo-felino',
     code: 'P17',
+    agentIds: [
+          "APL-002",
+          "APL-003",
+          "APL-004",
+          "APL-005",
+          "APL-010",
+          "APL-011",
+          "APL-012",
+          "APL-013",
+          "APL-017",
+          "APL-022",
+          "APL-026",
+          "APL-028",
+          "APL-031",
+          "APL-032",
+          "APL-033"
+    ],
     title: 'NEURO PET FELINO',
     nombrePlataformaPropuesto: 'NEURO PET FELINO',
     nombreCesar: 'qPCR Neurológico Completo Felino',
@@ -2230,21 +2402,21 @@ export const QPCR_PROFILES_MASTER = [
     cultivoAsociado: 'Cultivo de LCR',
     agentesIncluidosTexto: 'Toxoplasma gondii, Cryptococcus spp, Virus de Inmunodeficiencia Felina (FIV y PFIV), Virus de la Leucemia Felina (FeLV y PFeLV), Coronavirus Entérico Causante de PIF, Bartonella spp, Mycoplasma spp, Anaplasma spp, Ehrlichia spp, Rickettsia spp, Borrelia spp, Hepatozoon spp, Babesia spp, Filarias diferenciadas y Panleucopenia felina',
     agents: [
-      'Toxoplasma gondii',
-      'Cryptococcus spp.',
-      'Virus de Inmunodeficiencia Felina (FIV y PFIV)',
-      'Virus de la Leucemia Felina (FeLV y PFeLV)',
-      'Coronavirus Entérico Causante de PIF',
-      'Bartonella spp.',
-      'Mycoplasma spp.',
-      'Anaplasma spp.',
-      'Ehrlichia spp.',
-      'Rickettsia spp.',
-      'Borrelia spp.',
-      'Hepatozoon spp.',
-      'Babesia spp.',
-      'Filarias diferenciadas (D. immitis, D. striata, D. repens, Brugia pahangi)',
-      'Panleucopenia felina'
+          "Anaplasma spp",
+          "Babesia spp",
+          "Bartonella spp",
+          "Borrelia spp",
+          "Coronavirus entérico felino causante de PIF",
+          "Cryptococcus spp",
+          "Dirofilaria immitis, D. striata, D. repens y Brugia pahangi",
+          "Ehrlichia spp",
+          "Hepatozoon spp",
+          "Mycoplasma spp",
+          "Rickettsia spp",
+          "Toxoplasma gondii",
+          "Virus de Inmunodeficiencia Felina (FIV y PFIV)",
+          "Virus de la Leucemia Felina (FeLV y PFeLV)",
+          "Virus de Panleucopenia felina"
     ],
     description: 'Panel de alta resolución para felinos con signología neurológica aguda o crónica (convulsiones, ataxia, paresia, cambios de comportamiento). Detección exhaustiva de los 15 patógenos neurotrópicos e infecciosos clave en gatos.'
   }
@@ -2294,7 +2466,2185 @@ QPCR_PROFILES_MASTER.forEach((profile) => {
   if (!profile.price) profile.price = profile.basePrice;
 });
 
+
+// ============================================================================
+// BASE DE DATOS OFICIAL DE 34 AGENTES INFECCIOSOS SINCRONIZADA CON KEA TOOLS (ZZ_PLAT_AGENTE)
+// ============================================================================
+export const OFFICIAL_KEA_AGENTS_DB = [
+  {
+    "id": "APL-001",
+    "idAgente": "APL-001",
+    "keaRecordId": 1,
+    "name": "Adenovirus canino tipo 1 y 2",
+    "sampleType": "Sangre EDTA, orina y/o biopsia hepática",
+    "tipoMuestra": "Sangre EDTA, orina y/o biopsia hepática",
+    "matrix": "Sangre EDTA, orina y/o biopsia hepática",
+    "diagnosticMethods": "Sangre EDTA, orina y/o biopsia hepática",
+    "estado": "activo",
+    "group": "VIRAL",
+    "subgroup": "Adenoviridae",
+    "species": [
+      "Canino"
+    ],
+    "profiles": [
+      {
+        "code": "P10",
+        "title": "ICTERO-PET",
+        "species": "Caninos"
+      },
+      {
+        "code": "P11",
+        "title": "CAN-RESP",
+        "species": "Caninos"
+      }
+    ],
+    "profileCodes": [
+      "P10",
+      "P11"
+    ],
+    "profilesCount": 2,
+    "targetOrgans": "Hígado (hepatocitos), endotelio vascular, endotelio corneal, tracto respiratorio superior y túbulos renales.",
+    "transmission": "Contacto directo con saliva, heces, orina o secreciones respiratorias de animales infectados; fómites.",
+    "vectors": [
+      "fomites",
+      "contacto directo",
+      "orina"
+    ],
+    "symptomsDescription": "CAV-1 (Hepatitis Infecciosa Canina): fiebre alta, dolor abdominal, hepatomegalia, edema corneal (\"ojo azul\"), diátesis hemorrágica. CAV-2: tos traqueobronquial (complejo tos de las perreras).",
+    "labDescription": "Leucopenia marcada inicial seguida de leucocitosis; elevación extrema de ALT, AST y FA; hiperbilirrubinemia, prolongación de tiempos de coagulación y proteinuria.",
+    "keywords": [
+      "apl-001",
+      "adenovirus canino tipo 1 y 2",
+      "fomites",
+      "contacto directo",
+      "orina",
+      "canino"
+    ]
+  },
+  {
+    "id": "APL-002",
+    "idAgente": "APL-002",
+    "keaRecordId": 2,
+    "name": "Anaplasma spp",
+    "sampleType": "Sangre EDTA",
+    "tipoMuestra": "Sangre EDTA",
+    "matrix": "Sangre EDTA",
+    "diagnosticMethods": "Sangre EDTA",
+    "estado": "activo",
+    "group": "RICKETTSIALES",
+    "subgroup": "Anaplasmataceae",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P1",
+        "title": "VECTOR PLUS",
+        "species": "Felinos y Caninos"
+      },
+      {
+        "code": "P6",
+        "title": "FELI-VECTOR",
+        "species": "Felinos"
+      },
+      {
+        "code": "P8",
+        "title": "NEURO PET CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P10",
+        "title": "ICTERO-PET",
+        "species": "Caninos"
+      },
+      {
+        "code": "P11",
+        "title": "CAN-RESP",
+        "species": "Caninos"
+      },
+      {
+        "code": "P13",
+        "title": "CANI-360",
+        "species": "Caninos"
+      },
+      {
+        "code": "P14",
+        "title": "FELI-360",
+        "species": "Felinos"
+      },
+      {
+        "code": "P17",
+        "title": "NEURO PET FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P1",
+      "P6",
+      "P8",
+      "P10",
+      "P11",
+      "P13",
+      "P14",
+      "P17"
+    ],
+    "profilesCount": 8,
+    "targetOrgans": "Plaquetas (A. platys) o neutrófilos/leucocitos (A. phagocytophilum), bazo, endotelio vascular.",
+    "transmission": "Picadura de garrapatas Rhipicephalus sanguineus (A. platys) e Ixodes spp. (A. phagocytophilum).",
+    "vectors": [
+      "garrapata",
+      "rhipicephalus",
+      "ixodes"
+    ],
+    "symptomsDescription": "Fiebre, decaimiento, anorexia, cojera / poliartritis, linfadenomegalia, palidez de mucosas y sangrados espontáneos (epistaxis, petequias).",
+    "labDescription": "Trombocitopenia cíclica severa o profunda, anemia no regenerativa moderada, hipoalbuminemia e hiperglobulinemia.",
+    "keywords": [
+      "apl-002",
+      "anaplasma spp",
+      "garrapata",
+      "rhipicephalus",
+      "ixodes",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-003",
+    "idAgente": "APL-003",
+    "keaRecordId": 3,
+    "name": "Babesia spp",
+    "sampleType": "Sangre EDTA",
+    "tipoMuestra": "Sangre EDTA",
+    "matrix": "Sangre EDTA",
+    "diagnosticMethods": "Sangre EDTA",
+    "estado": "activo",
+    "group": "APICOMPLEXOS",
+    "subgroup": "Piroplasmida",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P1",
+        "title": "VECTOR PLUS",
+        "species": "Felinos y Caninos"
+      },
+      {
+        "code": "P6",
+        "title": "FELI-VECTOR",
+        "species": "Felinos"
+      },
+      {
+        "code": "P8",
+        "title": "NEURO PET CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P10",
+        "title": "ICTERO-PET",
+        "species": "Caninos"
+      },
+      {
+        "code": "P11",
+        "title": "CAN-RESP",
+        "species": "Caninos"
+      },
+      {
+        "code": "P13",
+        "title": "CANI-360",
+        "species": "Caninos"
+      },
+      {
+        "code": "P14",
+        "title": "FELI-360",
+        "species": "Felinos"
+      },
+      {
+        "code": "P17",
+        "title": "NEURO PET FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P1",
+      "P6",
+      "P8",
+      "P10",
+      "P11",
+      "P13",
+      "P14",
+      "P17"
+    ],
+    "profilesCount": 8,
+    "targetOrgans": "Eritrocitos (glóbulos rojos), bazo, riñones, hígado.",
+    "transmission": "Garrapatas Rhipicephalus sanguineus (B. vogeli), Dermacentor (B. canis); transfusiones sanguíneas.",
+    "vectors": [
+      "garrapata",
+      "rhipicephalus",
+      "dermacentor",
+      "transfusion"
+    ],
+    "symptomsDescription": "Fiebre, letargia profunda, palidez intensa de mucosas, ictericia franca, esplenomegalia, orina oscura / hemoglobinuria.",
+    "labDescription": "Anemia hemolítica marcada (regenerativa o no regenerativa hiperaguda), trombocitopenia severa, hiperbilirrubinemia y hemoglobinuria.",
+    "keywords": [
+      "apl-003",
+      "babesia spp",
+      "garrapata",
+      "rhipicephalus",
+      "dermacentor",
+      "transfusion",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-004",
+    "idAgente": "APL-004",
+    "keaRecordId": 4,
+    "name": "Bartonella spp",
+    "sampleType": "Sangre EDTA",
+    "tipoMuestra": "Sangre EDTA",
+    "matrix": "Sangre EDTA",
+    "diagnosticMethods": "Sangre EDTA",
+    "estado": "activo",
+    "group": "BARTONELLA",
+    "subgroup": "Bartonellaceae",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P1",
+        "title": "VECTOR PLUS",
+        "species": "Felinos y Caninos"
+      },
+      {
+        "code": "P6",
+        "title": "FELI-VECTOR",
+        "species": "Felinos"
+      },
+      {
+        "code": "P7",
+        "title": "FELI-INFECT",
+        "species": "Felinos"
+      },
+      {
+        "code": "P8",
+        "title": "NEURO PET CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P9",
+        "title": "FELI-OCURESP",
+        "species": "Felinos"
+      },
+      {
+        "code": "P10",
+        "title": "ICTERO-PET",
+        "species": "Caninos"
+      },
+      {
+        "code": "P11",
+        "title": "CAN-RESP",
+        "species": "Caninos"
+      },
+      {
+        "code": "P13",
+        "title": "CANI-360",
+        "species": "Caninos"
+      },
+      {
+        "code": "P14",
+        "title": "FELI-360",
+        "species": "Felinos"
+      },
+      {
+        "code": "P17",
+        "title": "NEURO PET FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P1",
+      "P6",
+      "P7",
+      "P8",
+      "P9",
+      "P10",
+      "P11",
+      "P13",
+      "P14",
+      "P17"
+    ],
+    "profilesCount": 10,
+    "targetOrgans": "Células endoteliales vasculares, válvulas cardíacas (aórtica/mitral), eritrocitos.",
+    "transmission": "Pulgas (Ctenocephalides felis), garrapatas, arañazo de gato.",
+    "vectors": [
+      "pulga",
+      "garrapata",
+      "arañazo"
+    ],
+    "symptomsDescription": "Endocarditis bacteriana vegetativa con soplo cardíaco de novo, fiebre persistente / FOD, poliartritis, uveítis y letargia.",
+    "labDescription": "Trombocitopenia en ~50% de casos, anemia no regenerativa, leucocitosis neutrofílica y monocitosis.",
+    "keywords": [
+      "apl-004",
+      "bartonella spp",
+      "pulga",
+      "garrapata",
+      "arañazo",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-005",
+    "idAgente": "APL-005",
+    "keaRecordId": 5,
+    "name": "Borrelia spp",
+    "sampleType": "LCR y sangre EDTA",
+    "tipoMuestra": "LCR y sangre EDTA",
+    "matrix": "LCR y sangre EDTA",
+    "diagnosticMethods": "LCR y sangre EDTA",
+    "estado": "activo",
+    "group": "ESPIROQUETAS",
+    "subgroup": "Spirochaetaceae",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P8",
+        "title": "NEURO PET CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P17",
+        "title": "NEURO PET FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P8",
+      "P17"
+    ],
+    "profilesCount": 2,
+    "targetOrgans": "Articulaciones (membrana sinovial), riñones, SNC y tejido conectivo.",
+    "transmission": "Garrapatas duras del complejo Ixodes (Ixodes ricinus, Ixodes scapularis).",
+    "vectors": [
+      "garrapata",
+      "ixodes"
+    ],
+    "symptomsDescription": "Enfermedad de Lyme: cojera intermitente migratoria, inflamación articular dolorosa, fiebre, letargia y nefritis de Lyme.",
+    "labDescription": "Trombocitopenia, proteinuria glomerular severa con UPC elevado, azotemia progresiva en nefritis de Lyme.",
+    "keywords": [
+      "apl-005",
+      "borrelia spp",
+      "garrapata",
+      "ixodes",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-006",
+    "idAgente": "APL-006",
+    "keaRecordId": 6,
+    "name": "Brucella spp",
+    "sampleType": "Líquido estomacal de aborto, placenta, tejidos fetales, hisopado vaginal/prepucial y/o sangre EDTA",
+    "tipoMuestra": "Líquido estomacal de aborto, placenta, tejidos fetales, hisopado vaginal/prepucial y/o sangre EDTA",
+    "matrix": "Líquido estomacal de aborto, placenta, tejidos fetales, hisopado vaginal/prepucial y/o sangre EDTA",
+    "diagnosticMethods": "Líquido estomacal de aborto, placenta, tejidos fetales, hisopado vaginal/prepucial y/o sangre EDTA",
+    "estado": "activo",
+    "group": "BRUCELLA",
+    "subgroup": "Brucellaceae",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P12",
+        "title": "REPRO-PET",
+        "species": "Felinos y Caninos"
+      }
+    ],
+    "profileCodes": [
+      "P12"
+    ],
+    "profilesCount": 1,
+    "targetOrgans": "Tracto reproductivo (útero, placenta, epidídimo, próstata), discos intervertebrales (discoespóndilosis), ojos.",
+    "transmission": "Fluidos genitales, semen, secreciones vaginales, fetos abortados, orina; transmisión venérea u oronasal.",
+    "vectors": [
+      "semen",
+      "fluidos genitales",
+      "orina",
+      "aborto"
+    ],
+    "symptomsDescription": "Abortos en el último tercio de gestación, orquitis, epididimitis, prostatitis, infertilidad, dolor lumbar por discoespondilitis, uveítis.",
+    "labDescription": "Hipoalbuminemia, hiperglobulinemia policlonal, anemia normocítica normocrómica y piuria en sedimento.",
+    "keywords": [
+      "apl-006",
+      "brucella spp",
+      "semen",
+      "fluidos genitales",
+      "orina",
+      "aborto",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-007",
+    "idAgente": "APL-007",
+    "keaRecordId": 7,
+    "name": "Calicivirus felino",
+    "sampleType": "Hisopado profundo ocular, nasal y/o de lesiones",
+    "tipoMuestra": "Hisopado profundo ocular, nasal y/o de lesiones",
+    "matrix": "Hisopado profundo ocular, nasal y/o de lesiones",
+    "diagnosticMethods": "Hisopado profundo ocular, nasal y/o de lesiones",
+    "estado": "activo",
+    "group": "VIRAL",
+    "subgroup": "Caliciviridae",
+    "species": [
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P9",
+        "title": "FELI-OCURESP",
+        "species": "Felinos"
+      },
+      {
+        "code": "P14",
+        "title": "FELI-360",
+        "species": "Felinos"
+      },
+      {
+        "code": "P15",
+        "title": "FELI-VIRAL",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P9",
+      "P14",
+      "P15"
+    ],
+    "profilesCount": 3,
+    "targetOrgans": "Epitelio lingual, paladar duro, fosas nasales, membrana sinovial articular y alvéolos pulmonares.",
+    "transmission": "Secreciones oculares, nasales y salivares por contacto directo o aerosoles a corta distancia; fómites.",
+    "vectors": [
+      "saliva",
+      "aerosoles",
+      "fomites",
+      "secrecion nasal"
+    ],
+    "symptomsDescription": "Úlceras linguales y orales dolorosas, sialorrea profusa, secreción nasal y ocular, estomatitis crónica y cojera transitoria por sinovitis.",
+    "labDescription": "Leucocitosis neutrofílica en infecciones secundarias bacterianas; anemia de enfermedad crónica en estomatitis severa.",
+    "keywords": [
+      "apl-007",
+      "calicivirus felino",
+      "saliva",
+      "aerosoles",
+      "fomites",
+      "secrecion nasal",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-008",
+    "idAgente": "APL-008",
+    "keaRecordId": 8,
+    "name": "Chlamydia spp",
+    "sampleType": "Hisopado profundo ocular, nasal y/o de lesiones",
+    "tipoMuestra": "Hisopado profundo ocular, nasal y/o de lesiones",
+    "matrix": "Hisopado profundo ocular, nasal y/o de lesiones",
+    "diagnosticMethods": "Hisopado profundo ocular, nasal y/o de lesiones",
+    "estado": "activo",
+    "group": "CHLAMYDIA",
+    "subgroup": "Chlamydiaceae",
+    "species": [
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P9",
+        "title": "FELI-OCURESP",
+        "species": "Felinos"
+      },
+      {
+        "code": "P14",
+        "title": "FELI-360",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P9",
+      "P14"
+    ],
+    "profilesCount": 2,
+    "targetOrgans": "Epitelio conjuntival ocular y mucosa nasofaríngea.",
+    "transmission": "Contacto directo con exudados oculares y nasales de gatos infectados.",
+    "vectors": [
+      "contacto directo",
+      "secrecion ocular"
+    ],
+    "symptomsDescription": "Conjuntivitis severa unilateral que progresa a bilateral, quemosis conjuntival marcada (edema conjuntival enrojecido), blefaroespasmo y secreción mucopurulenta.",
+    "labDescription": "Citología conjuntival con inclusiones intracitoplasmáticas basófilas en epitelio; leucograma habitualmente normal.",
+    "keywords": [
+      "apl-008",
+      "chlamydia spp",
+      "contacto directo",
+      "secrecion ocular",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-009",
+    "idAgente": "APL-009",
+    "keaRecordId": 9,
+    "name": "Coronavirus canino",
+    "sampleType": "Materia fecal",
+    "tipoMuestra": "Materia fecal",
+    "matrix": "Materia fecal",
+    "diagnosticMethods": "Materia fecal",
+    "estado": "activo",
+    "group": "VIRAL",
+    "subgroup": "Coronaviridae",
+    "species": [
+      "Canino"
+    ],
+    "profiles": [
+      {
+        "code": "P4",
+        "title": "GASTRO-PANEL CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P13",
+        "title": "CANI-360",
+        "species": "Caninos"
+      }
+    ],
+    "profileCodes": [
+      "P4",
+      "P13"
+    ],
+    "profilesCount": 2,
+    "targetOrgans": "Enterocitos del tercio superior de las vellosidades intestinales (intestino delgado).",
+    "transmission": "Vía fecal-oral mediante heces o agua/alimentos contaminados.",
+    "vectors": [
+      "fecal-oral",
+      "heces",
+      "fomites"
+    ],
+    "symptomsDescription": "Enteritis catarral leve a moderada, diarrea líquida amarillenta/verdosa, vómitos esporádicos, anorexia y deshidratación (cuadros graves en coinfección con Parvovirus).",
+    "labDescription": "Habitualmente hemograma normal; leve deshidratación con hemoconcentración o desequilibrio electrolítico.",
+    "keywords": [
+      "apl-009",
+      "coronavirus canino",
+      "fecal-oral",
+      "heces",
+      "fomites",
+      "canino"
+    ]
+  },
+  {
+    "id": "APL-010",
+    "idAgente": "APL-010",
+    "keaRecordId": 10,
+    "name": "Coronavirus entérico felino causante de PIF",
+    "sampleType": "Sangre EDTA, materia fecal y/o líquido abdominal",
+    "tipoMuestra": "Sangre EDTA, materia fecal y/o líquido abdominal",
+    "matrix": "Sangre EDTA, materia fecal y/o líquido abdominal",
+    "diagnosticMethods": "Sangre EDTA, materia fecal y/o líquido abdominal",
+    "estado": "activo",
+    "group": "VIRAL",
+    "subgroup": "Coronaviridae",
+    "species": [
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P5",
+        "title": "GASTRO-PANEL FELINO",
+        "species": "Felinos"
+      },
+      {
+        "code": "P7",
+        "title": "FELI-INFECT",
+        "species": "Felinos"
+      },
+      {
+        "code": "P14",
+        "title": "FELI-360",
+        "species": "Felinos"
+      },
+      {
+        "code": "P15",
+        "title": "FELI-VIRAL",
+        "species": "Felinos"
+      },
+      {
+        "code": "P17",
+        "title": "NEURO PET FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P5",
+      "P7",
+      "P14",
+      "P15",
+      "P17"
+    ],
+    "profilesCount": 5,
+    "targetOrgans": "Macrófagos / monocitos, endotelio vascular sistémico, peritoneo, pleura, meninges y ojos.",
+    "transmission": "Transmisión fecal-oral del coronavirus entérico felino (FECV) con mutación intra-hospedero a biotipo PIF (FIPV).",
+    "vectors": [
+      "heces",
+      "fecal-oral",
+      "mutacion viral"
+    ],
+    "symptomsDescription": "PIF húmedo (efusivo): ascitis no dolorosa, efusión pleural con disnea, fiebre refractaria a antibióticos. PIF seco: granulomas orgánicos, signos neurológicos, uveítis anterior.",
+    "labDescription": "Líquido de efusión amarillo cetrino denso y viscoso (alto contenido de proteínas >3.5 g/dL, Rivalta positivo); hiperglobulinemia masiva con relación A/G < 0.6, linfopenia y anemia arregenerativa.",
+    "keywords": [
+      "apl-010",
+      "coronavirus entérico felino causante de pif",
+      "heces",
+      "fecal-oral",
+      "mutacion viral",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-011",
+    "idAgente": "APL-011",
+    "keaRecordId": 11,
+    "name": "Cryptococcus spp",
+    "sampleType": "LCR, hisopados, lavado broncoalveolar, biopsia, materia fecal",
+    "tipoMuestra": "LCR, hisopados, lavado broncoalveolar, biopsia, materia fecal",
+    "matrix": "LCR, hisopados, lavado broncoalveolar, biopsia, materia fecal",
+    "diagnosticMethods": "LCR, hisopados, lavado broncoalveolar, biopsia, materia fecal",
+    "estado": "activo",
+    "group": "HONGOS",
+    "subgroup": "Tremellaceae (Levaduras capsuladas)",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P8",
+        "title": "NEURO PET CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P17",
+        "title": "NEURO PET FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P8",
+      "P17"
+    ],
+    "profilesCount": 2,
+    "targetOrgans": "Cavidad nasal (cornetes y senos), SNC (meninges y cerebro), ojos (retina/úvea), piel y tejido celular subcutáneo.",
+    "transmission": "Inhalación de basidiosporas en polvo ambiental contaminado con heces de palomas / aves o material vegetal (eucalipto). Sin vector artrópodo.",
+    "vectors": [
+      "heces de aves",
+      "inhalacion",
+      "palomas",
+      "arboles"
+    ],
+    "symptomsDescription": "Deformidad del puente nasal, rinitis crónica con estornudos y descarga nasal mucopurulenta/sanguinolenta, nódulos cutáneos ulcerados (\"en botón\"), ceguera súbita, coriorretinitis y ataxia/convulsiones.",
+    "labDescription": "LCR con pleocitosis mononuclear/neutrofílica y proteínas elevadas; frotis/citología con levaduras esféricas gemantes rodeadas de halo capsular claro con tinción negativa.",
+    "keywords": [
+      "apl-011",
+      "cryptococcus spp",
+      "heces de aves",
+      "inhalacion",
+      "palomas",
+      "arboles",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-012",
+    "idAgente": "APL-012",
+    "keaRecordId": 12,
+    "name": "Dirofilaria immitis, D. striata, D. repens y Brugia pahangi",
+    "sampleType": "Sangre EDTA",
+    "tipoMuestra": "Sangre EDTA",
+    "matrix": "Sangre EDTA",
+    "diagnosticMethods": "Sangre EDTA",
+    "estado": "activo",
+    "group": "NEMÁTODOS",
+    "subgroup": "Filariidae (Onchocercidae)",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P1",
+        "title": "VECTOR PLUS",
+        "species": "Felinos y Caninos"
+      },
+      {
+        "code": "P6",
+        "title": "FELI-VECTOR",
+        "species": "Felinos"
+      },
+      {
+        "code": "P8",
+        "title": "NEURO PET CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P10",
+        "title": "ICTERO-PET",
+        "species": "Caninos"
+      },
+      {
+        "code": "P11",
+        "title": "CAN-RESP",
+        "species": "Caninos"
+      },
+      {
+        "code": "P13",
+        "title": "CANI-360",
+        "species": "Caninos"
+      },
+      {
+        "code": "P17",
+        "title": "NEURO PET FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P1",
+      "P6",
+      "P8",
+      "P10",
+      "P11",
+      "P13",
+      "P17"
+    ],
+    "profilesCount": 7,
+    "targetOrgans": "Arterias pulmonares, ventrículo derecho, vena cava caudal (D. immitis); tejido subcutáneo y conjuntival (D. repens, D. striata, B. pahangi).",
+    "transmission": "Picadura de mosquitos Culicidae hematófagos infectados (Culex, Aedes, Anopheles).",
+    "vectors": [
+      "mosquito",
+      "aedes",
+      "culex",
+      "anopheles"
+    ],
+    "symptomsDescription": "Cardiopulmonar (D. immitis): tos crónica, disnea, intolerancia al esfuerzo, síncopes, ascitis y síndrome de vena cava. Subcutánea (D. repens, D. striata): nódulos cutáneos indurados pruriginosos.",
+    "labDescription": "Eosinofilia y basofilia periféricas marcadas, anemia normocítica normocrómica, microfilariemia en concentrado de Knott y proteinuria por glomerulonefritis inmunomediada.",
+    "keywords": [
+      "apl-012",
+      "dirofilaria immitis, d. striata, d. repens y brugia pahangi",
+      "mosquito",
+      "aedes",
+      "culex",
+      "anopheles",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-013",
+    "idAgente": "APL-013",
+    "keaRecordId": 13,
+    "name": "Ehrlichia spp",
+    "sampleType": "Sangre EDTA",
+    "tipoMuestra": "Sangre EDTA",
+    "matrix": "Sangre EDTA",
+    "diagnosticMethods": "Sangre EDTA",
+    "estado": "activo",
+    "group": "RICKETTSIALES",
+    "subgroup": "Anaplasmataceae",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P1",
+        "title": "VECTOR PLUS",
+        "species": "Felinos y Caninos"
+      },
+      {
+        "code": "P6",
+        "title": "FELI-VECTOR",
+        "species": "Felinos"
+      },
+      {
+        "code": "P8",
+        "title": "NEURO PET CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P10",
+        "title": "ICTERO-PET",
+        "species": "Caninos"
+      },
+      {
+        "code": "P11",
+        "title": "CAN-RESP",
+        "species": "Caninos"
+      },
+      {
+        "code": "P13",
+        "title": "CANI-360",
+        "species": "Caninos"
+      },
+      {
+        "code": "P14",
+        "title": "FELI-360",
+        "species": "Felinos"
+      },
+      {
+        "code": "P17",
+        "title": "NEURO PET FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P1",
+      "P6",
+      "P8",
+      "P10",
+      "P11",
+      "P13",
+      "P14",
+      "P17"
+    ],
+    "profilesCount": 8,
+    "targetOrgans": "Monocitos y macrófagos tisulares (E. canis), granulocitos (E. ewingii), médula ósea, bazo, endotelio.",
+    "transmission": "Picadura de garrapatas Rhipicephalus sanguineus (garrapata marrón del perro).",
+    "vectors": [
+      "garrapata",
+      "rhipicephalus"
+    ],
+    "symptomsDescription": "Fiebre alta, petequias / equimosis, epistaxis profusa, letargo, linfadenomegalia, esplenomegalia, uveítis y palidez de mucosas.",
+    "labDescription": "Trombocitopenia severa profunda (<50.000/μL), pancitopenia en fase crónica por hipoplasia medular, hipergammaglobulinemia monoclonal o policlonal y proteinuria.",
+    "keywords": [
+      "apl-013",
+      "ehrlichia spp",
+      "garrapata",
+      "rhipicephalus",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-014",
+    "idAgente": "APL-014",
+    "keaRecordId": 14,
+    "name": "Genes de resistencia a tetraciclinas",
+    "sampleType": "Sangre EDTA",
+    "tipoMuestra": "Sangre EDTA",
+    "matrix": "Sangre EDTA",
+    "diagnosticMethods": "Sangre EDTA",
+    "estado": "activo",
+    "group": "RESISTENCIA ANTIMICROBIANA",
+    "subgroup": "Genes bacterianos tet(A), tet(B), tet(M)",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P2",
+        "title": "TETRA R CONTROL (muestra vieja)",
+        "species": "Felinos y Caninos"
+      },
+      {
+        "code": "P3",
+        "title": "TETRA R DIAGNOSTICO (muestra nueva)",
+        "species": "Felinos y Caninos"
+      }
+    ],
+    "profileCodes": [
+      "P2",
+      "P3"
+    ],
+    "profilesCount": 2,
+    "targetOrgans": "Microbioma bacteriano sistémico y patógenos bacterianos oportunistas / hemotrópicos.",
+    "transmission": "Transferencia horizontal de genes vía plásmidos, transposones o integrones en poblaciones bacterianas.",
+    "vectors": [
+      "transferencia genetica bacteriana"
+    ],
+    "symptomsDescription": "Fallo terapéutico o recaída clínica tras el uso de doxiciclina / oxitetraciclina en infecciones bacterianas crónicas.",
+    "labDescription": "Persistencia de carga bacteriana en qPCR o recuentos bacterianos inalterados post-tratamiento antibiótico empírico.",
+    "keywords": [
+      "apl-014",
+      "genes de resistencia a tetraciclinas",
+      "transferencia genetica bacteriana",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-015",
+    "idAgente": "APL-015",
+    "keaRecordId": 15,
+    "name": "Giardia spp",
+    "sampleType": "Materia fecal",
+    "tipoMuestra": "Materia fecal",
+    "matrix": "Materia fecal",
+    "diagnosticMethods": "Materia fecal",
+    "estado": "activo",
+    "group": "PROTOZOOS ENTÉRICOS",
+    "subgroup": "Diplomonadida",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P4",
+        "title": "GASTRO-PANEL CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P5",
+        "title": "GASTRO-PANEL FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P4",
+      "P5"
+    ],
+    "profilesCount": 2,
+    "targetOrgans": "Duodeno y yeyuno (ribete en cepillo de enterocitos).",
+    "transmission": "Ingestión de quistes infectantes en agua contaminada, coprofagia o alimentos crudos.",
+    "vectors": [
+      "agua contaminada",
+      "quistes fecales",
+      "coprofagia"
+    ],
+    "symptomsDescription": "Diarrea de intestino delgado pastosa, fétida, con esteatorrea (grasa) y aspecto brillante; pérdida de peso, dolor abdominal y flatulencias.",
+    "labDescription": "Habitualmente hemograma sin alteraciones específicas; síndrome de malabsorción con hipoalbuminemia en casos crónicos; quistes/trofozoítos en flotación de sulfato de zinc.",
+    "keywords": [
+      "apl-015",
+      "giardia spp",
+      "agua contaminada",
+      "quistes fecales",
+      "coprofagia",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-016",
+    "idAgente": "APL-016",
+    "keaRecordId": 16,
+    "name": "Helicobacter spp",
+    "sampleType": "Sangre EDTA",
+    "tipoMuestra": "Sangre EDTA",
+    "matrix": "Sangre EDTA",
+    "diagnosticMethods": "Sangre EDTA",
+    "estado": "activo",
+    "group": "BACTERIAS ENTÉRICAS",
+    "subgroup": "Campylobacterales / Helicobacteraceae",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P4",
+        "title": "GASTRO-PANEL CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P5",
+        "title": "GASTRO-PANEL FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P4",
+      "P5"
+    ],
+    "profilesCount": 2,
+    "targetOrgans": "Mucosa gástrica (antro y cuerpo gástrico), glándulas fúndicas y canalículos parietales.",
+    "transmission": "Vía oral-oral o fecal-oral mediante saliva, vómitos o alimentos compartidos.",
+    "vectors": [
+      "saliva",
+      "vomitos",
+      "fecal-oral"
+    ],
+    "symptomsDescription": "Gastritis crónica, vómitos recurrentes de contenido bilioso o alimenticio, náuseas, hiporexia, dolor epigástrico y eructos.",
+    "labDescription": "Anemia no regenerativa leve por sangrado gástrico microvascular; hipoalbuminemia leve en casos ulcerativos severos.",
+    "keywords": [
+      "apl-016",
+      "helicobacter spp",
+      "saliva",
+      "vomitos",
+      "fecal-oral",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-017",
+    "idAgente": "APL-017",
+    "keaRecordId": 17,
+    "name": "Hepatozoon spp",
+    "sampleType": "Sangre EDTA",
+    "tipoMuestra": "Sangre EDTA",
+    "matrix": "Sangre EDTA",
+    "diagnosticMethods": "Sangre EDTA",
+    "estado": "activo",
+    "group": "HEPATOZOON",
+    "subgroup": "Hepatozoidae",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P1",
+        "title": "VECTOR PLUS",
+        "species": "Felinos y Caninos"
+      },
+      {
+        "code": "P6",
+        "title": "FELI-VECTOR",
+        "species": "Felinos"
+      },
+      {
+        "code": "P8",
+        "title": "NEURO PET CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P10",
+        "title": "ICTERO-PET",
+        "species": "Caninos"
+      },
+      {
+        "code": "P13",
+        "title": "CANI-360",
+        "species": "Caninos"
+      },
+      {
+        "code": "P14",
+        "title": "FELI-360",
+        "species": "Felinos"
+      },
+      {
+        "code": "P17",
+        "title": "NEURO PET FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P1",
+      "P6",
+      "P8",
+      "P10",
+      "P13",
+      "P14",
+      "P17"
+    ],
+    "profilesCount": 7,
+    "targetOrgans": "Músculo esquelético, médula ósea, hígado, bazo y endotelio.",
+    "transmission": "Ingestión activa de la garrapata completa Rhipicephalus sanguineus (H. canis) o Amblyomma ovale (H. americanum). ¡No por picadura!",
+    "vectors": [
+      "ingestion de garrapata",
+      "rhipicephalus",
+      "amblyomma"
+    ],
+    "symptomsDescription": "Fiebre persistente, emaciación progresiva, dolor osteomuscular severo, dificultad motora para levantarse, hiperestesia espinal y secreción ocular purulenta.",
+    "labDescription": "Leucocitosis neutrofílica extrema patognomónica (frecuentemente >50.000 - 100.000/μL), anemia arregenerativa, fosfatasa alcalina elevada y gamontes elipsoides en neutrófilos.",
+    "keywords": [
+      "apl-017",
+      "hepatozoon spp",
+      "ingestion de garrapata",
+      "rhipicephalus",
+      "amblyomma",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-018",
+    "idAgente": "APL-018",
+    "keaRecordId": 18,
+    "name": "Herpesvirus (sin especie)",
+    "sampleType": "Por definir",
+    "tipoMuestra": "Por definir",
+    "matrix": "Por definir",
+    "diagnosticMethods": "Por definir",
+    "estado": "activo",
+    "group": "VIRAL",
+    "subgroup": "Herpesviridae (Herpesvirus felino / canino)",
+    "species": [
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P9",
+        "title": "FELI-OCURESP",
+        "species": "Felinos"
+      },
+      {
+        "code": "P14",
+        "title": "FELI-360",
+        "species": "Felinos"
+      },
+      {
+        "code": "P15",
+        "title": "FELI-VIRAL",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P9",
+      "P14",
+      "P15"
+    ],
+    "profilesCount": 3,
+    "targetOrgans": "Epitelio corneal, conjuntival, epitelio respiratorio superior y ganglio trigémino (latencia neural).",
+    "transmission": "Contacto directo con secreciones oculonasales; reactivación por estrés o inmunosupresión.",
+    "vectors": [
+      "secreciones oronasales",
+      "contacto directo",
+      "estres"
+    ],
+    "symptomsDescription": "Rinotraqueítis felina / ocular: úlceras corneales dendríticas patognomónicas, queratitis, blefarospasmo, estornudos paroxísticos y rinitis severa.",
+    "labDescription": "Citología con cuerpos de inclusión intranucleares eosinófilos en células epiteliales; leucograma con neutrofilia en sobreinfección bacteriana.",
+    "keywords": [
+      "apl-018",
+      "herpesvirus (sin especie)",
+      "secreciones oronasales",
+      "contacto directo",
+      "estres",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-019",
+    "idAgente": "APL-019",
+    "keaRecordId": 19,
+    "name": "Herpesvirus canino",
+    "sampleType": "Materia fecal y/o sangre EDTA",
+    "tipoMuestra": "Materia fecal y/o sangre EDTA",
+    "matrix": "Materia fecal y/o sangre EDTA",
+    "diagnosticMethods": "Materia fecal y/o sangre EDTA",
+    "estado": "activo",
+    "group": "VIRAL",
+    "subgroup": "Herpesviridae (Herpesvirus canino tipo 1)",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P11",
+        "title": "CAN-RESP",
+        "species": "Caninos"
+      },
+      {
+        "code": "P12",
+        "title": "REPRO-PET",
+        "species": "Felinos y Caninos"
+      }
+    ],
+    "profileCodes": [
+      "P11",
+      "P12"
+    ],
+    "profilesCount": 2,
+    "targetOrgans": "Cachorros neonatos (riñones, pulmones, hígado, encéfalo) y tracto genital en adultos.",
+    "transmission": "Transmisión transplacentaria, durante el parto por canal vaginal, o contacto oronasal con secreciones.",
+    "vectors": [
+      "canal de parto",
+      "secrecion genital",
+      "fomites"
+    ],
+    "symptomsDescription": "Muerte neonatal fulminante (\"síndrome hemorrágico del cachorro\"), hipotermia, llanto continuo, dolor abdominal agudo; en adultos lesiones vesiculares genitales y abortos.",
+    "labDescription": "Trombocitopenia severa neonatal, petequias corticales renales multifocales características en necropsia e hiperbilirrubinemia.",
+    "keywords": [
+      "apl-019",
+      "herpesvirus canino",
+      "canal de parto",
+      "secrecion genital",
+      "fomites",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-020",
+    "idAgente": "APL-020",
+    "keaRecordId": 20,
+    "name": "Hongos (qPCR) + secuenciación",
+    "sampleType": "Espécimen donde se sospeche la infección",
+    "tipoMuestra": "Espécimen donde se sospeche la infección",
+    "matrix": "Espécimen donde se sospeche la infección",
+    "diagnosticMethods": "Espécimen donde se sospeche la infección",
+    "estado": "activo",
+    "group": "HONGOS",
+    "subgroup": "Micosis oportunistas y profundas",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P16",
+        "title": "FUNGI PET",
+        "species": "Felinos y Caninos"
+      }
+    ],
+    "profileCodes": [
+      "P16"
+    ],
+    "profilesCount": 1,
+    "targetOrgans": "Piel, tejido subcutáneo, nódulos linfáticos, senos paranasales, pulmón y hueso.",
+    "transmission": "Inoculación traumática (arañazos, espinas) o inhalación de esporas fúngicas ambientales.",
+    "vectors": [
+      "espinas",
+      "arañazos",
+      "suelo",
+      "inhalacion"
+    ],
+    "symptomsDescription": "Lesiones dérmicas ulceradas nodulares piogranulomatosas que no responden a antibióticos estándar, rinitis micótica destructiva o osteomielitis.",
+    "labDescription": "Hiperglobulinemia marcada, anemia de enfermedad crónica; citología/histopatología con hifas o levaduras; secuenciación genética de ITS / 18S.",
+    "keywords": [
+      "apl-020",
+      "hongos (qpcr) + secuenciación",
+      "espinas",
+      "arañazos",
+      "suelo",
+      "inhalacion",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-021",
+    "idAgente": "APL-021",
+    "keaRecordId": 21,
+    "name": "Leptospira spp",
+    "sampleType": "Orina seriada y/o sangre EDTA",
+    "tipoMuestra": "Orina seriada y/o sangre EDTA",
+    "matrix": "Orina seriada y/o sangre EDTA",
+    "diagnosticMethods": "Orina seriada y/o sangre EDTA",
+    "estado": "activo",
+    "group": "LEPTOSPIRA",
+    "subgroup": "Leptospiraceae",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P10",
+        "title": "ICTERO-PET",
+        "species": "Caninos"
+      },
+      {
+        "code": "P12",
+        "title": "REPRO-PET",
+        "species": "Felinos y Caninos"
+      },
+      {
+        "code": "P13",
+        "title": "CANI-360",
+        "species": "Caninos"
+      }
+    ],
+    "profileCodes": [
+      "P10",
+      "P12",
+      "P13"
+    ],
+    "profilesCount": 3,
+    "targetOrgans": "Túbulos renales proximales, endotelio vascular sistémico, hepatocitos (espacio de Disse) y tracto uveal.",
+    "transmission": "Contacto directo de mucosas o piel erosionada con agua estancada, orina de roedores / reservorios o lodo contaminado.",
+    "vectors": [
+      "agua estancada",
+      "roedor",
+      "orina",
+      "inundaciones"
+    ],
+    "symptomsDescription": "Fiebre, fallo renal agudo (oliguria/anuria, dolor lumbar), ictericia franca hepática, diátesis hemorrágica, vómitos y hemorragia pulmonar (SPHS).",
+    "labDescription": "Azotemia renal severa (BUN y creatinina elevados), trombocitopenia marcada, glucosuria normoglucémica, proteinuria, hiperbilirrubinemia y tiempos de coagulación prolongados.",
+    "keywords": [
+      "apl-021",
+      "leptospira spp",
+      "agua estancada",
+      "roedor",
+      "orina",
+      "inundaciones",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-022",
+    "idAgente": "APL-022",
+    "keaRecordId": 22,
+    "name": "Mycoplasma spp",
+    "sampleType": "Sangre EDTA",
+    "tipoMuestra": "Sangre EDTA",
+    "matrix": "Sangre EDTA",
+    "diagnosticMethods": "Sangre EDTA",
+    "estado": "activo",
+    "group": "HAEMOPLASMAS",
+    "subgroup": "Mycoplasmataceae (M. haemocanis, M. haemofelis, etc.)",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P1",
+        "title": "VECTOR PLUS",
+        "species": "Felinos y Caninos"
+      },
+      {
+        "code": "P6",
+        "title": "FELI-VECTOR",
+        "species": "Felinos"
+      },
+      {
+        "code": "P7",
+        "title": "FELI-INFECT",
+        "species": "Felinos"
+      },
+      {
+        "code": "P8",
+        "title": "NEURO PET CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P9",
+        "title": "FELI-OCURESP",
+        "species": "Felinos"
+      },
+      {
+        "code": "P10",
+        "title": "ICTERO-PET",
+        "species": "Caninos"
+      },
+      {
+        "code": "P11",
+        "title": "CAN-RESP",
+        "species": "Caninos"
+      },
+      {
+        "code": "P13",
+        "title": "CANI-360",
+        "species": "Caninos"
+      },
+      {
+        "code": "P14",
+        "title": "FELI-360",
+        "species": "Felinos"
+      },
+      {
+        "code": "P17",
+        "title": "NEURO PET FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P1",
+      "P6",
+      "P7",
+      "P8",
+      "P9",
+      "P10",
+      "P11",
+      "P13",
+      "P14",
+      "P17"
+    ],
+    "profilesCount": 10,
+    "targetOrgans": "Membrana plasmática de los eritrocitos (glóbulos rojos), bazo.",
+    "transmission": "Pulgas (Ctenocephalides felis), garrapatas, arañazos y mordeduras entre animales; transfusiones.",
+    "vectors": [
+      "pulga",
+      "garrapata",
+      "mordedura",
+      "arañazo"
+    ],
+    "symptomsDescription": "Anemia Infecciosa Felina / Hemoplasmosis canina: debilidad intensa, palidez cérea de mucosas, fiebre recurrente, ictericia hemolítica, pérdida de peso y taquicardia.",
+    "labDescription": "Anemia hemolítica extravascular regenerativa severa con policromasia y reticulocitosis, trombocitopenia en fase aguda, bilirrubina elevada y cuerpos esferoidales sobre membrana eritrocitaria.",
+    "keywords": [
+      "apl-022",
+      "mycoplasma spp",
+      "pulga",
+      "garrapata",
+      "mordedura",
+      "arañazo",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-023",
+    "idAgente": "APL-023",
+    "keaRecordId": 23,
+    "name": "Neospora caninum",
+    "sampleType": "Sangre EDTA, materia fecal y/o LCR",
+    "tipoMuestra": "Sangre EDTA, materia fecal y/o LCR",
+    "matrix": "Sangre EDTA, materia fecal y/o LCR",
+    "diagnosticMethods": "Sangre EDTA, materia fecal y/o LCR",
+    "estado": "activo",
+    "group": "APICOMPLEXOS",
+    "subgroup": "Sarcocystidae",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P8",
+        "title": "NEURO PET CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P12",
+        "title": "REPRO-PET",
+        "species": "Felinos y Caninos"
+      }
+    ],
+    "profileCodes": [
+      "P8",
+      "P12"
+    ],
+    "profilesCount": 2,
+    "targetOrgans": "Músculo esquelético, médula espinal (raíces nerviosas lumbosacras), encéfalo y miocardio.",
+    "transmission": "Vía transplacentaria congénita (madre a cachorro) o ingestión de tejidos / placentas con quistes.",
+    "vectors": [
+      "transplacentario",
+      "tejidos crudos",
+      "placenta"
+    ],
+    "symptomsDescription": "Paresia y rigidez progresiva de miembros posteriores con hiperextensión rígida permanente patognomónica en cachorros, ataxia, dificultad para deglutir y atrofia muscular.",
+    "labDescription": "Creatina quinasa (CK) y AST marcadamente elevadas por daño muscular necrosante; pleocitosis mixta en LCR.",
+    "keywords": [
+      "apl-023",
+      "neospora caninum",
+      "transplacentario",
+      "tejidos crudos",
+      "placenta",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-024",
+    "idAgente": "APL-024",
+    "keaRecordId": 24,
+    "name": "Parvovirus canino",
+    "sampleType": "Materia fecal y/o LCR",
+    "tipoMuestra": "Materia fecal y/o LCR",
+    "matrix": "Materia fecal y/o LCR",
+    "diagnosticMethods": "Materia fecal y/o LCR",
+    "estado": "activo",
+    "group": "PARVOVIRUS",
+    "subgroup": "Parvoviridae (CPV-2a, 2b, 2c)",
+    "species": [
+      "Canino"
+    ],
+    "profiles": [
+      {
+        "code": "P4",
+        "title": "GASTRO-PANEL CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P8",
+        "title": "NEURO PET CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P13",
+        "title": "CANI-360",
+        "species": "Caninos"
+      }
+    ],
+    "profileCodes": [
+      "P4",
+      "P8",
+      "P13"
+    ],
+    "profilesCount": 3,
+    "targetOrgans": "Criptas de Lieberkühn intestinales, médula ósea (mieloblastos), ganglios linfáticos mesentéricos y bazo.",
+    "transmission": "Fecal-oral mediante heces de cachorros infectados o fómites resistentes en el ambiente.",
+    "vectors": [
+      "heces",
+      "fomites",
+      "fecal-oral"
+    ],
+    "symptomsDescription": "Vómitos incontrolables, diarrea sanguinolenta fétida (\"olor a parvovirus\"), deshidratación hiperaguda, shock hipovolémico y sepsis por translocación bacteriana.",
+    "labDescription": "Leucopenia y panleucopenia extrema (<2.000/μL), linfopenia y neutropenia profunda; hipoproteinemia marcada con hipoalbuminemia y desequilibrio electrolítico severo.",
+    "keywords": [
+      "apl-024",
+      "parvovirus canino",
+      "heces",
+      "fomites",
+      "fecal-oral",
+      "canino"
+    ]
+  },
+  {
+    "id": "APL-025",
+    "idAgente": "APL-025",
+    "keaRecordId": 25,
+    "name": "Pentatrichomona spp",
+    "sampleType": "Materia fecal",
+    "tipoMuestra": "Materia fecal",
+    "matrix": "Materia fecal",
+    "diagnosticMethods": "Materia fecal",
+    "estado": "activo",
+    "group": "PROTOZOOS ENTÉRICOS",
+    "subgroup": "Trichomonadida",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P4",
+        "title": "GASTRO-PANEL CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P5",
+        "title": "GASTRO-PANEL FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P4",
+      "P5"
+    ],
+    "profilesCount": 2,
+    "targetOrgans": "Ciego y colon proximal / distal.",
+    "transmission": "Vía fecal-oral por contacto estrecho o coprofagia en criaderos o albergues.",
+    "vectors": [
+      "fecal-oral",
+      "coprofagia"
+    ],
+    "symptomsDescription": "Diarrea de intestino grueso persistente o intermitente con moco abundante, tenesmo fecal y hematofagia (gotas de sangre fresca); sin afectación del estado general.",
+    "labDescription": "Hemograma habitualmente normal; ausencia de leucopenia; trofozoítos móviles en examen directo fresco de heces.",
+    "keywords": [
+      "apl-025",
+      "pentatrichomona spp",
+      "fecal-oral",
+      "coprofagia",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-026",
+    "idAgente": "APL-026",
+    "keaRecordId": 26,
+    "name": "Rickettsia spp",
+    "sampleType": "Sangre EDTA",
+    "tipoMuestra": "Sangre EDTA",
+    "matrix": "Sangre EDTA",
+    "diagnosticMethods": "Sangre EDTA",
+    "estado": "activo",
+    "group": "RICKETTSIALES",
+    "subgroup": "Rickettsiaceae (R. rickettsii, R. parkeri)",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P1",
+        "title": "VECTOR PLUS",
+        "species": "Felinos y Caninos"
+      },
+      {
+        "code": "P6",
+        "title": "FELI-VECTOR",
+        "species": "Felinos"
+      },
+      {
+        "code": "P8",
+        "title": "NEURO PET CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P13",
+        "title": "CANI-360",
+        "species": "Caninos"
+      },
+      {
+        "code": "P14",
+        "title": "FELI-360",
+        "species": "Felinos"
+      },
+      {
+        "code": "P17",
+        "title": "NEURO PET FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P1",
+      "P6",
+      "P8",
+      "P13",
+      "P14",
+      "P17"
+    ],
+    "profilesCount": 6,
+    "targetOrgans": "Endotelio vascular de capilares y vénulas en todos los órganos (cerebro, riñón, piel, pulmón).",
+    "transmission": "Picadura de garrapatas Rhipicephalus sanguineus, Amblyomma patinoi o Dermacentor.",
+    "vectors": [
+      "garrapata",
+      "rhipicephalus",
+      "amblyomma"
+    ],
+    "symptomsDescription": "Fiebre de las Montañas Rocosas: fiebre abrupta elevada, edema de extremidades y escroto/vulva, petequias mucosas, dolor articular, tos y necrosis focal cutánea.",
+    "labDescription": "Trombocitopenia moderada a severa, hipoalbuminemia por fuga vascular endotelial, anemia no regenerativa y proteinuria.",
+    "keywords": [
+      "apl-026",
+      "rickettsia spp",
+      "garrapata",
+      "rhipicephalus",
+      "amblyomma",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-027",
+    "idAgente": "APL-027",
+    "keaRecordId": 27,
+    "name": "Salmonella spp",
+    "sampleType": "Materia fecal",
+    "tipoMuestra": "Materia fecal",
+    "matrix": "Materia fecal",
+    "diagnosticMethods": "Materia fecal",
+    "estado": "activo",
+    "group": "BACTERIAS ENTÉRICAS",
+    "subgroup": "Enterobacteriaceae (S. enterica)",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P4",
+        "title": "GASTRO-PANEL CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P5",
+        "title": "GASTRO-PANEL FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P4",
+      "P5"
+    ],
+    "profilesCount": 2,
+    "targetOrgans": "Mucosa intestinal (íleon y colon), macrófagos mesentéricos, hígado y bazo.",
+    "transmission": "Consumo de dietas BARF / carne cruda contaminada, agua infectada o transmisión fecal-oral.",
+    "vectors": [
+      "carne cruda",
+      "dieta barf",
+      "fecal-oral"
+    ],
+    "symptomsDescription": "Gastroenteritis aguda severa con fiebre, diarrea mucosanguinolenta, dolor abdominal cólico, septicemia bacteriana y endotoxemia.",
+    "labDescription": "Leucocitosis con desviación a la izquierda marcada, o neutropenia en septicemia por endotoxinas; hipoalbuminemia.",
+    "keywords": [
+      "apl-027",
+      "salmonella spp",
+      "carne cruda",
+      "dieta barf",
+      "fecal-oral",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-028",
+    "idAgente": "APL-028",
+    "keaRecordId": 28,
+    "name": "Toxoplasma gondii",
+    "sampleType": "Sangre EDTA, LCR y/o materia fecal",
+    "tipoMuestra": "Sangre EDTA, LCR y/o materia fecal",
+    "matrix": "Sangre EDTA, LCR y/o materia fecal",
+    "diagnosticMethods": "Sangre EDTA, LCR y/o materia fecal",
+    "estado": "activo",
+    "group": "APICOMPLEXOS",
+    "subgroup": "Sarcocystidae",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P1",
+        "title": "VECTOR PLUS",
+        "species": "Felinos y Caninos"
+      },
+      {
+        "code": "P6",
+        "title": "FELI-VECTOR",
+        "species": "Felinos"
+      },
+      {
+        "code": "P7",
+        "title": "FELI-INFECT",
+        "species": "Felinos"
+      },
+      {
+        "code": "P8",
+        "title": "NEURO PET CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P11",
+        "title": "CAN-RESP",
+        "species": "Caninos"
+      },
+      {
+        "code": "P13",
+        "title": "CANI-360",
+        "species": "Caninos"
+      },
+      {
+        "code": "P14",
+        "title": "FELI-360",
+        "species": "Felinos"
+      },
+      {
+        "code": "P17",
+        "title": "NEURO PET FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P1",
+      "P6",
+      "P7",
+      "P8",
+      "P11",
+      "P13",
+      "P14",
+      "P17"
+    ],
+    "profilesCount": 8,
+    "targetOrgans": "Células nucleadas sistémicas: SNC, retina / tracto uveal, pulmón, músculo esquelético y corazón.",
+    "transmission": "Consumo de carne cruda con quistes tisulares, ooquistes esporulados de heces felinas en agua/suelo, transplacentaria.",
+    "vectors": [
+      "carne cruda",
+      "heces felinas",
+      "agua contaminada"
+    ],
+    "symptomsDescription": "Fiebre, disnea por neumonía intersticial, uveítis anterior y coriorretinitis, signos neurológicos (convulsiones, ataxia, paresia) y miositis dolorosa.",
+    "labDescription": "Anemia no regenerativa, elevación de ALT, AST, creatina quinasa (CK), pleocitosis mononuclear en LCR.",
+    "keywords": [
+      "apl-028",
+      "toxoplasma gondii",
+      "carne cruda",
+      "heces felinas",
+      "agua contaminada",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-029",
+    "idAgente": "APL-029",
+    "keaRecordId": 29,
+    "name": "Trichomona spp",
+    "sampleType": "Materia fecal",
+    "tipoMuestra": "Materia fecal",
+    "matrix": "Materia fecal",
+    "diagnosticMethods": "Materia fecal",
+    "estado": "activo",
+    "group": "PROTOZOOS ENTÉRICOS",
+    "subgroup": "Trichomonadida (T. foetus / Trichomonas)",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P4",
+        "title": "GASTRO-PANEL CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P5",
+        "title": "GASTRO-PANEL FELINO",
+        "species": "Felinos"
+      },
+      {
+        "code": "P12",
+        "title": "REPRO-PET",
+        "species": "Felinos y Caninos"
+      }
+    ],
+    "profileCodes": [
+      "P4",
+      "P5",
+      "P12"
+    ],
+    "profilesCount": 3,
+    "targetOrgans": "Colon felino / tracto reproductivo canino.",
+    "transmission": "Fecal-oral en gatos (albergues/criaderos) o venérea en caninos.",
+    "vectors": [
+      "fecal-oral",
+      "areneros compartidos",
+      "venereo"
+    ],
+    "symptomsDescription": "Colitis crónica rebelde con diarrea fétida en \"pastas de dientes\", moco, sangre fresca, ano irritado/eritematoso y tenesmo fecal crónico.",
+    "labDescription": "Hemograma normal; resistente a metronidazol (responde selectivamente a ronidazol); qPCR es el diagnóstico de elección.",
+    "keywords": [
+      "apl-029",
+      "trichomona spp",
+      "fecal-oral",
+      "areneros compartidos",
+      "venereo",
+      "canino",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-030",
+    "idAgente": "APL-030",
+    "keaRecordId": 30,
+    "name": "Virus de Distemper canino",
+    "sampleType": "Sangre EDTA, materia fecal y/o LCR",
+    "tipoMuestra": "Sangre EDTA, materia fecal y/o LCR",
+    "matrix": "Sangre EDTA, materia fecal y/o LCR",
+    "diagnosticMethods": "Sangre EDTA, materia fecal y/o LCR",
+    "estado": "activo",
+    "group": "MORBILLIVIRUS",
+    "subgroup": "Paramyxoviridae (Virus del Moquillo Canino)",
+    "species": [
+      "Canino"
+    ],
+    "profiles": [
+      {
+        "code": "P4",
+        "title": "GASTRO-PANEL CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P8",
+        "title": "NEURO PET CANINO",
+        "species": "Caninos"
+      },
+      {
+        "code": "P11",
+        "title": "CAN-RESP",
+        "species": "Caninos"
+      },
+      {
+        "code": "P13",
+        "title": "CANI-360",
+        "species": "Caninos"
+      }
+    ],
+    "profileCodes": [
+      "P4",
+      "P8",
+      "P11",
+      "P13"
+    ],
+    "profilesCount": 4,
+    "targetOrgans": "Epitelio respiratorio, digestivo, cutáneo y oligodendrocitos / astrocitos del sistema nervioso central.",
+    "transmission": "Aerosoles y secreciones respiratorias a corta distancia; contacto directo con orina o exudados.",
+    "vectors": [
+      "aerosoles",
+      "secrecion respiratoria",
+      "orina"
+    ],
+    "symptomsDescription": "Fase inicial respiratoria/digestiva: descarga oculonasal purulenta, tos, neumonía, vómitos, hiperqueratosis de almohadillas plantares y trufa. Fase neurológica: mioclonías rítmicas patognomónicas (\"tics\"), convulsiones de mandíbula (\"chewing gum fits\"), paresia.",
+    "labDescription": "Linfopenia severa y prolongada, trombocitopenia en fase aguda; pleocitosis y bandas oligoclonales en LCR.",
+    "keywords": [
+      "apl-030",
+      "virus de distemper canino",
+      "aerosoles",
+      "secrecion respiratoria",
+      "orina",
+      "canino"
+    ]
+  },
+  {
+    "id": "APL-031",
+    "idAgente": "APL-031",
+    "keaRecordId": 31,
+    "name": "Virus de Inmunodeficiencia Felina (FIV y PFIV)",
+    "sampleType": "Sangre EDTA e hisopados bucales",
+    "tipoMuestra": "Sangre EDTA e hisopados bucales",
+    "matrix": "Sangre EDTA e hisopados bucales",
+    "diagnosticMethods": "Sangre EDTA e hisopados bucales",
+    "estado": "activo",
+    "group": "RETROVIRUS",
+    "subgroup": "Lentivirus (Virus de la Inmunodeficiencia Felina)",
+    "species": [
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P6",
+        "title": "FELI-VECTOR",
+        "species": "Felinos"
+      },
+      {
+        "code": "P7",
+        "title": "FELI-INFECT",
+        "species": "Felinos"
+      },
+      {
+        "code": "P14",
+        "title": "FELI-360",
+        "species": "Felinos"
+      },
+      {
+        "code": "P15",
+        "title": "FELI-VIRAL",
+        "species": "Felinos"
+      },
+      {
+        "code": "P17",
+        "title": "NEURO PET FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P6",
+      "P7",
+      "P14",
+      "P15",
+      "P17"
+    ],
+    "profilesCount": 5,
+    "targetOrgans": "Linfocitos T CD4+, linfocitos T CD8+, monocitos/macrófagos y médula ósea.",
+    "transmission": "Mordeduras profundas (saliva rica en viriones), peleas entre gatos machos en exteriores; raramente vertical.",
+    "vectors": [
+      "mordedura",
+      "peleas territoriales",
+      "saliva"
+    ],
+    "symptomsDescription": "Complejo estomatitis-gingivitis crónica severa, infecciones bacterianas y fúngicas oportunistas recurrentes, pérdida progresiva de peso, linfadenopatía y neoplasias (linfoma).",
+    "labDescription": "Inversión de la relación CD4/CD8, neutropenia y leucopenia crónica, anemia no regenerativa y trombocitopenia progresiva.",
+    "keywords": [
+      "apl-031",
+      "virus de inmunodeficiencia felina (fiv y pfiv)",
+      "mordedura",
+      "peleas territoriales",
+      "saliva",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-032",
+    "idAgente": "APL-032",
+    "keaRecordId": 32,
+    "name": "Virus de la Leucemia Felina (FeLV y PFeLV)",
+    "sampleType": "Sangre EDTA e hisopados bucales",
+    "tipoMuestra": "Sangre EDTA e hisopados bucales",
+    "matrix": "Sangre EDTA e hisopados bucales",
+    "diagnosticMethods": "Sangre EDTA e hisopados bucales",
+    "estado": "activo",
+    "group": "RETROVIRUS",
+    "subgroup": "Gammaretrovirus (Virus de la Leucemia Felina)",
+    "species": [
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P6",
+        "title": "FELI-VECTOR",
+        "species": "Felinos"
+      },
+      {
+        "code": "P7",
+        "title": "FELI-INFECT",
+        "species": "Felinos"
+      },
+      {
+        "code": "P14",
+        "title": "FELI-360",
+        "species": "Felinos"
+      },
+      {
+        "code": "P15",
+        "title": "FELI-VIRAL",
+        "species": "Felinos"
+      },
+      {
+        "code": "P17",
+        "title": "NEURO PET FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P6",
+      "P7",
+      "P14",
+      "P15",
+      "P17"
+    ],
+    "profilesCount": 5,
+    "targetOrgans": "Células progenitoras de la médula ósea, células epiteliales de glándulas salivales y tejido linfoide.",
+    "transmission": "Contacto amistoso prolongado (\"enfermedad de los gatos que se quieren\"): acicalamiento mutuo, comederos compartidos, saliva, orina, leche materna o transplacentaria.",
+    "vectors": [
+      "acicalamiento",
+      "saliva",
+      "comederos compartidos",
+      "leche materna"
+    ],
+    "symptomsDescription": "Linfoma / leucemia linfoide, anemia arregenerativa severa profunda, síndrome de panleucopenia-like, glomerulonefritis por inmunocomplejos y abortos recurrentes.",
+    "labDescription": "Anemia macrocítica no regenerativa marcada con VCM aumentado sin reticulocitosis, citopenias refractarias en médula ósea; provirus detectable por qPCR.",
+    "keywords": [
+      "apl-032",
+      "virus de la leucemia felina (felv y pfelv)",
+      "acicalamiento",
+      "saliva",
+      "comederos compartidos",
+      "leche materna",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-033",
+    "idAgente": "APL-033",
+    "keaRecordId": 33,
+    "name": "Virus de Panleucopenia felina",
+    "sampleType": "Sangre EDTA, biopsia y/o materia fecal",
+    "tipoMuestra": "Sangre EDTA, biopsia y/o materia fecal",
+    "matrix": "Sangre EDTA, biopsia y/o materia fecal",
+    "diagnosticMethods": "Sangre EDTA, biopsia y/o materia fecal",
+    "estado": "activo",
+    "group": "PARVOVIRUS",
+    "subgroup": "Parvoviridae (Parvovirus felino)",
+    "species": [
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P5",
+        "title": "GASTRO-PANEL FELINO",
+        "species": "Felinos"
+      },
+      {
+        "code": "P9",
+        "title": "FELI-OCURESP",
+        "species": "Felinos"
+      },
+      {
+        "code": "P14",
+        "title": "FELI-360",
+        "species": "Felinos"
+      },
+      {
+        "code": "P15",
+        "title": "FELI-VIRAL",
+        "species": "Felinos"
+      },
+      {
+        "code": "P17",
+        "title": "NEURO PET FELINO",
+        "species": "Felinos"
+      }
+    ],
+    "profileCodes": [
+      "P5",
+      "P9",
+      "P14",
+      "P15",
+      "P17"
+    ],
+    "profilesCount": 5,
+    "targetOrgans": "Células en rápida división mitótica: médula ósea, tejido linfoide (bazo, timo, ganglios) y criptas intestinales.",
+    "transmission": "Vía fecal-oral mediante heces contaminadas o fómites; altamente persistente en el medio ambiente.",
+    "vectors": [
+      "heces",
+      "fomites",
+      "areneros"
+    ],
+    "symptomsDescription": "Fiebre alta súbita, depresión extrema, anorexia, vómitos biliosos incoercibles, diarrea hemorrágica acuosa, deshidratación fulminante e hipoplasia cerebelar en gatitos infectados en útero (ataxia cerebelosa).",
+    "labDescription": "Panleucopenia crítica severa (<1.000/μL), linfopenia y neutropenia absoluta; hipoalbuminemia y desequilibrio electrolítico.",
+    "keywords": [
+      "apl-033",
+      "virus de panleucopenia felina",
+      "heces",
+      "fomites",
+      "areneros",
+      "felino"
+    ]
+  },
+  {
+    "id": "APL-034",
+    "idAgente": "APL-034",
+    "keaRecordId": 34,
+    "name": "Wolbachia spp",
+    "sampleType": "Sangre EDTA",
+    "tipoMuestra": "Sangre EDTA",
+    "matrix": "Sangre EDTA",
+    "diagnosticMethods": "Sangre EDTA",
+    "estado": "activo",
+    "group": "RICKETTSIALES",
+    "subgroup": "Anaplasmataceae (Endosimbionte de filarias)",
+    "species": [
+      "Canino",
+      "Felino"
+    ],
+    "profiles": [
+      {
+        "code": "P1",
+        "title": "VECTOR PLUS",
+        "species": "Felinos y Caninos"
+      }
+    ],
+    "profileCodes": [
+      "P1"
+    ],
+    "profilesCount": 1,
+    "targetOrgans": "Hipotrofo intracelular obligado de hipodermis, ovarios y canal reproductivo de Dirofilaria immitis.",
+    "transmission": "Bacterias transmitidas verticalmente en las larvas microfilarias a través de mosquitos Culicidae vectores de Dirofilaria.",
+    "vectors": [
+      "mosquito",
+      "dirofilaria immitis"
+    ],
+    "symptomsDescription": "Inflamación vascular y endotelitis pulmonar exacerbada tras la muerte espontánea o inducida por fármacos de las filarias adultas.",
+    "labDescription": "Eosinofilia reactiva y proteinuria por inmunocomplejos antígeno de superficie de Wolbachia (WSP).",
+    "keywords": [
+      "apl-034",
+      "wolbachia spp",
+      "mosquito",
+      "dirofilaria immitis",
+      "canino",
+      "felino"
+    ]
+  }
+];
+
 export default {
+  OFFICIAL_KEA_AGENTS_DB,
   INFECTIOUS_AGENTS_DB,
   QPCR_PROFILES_MASTER,
   QPCR_GENERAL_OBSERVATION
