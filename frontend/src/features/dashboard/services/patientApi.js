@@ -1671,11 +1671,10 @@ export const patientApi = {
           keaRecordId = rec.id || null;
         } else {
           const errDetail = keaJson.data?.message || keaJson.message || `Error HTTP ${keaRes.status}`;
-          throw new Error(`Kea Tools rechazó el registro: ${errDetail}`);
+          console.warn(`[Kea DB PACIENTE] Aviso: No se pudo sincronizar en la base remota (${errDetail}). Se guardará localmente.`);
         }
       } catch (keaErr) {
-        console.error('Error al guardar en Kea Tools:', keaErr);
-        throw keaErr;
+        console.warn('[Kea DB PACIENTE] Aviso al sincronizar en Kea Tools:', keaErr.message);
       }
 
       const newPatient = {

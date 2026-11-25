@@ -18,6 +18,7 @@ import VistaPerfilClinica from '../components/VistaPerfilClinica.jsx';
 import VistaPermisosEquipo from '../components/VistaPermisosEquipo.jsx';
 import VistaGestionClinicaUnificada from '../components/VistaGestionClinicaUnificada.jsx';
 import SelectorTema from '../components/SelectorTema.jsx';
+import { showAestheticAlert, showAestheticConfirm } from '../components/ModalEstetico.jsx';
 
 export default function PortalVeterinarios({ currentUser = null, onLogout = null }) {
   const [stats, setStats] = useState(null);

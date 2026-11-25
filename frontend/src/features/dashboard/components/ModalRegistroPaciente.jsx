@@ -540,7 +540,7 @@ export default function ModalRegistroPaciente({
       await onCreated(payload);
       onClose();
     } catch (err) {
-      triggerAlert(err.message || 'Error registrando paciente');
+      triggerAlert(err.message || 'Error registrando paciente', null, 'Aviso de Registro');
     } finally {
       setSubmitting(false);
     }
