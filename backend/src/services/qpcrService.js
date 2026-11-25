@@ -5,6 +5,11 @@
  */
 
 import { INFECTIOUS_AGENTS_DB, QPCR_PROFILES_MASTER, QPCR_GENERAL_OBSERVATION } from '../models/qpcrKnowledgeBase.js';
+import { keaService } from './keaService.js';
+
+let cachedSynchronizedProfiles = null;
+let lastSyncTimestamp = 0;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos de caché en memoria
 
 function normalizeText(text) {
   if (!text) return '';
@@ -63,11 +68,31 @@ export const qpcrService = {
   },
 
   /**
-   * Obtiene todos los perfiles qPCR enriquecidos con sus agentes completos
-   * Soporta filtrado opcional por síndrome clínico, especie y búsqueda textual
+   * Obtiene los perfiles sincronizados desde Kea Tools (ZZ_PLAT_PERFIL) con caché y fallback canónico
    */
-  getAllProfiles({ syndrome, species, search } = {}) {
-    let profiles = QPCR_PROFILES_MASTER.map((profile) => {
+  async getSynchronizedProfiles(forceRefresh = false) {
+    const now = Date.now();
+    if (!forceRefresh && cachedSynchronizedProfiles && (now - lastSyncTimestamp < CACHE_TTL_MS)) {
+      return cachedSynchronizedProfiles;
+    }
+
+    try {
+      const liveProfiles = await keaService.fetchPerfilesFromKea();
+      if (Array.isArray(liveProfiles) && liveProfiles.length > 0) {
+        cachedSynchronizedProfiles = liveProfiles;
+        lastSyncTimestamp = now;
+        return cachedSynchronizedProfiles;
+      }
+    } catch (err) {
+      console.warn('[qpcrService] Error sincronizando con Kea DB, usando base local:', err.message);
+    }
+
+    if (cachedSynchronizedProfiles) {
+      return cachedSynchronizedProfiles;
+    }
+
+    // Fallback canónico oficial
+    cachedSynchronizedProfiles = QPCR_PROFILES_MASTER.map((profile) => {
       const resolvedAgents = (profile.agentIds && profile.agentIds.length > 0)
         ? profile.agentIds.map((agentId) => {
             const found = INFECTIOUS_AGENTS_DB.find((a) => a.id === agentId);
@@ -81,6 +106,17 @@ export const qpcrService = {
         price: profile.basePrice || profile.price,
       };
     });
+    lastSyncTimestamp = now;
+    return cachedSynchronizedProfiles;
+  },
+
+  /**
+   * Obtiene todos los perfiles qPCR enriquecidos con sus agentes completos
+   * Soporta filtrado opcional por síndrome clínico, especie y búsqueda textual
+   */
+  async getAllProfiles({ syndrome, species, search, forceRefresh = false } = {}) {
+    const masterProfiles = await this.getSynchronizedProfiles(forceRefresh);
+    let profiles = [...masterProfiles];
 
     if (species && species !== 'all') {
       const specNorm = normalizeText(species);
@@ -128,7 +164,7 @@ export const qpcrService = {
    * - Hallazgos de laboratorio clínico
    * - Factores de riesgo epidemiológicos (vectores, hábitat, viajes, aguas, convivencia)
    */
-  filterProfiles({
+  async filterProfiles({
     syndromes = [],
     findings = [],
     symptoms = [],
@@ -199,11 +235,14 @@ export const qpcrService = {
        (effectiveRiskFactors.otherRiskFactors && normalizeText(effectiveRiskFactors.otherRiskFactors).includes('gato')))
     );
 
-    const scoredProfiles = QPCR_PROFILES_MASTER.map((profile) => {
+    const masterProfiles = await this.getSynchronizedProfiles();
+
+    const scoredProfiles = masterProfiles.map((profile) => {
       // 1. COMPATIBILIDAD ESTRICTA DE ESPECIE (Canino vs Felino)
       const profileSpeciesNorm = normalizeText(profile.species);
       const isSpeciesMatch =
         profileSpeciesNorm === 'ambos' ||
+        profileSpeciesNorm.includes('amb') ||
         profileSpeciesNorm === speciesNorm ||
         (speciesNorm.includes('canin') && profileSpeciesNorm.includes('canin')) ||
         (speciesNorm.includes('felin') && profileSpeciesNorm.includes('felin'));
@@ -213,15 +252,32 @@ export const qpcrService = {
       }
 
       // 2. COINCIDENCIA DE SÍNDROMES CLÍNICOS
-      const profileSyndromesNorm = profile.syndromes.map(normalizeText);
+      const profileSyndromesNorm = (profile.syndromes || []).map(normalizeText);
       const matchedSyndromes = selectedSyndromesNorm.filter((s) =>
         profileSyndromesNorm.some((ps) => matchSyndromeTokens(s, ps))
       );
 
       // 3. RESOLUCIÓN DE AGENTES ESPECÍFICOS DE ESTE PERFIL
-      const resolvedAgents = (profile.agentIds || [])
-        .map((agentId) => INFECTIOUS_AGENTS_DB.find((a) => a.id === agentId))
-        .filter(Boolean);
+      const resolvedAgents = (profile.agentIds && profile.agentIds.length > 0)
+        ? profile.agentIds.map((agentId) => INFECTIOUS_AGENTS_DB.find((a) => a.id === agentId)).filter(Boolean)
+        : (profile.agentObjects || (profile.agents || []).map((agName) => {
+            const cleanName = agName.replace(/\(.*?\)/g, '').trim().toLowerCase();
+            const found = INFECTIOUS_AGENTS_DB.find((a) => {
+              const aName = a.name.toLowerCase();
+              return aName === cleanName || aName.includes(cleanName) || cleanName.includes(aName);
+            });
+            return found || {
+              id: agName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+              name: agName,
+              group: 'Infeccioso',
+              targetOrgans: 'Sistémico',
+              transmission: 'Contacto / Vectorial',
+              symptomsDescription: '',
+              labDescription: '',
+              keywords: [agName.toLowerCase()],
+              vectors: [],
+            };
+          }));
 
       const agentNames = resolvedAgents.map((a) => a.name);
 
@@ -250,13 +306,13 @@ export const qpcrService = {
 
           // Búsqueda en palabras clave del agente si no hubo coincidencia directa
           if (!matchedExplanation) {
-            const hasKeyword = agent.keywords.some((kw) => {
+            const hasKeyword = (agent.keywords || []).some((kw) => {
               const normKw = normalizeText(kw);
               return normToken.includes(normKw) || normKw.includes(normToken);
             });
 
             if (hasKeyword) {
-              matchedExplanation = `Asociado al cuadro clínico de ${agent.name} (${agent.symptomsDescription.slice(0, 110)}...).`;
+              matchedExplanation = `Asociado al cuadro clínico de ${agent.name} (${(agent.symptomsDescription || '').slice(0, 110)}...).`;
             }
           }
 
@@ -311,14 +367,14 @@ export const qpcrService = {
       }
 
       // Riesgo de Filarias / Dirofilaria (viajes a la costa, mosquitos)
-      const hasDirofilariaInProfile = resolvedAgents.some((a) => a.group === 'NEMÁTODOS' || a.id.includes('wolbachia'));
+      const hasDirofilariaInProfile = resolvedAgents.some((a) => a.group === 'NEMÁTODOS' || (a.id && a.id.includes('wolbachia')));
       if (hasDirofilariaInProfile && hasTravelToMosquitoZone) {
         finalPercentage += 5;
         epidemiologicalAlert = 'Paciente con historial de viaje a zona de impacto filarial/costera; alta correlación con Dirofilaria immitis y Wolbachia.';
       }
 
       // Riesgo de garrapatas (Rickettsiales, Babesia, Hepatozoon)
-      const hasTickAgents = resolvedAgents.some((a) => a.vectors.includes('garrapata'));
+      const hasTickAgents = resolvedAgents.some((a) => (a.vectors || []).includes('garrapata'));
       if (hasTickAgents && hasTicksRisk) {
         finalPercentage += 3;
         if (!epidemiologicalAlert) {
@@ -327,7 +383,7 @@ export const qpcrService = {
       }
 
       // Riesgo de pulgas (Bartonella, Rickettsia felis, Mycoplasma felino)
-      const hasFleaAgents = resolvedAgents.some((a) => a.vectors.includes('pulga'));
+      const hasFleaAgents = resolvedAgents.some((a) => (a.vectors || []).includes('pulga'));
       if (hasFleaAgents && hasFleasRisk) {
         finalPercentage += 3;
       }
@@ -360,16 +416,9 @@ export const qpcrService = {
       }
 
       return {
-        id: profile.id,
-        title: profile.title,
-        species: profile.species,
-        type: profile.type,
-        basePrice: profile.basePrice,
-        price: profile.basePrice,
-        discount: profile.discount,
-        sampleSummary: profile.sampleSummary,
-        samples: profile.samples,
-        syndromes: profile.syndromes,
+        ...profile,
+        price: profile.basePrice || profile.price,
+        priceFormatted: profile.priceFormatted || (profile.price > 0 ? `$${profile.price.toLocaleString('es-CO')}` : 'Por cotizar'),
         agents: agentNames,
         resolvedAgentsData: resolvedAgents.map((a) => ({
           id: a.id,

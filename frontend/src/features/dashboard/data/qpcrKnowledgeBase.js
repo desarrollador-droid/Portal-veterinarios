@@ -2140,6 +2140,35 @@ export const QPCR_PROFILES_MASTER = [
       'Panleucopenia'
     ],
     description: 'Panel enfocado específicamente en los 6 virus de mayor relevancia y letalidad en felinos: FIV, FeLV, Coronavirus entérico causante de PIF, Calicivirus felino, Herpesvirus felino y Panleucopenia felina.'
+  },
+
+  // --------------------------------------------------------------------------
+  // P16: PCR de hongos + secuenciación (FUNGI PET)
+  // --------------------------------------------------------------------------
+  {
+    id: 'p16-hongos-secuenciacion',
+    code: 'P16',
+    title: 'qPCR Detección de Hongos + Secuenciación',
+    species: 'Felinos y Caninos',
+    type: 'Panel Fúngico / Secuenciación',
+    basePrice: 0,
+    price: 0,
+    priceFormatted: 'Por cotizar',
+    discount: false,
+    ecoEpidemiology: 'Pacientes caninos y felinos con lesiones dérmicas refractarias a antibióticos, nódulos cutáneos o subcutáneos ulcerados, masas rinosinusales o sospecha de micosis profundas y oportunistas.',
+    labFindings: 'Citología o histopatología con estructuras fúngicas (levaduras, hifas o pseudohifas), lesiones granulomatosas crónicas o cultivos microbiológicos de lento crecimiento o indeterminados.',
+    matrix: 'Espécimen donde se sospeche la infección',
+    sampleSummary: 'Espécimen donde se sospeche la infección',
+    samples: [
+      { name: 'Espécimen clínico del sitio de sospecha', desc: 'Raspado cutáneo, pelo, hisopado profundo, biopsia tisular en solución salina estéril o líquido de efusión/LCR' }
+    ],
+    syndromes: ['Dermatológico / Cutáneo (Piel)', 'Respiratorio', 'Neurológico'],
+    cultivoAsociado: 'Cultivo de hongos',
+    agentesIncluidosTexto: 'Panfúngico (Identificación por PCR y secuenciación genética de hongos patógenos oportunistas, levaduras y mohos)',
+    agents: [
+      'Panfúngico (Secuenciación genética de hongos patógenos)'
+    ],
+    description: 'Diagnóstico molecular de alta especificidad para micosis mediante amplificación de regiones ribosomales conservadas y posterior secuenciación, permitiendo la identificación precisa de especies de hongos oportunistas y patógenos.'
   }
 ];
 

@@ -258,12 +258,12 @@ export const qpcrApi = {
             }
 
             if (!matchedExplanation) {
-              const hasKeyword = agent.keywords.some((kw) => {
+              const hasKeyword = (agent.keywords || []).some((kw) => {
                 const normKw = norm(kw);
                 return normToken.includes(normKw) || normKw.includes(normToken);
               });
               if (hasKeyword) {
-                matchedExplanation = `Asociado al cuadro clínico de ${agent.name} (${agent.symptomsDescription.slice(0, 100)}...).`;
+                matchedExplanation = `Asociado al cuadro clínico de ${agent.name} (${(agent.symptomsDescription || '').slice(0, 100)}...).`;
               }
             }
 
@@ -304,17 +304,17 @@ export const qpcrApi = {
           score += 5;
           epidemiologicalAlert = 'Paciente con exposición a aguas/lodo o entorno rural; alta correlación epidemiológica con Leptospira spp.';
         }
-        if (resolvedAgents.some((a) => a.group === 'NEMÁTODOS' || a.id.includes('wolbachia')) && hasTravelToMosquitoZone) {
+        if (resolvedAgents.some((a) => a.group === 'NEMÁTODOS' || (a.id && a.id.includes('wolbachia'))) && hasTravelToMosquitoZone) {
           score += 5;
           epidemiologicalAlert = 'Paciente con historial de viaje a zona de impacto filarial/costera; alta correlación con Dirofilaria immitis y Wolbachia.';
         }
-        if (resolvedAgents.some((a) => a.vectors.includes('garrapata')) && hasTicksRisk) {
+        if (resolvedAgents.some((a) => (a.vectors || []).includes('garrapata')) && hasTicksRisk) {
           score += 3;
           if (!epidemiologicalAlert) {
             epidemiologicalAlert = 'Paciente con exposición a garrapatas; alta sospecha de agentes hemotrópicos vectoriales.';
           }
         }
-        if (resolvedAgents.some((a) => a.vectors.includes('pulga')) && hasFleasRisk) {
+        if (resolvedAgents.some((a) => (a.vectors || []).includes('pulga')) && hasFleasRisk) {
           score += 3;
         }
         if (matchedAgentNames.size >= 2) {

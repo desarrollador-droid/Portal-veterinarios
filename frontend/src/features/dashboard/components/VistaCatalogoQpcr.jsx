@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   LOCAL_INFECTIOUS_AGENTS_DB,
   LOCAL_QPCR_PROFILES_MASTER,
   LOCAL_QPCR_GENERAL_OBSERVATION,
   CLINICAL_SYNDROMES_LIST,
   matchSyndromeTokens,
+  qpcrApi,
 } from '../services/qpcrApi.js';
 
 /**
@@ -20,6 +21,31 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
   const [groupFilter, setGroupFilter] = useState('all'); // 'all' | 'HEPATOZOON' | 'RICKETTSIALES' ...
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedProfileDetails, setExpandedProfileDetails] = useState({});
+
+  // Perfiles sincronizados con la base de datos Kea Tools (ZZ_PLAT_PERFIL)
+  const [profiles, setProfiles] = useState(LOCAL_QPCR_PROFILES_MASTER);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState('conectado');
+
+  const fetchProfiles = async (forceRefresh = false) => {
+    setIsSyncing(true);
+    try {
+      const data = await qpcrApi.getProfiles(forceRefresh ? { refresh: 'true' } : {});
+      if (Array.isArray(data) && data.length > 0) {
+        setProfiles(data);
+        setSyncStatus('conectado');
+      }
+    } catch (err) {
+      console.warn('Usando catálogo local:', err);
+      setSyncStatus('local');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfiles();
+  }, []);
 
   const agentGroups = [
     { id: 'all', label: 'Todos los Grupos' },
@@ -38,26 +64,26 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
 
   // Conteo de perfiles por especie
   const profileCounts = useMemo(() => {
-    const all = LOCAL_QPCR_PROFILES_MASTER.length;
-    const canino = LOCAL_QPCR_PROFILES_MASTER.filter((p) => {
+    const all = profiles.length;
+    const canino = profiles.filter((p) => {
       const s = (p.species || '').toLowerCase();
       return s.includes('canin');
     }).length;
-    const felino = LOCAL_QPCR_PROFILES_MASTER.filter((p) => {
+    const felino = profiles.filter((p) => {
       const s = (p.species || '').toLowerCase();
       return s.includes('felin');
     }).length;
-    const ambas = LOCAL_QPCR_PROFILES_MASTER.filter((p) => {
+    const ambas = profiles.filter((p) => {
       const s = (p.species || '').toLowerCase();
       return s.includes('amb') || (s.includes('felin') && s.includes('canin'));
     }).length;
 
     return { all, canino, felino, ambas };
-  }, []);
+  }, [profiles]);
 
   // Conteo dinámico de perfiles por síndrome (respetando el filtro de especie seleccionado)
   const syndromeCounts = useMemo(() => {
-    const baseProfiles = LOCAL_QPCR_PROFILES_MASTER.filter((profile) => {
+    const baseProfiles = profiles.filter((profile) => {
       const s = (profile.species || '').toLowerCase();
       if (speciesFilter === 'canino') return s.includes('canin');
       if (speciesFilter === 'felino') return s.includes('felin');
@@ -74,11 +100,11 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
     });
 
     return counts;
-  }, [speciesFilter]);
+  }, [profiles, speciesFilter]);
 
   // Perfiles filtrados por especie, síndrome clínico y texto
   const filteredProfiles = useMemo(() => {
-    return LOCAL_QPCR_PROFILES_MASTER.filter((profile) => {
+    return profiles.filter((profile) => {
       // 1. Filtro de especie flexible
       let matchesSpecies = true;
       const s = (profile.species || '').toLowerCase();
@@ -114,7 +140,7 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
 
       return matchesSpecies && matchesSyndrome && matchesSearch;
     });
-  }, [speciesFilter, syndromeFilter, searchTerm]);
+  }, [profiles, speciesFilter, syndromeFilter, searchTerm]);
 
   // Agentes filtrados para la pestaña de patógenos individuales
   const filteredAgents = useMemo(() => {
@@ -161,13 +187,25 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
       {/* 1. ENCABEZADO DEL CATÁLOGO */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex-1 min-w-0 max-w-xl">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-100 dark:bg-purple-950/60 text-[#6F2BCC] dark:text-[#c4b5fd] border border-purple-200/60 dark:border-purple-800/40">
               Catálogo Clínico Molecular
             </span>
             <span className="text-xs text-slate-400 dark:text-slate-400 font-medium">
               · Base de Datos Biomédica qPCR
             </span>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40">
+              <span className={`w-1.5 h-1.5 rounded-full ${isSyncing ? 'bg-amber-400 animate-ping' : 'bg-emerald-500'}`}></span>
+              Kea DB ({profiles.length} perfiles)
+            </span>
+            <button
+              onClick={() => fetchProfiles(true)}
+              disabled={isSyncing}
+              title="Refrescar catálogo desde Kea Tools DB"
+              className="p-1 rounded-lg text-slate-400 hover:text-[#6F2BCC] hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-all cursor-pointer disabled:opacity-50"
+            >
+              <span className={`inline-block text-[11px] ${isSyncing ? 'animate-spin' : ''}`}>🔄</span>
+            </button>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2B017C] dark:text-white tracking-tight">
             Catálogo de Perfiles y Agentes qPCR
@@ -194,7 +232,7 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
               <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${
                 activeTab === 'perfiles' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-[#201840] text-slate-700 dark:text-slate-300'
               }`}>
-                {LOCAL_QPCR_PROFILES_MASTER.length}
+                {profiles.length}
               </span>
             </button>
             <button

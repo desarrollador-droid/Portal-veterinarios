@@ -3,7 +3,7 @@ import qpcrService from '../services/qpcrService.js';
 export const filterProfiles = async (req, res) => {
   try {
     const { syndromes, findings, symptoms, species, isAsymptomatic, riskFactors, patient } = req.body || {};
-    const filtered = qpcrService.filterProfiles({
+    const filtered = await qpcrService.filterProfiles({
       syndromes: syndromes || [],
       findings: findings || [],
       symptoms: symptoms || [],
@@ -30,8 +30,13 @@ export const filterProfiles = async (req, res) => {
 
 export const getProfiles = async (req, res) => {
   try {
-    const { syndrome, species, search } = req.query || {};
-    const profiles = qpcrService.getAllProfiles({ syndrome, species, search });
+    const { syndrome, species, search, refresh } = req.query || {};
+    const profiles = await qpcrService.getAllProfiles({
+      syndrome,
+      species,
+      search,
+      forceRefresh: refresh === 'true' || refresh === true,
+    });
     const observation = qpcrService.getGeneralObservation();
     return res.status(200).json({
       success: true,

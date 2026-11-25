@@ -3,11 +3,12 @@
 
 import dotenv from 'dotenv';
 import { calculateAgeFromBirthDate } from '../models/patientModel.js';
+import { QPCR_PROFILES_MASTER } from '../models/qpcrKnowledgeBase.js';
 
 dotenv.config();
 
 const DEFAULT_KEA_URL = process.env.KEA_BASE_URL || 'https://osd.kea.tools/api/v1/databases/PACIENTE';
-const DEFAULT_KEA_TOKEN = process.env.KEA_API_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiMzQ4NzBlMGU3YTU2ZjFmZjE0ODk2YWFmMjg0NzZjNzBkNjM3ZDc5MmMyOTY4ZjQ4YjZhODBjYjg3NTc1MjcwMjg0YWVjNjQwMzA2ODk4ZWEiLCJpYXQiOjE3OTQyNTU2MzEuMTIyMDA2LCJuYmYiOjE3OTQyNTU2MzEuMTIyMDA5LCJleHAiOjE4MjU3OTE2MzEuMTE1OTk3LCJzdWIiOiI0Iiwic2NvcGVzIjpbImtlYS5kYXRhYmFzZSJdfQ.Lxhv0uyiWUR5RBTia3TIFj0zrF2ZzMsIsVUGEmToW9A6atSKyShg10ODTLs8-gf9ovA4RZpldXDKcqkh5-GbTnnWKzl4ltCFMCN_TolNQnYWHnXPX7PtJhprvzojtg8Ue_ovffXzMS4EVlFl40HG3AJokfw8ZeOv4RRdSn2hA9vfhNBBNKEvQQgWpY6KVobTlpgrGAe7bI5YJFq0yG0Nu3uziE1dXTacVrGxgmMj45dFMR_y9vLIN-rhQBuJWmTl6e1GuzSCnS41JiWXktbHIJKEFCEGtK6P6Hb-XhFscnfrBAxr_-Mh1R3yTrRgYhhpBB4C5Afo9ZcH1j-_3FGFdBHa0P71_sjuw8lPIz6BR9FpybY_tnEV6IlP1e94K2CExS7OvVCc9yFyGPLj18FhICQzQWr9scXCpUMa0WkXiqbgDhgywnTrEvoWHcbWF4iEdNgKGra1u_A3lQlctN6-5GE0fb91qI2gLkXIzLgVkSjEhT3Xi_YNeWfUO3njUuPWZGxcQbAp3InnNiFjIwP27FBORkjAPdaGlouU91w2EE87fEwnpKgQ9fcxeQMLOxQDEiYOHe_uvxDwTgMmqCpEtkuxrZGKw3_ZIiVz2IHSzjSWh-89Xb9cr0kyVrBGIiFlVRLgc1Q3FZuhwG87pjS3Tk4cD6akblkyusWgTxCYiVc';
+const DEFAULT_KEA_TOKEN = process.env.KEA_API_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiMzQ4NzBlMGU3YTU2ZjFmZjE0ODk2YWFmMjg0NzZjNzBkNjM3ZDc5MmMyOTY4ZjQ4YjZhODBjYjg3NTc1MjcwMjg0YWVjNjQwMzA2ODk4ZWEiLCJpYXQiOjE3OTQyNTU2MzEuMTIyMDA2LCJuYmYiOjE3OTQyNTU2MzEuMTIyMDA5LCJleHAiOjE4MjU3OTE2MzEuMTE1OTk3LCJzdWIiOiI0Iiwic2NvcGVzIjpbImtlYS5kYXRhYmFzZSJdfQ.Lxhv0uyiWUR5RBTia3TIFj0zrF2ZzMsIsVUGEmToW9A6atSKyShg10ODTLs8-gf9ovA4RZpldXDKcqkh5-GbTnnWKzl4ltCFMCN_TolNQnYWHnXPX7PtJhprvzojtg8Ue_ovffXzMS4EVlFl40HG3AJokfw8ZeOv4RRdSn2hA9vfhNBBNKEvQQgWpY6KVobTlpgrGAe7bI5YJFq0yG0Nu3uziE1dXTacVrGxgmMj45dFMR_y9vLIN-rhQBuJWmTl6e1GuzSCnS41JiWXktbHIJKEFCEGtK6P6Hb-XhFscnfrBAxr_-Mh1R3yTrRgYhhpBB4C5Afo9ZcH1j-_3FGFdBHa0P71_sjuw8lPIz6BR9FpybY_tnEV6IlP1e94K2CExS7OvVCc9yFyGPLj18FhICQzQWr9scXCpUMa0WkXiqbgDhgywnTrEvoWHcbWF4iEdNgKGra1u_A3lQlctN6-5GE0fb91qI2gLkXIzLgVkSjEhT3Xi_YNeWfUO3njUuPWZGxcQbAp3InnNiFjIwP27FBORkjAPdaGlouU91w2EE87fEwnqKgQ9fcxeQMLOxQDEiYOHe_uvxDwTgMmqCpEtkuxrZGKw3_ZIiVz2IHSzjSWh-89Xb9cr0kyVrBGIiFlVRLgc1Q3FZuhwG87pjS3Tk4cD6akblkyusWgTxCYiVc';
 
 const DEFAULT_KEA_VET_URL = process.env.KEA_VETERINARIA_URL || 'https://osd.kea.tools/api/v1/databases/ZZ_VETERINARIA';
 const DEFAULT_KEA_VET_TOKEN = process.env.KEA_VETERINARIA_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiY2VlMWQ1M2MzNmU1NzliYmQxYmI2ZDU0YWJmM2E2MTYyYTRmMjVlMzY3NDUyMDJjOTdhNGE4YmQyMjI0ZTQ3MmJhYjRhMDdjYjBmYmFkMmYiLCJpYXQiOjE3OTU1NTUzMjMuNzM5ODEsIm5iZiI6MTc5NTU1NTMyMy43Mzk4MTUsImV4cCI6MTgyNzA5MTMyMy43MjQ3OTksInN1YiI6IjQiLCJzY29wZXMiOlsia2VhLmRhdGFiYXNlIl19.rivB3lH2j4caNRG8HdX9v2Pid4eqrqN2o1KEnRh9Q3-o7wO2_JIhyjhojaMSLkIn7GtWJbzIA06QWueJZ8hsC0t8xdQuR7qx5pOAcP_iSeKa2nIiX4dP-a7HS9t1B5myqBghTBJMaVRUSuXYbU3kSJ7uHydKvvugIszvTPBbX-Kv6QQbS08_bX5unOP2FXxHe5_ZuK5n-bv0d6wQk5JnG0kztWMmxc013zto-XUp-Q052Jyrz48_18l6x_SwnS4Pwm8eD9EinGHGCy6SVkaFFQ7e-rrTXwXJz6WDc-3J_pQnD9blYKAhSh5bII-GFISs3KiDdDnyTswWF_nhilp9tgIM-yMWiz0BxlHF-ll6EMwbValv08kGADHdSHDlR8pkoEop4t3kD93qAIN99ZER2afYsQNDZfFnCkt8GRpN_Rgo8I0zweJ-TgKJOqraCcCOszFFoUCg2kGcz3OGnoVXoqWNWhVglQpXpEnjfu42VfPkkhBC3-j_Cd20AOgJCUaP6lbZqAeaN-qvS0f_uP4gk51GS8zIu1QY0XxQLn5-q0rruTR8e0XE2GBmNFylcqfOIad-s6n_4EHD-TMzcc7Fur-Ptd1ggQ8xczG_Ncooa5cS2qPy1z5zlvxGduNlR-C2o5Pu93gbndYVHQ5erAmEzghLVQwd3zW2d5NDH0D-57s';
@@ -15,6 +16,10 @@ const DEFAULT_KEA_VET_REFRESH_TOKEN = process.env.KEA_VETERINARIA_REFRESH_TOKEN 
 
 const DEFAULT_KEA_MEDICOS_URL = process.env.KEA_MEDICOS_URL || 'https://osd.kea.tools/api/v1/databases/VETERINARIO';
 const DEFAULT_KEA_MEDICOS_TOKEN = process.env.KEA_MEDICOS_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiYjdhOGUxOGFmMTAwMzVhNDQxNzcyMjAwNjdmMzNhMWQ2ZjRhZTQ0ZWI3YzY3ODQ4YzdiZmRlZDhhYjEwYTQyZTRmNDY0YjZmMTE5ZmI2YWMiLCJpYXQiOjE3OTQzMzE4OTMuMzE5Mjg0LCJuYmYiOjE3OTQzMzE4OTMuMzE5Mjg3LCJleHAiOjE4MjU4Njc4OTMuMzEyOTQsInN1YiI6IjQiLCJzY29wZXMiOlsia2VhLmRhdGFiYXNlIl19.fAz5YBAaHnHVu9hiHcLnpf-JGuHu4FXcPcphRJ0ZrP3TKmPN06EjRVJs_-49T1wPJOqztJhy7bEOyC6pTobFuVBV8o1eTYdAlbSBiLxzlg-3D6uO3t1TM1RQ9Ekr-i9thZeBt6ddWDdEupC0Z22G21f37Wj_XRIso4sXGXN0k281lLXqHDdoU8sxXRVYk8xZsZ0HlDqB4GqhZPaKveiFALoa8wagoLj9920Uzov_8t6xDVLjXo048_mT-lQPHMk7oXF7E5q9hNXe7oH54o3vFnqmc2AXd-kRaFeLmIFxkFZ2ec2mATbpnc-DLdlx19-cXyVruXRXPvBucBKzxj5VMFM2BQBao4N71Z10nMHACdg37tC_iuYA3tyd0JyARWWJ5PF5k_OSEIwgL2IaLo2vlPIkqYLH6S5ZHF3P6bWbjEPPuepfcem2QwreONdML6yXu94UOsrzSrVZG8Z6zDWB97PRHBPjeIVWrdDShDAhycJBY3H1zJcrKZ73CEXzbFY4EUjUOPv4vk-S_o4MJS9XsxDrKre1PdQacKjTmqAMGAymKti9-LYBBwxnxpkGXcTlmstXv9igoTs0AkZAvzDOl3NiNYhgkFMlpWZY7toGw8C1j_203ebdMyWaQdV3qlrzgDHq7lZw3_-uZXI1sWGmyr3-5UYpWE1kjLYJWg3xN38';
+
+const DEFAULT_KEA_PERFILES_URL = process.env.KEA_PERFILES_URL || 'https://osd.kea.tools/api/v1/databases/ZZ_PLAT_PERFIL';
+const DEFAULT_KEA_PERFILES_TOKEN = process.env.KEA_PERFILES_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiZDIyNmQ4M2QwZDZhODRkZWU5N2M5NzA2ZjkyYTBmYjE2ZjRlNjYxNzM1OTUzN2JmZmIyMDQ0ZWZkOWZlMDUwN2FlMWZhYWEwNjA3YWNmYjEiLCJpYXQiOjE3OTU2MTcxMDEuMTQzMTA5LCJuYmYiOjE3OTU2MTcxMDEuMTQzMTEzLCJleHAiOjE4MjcxNTMxMDEuMTM2NDU4LCJzdWIiOiI0Iiwic2NvcGVzIjpbImtlYS5kYXRhYmFzZSJdfQ.cCzzf-ndNAUHmJ-kMx76dc415oQy7Y2TNMdUrCvawXdLz2yRULJOIvH8W37t9pgjGybkX-5whUhUrmDZZTSxuKUHkl-KshKjwW5-apYITDP2EMIy7Mwox7nTmt8XPshsDqkfmreDUIz7q1TXJE5hVLkbY19JPCqn2T20KtsT4F6oUG8VFmLF57v3KATRxhJjZORJSHIQqQrENqF9VxCrjt5xH9Ou_haP_fY6k3b0xNlrW0rkcSJNWc42z86Ui4f_e4FpwxE56KLJLz6UTiT10xOi3fvD1lwladhGik245T1H3Zh0Wk-V_bkZjXKCjUkigswvaaCo0cPq05vJgJxrKNU2UcGpUYYsMhtuokjk1vbW9mpDg5IOPj69NwplIvOEMJi4dPSuzWzlEqZkJk4iYrGkDsqiqHw1fczNTWHgziR1E9A5ypCnkpHa62QjwiUKRPRiiPP1KI5qmj-U_cj_ch4FtG1Mvpc4buwlPqU3w_offSTGb3fOg8K8swZ_F08l19MM4Y_NlnCtgJGokHrE54zkfyVU_NlXfZ_tmVOsGblohaYQyHza3Qa1pTEb9dQV34IPHDeKF9QbFu6lQ3az8ps75COXlGWvXiBiV2YUrtG-QJxclUUSCZS5_rMrV7XReVNPEfTuzp5xu63IZg0buQULTqloVmcXGMagal4tvmU';
+const DEFAULT_KEA_PERFILES_REFRESH_TOKEN = process.env.KEA_PERFILES_REFRESH_TOKEN || 'def50200ba8678dcc4e1944259b443566bf50499a9e9553c65c4018a562bab5ba2e3cad22c64f2bf26d0d28c1e5d007fa7945dc7d2b3c778bad71b00d9ed7766ec57c0fc6e57adbc842d4bac4f31daff2e41bad08134676f4c0cc5c406beb09835564d083621e91c8773dceaf77a534ca9bbc6061598b3e56154324ec7ff1a3f854ad80b1b7d1cee715566e6795d27f73dde8f5592d84142fb1769aacb4ad170a42a85a9ad1b0eb55ef98e219c00746b2eeb9b82357180712270f3af1142220c510dbc8800a6ea79fe46fb5acc61b13989b483edb0530fe88fa3fda97a9e88e9b37b21eb150f1541aad9b76ca790d3e621742d04cd3001b2f8c2ab76e60fa30189a75b72182a76e4d1fa33f3e3ff75b23fd261c8b7b6f6758b776fcb182a28a46147d069bb8e68528587a76d49edc0fab1590321b668fa8270b6ca10c4c381c8d51bc34c2976a66336b748c36c594158ff3fbb9379751718f21b5f1cf8f1c31769e7648541b3198a12bbdf40d00efbf5944e';
 
 /**
  * Normaliza nombres de campo para búsqueda flexible (sin tildes, minúsculas, sin espacios ni guiones)
@@ -364,6 +369,123 @@ export const mapKeaRecordToVeterinarian = (record, index = 0) => {
     rolNombre: 'Veterinario de Planta',
     esDirector: false,
     fechaVinculacion: record.FECHA_REGISTRO || new Date().toISOString().slice(0, 10),
+  };
+};
+
+/**
+ * Normaliza cadenas de texto para comparaciones sin acentos ni mayúsculas
+ */
+const normalizeText = (text) => {
+  if (!text) return '';
+  return String(text)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+};
+
+/**
+ * Mapea un registro de la tabla ZZ_PLAT_PERFIL de Kea Tools al formato canónico de Perfil qPCR
+ * Integra la estructura biomédica oficial (agentes, matrices, hallazgos, precios 2026, cultivos)
+ */
+export const mapKeaRecordToQpcrProfile = (record, canonicalMaster = QPCR_PROFILES_MASTER) => {
+  if (!record || typeof record !== 'object') return null;
+
+  const rawIdPerfil = String(record.ID_PERFIL || record.id_perfil || '').trim();
+  const nombreCesar = String(record.NOMBRE_CESAR || record.nombre_cesar || '').trim();
+  const nombrePropuesto = String(record.NOMBRE_PLATAFORMA_PROPUESTO || record.nombre_propuesto || '').trim();
+  const rawId = record.id;
+
+  // Extraer número de perfil (p. ej. PPL-001 -> 1)
+  let profileNum = null;
+  const numMatch = rawIdPerfil.match(/(\d+)/);
+  if (numMatch) {
+    profileNum = parseInt(numMatch[1], 10);
+  } else if (typeof rawId === 'number') {
+    profileNum = rawId;
+  }
+
+  const targetCode = profileNum ? `P${profileNum}` : '';
+
+  // Buscar coincidencia en canonicalMaster
+  const canonical = (canonicalMaster || []).find((p) => {
+    if (targetCode && p.code && p.code.toUpperCase() === targetCode.toUpperCase()) return true;
+    if (nombreCesar && normalizeText(p.title) === normalizeText(nombreCesar)) return true;
+    if (rawIdPerfil && p.id && normalizeText(p.id).includes(normalizeText(rawIdPerfil))) return true;
+    return false;
+  });
+
+  const rawPriceStr = String(record.PRECIO_IVA_INCLUIDO_2026 ?? '').replace(/[^0-9]/g, '');
+  const parsedPrice = rawPriceStr ? parseInt(rawPriceStr, 10) : NaN;
+  const effectivePrice = !isNaN(parsedPrice) && parsedPrice > 0
+    ? parsedPrice
+    : (canonical?.basePrice ?? canonical?.price ?? 0);
+
+  const priceFormatted = effectivePrice > 0
+    ? `$${effectivePrice.toLocaleString('es-CO')}`
+    : (canonical?.priceFormatted || 'Por cotizar');
+
+  const species = String(record.ESPECIE || canonical?.species || 'Felinos y Caninos').trim();
+  const ecoEpidemiology = String(record.ECO_EPIDEMIOLOGIA || canonical?.ecoEpidemiology || '').trim();
+  const labFindings = String(record.HALLAZGOS_LABORATORIO || canonical?.labFindings || '').trim();
+  const matrix = String(record.MATRIZ_MUESTRA || canonical?.matrix || '').trim();
+  const cultivoAsociado = String(record.CULTIVO_ASOCIADO || canonical?.cultivoAsociado || '').trim();
+  const nAgentes = parseInt(record.N_AGENTES, 10) || canonical?.agents?.length || 0;
+
+  if (canonical) {
+    return {
+      ...canonical,
+      keaRecordId: record.id || null,
+      idPerfil: rawIdPerfil || canonical.code,
+      nombreCesar: nombreCesar || canonical.title,
+      nombrePlataformaPropuesto: nombrePropuesto || canonical.code,
+      linea: record.LINEA || 'qPCR',
+      species: (species && species !== 'Por definir') ? species : canonical.species,
+      ecoEpidemiology: ecoEpidemiology || canonical.ecoEpidemiology,
+      labFindings: labFindings || canonical.labFindings,
+      matrix: matrix || canonical.matrix,
+      sampleSummary: matrix || canonical.sampleSummary,
+      basePrice: effectivePrice,
+      price: effectivePrice,
+      priceFormatted,
+      cultivoAsociado: cultivoAsociado || canonical.cultivoAsociado,
+      nAgentes: nAgentes || canonical.agents.length,
+      origen: record.ORIGEN || `César – amplio espectro (${canonical.code})`,
+      estadoRevision: record.ESTADO_REVISION || 'Sujeto a cambios de Dirección Científica',
+      estado: record.ESTADO || 'activo',
+    };
+  }
+
+  return {
+    id: nombrePropuesto ? nombrePropuesto.toLowerCase().replace(/[^a-z0-9]+/g, '-') : `p-${record.id || profileNum}`,
+    code: targetCode || `P${record.id || 'X'}`,
+    title: nombreCesar || nombrePropuesto || `Perfil qPCR ${targetCode}`,
+    species: (species && species !== 'Por definir') ? species : 'Felinos y Caninos',
+    type: record.LINEA || 'Panel qPCR',
+    basePrice: effectivePrice,
+    price: effectivePrice,
+    priceFormatted,
+    discount: false,
+    ecoEpidemiology,
+    labFindings,
+    matrix,
+    sampleSummary: matrix,
+    samples: [
+      { name: matrix || 'Muestra biológica', desc: 'Recipiente o tubo estéril refrigerado' }
+    ],
+    syndromes: ['Hemotrópico/Sistémico', 'Infeccioso viral'],
+    cultivoAsociado,
+    agentesIncluidosTexto: `${nAgentes} agentes infecciosos`,
+    agents: [],
+    nAgentes,
+    keaRecordId: record.id || null,
+    idPerfil: rawIdPerfil,
+    nombreCesar,
+    nombrePlataformaPropuesto: nombrePropuesto,
+    origen: record.ORIGEN || '',
+    estadoRevision: record.ESTADO_REVISION || '',
+    estado: record.ESTADO || 'activo',
+    description: `Perfil molecular qPCR: ${nombreCesar || nombrePropuesto}.`
   };
 };
 
@@ -1026,4 +1148,46 @@ export const keaService = {
     const updatedRecord = data.data || data;
     return mapKeaRecordToVeterinarian(updatedRecord);
   },
+
+  /**
+   * Consulta los perfiles qPCR directamente de la base de datos ZZ_PLAT_PERFIL en Kea Tools
+   */
+  async fetchPerfilesFromKea() {
+    const url = `${(process.env.KEA_PERFILES_URL || DEFAULT_KEA_PERFILES_URL).replace(/\/$/, '')}/records?limit=100`;
+    const token = process.env.KEA_PERFILES_TOKEN || DEFAULT_KEA_PERFILES_TOKEN;
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        console.warn(`[Kea DB ZZ_PLAT_PERFIL] Error HTTP ${response.status} al consultar perfiles en Kea Tools.`);
+        return null;
+      }
+
+      const data = await response.json();
+      const records = Array.isArray(data) ? data : (data.data || data.records || []);
+
+      if (!Array.isArray(records) || records.length === 0) {
+        console.warn('[Kea DB ZZ_PLAT_PERFIL] Respuesta vacía de registros.');
+        return null;
+      }
+
+      const mapped = records
+        .map((rec) => mapKeaRecordToQpcrProfile(rec, QPCR_PROFILES_MASTER))
+        .filter(Boolean);
+
+      console.log(`[Kea DB ZZ_PLAT_PERFIL] Sincronizados exitosamente ${mapped.length} perfiles desde Kea Tools.`);
+      return mapped;
+    } catch (err) {
+      console.warn('[Kea DB ZZ_PLAT_PERFIL] Fallo de conexión:', err.message);
+      return null;
+    }
+  },
 };
+
