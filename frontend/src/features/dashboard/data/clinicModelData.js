@@ -7,6 +7,8 @@
  * 2. 'independiente': Médico Independiente con tarjeta profesional, consultorio o domiciliario.
  */
 
+import clinicsCache from './clinics_cache.json' with { type: 'json' };
+
 export const AVAILABLE_PERMISSIONS = [
   { id: 'crearPacientes', label: 'Crear Pacientes', desc: 'Registrar y admitir nuevos pacientes en el sistema' },
   { id: 'solicitarExamenes', label: 'Solicitar Exámenes', desc: 'Solicitar pruebas qPCR y del catálogo clínico' },
@@ -91,7 +93,7 @@ export const ROLE_PRESETS = {
   },
 };
 
-export const INITIAL_CLINICS = [
+const FALLBACK_DEMO_CLINICS = [
   {
     id: 'clinica-animal-health',
     type: 'veterinaria',
@@ -705,3 +707,7 @@ export const INITIAL_CLINICS = [
     updatedAt: '2026-10-26T18:00:00Z',
   },
 ];
+
+export const INITIAL_CLINICS = Array.isArray(clinicsCache) && clinicsCache.length > 0
+  ? clinicsCache
+  : FALLBACK_DEMO_CLINICS;

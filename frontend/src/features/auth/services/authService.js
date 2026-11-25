@@ -51,6 +51,35 @@ export const authService = {
 
     const q = identifier.trim().toLowerCase();
     const qClean = cleanNumber(identifier);
+    const qWithoutHyphen = identifier.includes('-') ? identifier.split('-')[0].trim() : '';
+    const qCleanWithoutHyphen = cleanNumber(qWithoutHyphen);
+
+    // Helpers de normalización y búsqueda
+    const cleanPrefix = (str) => (str || '').toLowerCase().replace(/^zz[_\s]*/i, '').trim();
+
+    const matchNitOrCedula = (val) => {
+      const c = cleanNumber(val);
+      if (!c) return false;
+      if (qClean && (c === qClean || (qClean.length === c.length + 1 && qClean.startsWith(c)))) return true;
+      if (qCleanWithoutHyphen && c === qCleanWithoutHyphen) return true;
+      return false;
+    };
+
+    const matchEmail = (email) => {
+      if (!email || !q) return false;
+      const em = (email || '').toLowerCase().trim();
+      return em === q || (q.includes('@') && em.includes(q));
+    };
+
+    const matchName = (name) => {
+      if (!name || !q || q.length < 3) return false;
+      const n = (name || '').toLowerCase().trim();
+      const nClean = cleanPrefix(name);
+      const qCleanName = cleanPrefix(q);
+      if (n === q || nClean === qCleanName) return true;
+      if (n.includes(q) || nClean.includes(qCleanName) || (qCleanName.length >= 4 && nClean.includes(qCleanName))) return true;
+      return false;
+    };
 
     try {
       let clinics = await clinicApi.getClinics();
@@ -65,8 +94,8 @@ export const authService = {
               const vTp = (v.tarjetaProfesional || '').toLowerCase().trim();
               const vNom = (v.nombre || '').toLowerCase().trim();
 
-              if (q && vEmail && vEmail === q) return true;
-              if (qClean && vCed && vCed === qClean) return true;
+              if (q && vEmail && (vEmail === q || matchEmail(vEmail))) return true;
+              if (matchNitOrCedula(vCed)) return true;
               if (q && vTp && (vTp === q || vTp.replace(/[^a-z0-9]/g, '') === q.replace(/[^a-z0-9]/g, ''))) return true;
               if (q && q.length >= 4 && vNom && (vNom === q || vNom.includes(q) || q.includes(vNom))) return true;
               return false;
@@ -78,65 +107,48 @@ export const authService = {
       };
 
       // Si el identificador es exactamente el NIT de una clínica, priorizar la clínica
-      const isExactClinicNit = Boolean(qClean && clinics.some((c) => cleanNumber(c.nit) === qClean));
+      const isExactClinicNit = Boolean(qClean && clinics.some((c) => matchNitOrCedula(c.nit)));
 
       let vetMatch = !isExactClinicNit ? searchVet(clinics) : null;
 
-      // Si no es un veterinario directo, buscar si es una clínica
-      let found = null;
-      if (!vetMatch) {
-        found = clinics.find((c) => {
-          const cNit = cleanNumber(c.nit);
-          const cCed = cleanNumber(c.cedula);
-          const cEmailFact = (c.correos?.facturacion || '').toLowerCase();
-          const cEmailRes = (c.correos?.resultados || '').toLowerCase();
+      // Buscar si es una clínica
+      const findClinicInList = (list) => {
+        // 1. Coincidencia exacta por NIT o Cédula
+        let match = list.find((c) => matchNitOrCedula(c.nit) || matchNitOrCedula(c.cedula));
+        if (match) return match;
 
-          if (qClean && (cNit === qClean || cCed === qClean)) return true;
-          if (q && (cEmailFact === q || cEmailRes === q)) return true;
-          if (q && c.nombreVeterinaria && c.nombreVeterinaria.toLowerCase() === q) return true;
-          if (q && c.nombreMedico && c.nombreMedico.toLowerCase() === q) return true;
-          return false;
-        });
+        // 2. Coincidencia por correo
+        match = list.find((c) => matchEmail(c.correos?.facturacion) || matchEmail(c.correos?.resultados) || matchEmail(c.email));
+        if (match) return match;
 
-        // Si no hay coincidencia exacta de clínica, probar buscar de nuevo como veterinario
-        if (!found && isExactClinicNit) {
-          vetMatch = searchVet(clinics);
+        // 3. Coincidencia por nombre (ignorando prefijo ZZ_ si existe)
+        match = list.find((c) => matchName(c.nombreVeterinaria) || matchName(c.nombreMedico) || matchName(c.directorMedico?.nombre));
+        if (match) return match;
+
+        // 4. Búsqueda por substring de NIT
+        if (qClean && qClean.length >= 5) {
+          match = list.find((c) => cleanNumber(c.nit).includes(qClean) || cleanNumber(c.cedula).includes(qClean));
+          if (match) return match;
         }
 
-        // Si aún no hay nada, búsqueda parcial de clínica
-        if (!found && !vetMatch) {
-          found = clinics.find((c) => {
-            if (qClean && qClean.length >= 5 && (cleanNumber(c.nit).includes(qClean) || cleanNumber(c.cedula).includes(qClean))) {
-              return true;
-            }
-            if (q.length >= 4 && (c.nombreVeterinaria?.toLowerCase().includes(q) || c.nombreMedico?.toLowerCase().includes(q))) {
-              return true;
-            }
-            return false;
-          });
-        }
+        return null;
+      };
+
+      let found = !vetMatch ? findClinicInList(clinics) : null;
+
+      if (!found && isExactClinicNit) {
+        vetMatch = searchVet(clinics);
       }
 
       // Si no se encuentra localmente o no tiene contraseña, sincronizar con Kea Tools
-      if ((!found && !vetMatch) || (found && !found.contrasena && !found.password)) {
+      if (!found && !vetMatch) {
         try {
           const syncRes = await clinicApi.syncKea();
           if (syncRes?.clinics && Array.isArray(syncRes.clinics)) {
             clinics = syncRes.clinics;
             if (!vetMatch) vetMatch = searchVet(clinics);
             if (!found && !vetMatch) {
-              found = clinics.find((c) => {
-                const cNit = cleanNumber(c.nit);
-                const cCed = cleanNumber(c.cedula);
-                const cEmailFact = (c.correos?.facturacion || '').toLowerCase();
-                const cEmailRes = (c.correos?.resultados || '').toLowerCase();
-
-                if (qClean && (cNit === qClean || cCed === qClean)) return true;
-                if (q && (cEmailFact === q || cEmailRes === q)) return true;
-                if (q && c.nombreVeterinaria && c.nombreVeterinaria.toLowerCase() === q) return true;
-                if (q && c.nombreMedico && c.nombreMedico.toLowerCase() === q) return true;
-                return false;
-              });
+              found = findClinicInList(clinics);
             }
           }
         } catch (_) {}

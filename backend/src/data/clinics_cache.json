@@ -7236,7 +7236,7 @@
       }
     ],
     "source": "Kea Tools DB",
-    "esClinicaActiva": true
+    "esClinicaActiva": false
   },
   {
     "id": "kea-vet-2216",
@@ -12420,7 +12420,7 @@
     ],
     "veterinariosAsociados": [],
     "source": "Kea Tools DB",
-    "esClinicaActiva": false
+    "esClinicaActiva": true
   },
   {
     "id": "kea-vet-80",
