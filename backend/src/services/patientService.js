@@ -561,12 +561,24 @@ export const patientService = {
 
     const randomNum = Math.floor(100 + Math.random() * 900);
     const orderPrefix = isClinicas ? 'CLN' : isMicrobiota ? 'MIC' : 'ORD';
-    const orderId = examData.id || `${orderPrefix}-2026-${randomNum}`;
-    const examCode = isClinicas ? `CLN-2026-${randomNum}` : isMicrobiota ? `MIC-2026-${randomNum}` : `QPCR-2026-${randomNum}`;
+
+    let keaSolicitud = null;
+    if (reqCat === 'qpcr') {
+      try {
+        keaSolicitud = await keaService.createSolicitudMuestraInKea(patient, examData);
+      } catch (err) {
+        console.warn('Advertencia al registrar solicitud qPCR en Kea Tools:', err.message);
+      }
+    }
+
+    const orderId = keaSolicitud?.CODIGO || examData.id || `${orderPrefix}-2026-${randomNum}`;
+    const examCode = keaSolicitud?.CODIGO || (isClinicas ? `CLN-2026-${randomNum}` : isMicrobiota ? `MIC-2026-${randomNum}` : `QPCR-2026-${randomNum}`);
 
     const newOrder = {
       id: orderId,
       examCode,
+      solicitudCodigo: keaSolicitud?.CODIGO || null,
+      keaRecordId: keaSolicitud?.id || null,
       testName: examData.testName || (isClinicas ? 'Pruebas Diagnósticas Clínicas' : isMicrobiota ? 'Microbiota Gastrointestinal' : 'qPCR Panel Diagnóstico Molecular'),
       category: orderCategory,
       requestCategory: reqCat,

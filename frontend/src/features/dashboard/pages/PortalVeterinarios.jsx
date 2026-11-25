@@ -252,10 +252,16 @@ export default function PortalVeterinarios({ currentUser = null, onLogout = null
         requestedBy: resolvedDoctor,
         clinicNit: activeNit,
         clinicId: activeId,
+        clinicName: activeClinic?.nombreVeterinaria || activeClinic?.nombreMedico || currentUser?.nombre || '',
+        clinicCity: activeClinic?.recoleccion?.ciudad || activeClinic?.ciudad || '',
+        clinicAddress: activeClinic?.recoleccion?.direccion || activeClinic?.recoleccion?.direccionFisica || activeClinic?.sedes?.[0]?.direccionFisica || activeClinic?.sedes?.[0]?.direccion || '',
+        clinicPhone: activeClinic?.directorMedico?.telefono || activeClinic?.administrativa?.telefonoPagos || currentUser?.telefono || '',
+        clinicEmail: activeClinic?.correos?.resultados || activeClinic?.correos?.facturacion || currentUser?.email || '',
+        clinic: activeClinic,
       };
 
       const newOrder = await patientApi.requestExam(id, enrichedExamData);
-      showToast(`Orden ${newOrder.id} generada con éxito.`);
+      showToast(`Orden ${newOrder.id || newOrder.examCode} generada con éxito.`);
       await loadPatients(activeNit, activeId);
       await loadInitialStats();
       return newOrder;

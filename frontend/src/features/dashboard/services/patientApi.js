@@ -74,7 +74,138 @@ export const resetDemoPatients = () => {
 let localPatientsStore = getStoredMockPatients();
 
 export const KEA_API_URL = 'https://osd.kea.tools/api/v1/databases/PACIENTE/records';
-export const KEA_BEARER_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiMzQ4NzBlMGU3YTU2ZjFmZjE0ODk2YWFmMjg0NzZjNzBkNjM3ZDc5MmMyOTY4ZjQ4YjZhODBjYjg3NTc1MjcwMjg0YWVjNjQwMzA2ODk4ZWEiLCJpYXQiOjE3OTQyNTU2MzEuMTIyMDA2LCJuYmYiOjE3OTQyNTU2MzEuMTIyMDA5LCJleHAiOjE4MjU3OTE2MzEuMTE1OTk3LCJzdWIiOiI0Iiwic2NvcGVzIjpbImtlYS5kYXRhYmFzZSJdfQ.Lxhv0uyiWUR5RBTia3TIFj0zrF2ZzMsIsVUGEmToW9A6atSKyShg10ODTLs8-gf9ovA4RZpldXDKcqkh5-GbTnnWKzl4ltCFMCN_TolNQnYWHnXPX7PtJhprvzojtg8Ue_ovffXzMS4EVlFl40HG3AJokfw8ZeOv4RRdSn2hA9vfhNBBNKEvQQgWpY6KVobTlpgrGAe7bI5YJFq0yG0Nu3uziE1dXTacVrGxgmMj45dFMR_y9vLIN-rhQBuJWmTl6e1GuzSCnS41JiWXktbHIJKEFCEGtK6P6Hb-XhFscnfrBAxr_-Mh1R3yTrRgYhhpBB4C5Afo9ZcH1j-_3FGFdBHa0P71_sjuw8lPIz6BR9FpybY_tnEV6IlP1e94K2CExS7OvVCc9yFyGPLj18FhICQzQWr9scXCpUMa0WkXiqbgDhgywnTrEvoWHcbWF4iEdNgKGra1u_A3lQlctN6-5GE0fb91qI2gLkXIzLgVkSjEhT3Xi_YNeWfUO3njUuPWZGxcQbAp3InnNiFjIwP27FBORkjAPdaGlouU91w2EE87fEwnpKgQ9fcxeQMLOxQDEiYOHe_uvxDwTgMmqCpEtkuxrZGKw3_ZIiVz2IHSzjSWh-89Xb9cr0kyVrBGIiFlVRLgc1Q3FZuhwG87pjS3Tk4cD6akblkyusWgTxCYiVc';
+export const KEA_BEARER_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiMzQ4NzBlMGU3YTU2ZjFmZjE0ODk2YWFmMjg0NzZjNzBkNjM3ZDc5MmMyOTY4ZjQ4YjZhODBjYjg3NTc1MjcwMjg0YWVjNjQwMzA2ODk4ZWEiLCJpYXQiOjE3OTQyNTU2MzEuMTIyMDA2LCJuYmYiOjE3OTQyNTU2MzEuMTIyMDA5LCJleHAiOjE4MjU3OTE2MzEuMTE1OTk3LCJzdWIiOiI0Iiwic2NvcGVzIjpbImtlYS5kYXRhYmFzZSJdfQ.Lxhv0uyiWUR5RBTia3TIFj0zrF2ZzMsIsVUGEmToW9A6atSKyShg10ODTLs8-gf9ovA4RZpldXDKcqkh5-GbTnnWKzl4ltCFMCN_TolNQnYWHnXPX7PtJhprvzojtg8Ue_ovffXzMS4EVlFl40HG3AJokfw8ZeOv4RRdSn2hA9vfhNBBNKEvQQgWpY6KVobTlpgrGAe7bI5YJFq0yG0Nu3uziE1dXTacVrGxgmMj45dFMR_y9vLIN-rhQBuJWmTl6e1GuzSCnS41JiWXktbHIJKEFCEGtK6P6Hb-XhFscnfrBAxr_-Mh1R3yTrRgYhhpBB4C5Afo9ZcH1j-_3FGFdBHa0P71_sjuw8lPIz6BR9FpybY_tnEV6IlP1e94K2CExS7OvVCc9yFyGPLj18FhICQzQWr9scXCpUMa0WkXiqbgDhgywnTrEvoWHcbWF4iEdNgKGra1u_A3lQlctN6-5GE0fb91qI2gLkXIzLgVkSjEhT3Xi_YNeWfUO3njUuPWZGxcQbAp3InnNiFjIwP27FBORkjAPdaGlouU91w2EE87fEwnqKgQ9fcxeQMLOxQDEiYOHe_uvxDwTgMmqCpEtkuxrZGKw3_ZIiVz2IHSzjSWh-89Xb9cr0kyVrBGIiFlVRLgc1Q3FZuhwG87pjS3Tk4cD6akblkyusWgTxCYiVc';
+
+export const KEA_SOLICITUDES_URL = 'https://osd.kea.tools/api/v1/databases/ZZ_SOLICITUD_MUESTRA/records';
+export const KEA_SOLICITUDES_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiOTg1ZDY0NmNjZjMyZDU2YjE3YzQ1OTk5ODQwYjIyMTA5YjVmZjhkYTdkMDA0NGQ2MmM0MWQ5NzljNzZkNmJlMjc1NzM5ODJkOGQ2YWFlYTEiLCJpYXQiOjE3OTU2MjYzMTcuOTg4MzcxLCJuYmYiOjE3OTU2MjYzMTcuOTg4Mzc1LCJleHAiOjE4MjcxNjIzMTcuOTgxNjY2LCJzdWIiOiI0Iiwic2NvcGVzIjpbImtlYS5kYXRhYmFzZSJdfQ.g2U-y7mNUeTjvtILE-9UZqARJp4tK22Ha5l9VzqWrFIfsbfE6Ww1arE91LfXR77M4-l21tzzrUOchUeJpLESVlbgx_JfNrqEpdYdLhdc2HqniKrIk0c8AmXwNILhMy6RnfjSCfZ3AKodmU800UV1OhM3FDfeuRJ3G0KPccMG7GW-vNWDa4fCsdVI3TD6scZ1fktLHLRXojBybgG6fxRxPrkUee8H7L3Tm58xuSHiIh_anG0PhCryTvwjzxtcW04qku2eV7f9vA8yobPMIoDfbCZJL8CJ4YNw_YcV10QaUtY0QjZon15BoRmWDY5ECDIN3ak26uNRpK7-NRrqY-3nhgCQkXECM2yB77wst_T-kuQMxQp89SqVD-FGZzEI8Sq5bfIz3TnBYu0mAtPqAhclRPUSdlL97CL6Bq7jMQFynswD8TdlViiyn42YREk2ZxeVsYjFZ98HP6-YbnAfD_XI-dRi7fwvAoZSOFioKP9rTxeYoKrBR0AyeTbhWtTa1NcWcwsYU9d_EmoG7Vgp1gKIZLNjeDO8jzPcSgqauVHddl79rYo0RV_oT5hjT2Hd2qC9RzAYIKzbl7DP-EfSCcOyyQnKnHWWfSqL-cQvlx0Yc2rkD9XKSTml45iUR3LNe7vGYoi_nAsbmvX47CcKvVRNoF0rNAQYQf91AFlNcGRqwfY';
+export const KEA_SOLICITUDES_REFRESH_TOKEN = 'def50200bf3ebc9a952381f17cd406fa0999c43bdd7778ed9e8f20faf7cfdb434222c438b2303ead35e0f56edad9c771096e4b8cba239dd1a2d4b9d0a210e1bd4f66e30ee3b39196914061cdda62e3d87b2352258cd6182d25c14aefbe083225d6be6bf2b41d0670680649a7fb4e17537aba72c304de15dace67a67d4ab1d3b0ddc97ed6bafaaa06d3941285dda4ffa3f18e04d382d11de29c49c3dc67facfcab4333dd5bd4e0371a01b32cb8c2b4bfe7d5f04100f15c448bbe37f17ad498605f94dd57a89a5d0bebd8a05a5f2acf64e501bbedce7e4ff4194f310a7d1a4a428bbeb8273cb3194258151ff25e3858908f28405cd36d5c865313c1adbc8939967cb11407982f34bafcd27e57e3840e85603fd11cb118259105d9d8780e9a70c1e14177b5e820fd281829f54f01701a6bd1e349a973cb4ac85169deae1d55d03d572fb5b7840acfc806980da29a07b8151bab84cef2f94a09aabd3e799a9753f1678e2795dcd32b7137bec311570f80c6c3c15';
+
+/**
+ * Construye el payload exacto para la base de datos Kea Tools (ZZ_SOLICITUD_MUESTRA)
+ */
+export const buildSolicitudMuestraPayload = (patient, examData) => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let rand = '';
+  for (let i = 0; i < 4; i++) rand += chars.charAt(Math.floor(Math.random() * chars.length));
+  const codigo = `SOL-${y}${m}${d}-${hh}${mm}${ss}-${rand}`;
+
+  // Timezone Colombia UTC-5
+  const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const bogotaDate = new Date(utcMs - (5 * 3600000));
+  const by = bogotaDate.getFullYear();
+  const bm = String(bogotaDate.getMonth() + 1).padStart(2, '0');
+  const bd = String(bogotaDate.getDate()).padStart(2, '0');
+  const bh = String(bogotaDate.getHours()).padStart(2, '0');
+  const bmin = String(bogotaDate.getMinutes()).padStart(2, '0');
+  const bs = String(bogotaDate.getSeconds()).padStart(2, '0');
+  const fechaCreacion = `${by}-${bm}-${bd}T${bh}:${bmin}:${bs}-05:00`;
+
+  let valorBruto = 0;
+  if (typeof examData.totalPrice === 'number') {
+    valorBruto = examData.totalPrice;
+  } else if (typeof examData.price === 'number') {
+    valorBruto = examData.price;
+  } else if (examData.totalPrice) {
+    const parsed = parseInt(String(examData.totalPrice).replace(/[^0-9]/g, ''), 10);
+    valorBruto = isNaN(parsed) ? 0 : parsed;
+  }
+
+  let sessionClinic = null;
+  try {
+    const raw = localStorage.getItem('osd_auth_session') || sessionStorage.getItem('osd_auth_session');
+    if (raw) sessionClinic = JSON.parse(raw);
+  } catch (_) {}
+
+  const clinicName = examData.clinicName || examData.clinic?.nombreVeterinaria || examData.clinic?.nombreMedico || sessionClinic?.nombre || patient?.veterinaria || 'Clínica Veterinaria';
+  const clinicCity = examData.clinicCity || examData.clinic?.recoleccion?.ciudad || examData.clinic?.ciudad || sessionClinic?.ciudad || patient?.owner?.city || 'Bogotá';
+  const clinicAddress = examData.clinicAddress || examData.clinic?.recoleccion?.direccion || examData.clinic?.recoleccion?.direccionFisica || examData.clinic?.sedes?.[0]?.direccion || patient?.owner?.address || 'Sede Principal';
+  const clinicPhone = examData.clinicPhone || examData.clinic?.directorMedico?.telefono || examData.clinic?.administrativa?.telefonoPagos || sessionClinic?.telefono || patient?.owner?.phone || '3002075292';
+  const clinicEmail = examData.clinicEmail || examData.clinic?.correos?.resultados || examData.clinic?.correos?.facturacion || sessionClinic?.email || 'analistadedatos@osdiagnostic.com';
+
+  const veterinario = examData.requestedBy || patient?.attendingVet || sessionClinic?.director || 'Dr. Alejandro Morales';
+  const paciente = patient?.name
+    ? (patient.lastName ? `${patient.name} ${patient.lastName}`.trim() : patient.name)
+    : (examData.patientName || 'Paciente');
+
+  let perfilSolicitud = '';
+  if (Array.isArray(examData.profiles) && examData.profiles.length > 0) {
+    perfilSolicitud = examData.profiles.map((p) => {
+      const code = p.id || p.code || '';
+      const title = p.title || p.name || '';
+      return code ? `${code} · ${title} [qPCR]` : `${title} [qPCR]`;
+    }).join(' + ');
+  } else if (examData.testName) {
+    perfilSolicitud = examData.testName.includes('[qPCR]') ? examData.testName : `${examData.testName} [qPCR]`;
+  } else {
+    perfilSolicitud = 'Panel Diagnóstico Molecular qPCR';
+  }
+
+  let agentesPerfil = '';
+  if (Array.isArray(examData.profiles) && examData.profiles.length > 0) {
+    const allProfileAgents = [];
+    examData.profiles.forEach((p) => {
+      const list = p.originalAgents || p.agents || [];
+      list.forEach((a) => {
+        if (typeof a === 'object') {
+          const code = a.code || a.id || '';
+          const name = a.name || a.title || '';
+          allProfileAgents.push(code ? `${code} · ${name}` : name);
+        } else if (typeof a === 'string') {
+          allProfileAgents.push(a);
+        }
+      });
+    });
+    agentesPerfil = allProfileAgents.join('\n');
+  } else if (examData.targets) {
+    agentesPerfil = String(examData.targets).split(',').map((s) => s.trim()).filter(Boolean).join('\n');
+  }
+
+  let agentesAdicionales = '';
+  if (Array.isArray(examData.profiles) && examData.profiles.length > 0) {
+    const extraList = [];
+    examData.profiles.forEach((p) => {
+      const extras = p.extraAgents || p.customAgents || [];
+      extras.forEach((a) => {
+        if (typeof a === 'object') {
+          const code = a.code || a.id || '';
+          const name = a.name || a.title || '';
+          extraList.push(code ? `${code} · ${name}` : name);
+        } else if (typeof a === 'string') {
+          extraList.push(a);
+        }
+      });
+    });
+    agentesAdicionales = extraList.join('\n');
+  }
+
+  return {
+    CODIGO: codigo,
+    VALOR_BRUTO: valorBruto,
+    CORREO_REPORTE: clinicEmail,
+    FECHA_CREACION: fechaCreacion,
+    ORIGEN: 'portal_veterinarios',
+    ESTADO: 'Orden creada',
+    MODALIDAD: 'mensajero_propio',
+    CIUDAD: clinicCity,
+    TELEFONO_CONTACTO: clinicPhone,
+    DIRECCION_RECOLECCION: clinicAddress,
+    PACIENTE: paciente,
+    VETERINARIO: veterinario,
+    VETERINARIA: clinicName,
+    TIPO_SOLICITUD: String(examData.urgency || '').toLowerCase().includes('urgente') ? 'urgente' : 'normal',
+    OBSERVACIONES: examData.clinicalObservations || examData.observations || examData.notes || '',
+    PERFIL_SOLICITUD: perfilSolicitud,
+    AGENTES_PERFIL: agentesPerfil,
+    AGENTES_ADICIONALES: agentesAdicionales,
+  };
+};
 
 export const calculateAgeFromBirthDate = (birthDateString) => {
   if (!birthDateString) return 'No especificada';
@@ -1024,13 +1155,42 @@ export const patientApi = {
 
       const randomNum = Math.floor(100 + Math.random() * 900);
       const orderPrefix = isClinicas ? 'CLN' : isMicrobiota ? 'MIC' : 'ORD';
-      const orderId = examData.id || `${orderPrefix}-2026-${randomNum}`;
-      const examCode = isClinicas ? `CLN-2026-${randomNum}` : isMicrobiota ? `MIC-2026-${randomNum}` : `QPCR-2026-${randomNum}`;
+
+      let keaSolicitud = null;
+      if (reqCat === 'qpcr') {
+        try {
+          const payload = buildSolicitudMuestraPayload(patient, examData);
+          const resp = await fetch(KEA_SOLICITUDES_URL, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${KEA_SOLICITUDES_TOKEN}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+          const resJson = await resp.json();
+          if (resp.ok && (resJson.status === 'success' || !resJson.status)) {
+            keaSolicitud = resJson.data || resJson;
+            console.log(`[Kea DB ZZ_SOLICITUD_MUESTRA] Solicitud creada con éxito en Kea Tools: ${keaSolicitud.CODIGO || payload.CODIGO}`);
+          } else {
+            console.warn('[Kea DB ZZ_SOLICITUD_MUESTRA] Kea rechazó creación:', resJson);
+            keaSolicitud = payload;
+          }
+        } catch (keaErr) {
+          console.warn('[Kea DB ZZ_SOLICITUD_MUESTRA] Error al conectar con Kea Tools:', keaErr.message);
+        }
+      }
+
+      const orderId = keaSolicitud?.CODIGO || examData.id || `${orderPrefix}-2026-${randomNum}`;
+      const examCode = keaSolicitud?.CODIGO || (isClinicas ? `CLN-2026-${randomNum}` : isMicrobiota ? `MIC-2026-${randomNum}` : `QPCR-2026-${randomNum}`);
 
       patient.activeExamOrder = {
         ...examData,
         id: orderId,
         examCode,
+        solicitudCodigo: keaSolicitud?.CODIGO || null,
+        keaRecordId: keaSolicitud?.id || null,
         testName: examData.testName || (isClinicas ? 'Pruebas Diagnósticas Clínicas' : isMicrobiota ? 'Microbiota Gastrointestinal' : 'Panel Diagnóstico Molecular qPCR'),
         category: orderCategory,
         requestCategory: reqCat,
@@ -1149,6 +1309,8 @@ export const patientApi = {
         id: examCode,
         examCode,
         orderId,
+        solicitudCodigo: keaSolicitud?.CODIGO || null,
+        keaRecordId: keaSolicitud?.id || null,
         testName: patient.activeExamOrder.testName,
         category: reqCat,
         requestCategory: reqCat,
@@ -1763,6 +1925,28 @@ export const patientApi = {
         };
       }
       throw new Error(data.message || 'Error en respuesta de Kea Tools');
+  },
+
+  /**
+   * Consulta las solicitudes registradas en Kea Tools (ZZ_SOLICITUD_MUESTRA)
+   */
+  async getSolicitudesMuestra() {
+    try {
+      const resp = await fetch(KEA_SOLICITUDES_URL, {
+        headers: {
+          'Authorization': `Bearer ${KEA_SOLICITUDES_TOKEN}`,
+          'Accept': 'application/json',
+        },
+      });
+      const data = await resp.json();
+      if (data.status === 'success' && Array.isArray(data.data)) {
+        return data.data;
+      }
+      return [];
+    } catch (err) {
+      console.warn('[Kea DB ZZ_SOLICITUD_MUESTRA] Error al consultar solicitudes:', err.message);
+      return [];
+    }
   },
 };
 
