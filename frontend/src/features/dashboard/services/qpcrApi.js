@@ -344,10 +344,14 @@ export const qpcrApi = {
           clinicalRationale = 'Panel de diagnóstico molecular qPCR.';
         }
 
+        const agentNames = (resolvedAgents.length > 0)
+          ? resolvedAgents.map((a) => a.name)
+          : (p.agents && p.agents.length > 0 ? p.agents : []);
+
         return {
           ...p,
           price: p.basePrice,
-          agents: resolvedAgents.map((a) => a.name),
+          agents: agentNames,
           matchPercentage: `${score}%`,
           rawScore: score,
           matchedSyndromes,

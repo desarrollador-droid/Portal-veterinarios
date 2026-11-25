@@ -158,17 +158,23 @@ export const qpcrService = {
     }
 
     // Fallback canónico oficial
+    const allAgentsMaster = [...(OFFICIAL_KEA_AGENTS_DB || []), ...(INFECTIOUS_AGENTS_DB || [])];
     cachedSynchronizedProfiles = QPCR_PROFILES_MASTER.map((profile) => {
-      const resolvedAgents = (profile.agentIds && profile.agentIds.length > 0)
-        ? profile.agentIds.map((agentId) => {
-            const found = INFECTIOUS_AGENTS_DB.find((a) => a.id === agentId);
-            return found ? found.name : agentId;
-          })
-        : (profile.agents || []);
+      let resolvedAgents = [];
+      if (profile.agentIds && profile.agentIds.length > 0) {
+        resolvedAgents = profile.agentIds.map((agentId) => {
+          const found = allAgentsMaster.find((a) => a.id === agentId || a.code === agentId);
+          return found ? found.name : agentId;
+        }).filter(Boolean);
+      }
+
+      if (resolvedAgents.length === 0 && Array.isArray(profile.agents) && profile.agents.length > 0) {
+        resolvedAgents = profile.agents;
+      }
 
       return {
         ...profile,
-        agents: resolvedAgents,
+        agents: (resolvedAgents && resolvedAgents.length > 0) ? resolvedAgents : (profile.agents || []),
         price: profile.basePrice || profile.price,
       };
     });
@@ -302,6 +308,7 @@ export const qpcrService = {
     );
 
     const masterProfiles = await this.getSynchronizedProfiles();
+    const masterAgents = await this.getSynchronizedAgents();
 
     const scoredProfiles = masterProfiles.map((profile) => {
       // 1. COMPATIBILIDAD ESTRICTA DE ESPECIE (Canino vs Felino)
@@ -324,28 +331,38 @@ export const qpcrService = {
       );
 
       // 3. RESOLUCIÓN DE AGENTES ESPECÍFICOS DE ESTE PERFIL
-      const resolvedAgents = (profile.agentIds && profile.agentIds.length > 0)
-        ? profile.agentIds.map((agentId) => INFECTIOUS_AGENTS_DB.find((a) => a.id === agentId)).filter(Boolean)
-        : (profile.agentObjects || (profile.agents || []).map((agName) => {
-            const cleanName = agName.replace(/\(.*?\)/g, '').trim().toLowerCase();
-            const found = INFECTIOUS_AGENTS_DB.find((a) => {
-              const aName = a.name.toLowerCase();
-              return aName === cleanName || aName.includes(cleanName) || cleanName.includes(aName);
-            });
-            return found || {
-              id: agName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-              name: agName,
-              group: 'Infeccioso',
-              targetOrgans: 'Sistémico',
-              transmission: 'Contacto / Vectorial',
-              symptomsDescription: '',
-              labDescription: '',
-              keywords: [agName.toLowerCase()],
-              vectors: [],
-            };
-          }));
+      const allAgentsPool = [...(masterAgents || []), ...(OFFICIAL_KEA_AGENTS_DB || []), ...(INFECTIOUS_AGENTS_DB || [])];
+      let resolvedAgents = [];
+      if (profile.agentIds && profile.agentIds.length > 0) {
+        resolvedAgents = profile.agentIds.map((agentId) => {
+          return allAgentsPool.find((a) => a.id === agentId || a.code === agentId);
+        }).filter(Boolean);
+      }
 
-      const agentNames = resolvedAgents.map((a) => a.name);
+      if (resolvedAgents.length === 0 && Array.isArray(profile.agents) && profile.agents.length > 0) {
+        resolvedAgents = profile.agents.map((agName) => {
+          const cleanName = agName.replace(/\(.*?\)/g, '').trim().toLowerCase();
+          const found = allAgentsPool.find((a) => {
+            const aName = (a.name || '').toLowerCase();
+            return aName === cleanName || aName.includes(cleanName) || cleanName.includes(aName);
+          });
+          return found || {
+            id: agName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            name: agName,
+            group: 'Infeccioso',
+            targetOrgans: 'Sistémico',
+            transmission: 'Contacto / Vectorial',
+            symptomsDescription: '',
+            labDescription: '',
+            keywords: [agName.toLowerCase()],
+            vectors: [],
+          };
+        });
+      }
+
+      const agentNames = resolvedAgents.length > 0
+        ? resolvedAgents.map((a) => a.name)
+        : (profile.agents && profile.agents.length > 0 ? profile.agents : []);
 
       // 4. ATRIBUCIÓN CAUSAL: ¿A qué se deben estos síntomas en el paciente?
       const symptomAttribution = [];

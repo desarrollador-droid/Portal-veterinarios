@@ -83,10 +83,10 @@ export const deletePatient = async (req, res) => {
   }
 };
 
-export const requestExam = (req, res) => {
+export const requestExam = async (req, res) => {
   try {
     const { id } = req.params;
-    const newOrder = patientService.requestNewExam(id, req.body);
+    const newOrder = await patientService.requestNewExam(id, req.body);
     return res.status(201).json({
       success: true,
       message: 'Nueva orden de examen qPCR generada exitosamente',

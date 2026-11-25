@@ -515,7 +515,7 @@ export const patientService = {
     };
   },
 
-  requestNewExam(id, examData) {
+  async requestNewExam(id, examData) {
     const patient = patientsStore.find((p) => p.id === id);
     if (!patient) throw new Error('Paciente no encontrado');
 

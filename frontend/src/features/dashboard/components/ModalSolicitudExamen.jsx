@@ -834,8 +834,20 @@ export default function ModalSolicitudExamen({
   const [manualFindingInput, setManualFindingInput] = useState('');
   const [customFindings, setCustomFindings] = useState([]);
 
-  // Paso 4: Perfiles qPCR seleccionados (TOTALMENTE EN BLANCO: [])
-  const [selectedProfileIds, setSelectedProfileIds] = useState([]);
+  // Paso 4: Perfiles qPCR seleccionados
+  const [selectedProfileIds, setSelectedProfileIds] = useState(() => {
+    if (initialClinicalExam && initialClinicalExam.id) {
+      return [initialClinicalExam.id];
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    if (initialClinicalExam?.id && !selectedProfileIds.includes(initialClinicalExam.id)) {
+      setSelectedProfileIds((prev) => (prev.length === 0 ? [initialClinicalExam.id] : prev));
+    }
+  }, [initialClinicalExam]);
+
   // Paso 4: Filtro interactivo por síndrome clínico
   const [step4SyndromeFilter, setStep4SyndromeFilter] = useState('all');
 
@@ -849,9 +861,9 @@ export default function ModalSolicitudExamen({
     }));
   };
 
-  // Paso 5: Reemplazo de agentes en los perfiles
-  // REQUERIMIENTO: La lista de agentes SOLO aparece cuando se da clic en "Editar agentes"
+  // Paso 5: Reemplazo y edición de agentes en los perfiles
   const [showAgentsEdit, setShowAgentsEdit] = useState(false);
+  const [showAgentsEditByProfile, setShowAgentsEditByProfile] = useState({});
   const [replacedAgents, setReplacedAgents] = useState({}); // { [profileId]: { [agentIdx]: newAgentName } }
 
   // Estado para la edición manual individual de cada agente
@@ -1354,12 +1366,36 @@ export default function ModalSolicitudExamen({
   }, [recommendedProfiles]);
 
   const displayedRecommendedProfiles = useMemo(() => {
-    return recommendedProfiles;
+    return recommendedProfiles.map((p) => {
+      const fallback = QPCR_CATALOG.find(
+        (cat) => cat.id === p.id || cat.code === p.code || normalizeAgentName(cat.title) === normalizeAgentName(p.title)
+      );
+      const resolvedList = (Array.isArray(p.agents) && p.agents.length > 0)
+        ? p.agents
+        : (fallback?.agents || []);
+      return {
+        ...p,
+        agents: resolvedList,
+      };
+    });
   }, [recommendedProfiles]);
 
   // Perfiles actualmente añadidos a la orden
   const selectedProfiles = useMemo(() => {
-    return recommendedProfiles.filter((p) => selectedProfileIds.includes(p.id));
+    return recommendedProfiles
+      .filter((p) => selectedProfileIds.includes(p.id))
+      .map((p) => {
+        const fallback = QPCR_CATALOG.find(
+          (cat) => cat.id === p.id || cat.code === p.code || normalizeAgentName(cat.title) === normalizeAgentName(p.title)
+        );
+        const resolvedList = (Array.isArray(p.agents) && p.agents.length > 0)
+          ? p.agents
+          : (fallback?.agents || []);
+        return {
+          ...p,
+          agents: resolvedList,
+        };
+      });
   }, [recommendedProfiles, selectedProfileIds]);
 
   // Cálculo de reemplazos de agentes y costos
@@ -5548,23 +5584,33 @@ export default function ModalSolicitudExamen({
                         </div>
 
                         {/* REQUERIMIENTO DEL USUARIO: Botón "Editar agentes" */}
-                        <button
-                          type="button"
-                          onClick={() => setShowAgentsEdit(!showAgentsEdit)}
-                          className={`px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-2xs ${
-                            showAgentsEdit
-                              ? 'bg-[#6F2BCC] text-white ring-2 ring-[#6F2BCC]/20'
-                              : 'bg-sky-50 text-[#6F2BCC] border border-sky-200 hover:bg-sky-100'
-                          }`}
-                        >
-                          <span>⚙️</span>
-                          <span>{showAgentsEdit ? 'Ocultar edición de agentes ▲' : 'Editar agentes ▼'}</span>
-                          {modCount > 0 && (
-                            <span className="px-2 py-0.2 rounded-full text-[10px] bg-emerald-500 text-white font-extrabold">
-                              {modCount} modificado{modCount > 1 ? 's' : ''}
-                            </span>
-                          )}
-                        </button>
+                        {(() => {
+                          const isProfileEditing = Boolean(showAgentsEditByProfile[profile.id] ?? showAgentsEdit);
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowAgentsEditByProfile((prev) => ({
+                                  ...prev,
+                                  [profile.id]: !Boolean(prev[profile.id] ?? showAgentsEdit),
+                                }));
+                              }}
+                              className={`px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-2xs ${
+                                isProfileEditing
+                                  ? 'bg-[#6F2BCC] text-white ring-2 ring-[#6F2BCC]/20'
+                                  : 'bg-sky-50 text-[#6F2BCC] border border-sky-200 hover:bg-sky-100'
+                              }`}
+                            >
+                              <span>⚙️</span>
+                              <span>{isProfileEditing ? 'Ocultar edición de agentes ▲' : 'Editar agentes ▼'}</span>
+                              {modCount > 0 && (
+                                <span className="px-2 py-0.2 rounded-full text-[10px] bg-emerald-500 text-white font-extrabold">
+                                  {modCount} modificado{modCount > 1 ? 's' : ''}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })()}
                       </div>
 
                       {/* Agentes del perfil a simple vista */}
@@ -5667,7 +5713,7 @@ export default function ModalSolicitudExamen({
                     {/* REQUERIMIENTO DEL USUARIO:
                         La información de los agentes SOLO aparece cuando se le da en "Editar agentes".
                         De lo contrario, NO sale la lista desplegable. */}
-                    {showAgentsEdit && (
+                    {(showAgentsEditByProfile[profile.id] ?? showAgentsEdit) && (
                       <div className="p-5 bg-white border border-sky-300 rounded-2xl space-y-4 shadow-sm animate-in fade-in duration-200">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-sky-100 pb-3">
                           <div>
