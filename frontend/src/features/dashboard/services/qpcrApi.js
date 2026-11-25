@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api/qpcr';
+const isLocalhost = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+const API_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL)
+  ? `${import.meta.env.VITE_API_URL}/api/qpcr`
+  : (isLocalhost ? 'http://localhost:5000/api/qpcr' : null);
 
 /**
  * Normalización de cadenas de texto para búsqueda y emparejamiento clínico
@@ -86,12 +91,14 @@ export const qpcrApi = {
    * Soporta filtrado opcional por síndrome clínico, especie y búsqueda textual
    */
   async getProfiles(params = {}) {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/profiles`, { params, timeout: 3000 });
-      if (response.data?.success && Array.isArray(response.data?.data)) {
-        return response.data.data;
-      }
-    } catch (_) {}
+    if (API_BASE_URL) {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/profiles`, { params, timeout: 3000 });
+        if (response.data?.success && Array.isArray(response.data?.data)) {
+          return response.data.data;
+        }
+      } catch (_) {}
+    }
 
     let list = LOCAL_PROFILES.map((p) => ({
       ...p,
@@ -152,22 +159,24 @@ export const qpcrApi = {
     riskFactors = {},
     patient = null,
   }) {
-    try {
-      const response = await axios.post(`${API_BASE_URL}/filter-profiles`, {
-        syndromes,
-        findings,
-        symptoms,
-        species,
-        isAsymptomatic,
-        riskFactors,
-        patient,
-      }, { timeout: 3500 });
+    if (API_BASE_URL) {
+      try {
+        const response = await axios.post(`${API_BASE_URL}/filter-profiles`, {
+          syndromes,
+          findings,
+          symptoms,
+          species,
+          isAsymptomatic,
+          riskFactors,
+          patient,
+        }, { timeout: 3500 });
 
-      if (response.data && response.data.success && Array.isArray(response.data.data)) {
-        return response.data.data;
+        if (response.data && response.data.success && Array.isArray(response.data.data)) {
+          return response.data.data;
+        }
+      } catch (err) {
+        console.warn('Backend qPCR no disponible o error de red. Utilizando motor de inferencia local:', err.message);
       }
-    } catch (err) {
-      console.warn('Backend qPCR no disponible o error de red. Utilizando motor de inferencia local:', err.message);
     }
 
     // Fallback local garantizado con algoritmo de atribución idéntico
@@ -355,12 +364,14 @@ export const qpcrApi = {
    * Obtiene la base de datos de agentes infecciosos oficiales sincronizados desde Kea Tools
    */
   async getAgents(params = {}) {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/agents`, { params, timeout: 3500 });
-      if (response.data?.success && Array.isArray(response.data?.data)) {
-        return response.data.data;
-      }
-    } catch (_) {}
+    if (API_BASE_URL) {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/agents`, { params, timeout: 3500 });
+        if (response.data?.success && Array.isArray(response.data?.data)) {
+          return response.data.data;
+        }
+      } catch (_) {}
+    }
     return LOCAL_AGENTS;
   },
 };

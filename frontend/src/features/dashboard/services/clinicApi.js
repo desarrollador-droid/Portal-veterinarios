@@ -4,9 +4,12 @@ import { colombiaGeoApi } from './colombiaGeoApi.js';
 
 export { AVAILABLE_PERMISSIONS, ROLE_PRESETS };
 
+const isLocalhost = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
 const API_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL)
   ? `${import.meta.env.VITE_API_URL}/api/clinics`
-  : 'http://localhost:5000/api/clinics';
+  : (isLocalhost ? 'http://localhost:5000/api/clinics' : null);
 
 export const KEA_VETERINARIA_URL = 'https://osd.kea.tools/api/v1/databases/ZZ_VETERINARIA';
 export const KEA_VETERINARIA_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiY2VlMWQ1M2MzNmU1NzliYmQxYmI2ZDU0YWJmM2E2MTYyYTRmMjVlMzY3NDUyMDJjOTdhNGE4YmQyMjI0ZTQ3MmJhYjRhMDdjYjBmYmFkMmYiLCJpYXQiOjE3OTU1NTUzMjMuNzM5ODEsIm5iZiI6MTc5NTU1NTMyMy43Mzk4MTUsImV4cCI6MTgyNzA5MTMyMy43MjQ3OTksInN1YiI6IjQiLCJzY29wZXMiOlsia2VhLmRhdGFiYXNlIl19.rivB3lH2j4caNRG8HdX9v2Pid4eqrqN2o1KEnRh9Q3-o7wO2_JIhyjhojaMSLkIn7GtWJbzIA06QWueJZ8hsC0t8xdQuR7qx5pOAcP_iSeKa2nIiX4dP-a7HS9t1B5myqBghTBJMaVRUSuXYbU3kSJ7uHydKvvugIszvTPBbX-Kv6QQbS08_bX5unOP2FXxHe5_ZuK5n-bv0d6wQk5JnG0kztWMmxc013zto-XUp-Q052Jyrz48_18l6x_SwnS4Pwm8eD9EinGHGCy6SVkaFFQ7e-rrTXwXJz6WDc-3J_pQnD9blYKAhSh5bII-GFISs3KiDdDnyTswWF_nhilp9tgIM-yMWiz0BxlHF-ll6EMwbValv08kGADHdSHDlR8pkoEop4t3kD93qAIN99ZER2afYsQNDZfFnCkt8GRpN_Rgo8I0zweJ-TgKJOqraCcCOszFFoUCg2kGcz3OGnoVXoqWNWhVglQpXpEnjfu42VfPkkhBC3-j_Cd20AOgJCUaP6lbZqAeaN-qvS0f_uP4gk51GS8zIu1QY0XxQLn5-q0rruTR8e0XE2GBmNFylcqfOIad-s6n_4EHD-TMzcc7Fur-Ptd1ggQ8xczG_Ncooa5cS2qPy1z5zlvxGduNlR-C2o5Pu93gbndYVHQ5erAmEzghLVQwd3zW2d5NDH0D-57s';
@@ -244,13 +247,15 @@ export const clinicApi = {
   },
 
   async getClinics(params = {}) {
-    try {
-      const res = await axios.get(API_BASE_URL, { params, timeout: 3000 });
-      if (res.data?.success && Array.isArray(res.data?.data)) {
-        saveStoredClinics(res.data.data);
-        return res.data.data;
-      }
-    } catch (_) {}
+    if (API_BASE_URL) {
+      try {
+        const res = await axios.get(API_BASE_URL, { params, timeout: 3000 });
+        if (res.data?.success && Array.isArray(res.data?.data)) {
+          saveStoredClinics(res.data.data);
+          return res.data.data;
+        }
+      } catch (_) {}
+    }
 
     let list = getStoredClinics();
     if (params.type && params.type !== 'all') {
@@ -300,22 +305,24 @@ export const clinicApi = {
     const cleanTargetNit = targetNit ? String(targetNit).replace(/[^0-9]/g, '').trim() : '';
 
     // Consultar al backend pasando los identificadores
-    try {
-      const res = await axios.get(`${API_BASE_URL}/active`, {
-        params: { clinicId: targetId, nit: cleanTargetNit },
-        timeout: 3000,
-      });
-      if (res.data?.success && res.data?.data) {
-        // Verificar que coincida si teníamos sesión activa
-        if (!cleanTargetNit && !targetId) {
-          return res.data.data;
+    if (API_BASE_URL) {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/active`, {
+          params: { clinicId: targetId, nit: cleanTargetNit },
+          timeout: 3000,
+        });
+        if (res.data?.success && res.data?.data) {
+          // Verificar que coincida si teníamos sesión activa
+          if (!cleanTargetNit && !targetId) {
+            return res.data.data;
+          }
+          const resNit = String(res.data.data.nit || res.data.data.cedula || '').replace(/[^0-9]/g, '').trim();
+          if ((cleanTargetNit && resNit === cleanTargetNit) || (targetId && res.data.data.id === targetId)) {
+            return res.data.data;
+          }
         }
-        const resNit = String(res.data.data.nit || res.data.data.cedula || '').replace(/[^0-9]/g, '').trim();
-        if ((cleanTargetNit && resNit === cleanTargetNit) || (targetId && res.data.data.id === targetId)) {
-          return res.data.data;
-        }
-      }
-    } catch (_) {}
+      } catch (_) {}
+    }
 
     // Buscar en el almacén local
     const list = getStoredClinics();
@@ -389,15 +396,17 @@ export const clinicApi = {
    * Cambia la clínica activa para la sesión
    */
   async setActiveClinic(id) {
-    try {
-      const res = await axios.post(`${API_BASE_URL}/active/${id}`, {}, { timeout: 3000 });
-      if (res.data?.success && res.data?.data) {
-        try {
-          localStorage.setItem(ACTIVE_STORAGE_KEY, id);
-        } catch (_) {}
-        return res.data.data;
-      }
-    } catch (_) {}
+    if (API_BASE_URL) {
+      try {
+        const res = await axios.post(`${API_BASE_URL}/active/${id}`, {}, { timeout: 3000 });
+        if (res.data?.success && res.data?.data) {
+          try {
+            localStorage.setItem(ACTIVE_STORAGE_KEY, id);
+          } catch (_) {}
+          return res.data.data;
+        }
+      } catch (_) {}
+    }
 
     const list = getStoredClinics().map((c) => ({
       ...c,

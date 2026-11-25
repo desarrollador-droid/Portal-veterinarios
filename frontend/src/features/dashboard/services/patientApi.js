@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api/patients';
+const isLocalhost = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+const API_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL)
+  ? `${import.meta.env.VITE_API_URL}/api/patients`
+  : (isLocalhost ? 'http://localhost:5000/api/patients' : null);
 
 import { hasReportedAllergy, getAllergyDisplay, isNegativeAllergyText } from '../utils/allergyHelpers.js';
 export { hasReportedAllergy, getAllergyDisplay, isNegativeAllergyText };
@@ -212,11 +217,13 @@ export const patientApi = {
       const hosp = list.filter((p) => p.status === 'internado' || p.status === 'critico').length;
       return { activePatients: active, ordersInProgress: inProgress, resultsReady: ready, hospitalized: hosp };
     }
-    try {
-      const response = await axios.get(`${API_BASE_URL}/stats`, { params, timeout: 10000 });
-      return response.data.data;
-    } catch {
-      let list = [...localPatientsStore];
+    if (API_BASE_URL) {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/stats`, { params, timeout: 5000 });
+        return response.data.data;
+      } catch (_) {}
+    }
+    let list = [...localPatientsStore];
       const targetNit = String(params.nit || params.clinicNit || '').replace(/[^0-9]/g, '').trim();
       const targetClinicId = params.clinicId ? String(params.clinicId).trim().toLowerCase() : '';
       if (targetNit || targetClinicId) {
@@ -243,7 +250,6 @@ export const patientApi = {
       const ready = list.filter((p) => p.activeExamOrder && p.activeExamOrder.currentStep === 4).length;
       const hosp = list.filter((p) => p.status === 'internado').length;
       return { activePatients: active, ordersInProgress: inProgress, resultsReady: ready, hospitalized: hosp };
-    }
   },
 
   async getPatients(filters = {}) {
@@ -282,11 +288,13 @@ export const patientApi = {
       }
       return list;
     }
-    try {
-      const response = await axios.get(API_BASE_URL, { params: filters, timeout: 10000 });
-      return response.data.data;
-    } catch {
-      let list = [...localPatientsStore];
+    if (API_BASE_URL) {
+      try {
+        const response = await axios.get(API_BASE_URL, { params: filters, timeout: 5000 });
+        return response.data.data;
+      } catch (_) {}
+    }
+    let list = [...localPatientsStore];
       const targetNit = String(filters.nit || filters.clinicNit || '').replace(/[^0-9]/g, '').trim();
       const targetClinicId = filters.clinicId ? String(filters.clinicId).trim().toLowerCase() : '';
       if (targetNit || targetClinicId) {
@@ -332,7 +340,6 @@ export const patientApi = {
         });
       }
       return list;
-    }
   },
 
   async getFilters() {
@@ -347,17 +354,18 @@ export const patientApi = {
         availableStatuses: PATIENT_STATUSES,
       };
     }
-    try {
-      const response = await axios.get(`${API_BASE_URL}/filters`, { timeout: 2000 });
-      return response.data.data;
-    } catch {
-      return {
-        species: ['Felino', 'Canino'],
-        breeds: ['Siamés', 'Golden Retriever', 'Bulldog Francés', 'Rottweiler'],
-        sampleStatuses: ['Resultado enviado', 'En análisis qPCR', 'Muestra recibida', 'Solicitud creada'],
-        availableStatuses: PATIENT_STATUSES,
-      };
+    if (API_BASE_URL) {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/filters`, { timeout: 2000 });
+        return response.data.data;
+      } catch (_) {}
     }
+    return {
+      species: ['Felino', 'Canino'],
+      breeds: ['Siamés', 'Golden Retriever', 'Bulldog Francés', 'Rottweiler'],
+      sampleStatuses: ['Resultado enviado', 'En análisis qPCR', 'Muestra recibida', 'Solicitud creada'],
+      availableStatuses: PATIENT_STATUSES,
+    };
   },
 
   async updatePatient(id, updatedData) {
@@ -473,14 +481,17 @@ export const patientApi = {
       saveStoredMockPatients(list);
       return list[idx];
     }
-    try {
-      const response = await axios.put(`${API_BASE_URL}/${id}`, updatedData);
-      return response.data.data;
-    } catch (err) {
-      if (err.response && err.response.data && err.response.data.message) {
-        throw new Error(err.response.data.message);
+    if (API_BASE_URL) {
+      try {
+        const response = await axios.put(`${API_BASE_URL}/${id}`, updatedData);
+        return response.data.data;
+      } catch (err) {
+        if (err.response && err.response.data && err.response.data.message) {
+          throw new Error(err.response.data.message);
+        }
       }
-      const idx = localPatientsStore.findIndex((p) => p.id === id);
+    }
+    const idx = localPatientsStore.findIndex((p) => p.id === id);
       if (idx !== -1) {
         if (localPatientsStore[idx].status === 'fallecido') {
           throw new Error('Acceso denegado: La ficha de un paciente fallecido está bloqueada y no admite modificaciones.');
@@ -737,8 +748,7 @@ export const patientApi = {
 
         return localPatientsStore[idx];
       }
-      throw err;
-    }
+      throw new Error('Paciente no encontrado');
   },
 
   async deletePatient(id) {
@@ -748,12 +758,15 @@ export const patientApi = {
       saveStoredMockPatients(list);
       return { success: true, message: 'Paciente eliminado correctamente' };
     }
-    try {
-      const response = await axios.delete(`${API_BASE_URL}/${id}`);
-      return response.data;
-    } catch (err) {
-      console.warn('Backend local no disponible, inactivando en Kea Tools...', err.message);
-      const patient = localPatientsStore.find((p) => p.id === id);
+    if (API_BASE_URL) {
+      try {
+        const response = await axios.delete(`${API_BASE_URL}/${id}`);
+        return response.data;
+      } catch (err) {
+        console.warn('Backend local no disponible, inactivando en Kea Tools...', err.message);
+      }
+    }
+    const patient = localPatientsStore.find((p) => p.id === id);
       if (patient && patient.keaRecordId) {
         try {
           const keaUrl = `${KEA_API_URL}/${patient.keaRecordId}`;
@@ -772,7 +785,6 @@ export const patientApi = {
       }
       localPatientsStore = localPatientsStore.filter((p) => p.id !== id);
       return { success: true, message: 'Paciente inactivado correctamente' };
-    }
   },
 
   async requestExam(id, examData) {
@@ -969,14 +981,17 @@ export const patientApi = {
       saveStoredMockPatients(list);
       return patient.activeExamOrder;
     }
-    try {
-      const response = await axios.post(`${API_BASE_URL}/${id}/exam`, examData);
-      return response.data.data;
-    } catch (err) {
-      if (err.response && err.response.data && err.response.data.message) {
-        throw new Error(err.response.data.message);
+    if (API_BASE_URL) {
+      try {
+        const response = await axios.post(`${API_BASE_URL}/${id}/exam`, examData);
+        return response.data.data;
+      } catch (err) {
+        if (err.response && err.response.data && err.response.data.message) {
+          throw new Error(err.response.data.message);
+        }
       }
-      const patient = localPatientsStore.find((p) => p.id === id);
+    }
+    const patient = localPatientsStore.find((p) => p.id === id);
       if (!patient) throw new Error('Paciente no encontrado');
       if (patient.status === 'fallecido') throw new Error('No se pueden solicitar exámenes para un paciente fallecido.');
 
@@ -1170,7 +1185,6 @@ export const patientApi = {
       }
 
       return patient.activeExamOrder;
-    }
   },
 
   async addConsultation(patientId, consultationData) {
@@ -1234,11 +1248,13 @@ export const patientApi = {
         patient: { ...patient },
       };
     }
-    try {
-      const response = await axios.post(`${API_BASE_URL}/${patientId}/consultations`, consultationData);
-      return response.data.data;
-    } catch (err) {
-      const patient = localPatientsStore.find((p) => p.id === patientId);
+    if (API_BASE_URL) {
+      try {
+        const response = await axios.post(`${API_BASE_URL}/${patientId}/consultations`, consultationData);
+        return response.data.data;
+      } catch (_) {}
+    }
+    const patient = localPatientsStore.find((p) => p.id === patientId);
       if (!patient) throw new Error('Paciente no encontrado');
 
       if (patient.status === 'fallecido') {
@@ -1293,7 +1309,6 @@ export const patientApi = {
         consultation: newConsultation,
         patient: { ...patient },
       };
-    }
   },
 
   async createPatient(patientData) {
@@ -1390,13 +1405,16 @@ export const patientApi = {
       saveStoredMockPatients(list);
       return newPatient;
     }
-    try {
-      const response = await axios.post(API_BASE_URL, patientData);
-      return response.data.data;
-    } catch (err) {
-      console.warn('Backend local no disponible, registrando directamente en Kea Tools...', err.message);
+    if (API_BASE_URL) {
+      try {
+        const response = await axios.post(API_BASE_URL, patientData);
+        return response.data.data;
+      } catch (err) {
+        console.warn('Backend local no disponible, registrando directamente en Kea Tools...', err.message);
+      }
+    }
 
-      let maxNum = 0;
+    let maxNum = 0;
       for (const p of localPatientsStore) {
         if (p.id && typeof p.id === 'string') {
           const m = p.id.match(/^PAC-(\d+)$/i);
@@ -1599,7 +1617,6 @@ export const patientApi = {
       };
       localPatientsStore.unshift(newPatient);
       return newPatient;
-    }
   },
 
   async testKea() {
@@ -1610,15 +1627,35 @@ export const patientApi = {
         code: 'MOCK_DEMO_MODE',
       };
     }
+    if (API_BASE_URL) {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/kea/test`, { timeout: 6000 });
+        return res.data;
+      } catch (err) {
+        return {
+          connected: false,
+          message: err.response?.data?.message || err.message,
+          code: err.response?.data?.code || 'ERROR',
+          details: err.response?.data?.details,
+        };
+      }
+    }
     try {
-      const res = await axios.get(`${API_BASE_URL}/kea/test`, { timeout: 6000 });
-      return res.data;
+      const resp = await fetch(KEA_API_URL, {
+        headers: {
+          Authorization: `Bearer ${KEA_BEARER_TOKEN}`,
+          Accept: 'application/json',
+        },
+      });
+      return {
+        connected: resp.ok,
+        message: resp.ok ? 'Conexión exitosa a Kea Tools' : `Error HTTP ${resp.status}`,
+      };
     } catch (err) {
       return {
         connected: false,
-        message: err.response?.data?.message || err.message,
-        code: err.response?.data?.code || 'ERROR',
-        details: err.response?.data?.details,
+        message: err.message,
+        code: 'ERROR',
       };
     }
   },
@@ -1638,10 +1675,12 @@ export const patientApi = {
         },
       };
     }
-    try {
-      const res = await axios.post(`${API_BASE_URL}/kea/sync`, {}, { timeout: 10000 });
-      return res.data;
-    } catch {
+    if (API_BASE_URL) {
+      try {
+        const res = await axios.post(`${API_BASE_URL}/kea/sync`, {}, { timeout: 10000 });
+        return res.data;
+      } catch (_) {}
+    }
       // Fallback directo a Kea Tools API
       const resp = await fetch(KEA_API_URL, {
         headers: {
@@ -1724,7 +1763,6 @@ export const patientApi = {
         };
       }
       throw new Error(data.message || 'Error en respuesta de Kea Tools');
-    }
   },
 };
 
