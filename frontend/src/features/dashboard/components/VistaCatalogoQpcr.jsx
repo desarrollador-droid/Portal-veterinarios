@@ -681,15 +681,15 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
                       </div>
                     </div>
 
-                    {/* Nota aclaratoria sobre matrices biológicas */}
+                    {/* Matrices biológicas requeridas para el perfil */}
                     <div className="p-3 rounded-2xl bg-gradient-to-r from-teal-500/10 via-sky-500/5 to-transparent dark:from-teal-950/40 dark:via-sky-950/20 dark:to-transparent border-l-4 border-l-teal-600 dark:border-l-teal-400 border border-teal-500/30 dark:border-teal-500/40 shadow-xs flex items-start gap-2.5">
-                      <span className="text-base text-teal-600 dark:text-teal-400 shrink-0">🔬</span>
-                      <div className="text-[11px] space-y-0.5">
-                        <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-teal-500/20 text-teal-900 dark:text-teal-200 border border-teal-500/30 inline-block mb-0.5">
-                          Anotación · Matrices Biológicas
+                      <span className="text-base text-teal-600 dark:text-teal-400 shrink-0 mt-0.5">🔬</span>
+                      <div className="text-[11px] space-y-1 w-full">
+                        <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-teal-500/20 text-teal-900 dark:text-teal-200 border border-teal-500/30 inline-block">
+                          Se utiliza diferentes tipos de matrices biológicas
                         </span>
                         <p className="text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
-                          <strong className="text-slate-900 dark:text-white">Flexibilidad de matriz:</strong> Posibilidad de utilizar diferentes tipos de matrices biológicas (sangre EDTA, hisopados, aspirados de médula, orina estéril, líquido cavitario/LCR o biopsias) según las características y necesidades de cada caso clínico.
+                          <strong className="text-slate-900 dark:text-white">Matrices para este perfil:</strong> {profile.matrix || profile.sampleSummary || 'Sangre total con EDTA'}
                         </p>
                       </div>
                     </div>

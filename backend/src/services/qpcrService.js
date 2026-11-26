@@ -54,6 +54,75 @@ function matchSyndromeTokens(sNorm, psNorm) {
   return false;
 }
 
+/**
+ * Clasificación etaria clínica del paciente (Pediátrico / Adulto / Geriátrico)
+ */
+export function parseAgeStage(ageInput, birthDateInput) {
+  let months = null;
+  if (birthDateInput) {
+    const b = new Date(birthDateInput);
+    if (!isNaN(b.getTime())) {
+      const diffMs = Date.now() - b.getTime();
+      months = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30.4375));
+    }
+  }
+  if (months === null && ageInput !== undefined && ageInput !== null && ageInput !== '') {
+    const s = String(ageInput).toLowerCase().trim();
+    const num = parseFloat(s.replace(/[^0-9.]/g, ''));
+    if (!isNaN(num)) {
+      if (s.includes('mes')) {
+        months = Math.round(num);
+      } else if (s.includes('año') || s.includes('ano')) {
+        months = Math.round(num * 12);
+      } else {
+        months = num > 25 ? Math.round(num) : Math.round(num * 12);
+      }
+    }
+  }
+  if (months === null) {
+    return { stage: 'adulto', label: 'Adulto', months: 36, isPediatric: false, isSenior: false, display: 'Adulto' };
+  }
+  if (months < 12) {
+    return { stage: 'pediatrico', label: 'Cachorro / Pediátrico', months, isPediatric: true, isSenior: false, display: `${months} meses` };
+  } else if (months >= 96) {
+    const years = Math.floor(months / 12);
+    return { stage: 'geriatrico', label: 'Geriátrico / Senior', months, isPediatric: false, isSenior: true, display: `${years} años` };
+  } else {
+    const years = Math.floor(months / 12);
+    return { stage: 'adulto', label: 'Adulto', months, isPediatric: false, isSenior: false, display: `${years} años` };
+  }
+}
+
+/**
+ * Evaluación epidemiológica geográfica según la residencia del tutor (zonas de vectores y entornos rurales)
+ */
+export function parseResidenceEpidemiology(cityOrAddress) {
+  if (!cityOrAddress) return { isWarmOrVectorZone: false, isRural: false, matchedZone: null, cityName: '' };
+  const norm = String(cityOrAddress).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  const vectorZones = [
+    'barranquilla', 'cartagena', 'santa marta', 'monteria', 'sincelejo', 'valledupar', 'riohacha',
+    'uraba', 'cali', 'palmira', 'tulua', 'buenaventura', 'girardot', 'melgar', 'flandes', 'neiva',
+    'ibague', 'espinal', 'villavicencio', 'yopal', 'llanos', 'bucaramanga', 'cucuta', 'barrancabermeja',
+    'medellin', 'bello', 'itagui', 'envigado', 'antioquia', 'costa', 'caribe', 'pacifico', 'calido',
+    'tropical', 'tolima', 'huila', 'valle', 'sucre', 'cordoba', 'cesar', 'magdalena', 'bolivar', 'atlantico',
+    'guajira', 'meta', 'casanare', 'santander', 'norte de santander', 'pereira', 'armenia'
+  ];
+
+  const ruralKeywords = ['rural', 'finca', 'vereda', 'corregimiento', 'granja', 'hacienda', 'parcela', 'campo'];
+
+  const isWarmOrVectorZone = vectorZones.some((vz) => norm.includes(vz));
+  const isRural = ruralKeywords.some((rk) => norm.includes(rk));
+  const matchedZone = vectorZones.find((vz) => norm.includes(vz)) || null;
+
+  return {
+    isWarmOrVectorZone,
+    isRural,
+    matchedZone,
+    cityName: String(cityOrAddress).trim(),
+  };
+}
+
 export const qpcrService = {
   /**
    * Obtiene la observación general preanalítica y clínica
@@ -271,19 +340,31 @@ export const qpcrService = {
       ...(riskFactors || {}),
     };
 
+    // Residencia del tutor (evaluación epidemiológica de vectores y entornos rurales)
+    const ownerCity = patient?.owner?.city || patient?.ownerCity || patient?.city || patient?.residencia || riskFactors?.city || '';
+    const ownerAddress = patient?.owner?.address || patient?.ownerAddress || '';
+    const combinedResidenceText = `${ownerCity} ${ownerAddress}`.trim();
+    const residenceInfo = parseResidenceEpidemiology(combinedResidenceText);
+
+    // Edad del paciente y clasificación etaria clínica (Pediátrico / Adulto / Geriátrico)
+    const ageInfo = parseAgeStage(patient?.age || patient?.edad, patient?.birthDate || patient?.fechaNacimiento);
+
     const hasTicksRisk = Boolean(
       effectiveRiskFactors.parasiteExposure ||
+      residenceInfo.isWarmOrVectorZone ||
       (effectiveRiskFactors.otherRiskFactors && normalizeText(effectiveRiskFactors.otherRiskFactors).includes('garrapata'))
     );
 
     const hasFleasRisk = Boolean(
       effectiveRiskFactors.parasiteExposure ||
+      residenceInfo.isWarmOrVectorZone ||
       (effectiveRiskFactors.otherRiskFactors && normalizeText(effectiveRiskFactors.otherRiskFactors).includes('pulga'))
     );
 
     const hasWaterOrRuralRisk = Boolean(
       effectiveRiskFactors.outdoorWater ||
       effectiveRiskFactors.ruralAccess ||
+      residenceInfo.isRural ||
       (effectiveRiskFactors.housingArea && normalizeText(effectiveRiskFactors.housingArea).includes('rural')) ||
       (effectiveRiskFactors.housingType && normalizeText(effectiveRiskFactors.housingType).includes('finca'))
     );
@@ -477,6 +558,42 @@ export const qpcrService = {
         finalPercentage += 2;
       }
 
+      // Bonificación por Residencia del Tutor en zona de alta presión vectorial
+      if (residenceInfo.isWarmOrVectorZone && (hasTickAgents || hasFleaAgents || hasDirofilariaInProfile)) {
+        finalPercentage += 4;
+        if (!epidemiologicalAlert) {
+          epidemiologicalAlert = `Residencia del tutor en ${residenceInfo.cityName || 'zona cálida/vectorial'}: predisposición epidemiológica a hemotrópicos (Ehrlichia, Babesia, Anaplasma, Hepatozoon) y filarias.`;
+        }
+      }
+
+      // Bonificación por Residencia o acceso a entorno rural (Leptospira)
+      if (residenceInfo.isRural && hasLeptospiraInProfile) {
+        finalPercentage += 4;
+        if (!epidemiologicalAlert) {
+          epidemiologicalAlert = `Residencia en entorno rural/finca (${residenceInfo.cityName}): riesgo incrementado de Leptospira spp. por exposición ambiental.`;
+        }
+      }
+
+      // Bonificación por Clasificación Etaria (Edad del paciente)
+      const hasViralOrPediatricTarget = resolvedAgents.some((a) => {
+        const agNorm = normalizeText(a.name || '');
+        return agNorm.includes('parvo') || agNorm.includes('moquillo') || agNorm.includes('distemper') ||
+               agNorm.includes('adeno') || agNorm.includes('corona') || agNorm.includes('calici') ||
+               agNorm.includes('panleuco') || agNorm.includes('herpes');
+      });
+
+      if (ageInfo.isPediatric) {
+        // Pediátrico (< 12 meses): alta susceptibilidad inmune a virus y cuadros agudos
+        if (hasViralOrPediatricTarget || profile.type === 'Amplio') {
+          finalPercentage += 4;
+        }
+      } else if (ageInfo.isSenior) {
+        // Geriátrico (≥ 8 años): inmunosenescencia y reactivación de hemotrópicos crónicos
+        if (profile.type === 'Amplio' || (matchedSyndromes.length > 0 && hasTickAgents)) {
+          finalPercentage += 4;
+        }
+      }
+
       // Bono por profundidad diagnóstica de patógenos diana coincidentes
       if (matchedAgentNames.size >= 2) {
         finalPercentage += 2;
@@ -496,6 +613,18 @@ export const qpcrService = {
         clinicalRationale = `Panel indicado para el síndrome clínico ${profile.syndromes.join(' / ')} en ${species}.`;
       } else {
         clinicalRationale = `Panel especializado de diagnóstico molecular por qPCR.`;
+      }
+
+      // Matiz clínico por edad en el rationale
+      if (ageInfo.isPediatric) {
+        clinicalRationale += ` Priorizado por etapa pediátrica (${ageInfo.display}) con mayor susceptibilidad infecciosa.`;
+      } else if (ageInfo.isSenior) {
+        clinicalRationale += ` Considera factores de inmunosenescencia en paciente senior (${ageInfo.display}) para descartar reactivación o cronicidad.`;
+      }
+
+      // Matiz clínico por residencia en el rationale
+      if (residenceInfo.isWarmOrVectorZone && (hasTickAgents || hasFleaAgents || hasDirofilariaInProfile)) {
+        clinicalRationale += ` Ajustado por residencia en ${residenceInfo.cityName} (presión vectorial activa).`;
       }
 
       return {

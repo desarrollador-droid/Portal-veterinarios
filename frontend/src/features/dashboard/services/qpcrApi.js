@@ -64,6 +64,81 @@ export const CLINICAL_SYNDROMES_LIST = [
   { id: 'Infeccioso viral', label: 'Infeccioso Viral', icon: '🦠' },
 ];
 
+export const KEA_AGENTES_URL = 'https://osd.kea.tools/api/v1/databases/ZZ_PLAT_AGENTE/records?limit=100';
+export const KEA_AGENTES_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiZDk1MWI0MTI4NDY0MGJiYTlkMzgzZjRjNjdkZjZlMzFiMzJmYzc3NDFhNjE5NzRkNzBmMTY0MjgyMmEwMmYxZTdmNTI1NjY0MjE0MTRhMjMiLCJpYXQiOjE3OTU2MTk2OTAuMDY2MTM0LCJuYmYiOjE3OTU2MTk2OTAuMDY2MTM4LCJleHAiOjE4MjcxNTU2OTAuMDU5NTQ3LCJzdWIiOiI0Iiwic2NvcGVzIjpbImtlYS5kYXRhYmFzZSJdfQ.gC9i_WrY47kCT9qrdy38ZrVi_WDUKipmNv9zLNKna2N0dNyed_iRzMi23vIacyo8nI_Dm88Bh2iBzbRde70_1OXyyeBDQWYR2VxVLv23_iQopiwVFXl-8E0_wJlLZcRCHdmzPBDyFkKSIKyUqQgDv_IZMOW6rB_zB6jgAV3q2fg9JngbCDvGWtdloF7YQlCw1S2LI2TLLRhV4ZTVXNP78fGnBFGLu0vA7bvA8-V0I2tXXylZxD4YfJWYkmT7_b_hWFFENrWIvijZnh4ZQsyDTnBTsULZgVZnbT1jpaDjV1FXRalAuFpxnTfRdQYHe-MTEahqFlfNopH7X7b09fs3zBQLOghOPPgvMqDpOc9OwYOIWzRBAVuW8KthyOkNVyaaMq7qfQjB_cSOVBKy4bI7enEIbGflzAVMgtAdTM9lOlnW6Yxzv9lgUBy_LuUdtBhP42Yxbtzo0rfwfWRgLMpQ-l9o5keY0zNsGW-hiLwy4mWc1Wi-5uEts7Q8ExowyKBizHqqRvJtA_DzNCQCkdWri4sYrwwadCcNsLFzjUckf8O-UwCtXyloYbXr7jhYAFbxazh4mM_cCtSuy6dKV2iP8BhzUj-nWnO0PuB-3J-oUaBtQ4AcQvIhMJ1q-NbjNYrc1o1NMbIPqmNCOSu9uY4I1HrMfR5t8-Ev2pbJekuZuZ8';
+
+let cachedAgentsMemory = null;
+let lastAgentsFetchTimestamp = 0;
+
+/**
+ * Clasificación etaria clínica del paciente (Pediátrico / Adulto / Geriátrico)
+ */
+export function parseAgeStage(ageInput, birthDateInput) {
+  let months = null;
+  if (birthDateInput) {
+    const b = new Date(birthDateInput);
+    if (!isNaN(b.getTime())) {
+      const diffMs = Date.now() - b.getTime();
+      months = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30.4375));
+    }
+  }
+  if (months === null && ageInput !== undefined && ageInput !== null && ageInput !== '') {
+    const s = String(ageInput).toLowerCase().trim();
+    const num = parseFloat(s.replace(/[^0-9.]/g, ''));
+    if (!isNaN(num)) {
+      if (s.includes('mes')) {
+        months = Math.round(num);
+      } else if (s.includes('año') || s.includes('ano')) {
+        months = Math.round(num * 12);
+      } else {
+        months = num > 25 ? Math.round(num) : Math.round(num * 12);
+      }
+    }
+  }
+  if (months === null) {
+    return { stage: 'adulto', label: 'Adulto', months: 36, isPediatric: false, isSenior: false, display: 'Adulto' };
+  }
+  if (months < 12) {
+    return { stage: 'pediatrico', label: 'Cachorro / Pediátrico', months, isPediatric: true, isSenior: false, display: `${months} meses` };
+  } else if (months >= 96) {
+    const years = Math.floor(months / 12);
+    return { stage: 'geriatrico', label: 'Geriátrico / Senior', months, isPediatric: false, isSenior: true, display: `${years} años` };
+  } else {
+    const years = Math.floor(months / 12);
+    return { stage: 'adulto', label: 'Adulto', months, isPediatric: false, isSenior: false, display: `${years} años` };
+  }
+}
+
+/**
+ * Evaluación epidemiológica geográfica según la residencia del tutor (zonas de vectores y entornos rurales)
+ */
+export function parseResidenceEpidemiology(cityOrAddress) {
+  if (!cityOrAddress) return { isWarmOrVectorZone: false, isRural: false, matchedZone: null, cityName: '' };
+  const normText = String(cityOrAddress).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  const vectorZones = [
+    'barranquilla', 'cartagena', 'santa marta', 'monteria', 'sincelejo', 'valledupar', 'riohacha',
+    'uraba', 'cali', 'palmira', 'tulua', 'buenaventura', 'girardot', 'melgar', 'flandes', 'neiva',
+    'ibague', 'espinal', 'villavicencio', 'yopal', 'llanos', 'bucaramanga', 'cucuta', 'barrancabermeja',
+    'medellin', 'bello', 'itagui', 'envigado', 'antioquia', 'costa', 'caribe', 'pacifico', 'calido',
+    'tropical', 'tolima', 'huila', 'valle', 'sucre', 'cordoba', 'cesar', 'magdalena', 'bolivar', 'atlantico',
+    'guajira', 'meta', 'casanare', 'santander', 'norte de santander', 'pereira', 'armenia'
+  ];
+
+  const ruralKeywords = ['rural', 'finca', 'vereda', 'corregimiento', 'granja', 'hacienda', 'parcela', 'campo'];
+
+  const isWarmOrVectorZone = vectorZones.some((vz) => normText.includes(vz));
+  const isRural = ruralKeywords.some((rk) => normText.includes(rk));
+  const matchedZone = vectorZones.find((vz) => normText.includes(vz)) || null;
+
+  return {
+    isWarmOrVectorZone,
+    isRural,
+    matchedZone,
+    cityName: String(cityOrAddress).trim(),
+  };
+}
+
 // Re-exportamos la base de datos de agentes y perfiles desde la estructura canónica local
 export {
   OFFICIAL_KEA_AGENTS_DB as LOCAL_INFECTIOUS_AGENTS_DB,
@@ -205,19 +280,31 @@ export const qpcrApi = {
       ...(riskFactors || {}),
     };
 
+    // Residencia del tutor (evaluación epidemiológica geográfica)
+    const ownerCity = patient?.owner?.city || patient?.ownerCity || patient?.city || patient?.residencia || riskFactors?.city || '';
+    const ownerAddress = patient?.owner?.address || patient?.ownerAddress || '';
+    const combinedResidenceText = `${ownerCity} ${ownerAddress}`.trim();
+    const residenceInfo = parseResidenceEpidemiology(combinedResidenceText);
+
+    // Edad del paciente y clasificación etaria clínica (Pediátrico / Adulto / Geriátrico)
+    const ageInfo = parseAgeStage(patient?.age || patient?.edad, patient?.birthDate || patient?.fechaNacimiento);
+
     const hasTicksRisk = Boolean(
       effectiveRiskFactors.parasiteExposure ||
+      residenceInfo.isWarmOrVectorZone ||
       (effectiveRiskFactors.otherRiskFactors && norm(effectiveRiskFactors.otherRiskFactors).includes('garrapata'))
     );
 
     const hasFleasRisk = Boolean(
       effectiveRiskFactors.parasiteExposure ||
+      residenceInfo.isWarmOrVectorZone ||
       (effectiveRiskFactors.otherRiskFactors && norm(effectiveRiskFactors.otherRiskFactors).includes('pulga'))
     );
 
     const hasWaterOrRuralRisk = Boolean(
       effectiveRiskFactors.outdoorWater ||
       effectiveRiskFactors.ruralAccess ||
+      residenceInfo.isRural ||
       (effectiveRiskFactors.housingArea && norm(effectiveRiskFactors.housingArea).includes('rural')) ||
       (effectiveRiskFactors.housingType && norm(effectiveRiskFactors.housingType).includes('finca'))
     );
@@ -319,15 +406,53 @@ export const qpcrApi = {
           score += 5;
           epidemiologicalAlert = 'Paciente con historial de viaje a zona de impacto filarial/costera; alta correlación con Dirofilaria immitis y Wolbachia.';
         }
-        if (resolvedAgents.some((a) => (a.vectors || []).includes('garrapata')) && hasTicksRisk) {
+        const hasTickAgents = resolvedAgents.some((a) => (a.vectors || []).includes('garrapata'));
+        if (hasTickAgents && hasTicksRisk) {
           score += 3;
           if (!epidemiologicalAlert) {
             epidemiologicalAlert = 'Paciente con exposición a garrapatas; alta sospecha de agentes hemotrópicos vectoriales.';
           }
         }
-        if (resolvedAgents.some((a) => (a.vectors || []).includes('pulga')) && hasFleasRisk) {
+        const hasFleaAgents = resolvedAgents.some((a) => (a.vectors || []).includes('pulga'));
+        if (hasFleaAgents && hasFleasRisk) {
           score += 3;
         }
+
+        // Bonificación por residencia del tutor en zona de alta presión vectorial
+        const hasDirofilaria = resolvedAgents.some((a) => a.group === 'NEMÁTODOS' || (a.id && a.id.includes('wolbachia')));
+        if (residenceInfo.isWarmOrVectorZone && (hasTickAgents || hasFleaAgents || hasDirofilaria)) {
+          score += 4;
+          if (!epidemiologicalAlert) {
+            epidemiologicalAlert = `Residencia del tutor en ${residenceInfo.cityName || 'zona cálida/vectorial'}: predisposición epidemiológica a hemotrópicos y filarias.`;
+          }
+        }
+
+        // Bonificación por residencia o entorno rural (Leptospira)
+        if (residenceInfo.isRural && resolvedAgents.some((a) => a.group === 'LEPTOSPIRA')) {
+          score += 4;
+          if (!epidemiologicalAlert) {
+            epidemiologicalAlert = `Residencia en entorno rural/finca (${residenceInfo.cityName}): riesgo incrementado de Leptospira spp.`;
+          }
+        }
+
+        // Bonificación por clasificación etaria (Edad del paciente)
+        const hasViralOrPediatricTarget = resolvedAgents.some((a) => {
+          const agNorm = norm(a.name || '');
+          return agNorm.includes('parvo') || agNorm.includes('moquillo') || agNorm.includes('distemper') ||
+                 agNorm.includes('adeno') || agNorm.includes('corona') || agNorm.includes('calici') ||
+                 agNorm.includes('panleuco') || agNorm.includes('herpes');
+        });
+
+        if (ageInfo.isPediatric) {
+          if (hasViralOrPediatricTarget || p.type === 'Amplio') {
+            score += 4;
+          }
+        } else if (ageInfo.isSenior) {
+          if (p.type === 'Amplio' || (matchedSyndromes.length > 0 && hasTickAgents)) {
+            score += 4;
+          }
+        }
+
         if (matchedAgentNames.size >= 2) {
           score = Math.min(99, score + 2);
         }
@@ -342,6 +467,18 @@ export const qpcrApi = {
           clinicalRationale = `Recomendado para el abordaje de síndrome ${p.syndromes.join(' / ')} en ${species}.`;
         } else {
           clinicalRationale = 'Panel de diagnóstico molecular qPCR.';
+        }
+
+        // Matiz clínico por edad
+        if (ageInfo.isPediatric) {
+          clinicalRationale += ` Priorizado por etapa pediátrica (${ageInfo.display}) con mayor susceptibilidad infecciosa.`;
+        } else if (ageInfo.isSenior) {
+          clinicalRationale += ` Considera factores de paciente senior (${ageInfo.display}) para descartar reactivación o cronicidad.`;
+        }
+
+        // Matiz clínico por residencia
+        if (residenceInfo.isWarmOrVectorZone && (hasTickAgents || hasFleaAgents || hasDirofilaria)) {
+          clinicalRationale += ` Ajustado por residencia en ${residenceInfo.cityName} (presión vectorial activa).`;
         }
 
         const agentNames = (resolvedAgents.length > 0)
@@ -376,6 +513,48 @@ export const qpcrApi = {
         }
       } catch (_) {}
     }
+
+    const now = Date.now();
+    if (cachedAgentsMemory && (now - lastAgentsFetchTimestamp < 5 * 60 * 1000)) {
+      return cachedAgentsMemory;
+    }
+
+    try {
+      const res = await fetch(KEA_AGENTES_URL, {
+        headers: {
+          'Authorization': `Bearer ${KEA_AGENTES_TOKEN}`,
+          'Accept': 'application/json',
+        },
+      });
+      if (res.ok) {
+        const d = await res.json();
+        const records = Array.isArray(d) ? d : (d.data || d.records || []);
+        if (Array.isArray(records) && records.length > 0) {
+          const mapped = records.map((rec) => {
+            const rawId = String(rec.ID_AGENTE || rec.id || '').trim();
+            const aplId = rawId.startsWith('APL-') ? rawId : `APL-${String(rec.id || 1).padStart(3, '0')}`;
+            const localMatch = LOCAL_AGENTS.find((a) => a.id === aplId || a.idAgente === aplId) || {};
+            return {
+              ...localMatch,
+              id: aplId,
+              idAgente: aplId,
+              name: String(rec.NOMBRE || localMatch.name || '').trim(),
+              sampleType: String(rec.TIPO_MUESTRA || localMatch.sampleType || 'Sangre EDTA').trim(),
+              tipoMuestra: String(rec.TIPO_MUESTRA || localMatch.tipoMuestra || 'Sangre EDTA').trim(),
+              matrix: String(rec.TIPO_MUESTRA || localMatch.matrix || 'Sangre EDTA').trim(),
+              diagnosticMethods: String(rec.TIPO_MUESTRA || localMatch.diagnosticMethods || 'Sangre EDTA').trim(),
+              estado: String(rec.ESTADO || 'activo').toLowerCase(),
+            };
+          });
+          cachedAgentsMemory = mapped;
+          lastAgentsFetchTimestamp = now;
+          return mapped;
+        }
+      }
+    } catch (err) {
+      console.warn('[qpcrApi] No se pudo consultar ZZ_PLAT_AGENTE directamente, usando catálogo local:', err.message);
+    }
+
     return LOCAL_AGENTS;
   },
 };
