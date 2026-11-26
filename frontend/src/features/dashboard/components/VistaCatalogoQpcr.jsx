@@ -6,6 +6,7 @@ import {
   CLINICAL_SYNDROMES_LIST,
   matchSyndromeTokens,
   qpcrApi,
+  parseProfileMatrices,
 } from '../services/qpcrApi.js';
 
 /**
@@ -670,29 +671,43 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
                       )}
                     </div>
 
-                    {/* Matriz Requerida */}
-                    <div className="pt-1">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 block mb-1">
-                        Matriz de Muestra Requerida
-                      </span>
-                      <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2 bg-slate-50 dark:bg-[#13002E] p-2.5 rounded-xl border border-slate-100 dark:border-[#2f2257]">
-                        <span className="text-sm">🧪</span>
-                        <span className="leading-snug">{profile.matrix || profile.sampleSummary}</span>
-                      </div>
-                    </div>
+                    {/* MATRICES BIOLÓGICAS REQUERIDAS (FONDO BLANCO, LISTADO LLAMATIVO) */}
+                    {(() => {
+                      const matrixData = parseProfileMatrices(profile.matrix || profile.sampleSummary);
+                      return (
+                        <div className="my-2.5 p-3.5 rounded-2xl bg-white dark:bg-[#150f2b] border border-slate-200 dark:border-[#2f2257] shadow-2xs space-y-2">
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <span className="text-[11px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                              <span className="text-sm">🧪</span> Matrices para este perfil:
+                            </span>
+                            <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                              Se utiliza diferentes tipos de matrices biológicas
+                            </span>
+                          </div>
 
-                    {/* Matrices biológicas requeridas para el perfil */}
-                    <div className="p-3 rounded-2xl bg-gradient-to-r from-teal-500/10 via-sky-500/5 to-transparent dark:from-teal-950/40 dark:via-sky-950/20 dark:to-transparent border-l-4 border-l-teal-600 dark:border-l-teal-400 border border-teal-500/30 dark:border-teal-500/40 shadow-xs flex items-start gap-2.5">
-                      <span className="text-base text-teal-600 dark:text-teal-400 shrink-0 mt-0.5">🔬</span>
-                      <div className="text-[11px] space-y-1 w-full">
-                        <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-teal-500/20 text-teal-900 dark:text-teal-200 border border-teal-500/30 inline-block">
-                          Se utiliza diferentes tipos de matrices biológicas
-                        </span>
-                        <p className="text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
-                          <strong className="text-slate-900 dark:text-white">Matrices para este perfil:</strong> {profile.matrix || profile.sampleSummary || 'Sangre total con EDTA'}
-                        </p>
-                      </div>
-                    </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5">
+                            {matrixData.items.map((mItem, mIdx) => (
+                              <div
+                                key={mIdx}
+                                className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-2.5 shadow-2xs ${mItem.tagBg}`}
+                              >
+                                <span className="text-base shrink-0">{mItem.icon}</span>
+                                <span className="leading-snug">{mItem.text}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                            {matrixData.note && (
+                              <div className="mt-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80 flex items-start gap-2 text-[11px] text-slate-600 dark:text-slate-300 leading-snug">
+                                <span className="text-xs text-[#6F2BCC] shrink-0 mt-0.5">ℹ️</span>
+                                <span>
+                                  <strong className="text-slate-900 dark:text-white">Alternativa / Condición clínica:</strong> {matrixData.note}
+                                </span>
+                              </div>
+                            )}
+                        </div>
+                      );
+                    })()}
 
                     {/* Nota aclaratoria sobre alternativas diagnósticas diferentes a hemotrópicas */}
                     <div className="p-3 rounded-2xl bg-gradient-to-r from-purple-500/10 via-[#6F2BCC]/5 to-sky-500/5 dark:from-purple-950/40 dark:via-[#6F2BCC]/20 dark:to-sky-950/20 border-l-4 border-l-[#6F2BCC] border border-[#6F2BCC]/30 dark:border-[#6F2BCC]/40 shadow-xs flex items-start gap-2.5">

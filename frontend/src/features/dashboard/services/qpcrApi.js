@@ -139,6 +139,107 @@ export function parseResidenceEpidemiology(cityOrAddress) {
   };
 }
 
+/**
+ * Analiza y desglosa la cadena de matrices biológicas de un perfil en una lista atractiva de matrices
+ */
+export function parseProfileMatrices(matrixStr) {
+  if (!matrixStr) {
+    return {
+      items: [{ text: 'Sangre en tubo tapa lila (EDTA)', icon: '🩸', tagBg: 'bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-300 border-rose-200/80 dark:border-rose-800' }],
+      note: null,
+    };
+  }
+
+  let mainPart = matrixStr;
+  let notePart = null;
+
+  const dotIndex = matrixStr.indexOf('. ');
+  if (dotIndex !== -1) {
+    mainPart = matrixStr.slice(0, dotIndex).trim();
+    notePart = matrixStr.slice(dotIndex + 2).trim();
+  } else if (matrixStr.toLowerCase().includes('en casos donde')) {
+    const idx = matrixStr.toLowerCase().indexOf('en casos donde');
+    mainPart = matrixStr.slice(0, idx).replace(/[.,;]$/, '').trim();
+    notePart = matrixStr.slice(idx).trim();
+  }
+
+  // Dividir por ' y/o ' o ' y ' respetando paréntesis
+  const rawTokens = [];
+  let current = '';
+  let inParen = false;
+
+  for (let i = 0; i < mainPart.length; i++) {
+    const char = mainPart[i];
+    if (char === '(') inParen = true;
+    else if (char === ')') inParen = false;
+
+    if (!inParen) {
+      if (mainPart.slice(i, i + 5).toLowerCase() === ' y/o ') {
+        if (current.trim()) rawTokens.push(current.trim());
+        current = '';
+        i += 4;
+        continue;
+      } else if (mainPart.slice(i, i + 3).toLowerCase() === ' y ' && !mainPart.slice(i, i + 7).toLowerCase().includes(' y/o ')) {
+        if (current.trim()) rawTokens.push(current.trim());
+        current = '';
+        i += 2;
+        continue;
+      }
+    }
+    current += char;
+  }
+  if (current.trim()) rawTokens.push(current.trim());
+
+  // Si algún token contiene ', orina' o ', sangre' fuera de paréntesis
+  const finalTokens = [];
+  rawTokens.forEach((tok) => {
+    const parts = tok.split(/,\s*(?=(?:orina|sangre|materia|l[ií]quido|hisopado|semen|biopsia)\b)/i);
+    parts.forEach((p) => {
+      if (p.trim()) finalTokens.push(p.trim());
+    });
+  });
+
+  const items = finalTokens
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .map((text) => {
+      const low = text.toLowerCase();
+      let icon = '🧪';
+      let tagBg = 'bg-sky-50 dark:bg-sky-950/30 text-sky-800 dark:text-sky-300 border-sky-200/80 dark:border-sky-800';
+
+      if (low.includes('sangre') || low.includes('edta')) {
+        icon = '🩸';
+        tagBg = 'bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-300 border-rose-200/80 dark:border-rose-800';
+      } else if (low.includes('orina')) {
+        icon = '💧';
+        tagBg = 'bg-amber-50 dark:bg-amber-950/30 text-amber-900 dark:text-amber-300 border-amber-200/80 dark:border-amber-800';
+      } else if (low.includes('cefalorraqu') || low.includes('lcr')) {
+        icon = '🧠';
+        tagBg = 'bg-purple-50 dark:bg-purple-950/30 text-purple-900 dark:text-purple-300 border-purple-200/80 dark:border-purple-800';
+      } else if (low.includes('fecal') || low.includes('rectal') || low.includes('materia')) {
+        icon = '💩';
+        tagBg = 'bg-amber-100 dark:bg-amber-950/40 text-amber-950 dark:text-amber-200 border-amber-300/80 dark:border-amber-700';
+      } else if (low.includes('hisopado') || low.includes('secreci') || low.includes('gingival') || low.includes('ocular') || low.includes('nasal')) {
+        icon = '🩹';
+        tagBg = 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-800';
+      } else if (low.includes('semen') || low.includes('vaginal') || low.includes('prepucial') || low.includes('aborto')) {
+        icon = '🔬';
+        tagBg = 'bg-teal-50 dark:bg-teal-950/30 text-teal-900 dark:text-teal-300 border-teal-200/80 dark:border-teal-800';
+      } else if (low.includes('biopsia') || low.includes('tejido') || low.includes('espécimen') || low.includes('especimen')) {
+        icon = '🧫';
+        tagBg = 'bg-slate-100 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700';
+      }
+
+      const capitalized = text.charAt(0).toUpperCase() + text.slice(1);
+      return { text: capitalized, icon, tagBg };
+    });
+
+  return {
+    items: items.length > 0 ? items : [{ text: matrixStr, icon: '🧪', tagBg: 'bg-slate-50 text-slate-800 border-slate-200' }],
+    note: notePart,
+  };
+}
+
 // Re-exportamos la base de datos de agentes y perfiles desde la estructura canónica local
 export {
   OFFICIAL_KEA_AGENTS_DB as LOCAL_INFECTIOUS_AGENTS_DB,
