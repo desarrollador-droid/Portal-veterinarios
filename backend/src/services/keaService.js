@@ -7,8 +7,8 @@ import { QPCR_PROFILES_MASTER } from '../models/qpcrKnowledgeBase.js';
 
 dotenv.config();
 
-const DEFAULT_KEA_URL = process.env.KEA_BASE_URL || 'https://osd.kea.tools/api/v1/databases/PACIENTE';
-const DEFAULT_KEA_TOKEN = process.env.KEA_API_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiMzQ4NzBlMGU3YTU2ZjFmZjE0ODk2YWFmMjg0NzZjNzBkNjM3ZDc5MmMyOTY4ZjQ4YjZhODBjYjg3NTc1MjcwMjg0YWVjNjQwMzA2ODk4ZWEiLCJpYXQiOjE3OTQyNTU2MzEuMTIyMDA2LCJuYmYiOjE3OTQyNTU2MzEuMTIyMDA5LCJleHAiOjE4MjU3OTE2MzEuMTE1OTk3LCJzdWIiOiI0Iiwic2NvcGVzIjpbImtlYS5kYXRhYmFzZSJdfQ.Lxhv0uyiWUR5RBTia3TIFj0zrF2ZzMsIsVUGEmToW9A6atSKyShg10ODTLs8-gf9ovA4RZpldXDKcqkh5-GbTnnWKzl4ltCFMCN_TolNQnYWHnXPX7PtJhprvzojtg8Ue_ovffXzMS4EVlFl40HG3AJokfw8ZeOv4RRdSn2hA9vfhNBBNKEvQQgWpY6KVobTlpgrGAe7bI5YJFq0yG0Nu3uziE1dXTacVrGxgmMj45dFMR_y9vLIN-rhQBuJWmTl6e1GuzSCnS41JiWXktbHIJKEFCEGtK6P6Hb-XhFscnfrBAxr_-Mh1R3yTrRgYhhpBB4C5Afo9ZcH1j-_3FGFdBHa0P71_sjuw8lPIz6BR9FpybY_tnEV6IlP1e94K2CExS7OvVCc9yFyGPLj18FhICQzQWr9scXCpUMa0WkXiqbgDhgywnTrEvoWHcbWF4iEdNgKGra1u_A3lQlctN6-5GE0fb91qI2gLkXIzLgVkSjEhT3Xi_YNeWfUO3njUuPWZGxcQbAp3InnNiFjIwP27FBORkjAPdaGlouU91w2EE87fEwnqKgQ9fcxeQMLOxQDEiYOHe_uvxDwTgMmqCpEtkuxrZGKw3_ZIiVz2IHSzjSWh-89Xb9cr0kyVrBGIiFlVRLgc1Q3FZuhwG87pjS3Tk4cD6akblkyusWgTxCYiVc';
+const DEFAULT_KEA_URL = process.env.KEA_BASE_URL || 'https://osd.kea.tools/api/v1/databases/ZZ_PACIENTE';
+const DEFAULT_KEA_TOKEN = process.env.KEA_API_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiMjU3NmQ4YjFiNTlhZjlkNGU3YTYzM2IwZWVjN2Q5YzQ0ZGY0MDkxZmQ1ZTI2MjYxMmVhYTQ3YWFjZmE2MWVjOGNhYmM3YWQzNjczNjJhYWEiLCJpYXQiOjE3OTU4MDA3OTAuODE2Mzc2LCJuYmYiOjE3OTU4MDA3OTAuODE2MzgsImV4cCI6MTgyNzMzNjc5MC44MDc3OTQsInN1YiI6IjQiLCJzY29wZXMiOlsia2VhLmRhdGFiYXNlIl19.ijRe6mT-YWjvlbhc5PnbYnKPtsxTyx99holjrJih1diHO3rX0YhAaBWV5uXIPgLJ-qd81FX9rckMFJSe8eaJOHwUtHXtWhPk5Spau0Bz5LPh-Ueh5x-mMcWezMtjeS7AVwMr9YBbZ6iG5A_UA2FvlExWQljyHM6cf7OgsYJyIeMWv2mCZ6ycC00kUGjjM9lHARkeNK32dzkJqZNGCKKTOLr3FwDQXf1CDXbXn0ws1-yFR-pYunn9q-583Nd4oaAu7b5GaB3z5bPrCuZKG6UXbjEH3926cOKXGCltWLzPl9_2A5qiwVvlEyZQPTn5Cs9QG8pFT2kX3G382kf8yPST3oKXVteUpZuj8pEbwViezlX7tPnsZf7wef6gBfe1_BQyJ0plHBYizaa2lEos_Nb8XhYkVB85COh-8VgNc9UQ7LoFGas7OBbbTmYcUEaIvIMSV_DtF4CMnkz0neNLSDzqi6IqySgL1Wd6xgYZXlbo80U8BvhjS-wApfJmo_DbgOUKOHl9hpsh9N6zM2CYFYt3iith0XH6xNrmHFYYQK0O8WC369lvlJ35nVGxzDzbmhIM-5zgQ9wZ2jE7KQd8qQdRS-FofbkylfjczFl16wW-wscAq5ZDA0rv4t_Uk5PlmeG_n-u9dnE_cr-sWvx5Mn9LP-Sa-OnVOUWD79Uc_9OLzK4';
 
 const DEFAULT_KEA_VET_URL = process.env.KEA_VETERINARIA_URL || 'https://osd.kea.tools/api/v1/databases/ZZ_VETERINARIA';
 const DEFAULT_KEA_VET_TOKEN = process.env.KEA_VETERINARIA_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiY2VlMWQ1M2MzNmU1NzliYmQxYmI2ZDU0YWJmM2E2MTYyYTRmMjVlMzY3NDUyMDJjOTdhNGE4YmQyMjI0ZTQ3MmJhYjRhMDdjYjBmYmFkMmYiLCJpYXQiOjE3OTU1NTUzMjMuNzM5ODEsIm5iZiI6MTc5NTU1NTMyMy43Mzk4MTUsImV4cCI6MTgyNzA5MTMyMy43MjQ3OTksInN1YiI6IjQiLCJzY29wZXMiOlsia2VhLmRhdGFiYXNlIl19.rivB3lH2j4caNRG8HdX9v2Pid4eqrqN2o1KEnRh9Q3-o7wO2_JIhyjhojaMSLkIn7GtWJbzIA06QWueJZ8hsC0t8xdQuR7qx5pOAcP_iSeKa2nIiX4dP-a7HS9t1B5myqBghTBJMaVRUSuXYbU3kSJ7uHydKvvugIszvTPBbX-Kv6QQbS08_bX5unOP2FXxHe5_ZuK5n-bv0d6wQk5JnG0kztWMmxc013zto-XUp-Q052Jyrz48_18l6x_SwnS4Pwm8eD9EinGHGCy6SVkaFFQ7e-rrTXwXJz6WDc-3J_pQnD9blYKAhSh5bII-GFISs3KiDdDnyTswWF_nhilp9tgIM-yMWiz0BxlHF-ll6EMwbValv08kGADHdSHDlR8pkoEop4t3kD93qAIN99ZER2afYsQNDZfFnCkt8GRpN_Rgo8I0zweJ-TgKJOqraCcCOszFFoUCg2kGcz3OGnoVXoqWNWhVglQpXpEnjfu42VfPkkhBC3-j_Cd20AOgJCUaP6lbZqAeaN-qvS0f_uP4gk51GS8zIu1QY0XxQLn5-q0rruTR8e0XE2GBmNFylcqfOIad-s6n_4EHD-TMzcc7Fur-Ptd1ggQ8xczG_Ncooa5cS2qPy1z5zlvxGduNlR-C2o5Pu93gbndYVHQ5erAmEzghLVQwd3zW2d5NDH0D-57s';
@@ -922,7 +922,8 @@ export const keaService = {
    * Realiza la llamada HTTP a Kea Tools y extrae la lista de registros
    */
   async fetchPatientsFromKea(customUrl, customToken) {
-    const url = (customUrl || process.env.KEA_BASE_URL || DEFAULT_KEA_URL).replace(/\/$/, '') + '/records';
+    const baseUrl = (customUrl || process.env.KEA_BASE_URL || DEFAULT_KEA_URL).replace(/\/$/, '');
+    const url = baseUrl.includes('/records') ? `${baseUrl}?limit=100` : `${baseUrl}/records?limit=100`;
     const token = customToken || process.env.KEA_API_TOKEN || DEFAULT_KEA_TOKEN;
 
     if (!token) {
@@ -973,7 +974,8 @@ export const keaService = {
    * Diagnóstico del estado de la conexión a Kea Tools
    */
   async testConnection(customUrl, customToken) {
-    const url = (customUrl || process.env.KEA_BASE_URL || DEFAULT_KEA_URL).replace(/\/$/, '') + '/records';
+    const baseUrl = (customUrl || process.env.KEA_BASE_URL || DEFAULT_KEA_URL).replace(/\/$/, '');
+    const url = baseUrl.includes('/records') ? baseUrl : `${baseUrl}/records`;
     const token = customToken || process.env.KEA_API_TOKEN || DEFAULT_KEA_TOKEN;
 
     try {
@@ -990,8 +992,8 @@ export const keaService = {
         return {
           connected: false,
           code: 'API_MODE_DISABLED',
-          message: 'La base de datos PACIENTE fue encontrada en Kea, pero la opción "Activar API" está desactivada en su panel.',
-          instruction: 'Para resolverlo: Ve a Kea Tools > Editar base de datos PACIENTE > Pestaña API > Activa el interruptor "Habilitar integración vía API" y guarda los cambios.',
+          message: 'La base de datos ZZ_PACIENTE fue encontrada en Kea, pero la opción "Activar API" está desactivada en su panel.',
+          instruction: 'Para resolverlo: Ve a Kea Tools > Editar base de datos ZZ_PACIENTE > Pestaña API > Activa el interruptor "Habilitar integración vía API" y guarda los cambios.',
           details: error.details,
         };
       }
@@ -1013,7 +1015,7 @@ export const keaService = {
   },
 
   /**
-   * Crea un nuevo registro de Paciente en Kea Tools vía POST /records
+   * Crea un nuevo registro de Paciente en Kea Tools vía POST /records (tabla ZZ_PACIENTE)
    */
   async createPatientInKea(patientData) {
     const url = (process.env.KEA_BASE_URL || DEFAULT_KEA_URL).replace(/\/$/, '') + '/records';
@@ -1023,57 +1025,30 @@ export const keaService = {
       throw new Error('No se ha configurado el KEA_API_TOKEN.');
     }
 
-    const patientCode = patientData.id || `PAC-${Date.now().toString().slice(-4)}`;
+    const patientCode = patientData.id || `ZZ-PAC-${Date.now().toString().slice(-4)}`;
     const fullName = `${patientData.name || ''} ${patientData.lastName || ''}`.trim() || 'Paciente sin nombre';
     const species = patientData.species || 'Canino';
-    const otherSpecies = patientData.otherSpecies || '';
     const breed = patientData.breed || 'Mestizo';
-    const sex = (patientData.sex || 'macho').toLowerCase().startsWith('h') ? 'hembra' : 'macho';
+    const sex = (patientData.sex || 'macho').toLowerCase().startsWith('h') ? 'Hembra' : 'Macho';
     const parsedWeight = parseFloat(String(patientData.weight || '5').replace(/[^0-9.]/g, '')) || 5;
-    const parsedAge = parseInt(patientData.age) || 1;
-    const birthDateStr = patientData.birthDate
-      ? (String(patientData.birthDate).includes('T') ? patientData.birthDate : `${patientData.birthDate}T00:00:00-05:00`)
-      : new Date().toISOString();
+    const parsedAge = patientData.age ? String(patientData.age) : '1 año';
+    const rawNit = String(patientData.clinicNit || patientData.nit || patientData.veterinaria || patientData.codigoSedeNit || '').replace(/[^0-9]/g, '');
+    const nit = rawNit || '901991096';
+    const ownerName = patientData.ownerName || `${patientData.ownerFirstName || patientData.owner?.firstName || ''} ${patientData.ownerLastName || patientData.owner?.lastName || ''}`.trim() || patientData.owner?.name || 'Tutor no registrado';
 
-    const rawNit = String(patientData.clinicNit || patientData.nit || patientData.codigoSedeNit || '').replace(/[^0-9]/g, '');
-    const nit = rawNit || '900000001';
-
-    // En Kea Tools, 'VETERINARIO' es un campo de relación en desuso que solo acepta IDs específicos (o vacío)
-    const knownVets = ['TP-PRUEBA-01', 'TP-PRUEBA-02'];
-    const vetValue = knownVets.includes(patientData.attendingVet) ? patientData.attendingVet : '';
-
-    const symptoms = Array.isArray(patientData.medicalAdmission?.symptoms)
-      ? patientData.medicalAdmission.symptoms.join(', ')
-      : (patientData.symptoms || '');
-
-    // Propietario en Kea es relación foránea obligatoria con la base PROPIETARIO
-    const preferredOwner = patientData.owner?.code || patientData.ownerCode || patientData.owner?.documentNumber || patientData.ownerDocumentNumber || patientData.owner?.name || patientData.ownerName || 'PROP-PRUEBA-01';
-
-    const buildPayload = (ownerVal, nitVal = nit) => ({
+    // ZZ_PACIENTE acepta estrictamente estos 10 campos
+    const keaPayload = {
       CODIGO_PACIENTE: patientCode,
       NOMBRE: fullName,
-      ESPECIE: species,
-      ESPECIE_OTRO: otherSpecies,
-      RAZA: breed,
-      SEXO: sex,
+      ESTADO: (patientData.status || 'activo').toLowerCase(),
       EDAD: parsedAge,
+      SEXO: sex,
+      RAZA: breed,
+      ESPECIE: species,
+      VETERINARIA: nit,
+      PROPIETARIO: ownerName,
       PESO_KG: parsedWeight,
-      FECHA_NACIMIENTO: birthDateStr,
-      VETERINARIO: vetValue,
-      PROPIETARIO: ownerVal,
-      VETERINARIA: nitVal,
-      ESTADO: patientData.status || 'activo',
-      SINTOMAS: symptoms,
-      CONDICION_CORPORAL: patientData.medicalAdmission?.bodyCondition || patientData.bodyCondition || '3/5',
-      ESTERILIZADO: Boolean(patientData.isSterilized),
-      ASINTOMATICO: Boolean(patientData.medicalAdmission?.isAsymptomatic ?? patientData.isAsymptomatic ?? true),
-      MICROCHIP: patientData.microchip || '',
-      ALERGIAS: Boolean(patientData.hasAllergies),
-      ALERGIAS_CUAL: patientData.allergies || '',
-      VIAJE_EXTERIOR: Boolean(patientData.riskFactors?.recentTravel ?? patientData.recentTravel),
-      ULTIMO_PAIS_VISITADO: patientData.riskFactors?.lastVisitedCountry || '',
-      ESTADO_CLINICO: patientData.medicalAdmission?.generalCondition || 'Estable',
-    });
+    };
 
     let response = await fetch(url, {
       method: 'POST',
@@ -1082,26 +1057,10 @@ export const keaService = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify(buildPayload(preferredOwner)),
+      body: JSON.stringify(keaPayload),
     });
 
     let data = await response.json();
-
-    // Si Kea rechaza el Propietario o Veterinaria por ser clave foránea que no existe aún en su tabla, reintentar con valores seguros
-    if (!response.ok && (String(data.data?.message || data.message || '').includes('Propietario') || String(data.data?.message || data.message || '').includes('Veterinaria'))) {
-      const fallbackOwner = String(data.data?.message || data.message || '').includes('Propietario') ? 'PROP-PRUEBA-01' : preferredOwner;
-      const fallbackNit = String(data.data?.message || data.message || '').includes('Veterinaria') ? '900000001' : nit;
-      response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(buildPayload(fallbackOwner, fallbackNit)),
-      });
-      data = await response.json();
-    }
 
     if (!response.ok || data.status === 'error' || data.status === 'fail') {
       const msg = data.data?.message || data.message || `Error al crear paciente en Kea (HTTP ${response.status})`;
@@ -1137,21 +1096,30 @@ export const keaService = {
     if (updateData.status !== undefined) {
       payload.ESTADO = updateData.status.toLowerCase();
     }
-    if (updateData.isSterilized !== undefined) {
-      payload.ESTERILIZADO = Boolean(updateData.isSterilized);
+    if (updateData.age !== undefined) {
+      payload.EDAD = String(updateData.age);
     }
-    if (updateData.allergies !== undefined) {
-      payload.ALERGIAS = Boolean(updateData.hasAllergies ?? (updateData.allergies && updateData.allergies !== 'Sin alergias'));
-      payload.ALERGIAS_CUAL = updateData.allergies;
+    if (updateData.sex !== undefined) {
+      payload.SEXO = updateData.sex.toLowerCase().startsWith('h') ? 'Hembra' : 'Macho';
     }
-    if (updateData.medicalAdmission?.bodyCondition || updateData.bodyCondition) {
-      payload.CONDICION_CORPORAL = updateData.medicalAdmission?.bodyCondition || updateData.bodyCondition;
+    if (updateData.breed !== undefined) {
+      payload.RAZA = updateData.breed;
     }
-    if (updateData.medicalAdmission?.generalCondition || updateData.clinicalStatus) {
-      payload.ESTADO_CLINICO = updateData.medicalAdmission?.generalCondition || updateData.clinicalStatus;
+    if (updateData.species !== undefined) {
+      payload.ESPECIE = updateData.species;
     }
-    if (updateData.attendingVet) {
-      payload.VETERINARIO = updateData.attendingVet;
+    if (updateData.name !== undefined || updateData.lastName !== undefined) {
+      payload.NOMBRE = `${updateData.name || ''} ${updateData.lastName || ''}`.trim();
+    }
+    if (updateData.clinicNit !== undefined) {
+      payload.VETERINARIA = String(updateData.clinicNit).replace(/[^0-9]/g, '');
+    }
+    if (updateData.ownerName !== undefined || updateData.owner?.name !== undefined) {
+      payload.PROPIETARIO = updateData.ownerName || updateData.owner?.name;
+    }
+
+    if (Object.keys(payload).length === 0) {
+      return null;
     }
 
     const response = await fetch(url, {

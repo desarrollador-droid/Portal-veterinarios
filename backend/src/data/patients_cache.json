@@ -1,5 +1,331 @@
 [
   {
+    "id": "PAC-542135",
+    "keaRecordId": null,
+    "name": "Dori",
+    "lastName": "Rios",
+    "avatar": "🐱",
+    "species": "Felino",
+    "breed": "Persa",
+    "sex": "Macho",
+    "birthDate": "2024-06-04",
+    "weight": "4.5 kg",
+    "clinicId": "kea-vet-172",
+    "clinicNit": "900000214",
+    "nit": "900000214",
+    "veterinaria": "900000214",
+    "codigoSedeNit": "#nit-1",
+    "sedeId": "sede-kea-172",
+    "sedeNombre": "ZZ_PRUEBA CARLOS - Sede Principal",
+    "owner": {
+      "firstName": "Cristian",
+      "lastName": "Rios",
+      "name": "Cristian Rios",
+      "documentType": "C.C.",
+      "documentNumber": "1024154789",
+      "document": "C.C. 1024154789",
+      "phone": "3101234567",
+      "emergencyPhone": "3149998877",
+      "email": "cristian@gmail.com",
+      "department": "Antioquia",
+      "city": "Medellín",
+      "address": "Cra 15 # 85-30",
+      "stratum": "Estrato 4",
+      "hasVetPlus": false,
+      "vetPlusCode": ""
+    },
+    "riskFactors": {
+      "habitat": "Interiores",
+      "housingArea": "Urbana",
+      "housingType": "Casa con jardín / patio",
+      "contactOutside": {
+        "hasContact": false,
+        "contactType": ""
+      },
+      "livesWithOtherAnimals": true,
+      "cohabitingSpecies": [
+        "Felinos"
+      ],
+      "recentTravel": false,
+      "recentTravelDetails": "",
+      "ruralAccess": false,
+      "parasiteExposure": false,
+      "outdoorWater": false,
+      "coastalRescue": true,
+      "coastalRescueLocation": "San andres",
+      "otherRiskFactors": "",
+      "otherHousingType": ""
+    },
+    "medicalAdmission": {
+      "isAsymptomatic": false,
+      "symptoms": [],
+      "otherSymptoms": "",
+      "physicalFindings": "",
+      "consultationType": "Consulta",
+      "generalCondition": "Bueno",
+      "vaccinationStatus": "No registrado",
+      "lastVaccinationDate": "",
+      "dewormingStatus": "No registrado",
+      "lastDewormingDate": "",
+      "preventionNotes": "",
+      "hasMicrochip": false,
+      "microchipNumber": "",
+      "hasTraveledAbroad": false,
+      "lastCountryVisited": "",
+      "cuadroHematico": {
+        "hasPreviousClinicalExam": false,
+        "clinicalRiskDisclaimerAccepted": true,
+        "hasCuadroHematico": false,
+        "file": null,
+        "fileName": "",
+        "fileSize": "",
+        "hematocrito": "",
+        "hemoglobina": "",
+        "leucocitos": "",
+        "plaquetas": "",
+        "observaciones": "Sin examen clínico previo (Continuó bajo criterio y responsabilidad médica)"
+      },
+      "historiaClinica": {
+        "hasHistoriaClinica": false,
+        "file": null,
+        "fileName": "",
+        "fileSize": "",
+        "notes": ""
+      }
+    },
+    "status": "activo",
+    "isSterilized": false,
+    "hasAllergies": false,
+    "allergies": "",
+    "medicalBackground": "Sin antecedentes médicos previos reportados.",
+    "lastVisit": "25/11/2026",
+    "attendingVet": "Director Médico",
+    "notes": "",
+    "healthMetrics": {
+      "weightHistory": [
+        {
+          "date": "25/11/2026",
+          "weight": "4.5 kg"
+        }
+      ],
+      "vitalSigns": {
+        "heartRate": "No registrada",
+        "temperature": "No registrada",
+        "respiratoryRate": "No registrada",
+        "mucosa": "No registrada",
+        "capillaryRefillTime": "No registrado"
+      },
+      "lastDiagnosticScore": "Sin registros previos"
+    },
+    "cuadroHematico": {
+      "hasPreviousClinicalExam": false,
+      "clinicalRiskDisclaimerAccepted": true,
+      "hasCuadroHematico": false,
+      "file": null,
+      "fileName": "",
+      "fileSize": "",
+      "hematocrito": "",
+      "hemoglobina": "",
+      "leucocitos": "",
+      "plaquetas": "",
+      "observaciones": "Sin examen clínico previo (Continuó bajo criterio y responsabilidad médica)"
+    },
+    "consultations": [
+      {
+        "id": "CON-6299",
+        "date": "25/11/2026",
+        "vet": "Director Médico",
+        "reason": "Apertura de expediente",
+        "diagnosis": "Evaluación inicial.",
+        "treatment": "Apertura de ficha clínica y anamnesis."
+      }
+    ],
+    "qpcrExams": [
+      {
+        "id": "SOL-20261125-150654-XWFS",
+        "examCode": "SOL-20261125-150654-XWFS",
+        "orderId": "SOL-20261125-150654-XWFS",
+        "testName": "VECTOR PLUS",
+        "category": "qpcr",
+        "requestCategory": "qpcr",
+        "date": "25/11/2026",
+        "requestedAt": "25/11/2026 - 15:06",
+        "receivedAt": "Pendiente (en recepción)",
+        "status": "Solicitud creada",
+        "sampleType": "Sangre total con EDTA (2 ml), Orina estéril (3-5 ml)",
+        "doctor": "Director Médico",
+        "requestedBy": "Director Médico",
+        "resultSummary": "En cola de procesamiento molecular",
+        "methodology": "qPCR TaqMan multiplex en tiempo real",
+        "agents": [
+          {
+            "name": "Anaplasma spp",
+            "isPositive": false,
+            "result": "En análisis molecular",
+            "ct": "Pendiente",
+            "load": "En cola"
+          },
+          {
+            "name": "Babesia spp",
+            "isPositive": false,
+            "result": "En análisis molecular",
+            "ct": "Pendiente",
+            "load": "En cola"
+          },
+          {
+            "name": "Borrelia spp",
+            "isPositive": false,
+            "result": "En análisis molecular",
+            "ct": "Pendiente",
+            "load": "En cola"
+          },
+          {
+            "name": "Dirofilaria immitis, D. striata, D. repens y Brugia pahangi",
+            "isPositive": false,
+            "result": "En análisis molecular",
+            "ct": "Pendiente",
+            "load": "En cola"
+          },
+          {
+            "name": "Ehrlichia spp",
+            "isPositive": false,
+            "result": "En análisis molecular",
+            "ct": "Pendiente",
+            "load": "En cola"
+          },
+          {
+            "name": "Hepatozoon spp",
+            "isPositive": false,
+            "result": "En análisis molecular",
+            "ct": "Pendiente",
+            "load": "En cola"
+          },
+          {
+            "name": "Mycoplasma spp",
+            "isPositive": false,
+            "result": "En análisis molecular",
+            "ct": "Pendiente",
+            "load": "En cola"
+          },
+          {
+            "name": "Rickettsia spp",
+            "isPositive": false,
+            "result": "En análisis molecular",
+            "ct": "Pendiente",
+            "load": "En cola"
+          },
+          {
+            "name": "Toxoplasma gondii",
+            "isPositive": false,
+            "result": "En análisis molecular",
+            "ct": "Pendiente",
+            "load": "En cola"
+          },
+          {
+            "name": "Wolbachia spp",
+            "isPositive": false,
+            "result": "En análisis molecular",
+            "ct": "Pendiente",
+            "load": "En cola"
+          }
+        ],
+        "reportUrl": "#"
+      }
+    ],
+    "activeExamOrder": {
+      "id": "SOL-20261125-150654-XWFS",
+      "examCode": "SOL-20261125-150654-XWFS",
+      "solicitudCodigo": "SOL-20261125-150654-XWFS",
+      "keaRecordId": 26,
+      "testName": "VECTOR PLUS",
+      "category": "Biología Molecular Cuantitativa (qPCR)",
+      "requestCategory": "qpcr",
+      "sampleType": "Sangre total con EDTA (2 ml), Orina estéril (3-5 ml)",
+      "priority": "Normal (24-48h)",
+      "requestedBy": "Director Médico",
+      "doctor": "Director Médico",
+      "laboratory": "VetLab Central - Unidad de Genómica",
+      "targets": "Anaplasma spp, Babesia spp, Borrelia spp, Dirofilaria immitis, D. striata, D. repens y Brugia pahangi, Ehrlichia spp, Hepatozoon spp, Mycoplasma spp, Rickettsia spp, Toxoplasma gondii, Wolbachia spp",
+      "syndromes": [
+        "Hemotrópico/Sistémico"
+      ],
+      "findings": [
+        "Anemia",
+        "Fiebre",
+        "Decaimiento",
+        "Linfadenopatía",
+        "Trombocitopenia"
+      ],
+      "totalPrice": "$234.000",
+      "examType": "nuevo",
+      "previousExamCode": null,
+      "replacementCount": 1,
+      "additionalCost": 0,
+      "cuadroHematico": {
+        "hasPreviousClinicalExam": false,
+        "clinicalRiskDisclaimerAccepted": true,
+        "hasCuadroHematico": false,
+        "file": null,
+        "fileName": "",
+        "fileSize": "",
+        "hematocrito": "",
+        "hemoglobina": "",
+        "leucocitos": "",
+        "plaquetas": "",
+        "observaciones": "Sin examen clínico previo (Continuó bajo criterio y responsabilidad médica)"
+      },
+      "historiaClinica": {
+        "hasHistoriaClinica": false,
+        "file": null,
+        "fileName": "",
+        "fileSize": "",
+        "notes": ""
+      },
+      "requestedAt": "25/11/2026 - 15:06",
+      "currentStep": 0,
+      "steps": [
+        {
+          "label": "Solicitud creada",
+          "desc": "Orden médica generada en clínica",
+          "date": "25/11/2026 - 15:06",
+          "completed": true
+        },
+        {
+          "label": "Muestra recibida",
+          "desc": "Recepción y código de barras en laboratorio",
+          "date": "Pendiente",
+          "completed": false
+        },
+        {
+          "label": "En análisis qPCR",
+          "desc": "Extracción de ácidos nucleicos y amplificación en termociclador",
+          "date": "Pendiente",
+          "completed": false
+        },
+        {
+          "label": "Validación médica",
+          "desc": "Curvas de amplificación verificadas por patólogo molecular",
+          "date": "Pendiente",
+          "completed": false
+        },
+        {
+          "label": "Resultado enviado",
+          "desc": "Informe emitido y disponible para descarga",
+          "date": "Pendiente",
+          "completed": false
+        }
+      ]
+    },
+    "createdAt": "2026-11-25T17:29:16.299Z",
+    "historiaClinica": {
+      "hasHistoriaClinica": false,
+      "file": null,
+      "fileName": "",
+      "fileSize": "",
+      "notes": ""
+    }
+  },
+  {
     "id": "PAC-CC-100021556-LUCAS",
     "keaRecordId": 24,
     "name": "lucas",

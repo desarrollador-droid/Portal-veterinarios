@@ -73,8 +73,23 @@ export const resetDemoPatients = () => {
 
 let localPatientsStore = getStoredMockPatients();
 
-export const KEA_API_URL = 'https://osd.kea.tools/api/v1/databases/PACIENTE/records';
-export const KEA_BEARER_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiMzQ4NzBlMGU3YTU2ZjFmZjE0ODk2YWFmMjg0NzZjNzBkNjM3ZDc5MmMyOTY4ZjQ4YjZhODBjYjg3NTc1MjcwMjg0YWVjNjQwMzA2ODk4ZWEiLCJpYXQiOjE3OTQyNTU2MzEuMTIyMDA2LCJuYmYiOjE3OTQyNTU2MzEuMTIyMDA5LCJleHAiOjE4MjU3OTE2MzEuMTE1OTk3LCJzdWIiOiI0Iiwic2NvcGVzIjpbImtlYS5kYXRhYmFzZSJdfQ.Lxhv0uyiWUR5RBTia3TIFj0zrF2ZzMsIsVUGEmToW9A6atSKyShg10ODTLs8-gf9ovA4RZpldXDKcqkh5-GbTnnWKzl4ltCFMCN_TolNQnYWHnXPX7PtJhprvzojtg8Ue_ovffXzMS4EVlFl40HG3AJokfw8ZeOv4RRdSn2hA9vfhNBBNKEvQQgWpY6KVobTlpgrGAe7bI5YJFq0yG0Nu3uziE1dXTacVrGxgmMj45dFMR_y9vLIN-rhQBuJWmTl6e1GuzSCnS41JiWXktbHIJKEFCEGtK6P6Hb-XhFscnfrBAxr_-Mh1R3yTrRgYhhpBB4C5Afo9ZcH1j-_3FGFdBHa0P71_sjuw8lPIz6BR9FpybY_tnEV6IlP1e94K2CExS7OvVCc9yFyGPLj18FhICQzQWr9scXCpUMa0WkXiqbgDhgywnTrEvoWHcbWF4iEdNgKGra1u_A3lQlctN6-5GE0fb91qI2gLkXIzLgVkSjEhT3Xi_YNeWfUO3njUuPWZGxcQbAp3InnNiFjIwP27FBORkjAPdaGlouU91w2EE87fEwnqKgQ9fcxeQMLOxQDEiYOHe_uvxDwTgMmqCpEtkuxrZGKw3_ZIiVz2IHSzjSWh-89Xb9cr0kyVrBGIiFlVRLgc1Q3FZuhwG87pjS3Tk4cD6akblkyusWgTxCYiVc';
+export const KEA_API_URL = 'https://osd.kea.tools/api/v1/databases/ZZ_PACIENTE/records';
+export const KEA_BEARER_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiMjU3NmQ4YjFiNTlhZjlkNGU3YTYzM2IwZWVjN2Q5YzQ0ZGY0MDkxZmQ1ZTI2MjYxMmVhYTQ3YWFjZmE2MWVjOGNhYmM3YWQzNjczNjJhYWEiLCJpYXQiOjE3OTU4MDA3OTAuODE2Mzc2LCJuYmYiOjE3OTU4MDA3OTAuODE2MzgsImV4cCI6MTgyNzMzNjc5MC44MDc3OTQsInN1YiI6IjQiLCJzY29wZXMiOlsia2VhLmRhdGFiYXNlIl19.ijRe6mT-YWjvlbhc5PnbYnKPtsxTyx99holjrJih1diHO3rX0YhAaBWV5uXIPgLJ-qd81FX9rckMFJSe8eaJOHwUtHXtWhPk5Spau0Bz5LPh-Ueh5x-mMcWezMtjeS7AVwMr9YBbZ6iG5A_UA2FvlExWQljyHM6cf7OgsYJyIeMWv2mCZ6ycC00kUGjjM9lHARkeNK32dzkJqZNGCKKTOLr3FwDQXf1CDXbXn0ws1-yFR-pYunn9q-583Nd4oaAu7b5GaB3z5bPrCuZKG6UXbjEH3926cOKXGCltWLzPl9_2A5qiwVvlEyZQPTn5Cs9QG8pFT2kX3G382kf8yPST3oKXVteUpZuj8pEbwViezlX7tPnsZf7wef6gBfe1_BQyJ0plHBYizaa2lEos_Nb8XhYkVB85COh-8VgNc9UQ7LoFGas7OBbbTmYcUEaIvIMSV_DtF4CMnkz0neNLSDzqi6IqySgL1Wd6xgYZXlbo80U8BvhjS-wApfJmo_DbgOUKOHl9hpsh9N6zM2CYFYt3iith0XH6xNrmHFYYQK0O8WC369lvlJ35nVGxzDzbmhIM-5zgQ9wZ2jE7KQd8qQdRS-FofbkylfjczFl16wW-wscAq5ZDA0rv4t_Uk5PlmeG_n-u9dnE_cr-sWvx5Mn9LP-Sa-OnVOUWD79Uc_9OLzK4';
+
+let hasInitialKeaSyncCompleted = false;
+let initialSyncPromise = null;
+
+export const ensureKeaSynced = async () => {
+  if (PAUSE_DATABASE_CONNECTION || hasInitialKeaSyncCompleted) return;
+  if (!initialSyncPromise) {
+    initialSyncPromise = patientApi.syncKea().catch((err) => {
+      console.warn('[Kea DB ZZ_PACIENTE] Error en sincronización inicial:', err.message);
+    }).finally(() => {
+      hasInitialKeaSyncCompleted = true;
+    });
+  }
+  await initialSyncPromise;
+};
 
 export const KEA_SOLICITUDES_URL = 'https://osd.kea.tools/api/v1/databases/ZZ_SOLICITUD_MUESTRA/records';
 export const KEA_SOLICITUDES_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiOTg1ZDY0NmNjZjMyZDU2YjE3YzQ1OTk5ODQwYjIyMTA5YjVmZjhkYTdkMDA0NGQ2MmM0MWQ5NzljNzZkNmJlMjc1NzM5ODJkOGQ2YWFlYTEiLCJpYXQiOjE3OTU2MjYzMTcuOTg4MzcxLCJuYmYiOjE3OTU2MjYzMTcuOTg4Mzc1LCJleHAiOjE4MjcxNjIzMTcuOTgxNjY2LCJzdWIiOiI0Iiwic2NvcGVzIjpbImtlYS5kYXRhYmFzZSJdfQ.g2U-y7mNUeTjvtILE-9UZqARJp4tK22Ha5l9VzqWrFIfsbfE6Ww1arE91LfXR77M4-l21tzzrUOchUeJpLESVlbgx_JfNrqEpdYdLhdc2HqniKrIk0c8AmXwNILhMy6RnfjSCfZ3AKodmU800UV1OhM3FDfeuRJ3G0KPccMG7GW-vNWDa4fCsdVI3TD6scZ1fktLHLRXojBybgG6fxRxPrkUee8H7L3Tm58xuSHiIh_anG0PhCryTvwjzxtcW04qku2eV7f9vA8yobPMIoDfbCZJL8CJ4YNw_YcV10QaUtY0QjZon15BoRmWDY5ECDIN3ak26uNRpK7-NRrqY-3nhgCQkXECM2yB77wst_T-kuQMxQp89SqVD-FGZzEI8Sq5bfIz3TnBYu0mAtPqAhclRPUSdlL97CL6Bq7jMQFynswD8TdlViiyn42YREk2ZxeVsYjFZ98HP6-YbnAfD_XI-dRi7fwvAoZSOFioKP9rTxeYoKrBR0AyeTbhWtTa1NcWcwsYU9d_EmoG7Vgp1gKIZLNjeDO8jzPcSgqauVHddl79rYo0RV_oT5hjT2Hd2qC9RzAYIKzbl7DP-EfSCcOyyQnKnHWWfSqL-cQvlx0Yc2rkD9XKSTml45iUR3LNe7vGYoi_nAsbmvX47CcKvVRNoF0rNAQYQf91AFlNcGRqwfY';
@@ -229,7 +244,7 @@ export const calculateAgeFromBirthDate = (birthDateString) => {
 
 export const mapRawKeaRecord = (record, index = 0) => {
   const rawId = record.CODIGO_PACIENTE || record['Código del paciente'] || record.codigo_paciente || record.id;
-  const patientId = rawId ? (String(rawId).startsWith('PAC-') ? String(rawId) : `PAC-${String(rawId)}`) : `PAC-KEA-${index + 1}`;
+  const patientId = rawId ? (String(rawId).startsWith('PAC-') || String(rawId).startsWith('ZZ-PAC-') ? String(rawId) : `PAC-${String(rawId)}`) : `PAC-KEA-${index + 1}`;
 
   const fullName = String(record.NOMBRE || record.Nombre || 'Paciente sin nombre').trim();
   const nameParts = fullName.split(' ');
@@ -261,7 +276,8 @@ export const mapRawKeaRecord = (record, index = 0) => {
   const rawVet = (rawVetVal && rawVetVal !== 'Dr. Asignado') ? rawVetVal : 'Dr. Alejandro Morales';
   const rawOwner = record.PROPIETARIO ?? record.Propietario;
   const ownerName = rawOwner !== undefined && rawOwner !== null && rawOwner !== '' ? String(rawOwner).trim() : 'Tutor no registrado';
-  const rawNit = String(record.VETERINARIA || '#nit-1').trim();
+  const cleanNit = String(record.VETERINARIA || '').replace(/[^0-9]/g, '').trim();
+  const rawNit = cleanNit || '901991096';
   const isSterilized = Boolean(record.ESTERILIZADO === true || record.ESTERILIZADO === 'true' || record.ESTERILIZADO === 1);
   const isAsymptomatic = Boolean(record.ASINTOMATICO === true || record.ASINTOMATICO === 'true' || record.ASINTOMATICO === 1);
   const bodyCondition = String(record.CONDICION_CORPORAL || '3/5').trim();
@@ -292,6 +308,10 @@ export const mapRawKeaRecord = (record, index = 0) => {
     birthDate,
     age,
     weight,
+    clinicNit: rawNit,
+    nit: rawNit,
+    veterinaria: rawNit,
+    clinicId: rawNit ? `kea-vet-${rawNit}` : null,
     sedeId: 'sede-principal-80',
     sedeNombre: 'Sede Principal - Calle 80',
     codigoSedeNit: rawNit.startsWith('#') ? rawNit : `#nit-${rawNit}`,
@@ -331,6 +351,7 @@ export const mapRawKeaRecord = (record, index = 0) => {
 
 export const patientApi = {
   async getStats(params = {}) {
+    await ensureKeaSynced();
     if (PAUSE_DATABASE_CONNECTION) {
       let list = getStoredMockPatients();
       if (params.sedeId && params.sedeId !== 'all' && params.sedeId !== 'Todas') {
@@ -384,6 +405,7 @@ export const patientApi = {
   },
 
   async getPatients(filters = {}) {
+    await ensureKeaSynced();
     if (PAUSE_DATABASE_CONNECTION) {
       let list = getStoredMockPatients();
       if (filters.sedeId && filters.sedeId !== 'all' && filters.sedeId !== 'Todas') {
@@ -844,34 +866,34 @@ export const patientApi = {
             if (updatedData.status !== undefined) {
               keaPayload.ESTADO = updatedData.status.toLowerCase();
             }
-            if (updatedData.isSterilized !== undefined) {
-              keaPayload.ESTERILIZADO = Boolean(updatedData.isSterilized);
+            if (updatedData.age !== undefined) {
+              keaPayload.EDAD = String(updatedData.age);
             }
-            if (updatedData.allergies !== undefined || updatedData.hasAllergies !== undefined) {
-              const hasAllergyFlag = Boolean(updatedData.hasAllergies && updatedData.allergies && !isNegativeAllergyText(updatedData.allergies));
-              keaPayload.ALERGIAS = hasAllergyFlag;
-              keaPayload.ALERGIAS_CUAL = hasAllergyFlag ? String(updatedData.allergies).trim() : '';
+            if (updatedData.sex !== undefined) {
+              keaPayload.SEXO = (updatedData.sex || 'Macho').toLowerCase().startsWith('h') ? 'Hembra' : 'Macho';
             }
-            if (updatedData.medicalAdmission?.bodyCondition || updatedData.bodyCondition) {
-              keaPayload.CONDICION_CORPORAL = updatedData.medicalAdmission?.bodyCondition || updatedData.bodyCondition;
+            if (updatedData.breed !== undefined) {
+              keaPayload.RAZA = updatedData.breed;
             }
-            if (updatedData.medicalAdmission?.generalCondition || updatedData.clinicalStatus) {
-              keaPayload.ESTADO_CLINICO = updatedData.medicalAdmission?.generalCondition || updatedData.clinicalStatus;
+            if (updatedData.species !== undefined) {
+              keaPayload.ESPECIE = updatedData.species;
             }
-            if (updatedData.attendingVet) {
-              keaPayload.VETERINARIO = updatedData.attendingVet;
+            if (updatedData.name !== undefined || updatedData.lastName !== undefined) {
+              keaPayload.NOMBRE = `${updatedData.name || currentPatient.name || ''} ${updatedData.lastName || currentPatient.lastName || ''}`.trim();
             }
 
-            const keaUpdateUrl = `${KEA_API_URL}/${currentPatient.keaRecordId}`;
-            await fetch(keaUpdateUrl, {
-              method: 'PATCH',
-              headers: {
-                'Authorization': `Bearer ${KEA_BEARER_TOKEN}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-              },
-              body: JSON.stringify(keaPayload),
-            });
+            if (Object.keys(keaPayload).length > 0) {
+              const keaUpdateUrl = `${KEA_API_URL}/${currentPatient.keaRecordId}`;
+              await fetch(keaUpdateUrl, {
+                method: 'PATCH',
+                headers: {
+                  'Authorization': `Bearer ${KEA_BEARER_TOKEN}`,
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                },
+                body: JSON.stringify(keaPayload),
+              });
+            }
           } catch (keaErr) {
             console.warn('Advertencia al sincronizar PATCH con Kea:', keaErr.message);
           }
@@ -1579,102 +1601,59 @@ export const patientApi = {
     let maxNum = 0;
       for (const p of localPatientsStore) {
         if (p.id && typeof p.id === 'string') {
-          const m = p.id.match(/^PAC-(\d+)$/i);
+          const m = p.id.match(/(?:ZZ-PAC-|PAC-)(\d+)/i);
           if (m) {
             const num = parseInt(m[1], 10);
             if (!isNaN(num) && num > maxNum) maxNum = num;
           }
         }
       }
-      const newId = patientData.id || `PAC-${String(maxNum + 1).padStart(3, '0')}`;
+      const newId = patientData.id || `ZZ-PAC-${String(maxNum + 1).padStart(2, '0')}`;
       const ownerName = patientData.ownerName || `${patientData.ownerFirstName || ''} ${patientData.ownerLastName || ''}`.trim() || 'Tutor no registrado';
       const parsedWeight = patientData.weight ? (parseFloat(String(patientData.weight).replace(/[^0-9.]/g, '')) || 5) : 5;
-      const parsedAge = patientData.age ? (parseInt(String(patientData.age).replace(/[^0-9]/g, ''), 10) || 1) : 1;
-      const birthDateStr = patientData.birthDate
-        ? (patientData.birthDate.includes('T') ? patientData.birthDate : `${patientData.birthDate}T00:00:00-05:00`)
-        : new Date().toISOString();
-
-      const symptoms = Array.isArray(patientData.medicalAdmission?.symptoms)
-        ? patientData.medicalAdmission.symptoms.join(', ')
-        : (patientData.symptoms || '');
+      const parsedAge = patientData.age ? String(patientData.age) : '1 año';
+      const rawNit = String(patientData.clinicNit || patientData.nit || patientData.veterinaria || patientData.codigoSedeNit || '').replace(/[^0-9]/g, '');
+      const nit = rawNit || '901991096';
 
       let keaRecordId = null;
 
-      // Guardar directamente en Kea Tools vía POST con sanitización de relaciones
+      // Guardar directamente en Kea Tools vía POST (base ZZ_PACIENTE)
       try {
-        const rawNit = String(patientData.clinicNit || patientData.nit || patientData.codigoSedeNit || '').replace(/[^0-9]/g, '');
-        const nit = rawNit || '900000001';
-
-        // Veterinario en Kea es relación en desuso que solo acepta códigos existentes o vacío
-        const knownVets = ['TP-PRUEBA-01', 'TP-PRUEBA-02'];
-        const vetValue = knownVets.includes(patientData.attendingVet) ? patientData.attendingVet : '';
-
-        // Propietario en Kea es relación foránea obligatoria con la base PROPIETARIO
-        const preferredOwner = patientData.ownerCode || patientData.owner?.code || patientData.ownerDocumentNumber || ownerName || 'PROP-PRUEBA-01';
-
-        const buildKeaPayload = (ownerVal, nitVal = nit) => ({
+        const keaPayload = {
           CODIGO_PACIENTE: newId,
           NOMBRE: `${patientData.name || ''} ${patientData.lastName || ''}`.trim() || 'Paciente sin nombre',
-          ESPECIE: patientData.species || 'Canino',
-          ESPECIE_OTRO: patientData.otherSpecies || '',
-          RAZA: patientData.breed || 'Mestizo',
-          SEXO: (patientData.sex || 'Macho').toLowerCase().startsWith('h') ? 'hembra' : 'macho',
+          ESTADO: (patientData.status || 'activo').toLowerCase(),
           EDAD: parsedAge,
+          SEXO: (patientData.sex || 'Macho').toLowerCase().startsWith('h') ? 'Hembra' : 'Macho',
+          RAZA: patientData.breed || 'Mestizo',
+          ESPECIE: patientData.species || 'Canino',
+          VETERINARIA: nit,
+          PROPIETARIO: ownerName,
           PESO_KG: parsedWeight,
-          FECHA_NACIMIENTO: birthDateStr,
-          VETERINARIO: vetValue,
-          PROPIETARIO: ownerVal,
-          VETERINARIA: nitVal,
-          ESTADO: patientData.status || 'activo',
-          SINTOMAS: symptoms,
-          CONDICION_CORPORAL: patientData.medicalAdmission?.bodyCondition || patientData.bodyCondition || '3/5',
-          ESTERILIZADO: Boolean(patientData.isSterilized),
-          ASINTOMATICO: Boolean(patientData.medicalAdmission?.isAsymptomatic ?? patientData.isAsymptomatic ?? true),
-          MICROCHIP: patientData.microchip || '',
-          ALERGIAS: Boolean(patientData.hasAllergies),
-          ALERGIAS_CUAL: patientData.allergies || '',
-          VIAJE_EXTERIOR: Boolean(patientData.riskFactors?.recentTravel ?? patientData.recentTravel),
-          ULTIMO_PAIS_VISITADO: patientData.riskFactors?.lastVisitedCountry || '',
-          ESTADO_CLINICO: patientData.medicalAdmission?.generalCondition || 'Estable',
-        });
+        };
 
-        let keaRes = await fetch(KEA_API_URL, {
+        const keaRes = await fetch(KEA_API_URL, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${KEA_BEARER_TOKEN}`,
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
-          body: JSON.stringify(buildKeaPayload(preferredOwner)),
+          body: JSON.stringify(keaPayload),
         });
 
-        let keaJson = await keaRes.json();
+        const keaJson = await keaRes.json();
 
-        // Si falla por clave foránea de propietario o veterinaria no existente, auto-reintentar con valores seguros
-        if (!keaRes.ok && (String(keaJson.data?.message || keaJson.message || '').includes('Propietario') || String(keaJson.data?.message || keaJson.message || '').includes('Veterinaria'))) {
-          const fallbackOwner = String(keaJson.data?.message || keaJson.message || '').includes('Propietario') ? 'PROP-PRUEBA-01' : preferredOwner;
-          const fallbackNit = String(keaJson.data?.message || keaJson.message || '').includes('Veterinaria') ? '900000001' : nit;
-          keaRes = await fetch(KEA_API_URL, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${KEA_BEARER_TOKEN}`,
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: JSON.stringify(buildKeaPayload(fallbackOwner, fallbackNit)),
-          });
-          keaJson = await keaRes.json();
-        }
-
-        if (keaRes.ok && (keaJson.status === 'success' || !keaJson.status)) {
+        if (keaRes.status === 201 || (keaRes.ok && (keaJson.status === 'success' || !keaJson.status))) {
           const rec = keaJson.data || keaJson;
           keaRecordId = rec.id || null;
+          console.log(`[Kea DB ZZ_PACIENTE] Paciente creado con éxito: ${newId} (ID: ${keaRecordId})`);
         } else {
           const errDetail = keaJson.data?.message || keaJson.message || `Error HTTP ${keaRes.status}`;
-          console.warn(`[Kea DB PACIENTE] Aviso: No se pudo sincronizar en la base remota (${errDetail}). Se guardará localmente.`);
+          console.warn(`[Kea DB ZZ_PACIENTE] Aviso al guardar en Kea Tools (${errDetail}). Se guardará localmente.`);
         }
       } catch (keaErr) {
-        console.warn('[Kea DB PACIENTE] Aviso al sincronizar en Kea Tools:', keaErr.message);
+        console.warn('[Kea DB ZZ_PACIENTE] Aviso al conectar con Kea Tools:', keaErr.message);
       }
 
       const newPatient = {
@@ -1691,9 +1670,13 @@ export const patientApi = {
         birthDate: patientData.birthDate,
         age: patientData.age || '1 año',
         weight: patientData.weight ? `${patientData.weight} kg` : `${parsedWeight} kg`,
+        clinicNit: nit,
+        nit: nit,
+        veterinaria: nit,
+        clinicId: nit ? `kea-vet-${nit}` : null,
         sedeId: patientData.sedeId || 'sede-principal-80',
         sedeNombre: patientData.sedeNombre || 'Sede Principal - Calle 80',
-        codigoSedeNit: patientData.codigoSedeNit || '#nit-1',
+        codigoSedeNit: patientData.codigoSedeNit || `#nit-${nit}`,
         isSterilized: Boolean(patientData.isSterilized),
         hasAllergies: Boolean(patientData.hasAllergies && patientData.allergies?.trim() && !isNegativeAllergyText(patientData.allergies)),
         allergies: Boolean(patientData.hasAllergies && patientData.allergies?.trim() && !isNegativeAllergyText(patientData.allergies)) ? patientData.allergies.trim() : '',
@@ -1843,14 +1826,14 @@ export const patientApi = {
       } catch (_) {}
     }
       // Fallback directo a Kea Tools API
-      const resp = await fetch(KEA_API_URL, {
+      const resp = await fetch(`${KEA_API_URL}?limit=100`, {
         headers: {
           Authorization: `Bearer ${KEA_BEARER_TOKEN}`,
           Accept: 'application/json',
         },
       });
       const data = await resp.json();
-      if (data.status === 'success' && Array.isArray(data.data)) {
+      if ((resp.ok || data.status === 'success') && Array.isArray(data.data)) {
         let added = 0;
         let updated = 0;
         data.data.forEach((rec, idx) => {
@@ -1858,8 +1841,9 @@ export const patientApi = {
           const existingIdx = localPatientsStore.findIndex(
             (p) =>
               p.id === mapped.id ||
-              (p.name.toLowerCase() === mapped.name.toLowerCase() &&
-                p.lastName.toLowerCase() === mapped.lastName.toLowerCase())
+              p.keaRecordId === mapped.keaRecordId ||
+              (p.name && mapped.name && p.name.toLowerCase() === mapped.name.toLowerCase() &&
+                p.lastName && mapped.lastName && p.lastName.toLowerCase() === mapped.lastName.toLowerCase())
           );
           if (existingIdx !== -1) {
             const current = localPatientsStore[existingIdx];
