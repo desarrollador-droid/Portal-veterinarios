@@ -28,6 +28,9 @@ const DEFAULT_KEA_SOLICITUDES_URL = process.env.KEA_SOLICITUDES_URL || 'https://
 const DEFAULT_KEA_SOLICITUDES_TOKEN = process.env.KEA_SOLICITUDES_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiOTg1ZDY0NmNjZjMyZDU2YjE3YzQ1OTk5ODQwYjIyMTA5YjVmZjhkYTdkMDA0NGQ2MmM0MWQ5NzljNzZkNmJlMjc1NzM5ODJkOGQ2YWFlYTEiLCJpYXQiOjE3OTU2MjYzMTcuOTg4MzcxLCJuYmYiOjE3OTU2MjYzMTcuOTg4Mzc1LCJleHAiOjE4MjcxNjIzMTcuOTgxNjY2LCJzdWIiOiI0Iiwic2NvcGVzIjpbImtlYS5kYXRhYmFzZSJdfQ.g2U-y7mNUeTjvtILE-9UZqARJp4tK22Ha5l9VzqWrFIfsbfE6Ww1arE91LfXR77M4-l21tzzrUOchUeJpLESVlbgx_JfNrqEpdYdLhdc2HqniKrIk0c8AmXwNILhMy6RnfjSCfZ3AKodmU800UV1OhM3FDfeuRJ3G0KPccMG7GW-vNWDa4fCsdVI3TD6scZ1fktLHLRXojBybgG6fxRxPrkUee8H7L3Tm58xuSHiIh_anG0PhCryTvwjzxtcW04qku2eV7f9vA8yobPMIoDfbCZJL8CJ4YNw_YcV10QaUtY0QjZon15BoRmWDY5ECDIN3ak26uNRpK7-NRrqY-3nhgCQkXECM2yB77wst_T-kuQMxQp89SqVD-FGZzEI8Sq5bfIz3TnBYu0mAtPqAhclRPUSdlL97CL6Bq7jMQFynswD8TdlViiyn42YREk2ZxeVsYjFZ98HP6-YbnAfD_XI-dRi7fwvAoZSOFioKP9rTxeYoKrBR0AyeTbhWtTa1NcWcwsYU9d_EmoG7Vgp1gKIZLNjeDO8jzPcSgqauVHddl79rYo0RV_oT5hjT2Hd2qC9RzAYIKzbl7DP-EfSCcOyyQnKnHWWfSqL-cQvlx0Yc2rkD9XKSTml45iUR3LNe7vGYoi_nAsbmvX47CcKvVRNoF0rNAQYQf91AFlNcGRqwfY';
 const DEFAULT_KEA_SOLICITUDES_REFRESH_TOKEN = process.env.KEA_SOLICITUDES_REFRESH_TOKEN || 'def50200bf3ebc9a952381f17cd406fa0999c43bdd7778ed9e8f20faf7cfdb434222c438b2303ead35e0f56edad9c771096e4b8cba239dd1a2d4b9d0a210e1bd4f66e30ee3b39196914061cdda62e3d87b2352258cd6182d25c14aefbe083225d6be6bf2b41d0670680649a7fb4e17537aba72c304de15dace67a67d4ab1d3b0ddc97ed6bafaaa06d3941285dda4ffa3f18e04d382d11de29c49c3dc67facfcab4333dd5bd4e0371a01b32cb8c2b4bfe7d5f04100f15c448bbe37f17ad498605f94dd57a89a5d0bebd8a05a5f2acf64e501bbedce7e4ff4194f310a7d1a4a428bbeb8273cb3194258151ff25e3858908f28405cd36d5c865313c1adbc8939967cb11407982f34bafcd27e57e3840e85603fd11cb118259105d9d8780e9a70c1e14177b5e820fd281829f54f01701a6bd1e349a973cb4ac85169deae1d55d03d572fb5b7840acfc806980da29a07b8151bab84cef2f94a09aabd3e799a9753f1678e2795dcd32b7137bec311570f80c6c3c15';
 
+const DEFAULT_KEA_PROPIETARIOS_URL = process.env.KEA_PROPIETARIOS_URL || 'https://osd.kea.tools/api/v1/databases/PROPIETARIO';
+const DEFAULT_KEA_PROPIETARIOS_TOKEN = process.env.KEA_PROPIETARIOS_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiZWQ2YWMyZWUwYzE4Njk0ZTU3ODE5Mjc1MjhkYzQ4MzJiMjhmMWI1MjlhNzE1ZjllNjVjNTBhZTViOWQxZDM1NWViM2ZiZjk0Y2Q0MTZlOTQiLCJpYXQiOjE3OTU4MTA4OTIuNTA4NDgsIm5iZiI6MTc5NTgxMDg5Mi41MDg0ODQsImV4cCI6MTgyNzM0Njg5Mi41MDI1MjMsInN1YiI6IjQiLCJzY29wZXMiOlsia2VhLmRhdGFiYXNlIl19.G5lzfGOcxFv9nxy7NSh3v7El24jcJUzsxt14Y5LDzTptbIh9_udkwjhbtwaWOcrgMJOqSQMAvn3kAWNZBUf4qyhiRcjK2xakphuq4_JnG1H5fMqibOinWbozfH7tudyCWTK1uMfQwH0OgaJuKzIU4wSyZkU-1dqKgqSPo_jkEw1sjEL-D5MXnnfocb6qbdW61ZeRC1WG4KX4vHSFCE8kHx-j1zxWB0JHK-91AvpwbsRUWGbJcErM7nf92W0r3WAWL8gH0NgsGu_ETZ2pcmVQq44jYwFFExp2rVnPf_MFmkFzqiqOJb3MHIV5ikmAZtgWnzl27auhw0iHmfv-sDToxtxpE9tgIg3urN26LnCjU1MuBw6OuArwAsPXvQsYUAB35n1L3jQ-7OZdQYbahZTlY7xEhAkkEfZVigECkgWRTwWpYKc4H7bI5GbFz1wQnObFIhBYSA96WHmYZvoVajSPBFILSELy_jAEn2YAdmlMapetszDDmkabmkejJhC6EjpKZ7hGjtkYA4AgyBnc4H8Q8wR3GvC866OKcxQvLWygoBLOt6a-gHtGU8Kcei_cy1amfiNS1tbfywAD1Lx4ZHNfglTd2hF3DMRYoGRVXVKHaSioZCoVKnF6JFFZqrKlZyXdn2R1BaQ9MF65-BeDIFqo6K9m20CYBUQG3UkY94ll4ss';
+
 
 /**
  * Normaliza nombres de campo para búsqueda flexible (sin tildes, minúsculas, sin espacios ni guiones)
@@ -1015,7 +1018,76 @@ export const keaService = {
   },
 
   /**
-   * Crea un nuevo registro de Paciente en Kea Tools vía POST /records (tabla ZZ_PACIENTE)
+   * Construye el payload exacto para la base de datos Kea Tools (PROPIETARIO)
+   */
+  buildOwnerKeaPayload(data, nit = '900000001') {
+    const firstName = data.firstName || data.ownerFirstName || data.name?.split(' ')[0] || data.ownerName?.split(' ')[0] || data.owner?.firstName || 'Tutor';
+    const lastName = data.lastName || data.ownerLastName || data.name?.split(' ').slice(1).join(' ') || data.ownerName?.split(' ').slice(1).join(' ') || data.owner?.lastName || 'General';
+    const docType = (data.documentType || data.ownerDocumentType || data.owner?.documentType || 'CC').toUpperCase().replace(/[^A-Z]/g, '') || 'CC';
+    const docNum = String(data.documentNumber || data.ownerDocumentNumber || data.owner?.documentNumber || Date.now().toString().slice(-8)).replace(/[^0-9A-Za-z-]/g, '');
+    const code = data.code || data.ownerCode || data.owner?.code || (`PROP-${docNum}`);
+    const dept = data.department || data.ownerDepartment || data.owner?.department || 'Bogotá D.C.';
+    const city = data.city || data.ownerCity || data.owner?.city || data.municipality || 'Bogotá';
+    const cleanNit = String(nit || data.clinicNit || data.nit || data.veterinaria || '900000001').replace(/[^0-9]/g, '') || '900000001';
+
+    return {
+      CODIGO: code,
+      NOMBRE: firstName,
+      APELLIDOS: lastName,
+      TELEFONO: String(data.phone || data.ownerPhone || data.owner?.phone || '3000000000').replace(/[^0-9+]/g, ''),
+      CORREO: data.email || data.ownerEmail || data.owner?.email || '',
+      DIRECCION: data.address || data.ownerAddress || data.owner?.address || '',
+      CIUDAD: city,
+      DEPARTAMENTO: dept,
+      MUNICIPIO: city,
+      TIPO_DOCUMENTO_IDENTIDAD: docType,
+      NUMERO_DOCUMENTO: docNum,
+      ESTRATO: parseInt(data.stratum || data.ownerStratum || data.owner?.stratum) || 3,
+      VETPLUS: Boolean(data.hasVetPlus || data.ownerHasVetPlus || data.owner?.hasVetPlus),
+      CODIGO_VETPLUS: data.vetPlusCode || data.ownerVetPlusCode || data.owner?.vetPlusCode || '',
+      VETERINARIA: cleanNit,
+      ESTADO: 'activo',
+      BUSQUEDA: `${firstName} ${lastName} · ${docType} ${docNum}`,
+    };
+  },
+
+  /**
+   * Crea un nuevo registro de Propietario en Kea Tools vía POST /records (tabla PROPIETARIO)
+   */
+  async createOwnerInKea(ownerData, nit = '900000001') {
+    const url = (process.env.KEA_PROPIETARIOS_URL || DEFAULT_KEA_PROPIETARIOS_URL).replace(/\/$/, '') + '/records';
+    const token = process.env.KEA_PROPIETARIOS_TOKEN || DEFAULT_KEA_PROPIETARIOS_TOKEN;
+    const payload = this.buildOwnerKeaPayload(ownerData, nit);
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (res.status === 201 || res.ok) {
+        console.log(`[Kea DB PROPIETARIO] Propietario creado con éxito: ${payload.CODIGO}`);
+        return { success: true, code: payload.CODIGO, data: json.data || json };
+      }
+      if (String(json.data?.message || json.message || '').includes('ya existe') || res.status === 422) {
+        console.log(`[Kea DB PROPIETARIO] Propietario ${payload.CODIGO} ya registrado en Kea Tools.`);
+        return { success: true, code: payload.CODIGO, data: payload };
+      }
+      console.warn('[Kea DB PROPIETARIO] Aviso al crear propietario:', json.data?.message || json.message);
+      return { success: false, code: payload.CODIGO, error: json };
+    } catch (err) {
+      console.warn('[Kea DB PROPIETARIO] Error de red al crear propietario:', err.message);
+      return { success: false, code: payload.CODIGO, error: err.message };
+    }
+  },
+
+  /**
+   * Crea un nuevo registro de Paciente en Kea Tools vía POST /records (tabla PACIENTE)
    */
   async createPatientInKea(patientData) {
     const url = (process.env.KEA_BASE_URL || DEFAULT_KEA_URL).replace(/\/$/, '') + '/records';
@@ -1035,6 +1107,17 @@ export const keaService = {
     const ownerName = patientData.ownerName || `${patientData.ownerFirstName || patientData.owner?.firstName || ''} ${patientData.ownerLastName || patientData.owner?.lastName || ''}`.trim() || patientData.owner?.name || 'Tutor no registrado';
     const preferredOwner = patientData.owner?.code || patientData.ownerCode || patientData.owner?.documentNumber || patientData.ownerDocumentNumber || ownerName || 'PROP-PRUEBA-01';
 
+    // 1. Asegurar registro del Propietario en la tabla PROPIETARIO
+    let finalOwner = preferredOwner;
+    try {
+      const ownerRes = await this.createOwnerInKea(patientData, nit);
+      if (ownerRes && ownerRes.code) {
+        finalOwner = ownerRes.code;
+      }
+    } catch (ownerErr) {
+      console.warn('[Kea DB PROPIETARIO] Aviso al sincronizar tutor:', ownerErr.message);
+    }
+
     const symptoms = Array.isArray(patientData.medicalAdmission?.symptoms)
       ? patientData.medicalAdmission.symptoms.join(', ')
       : (patientData.symptoms || '');
@@ -1043,31 +1126,37 @@ export const keaService = {
       ? (String(patientData.birthDate).includes('T') ? patientData.birthDate : `${patientData.birthDate}T00:00:00-05:00`)
       : new Date().toISOString();
 
-    const buildPayload = (ownerVal, nitVal = nit) => ({
-      CODIGO_PACIENTE: patientCode,
-      NOMBRE: fullName,
-      ESPECIE: species,
-      ESPECIE_OTRO: patientData.otherSpecies || '',
-      RAZA: breed,
-      SEXO: (patientData.sex || 'macho').toLowerCase().startsWith('h') ? 'hembra' : 'macho',
-      EDAD: parseInt(patientData.age) || 1,
-      PESO_KG: parsedWeight,
-      FECHA_NACIMIENTO: birthDateStr,
-      VETERINARIO: patientData.attendingVet || '',
-      PROPIETARIO: ownerVal,
-      VETERINARIA: nitVal,
-      ESTADO: patientData.status || 'activo',
-      SINTOMAS: symptoms,
-      CONDICION_CORPORAL: patientData.medicalAdmission?.bodyCondition || patientData.bodyCondition || '3/5',
-      ESTERILIZADO: Boolean(patientData.isSterilized),
-      ASINTOMATICO: Boolean(patientData.medicalAdmission?.isAsymptomatic ?? patientData.isAsymptomatic ?? true),
-      MICROCHIP: patientData.microchip || '',
-      ALERGIAS: Boolean(patientData.hasAllergies),
-      ALERGIAS_CUAL: patientData.allergies || '',
-      VIAJE_EXTERIOR: Boolean(patientData.riskFactors?.recentTravel ?? patientData.recentTravel),
-      ULTIMO_PAIS_VISITADO: patientData.riskFactors?.lastVisitedCountry || '',
-      ESTADO_CLINICO: patientData.medicalAdmission?.generalCondition || 'Estable',
-    });
+    const rawVetCode = patientData.attendingVetCode || patientData.vetCode || patientData.professionalCard || '';
+    const safeVet = rawVetCode || (patientData.attendingVet && String(patientData.attendingVet).startsWith('TP-') ? patientData.attendingVet : undefined);
+
+    const buildPayload = (ownerVal = finalOwner, nitVal = nit, vetVal = safeVet) => {
+      const p = {
+        CODIGO_PACIENTE: patientCode,
+        NOMBRE: fullName,
+        ESPECIE: species,
+        ESPECIE_OTRO: patientData.otherSpecies || '',
+        RAZA: breed,
+        SEXO: (patientData.sex || 'macho').toLowerCase().startsWith('h') ? 'hembra' : 'macho',
+        EDAD: parseInt(patientData.age) || 1,
+        PESO_KG: parsedWeight,
+        FECHA_NACIMIENTO: birthDateStr,
+        PROPIETARIO: ownerVal,
+        VETERINARIA: nitVal,
+        ESTADO: patientData.status || 'activo',
+        SINTOMAS: symptoms,
+        CONDICION_CORPORAL: patientData.medicalAdmission?.bodyCondition || patientData.bodyCondition || '3/5',
+        ESTERILIZADO: Boolean(patientData.isSterilized),
+        ASINTOMATICO: Boolean(patientData.medicalAdmission?.isAsymptomatic ?? patientData.isAsymptomatic ?? true),
+        MICROCHIP: patientData.microchip || '',
+        ALERGIAS: Boolean(patientData.hasAllergies),
+        ALERGIAS_CUAL: patientData.allergies || '',
+        VIAJE_EXTERIOR: Boolean(patientData.riskFactors?.recentTravel ?? patientData.recentTravel),
+        ULTIMO_PAIS_VISITADO: patientData.riskFactors?.lastVisitedCountry || '',
+        ESTADO_CLINICO: patientData.medicalAdmission?.generalCondition || 'Estable',
+      };
+      if (vetVal) p.VETERINARIO = vetVal;
+      return p;
+    };
 
     let response = await fetch(url, {
       method: 'POST',
@@ -1076,15 +1165,20 @@ export const keaService = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify(buildPayload(preferredOwner)),
+      body: JSON.stringify(buildPayload(finalOwner)),
     });
 
     let data = await response.json();
 
-    // Si Kea rechaza el Propietario o Veterinaria por clave foránea referenciada, auto-reintentar con fallback
-    if (!response.ok && (String(data.data?.message || data.message || '').includes('Propietario') || String(data.data?.message || data.message || '').includes('Veterinaria'))) {
-      const fallbackOwner = String(data.data?.message || data.message || '').includes('Propietario') ? 'PROP-PRUEBA-01' : preferredOwner;
+    // Si Kea rechaza el Propietario, Veterinaria o Veterinario por clave foránea referenciada, auto-reintentar con fallback
+    if (!response.ok && (
+      String(data.data?.message || data.message || '').includes('Propietario') ||
+      String(data.data?.message || data.message || '').includes('Veterinaria') ||
+      String(data.data?.message || data.message || '').includes('Veterinario')
+    )) {
+      const fallbackOwner = String(data.data?.message || data.message || '').includes('Propietario') ? 'PROP-PRUEBA-01' : finalOwner;
       const fallbackNit = String(data.data?.message || data.message || '').includes('Veterinaria') ? '900000001' : nit;
+      const fallbackVet = String(data.data?.message || data.message || '').includes('Veterinario') ? undefined : safeVet;
       response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -1092,7 +1186,7 @@ export const keaService = {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify(buildPayload(fallbackOwner, fallbackNit)),
+        body: JSON.stringify(buildPayload(fallbackOwner, fallbackNit, fallbackVet)),
       });
       data = await response.json();
     }
