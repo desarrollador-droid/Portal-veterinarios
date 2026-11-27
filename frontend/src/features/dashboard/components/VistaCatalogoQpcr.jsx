@@ -22,7 +22,6 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
   const [syndromeFilter, setSyndromeFilter] = useState('all'); // 'all' | 'Hemotrópico/Sistémico' | ...
   const [groupFilter, setGroupFilter] = useState('all'); // 'all' | 'HEPATOZOON' | 'RICKETTSIALES' ...
   const [searchTerm, setSearchTerm] = useState('');
-  const [expandedProfileDetails, setExpandedProfileDetails] = useState({});
   const [expandedClinicalArg, setExpandedClinicalArg] = useState({});
 
   const toggleClinicalArg = (id) => {
@@ -192,13 +191,6 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
       return matchesSpecies && matchesGroup && matchesSearch;
     });
   }, [agents, speciesFilter, groupFilter, searchTerm]);
-
-  const toggleProfileDetails = (id) => {
-    setExpandedProfileDetails((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6 animate-in fade-in duration-200">
@@ -513,11 +505,8 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {filteredProfiles.map((profile) => {
-              const isExpanded = expandedProfileDetails[profile.id];
-
-              return (
-                <div
+            {filteredProfiles.map((profile) => (
+              <div
                   key={profile.id}
                   className="bg-white dark:bg-[#181232] rounded-3xl border border-slate-200/90 dark:border-[#2f2257] p-5 sm:p-6 shadow-sm hover:border-[#6F2BCC]/40 dark:hover:border-[#6F2BCC]/60 transition-all flex flex-col justify-between space-y-4"
                 >
@@ -620,64 +609,6 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
                           ))}
                         </div>
                       </div>
-
-                      <div className="flex items-center justify-end">
-                        <button
-                          type="button"
-                          onClick={() => toggleProfileDetails(profile.id)}
-                          className="text-[11px] font-bold text-[#6F2BCC] dark:text-[#01FADA] hover:text-[#581ea3] transition-colors cursor-pointer flex items-center gap-1"
-                        >
-                          <span>{isExpanded ? 'Ocultar tropismo y clínica' : 'Ver órganos blanco y detalles clínicos'}</span>
-                          <span>{isExpanded ? '▲' : '▼'}</span>
-                        </button>
-                      </div>
-
-                      {/* Vista expandida con ficha técnica de cada patógeno diana */}
-                      {isExpanded && (
-                        <div className="mt-3 p-3 bg-purple-50/50 dark:bg-[#1a1236] rounded-2xl border border-purple-100 dark:border-purple-800/40 space-y-2.5 animate-in fade-in duration-200">
-                          <div className="text-[11px] font-extrabold text-[#2B017C] dark:text-[#01FADA] uppercase tracking-wider flex items-center gap-1">
-                            <span>📋</span>
-                            <span>Desglose Clínico de Patógenos Incluidos en este Panel</span>
-                          </div>
-                          <div className="space-y-2">
-                            {(profile.agentObjects || []).map((ag, idx) => (
-                              <div
-                                key={ag.id || idx}
-                                className="bg-white dark:bg-[#1f173d] p-3 rounded-xl border border-purple-100/80 dark:border-[#2f2257] shadow-2xs space-y-1.5 text-xs"
-                              >
-                                <div className="flex items-center justify-between gap-2 flex-wrap">
-                                  <span className="font-extrabold text-[#2B017C] dark:text-[#01FADA] italic text-xs">
-                                    {ag.name}
-                                  </span>
-                                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-[#6F2BCC] dark:text-[#c4b5fd]">
-                                    {ag.group || 'Infeccioso'}
-                                  </span>
-                                </div>
-                                {ag.targetOrgans && (
-                                  <div className="text-[11px] text-slate-600 dark:text-slate-300">
-                                    <strong className="text-slate-700 dark:text-slate-200">Órganos blanco / tropismo:</strong> {ag.targetOrgans}
-                                  </div>
-                                )}
-                                {ag.transmission && (
-                                  <div className="text-[11px] text-slate-600 dark:text-slate-300">
-                                    <strong className="text-slate-700 dark:text-slate-200">Vector / transmisión:</strong> {ag.transmission}
-                                  </div>
-                                )}
-                                {ag.symptomsDescription && (
-                                  <div className="text-[11px] text-slate-600 dark:text-slate-300">
-                                    <strong className="text-slate-700 dark:text-slate-200">Cuadro clínico:</strong> {ag.symptomsDescription}
-                                  </div>
-                                )}
-                                {ag.labDescription && (
-                                  <div className="text-[11px] text-slate-600 dark:text-slate-300">
-                                    <strong className="text-slate-700 dark:text-slate-200">Hallazgos de lab:</strong> {ag.labDescription}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
                     </div>
 
                     {/* MATRICES BIOLÓGICAS REQUERIDAS (FONDO BLANCO, LISTADO LLAMATIVO) */}
@@ -815,8 +746,7 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
                     </div>
                   </div>
                 </div>
-              );
-            })}
+              ))}
           </div>
 
           {filteredProfiles.length === 0 && (
