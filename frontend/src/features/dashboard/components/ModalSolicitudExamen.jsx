@@ -6,6 +6,7 @@ import {
   CLINICAL_SYNDROMES_LIST,
   matchSyndromeTokens,
   parseProfileMatrices,
+  getClinicalArgumentation,
 } from '../services/qpcrApi.js';
 import {
   CLINICAL_CATEGORIES,
@@ -857,6 +858,16 @@ export default function ModalSolicitudExamen({
 
   const handleToggleAttribution = (profileKey) => {
     setExpandedAttributionProfiles((prev) => ({
+      ...prev,
+      [profileKey]: !prev[profileKey],
+    }));
+  };
+
+  // Estado para desplegar/recoger el menú: "Argumentación clínica explicada al propietario"
+  const [expandedClinicalArg, setExpandedClinicalArg] = useState({});
+
+  const handleToggleClinicalArg = (profileKey) => {
+    setExpandedClinicalArg((prev) => ({
       ...prev,
       [profileKey]: !prev[profileKey],
     }));
@@ -5396,6 +5407,64 @@ export default function ModalSolicitudExamen({
                         </div>
                       )}
 
+                      {/* Argumentación clínica explicada al propietario (Paso 4) */}
+                      {(() => {
+                        const clinicalArg = getClinicalArgumentation(profile);
+                        if (!clinicalArg) return null;
+                        const isArgExpanded = Boolean(expandedClinicalArg[`step4-${profile.id}`]);
+
+                        return (
+                          <div className="my-2.5 border border-purple-200/80 rounded-xl overflow-hidden shadow-2xs">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleClinicalArg(`step4-${profile.id}`)}
+                              className={`w-full p-2.5 flex items-center justify-between text-left transition-colors cursor-pointer select-none ${
+                                isArgExpanded
+                                  ? 'bg-purple-100/80 border-b border-purple-200'
+                                  : 'bg-purple-50/70 hover:bg-purple-100/70'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 text-[#2B017C] font-bold text-xs flex-wrap">
+                                <span className="text-sm">🩺</span>
+                                <span className="font-extrabold uppercase tracking-wide">
+                                  Argumentación clínica
+                                </span>
+                                <span className="text-[11px] font-medium text-purple-700 hidden sm:inline">
+                                  · Explicado al propietario
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-[11px] font-bold text-purple-900 shrink-0">
+                                <span>{isArgExpanded ? 'Recoger' : 'Desplegar'}</span>
+                                <span className={`transform transition-transform text-xs text-[#6F2BCC] font-black ${isArgExpanded ? 'rotate-180' : 'rotate-0'}`}>
+                                  ▼
+                                </span>
+                              </div>
+                            </button>
+
+                            {isArgExpanded && (
+                              <div className="p-3.5 bg-gradient-to-br from-purple-50/40 via-white to-sky-50/30 space-y-2 text-xs animate-in fade-in duration-150">
+                                <div className="border-b border-purple-100 pb-1.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                  <span className="text-[10px] font-black uppercase tracking-wider text-[#2B017C]">
+                                    📋 {clinicalArg.headerLabel}
+                                  </span>
+                                  <span className="text-[10px] font-bold text-purple-700 font-mono bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200 self-start sm:self-auto">
+                                    {clinicalArg.title}
+                                  </span>
+                                </div>
+                                <ul className="space-y-2 pl-0.5">
+                                  {clinicalArg.points.map((pt, pIdx) => (
+                                    <li key={pIdx} className="flex items-start gap-2 text-[11px] text-slate-700 leading-relaxed">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-[#6F2BCC] shrink-0 mt-1.5" />
+                                      <span className="flex-1 font-medium">{pt}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+
                       {/* Pie de la tarjeta: Precio y Botón (Sin matrices repetitivas) */}
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
                         <div className="flex items-baseline gap-2">
@@ -5721,6 +5790,68 @@ export default function ModalSolicitudExamen({
                           )}
                         </div>
                       )}
+
+                      {/* REQUERIMIENTO DEL USUARIO: Menú desplegable "Argumentación clínica" */}
+                      {(() => {
+                        const clinicalArg = getClinicalArgumentation(profile);
+                        if (!clinicalArg) return null;
+                        const isArgExpanded = Boolean(expandedClinicalArg[`step5-${profile.id}`]);
+
+                        return (
+                          <div className="pt-2.5 border-t border-slate-100">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleClinicalArg(`step5-${profile.id}`)}
+                              className={`w-full flex items-center justify-between text-left p-2.5 rounded-xl border transition-all cursor-pointer select-none shadow-2xs ${
+                                isArgExpanded
+                                  ? 'bg-purple-100/90 border-purple-300 ring-2 ring-purple-200/60'
+                                  : 'bg-purple-50/70 hover:bg-purple-100/70 border-purple-200/80'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 text-[#2B017C] font-bold text-xs flex-wrap">
+                                <span className="text-base">🩺</span>
+                                <span className="font-extrabold uppercase tracking-wide">
+                                  Argumentación clínica
+                                </span>
+                                <span className="text-[11px] font-medium text-purple-700 hidden sm:inline">
+                                  · Explicado al propietario
+                                </span>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-200/90 text-[#2B017C] border border-purple-300">
+                                  {clinicalArg.points.length} puntos clave
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-[11px] font-bold text-purple-900 shrink-0">
+                                <span>{isArgExpanded ? 'Recoger' : 'Desplegar'}</span>
+                                <span className={`transform transition-transform text-xs text-[#6F2BCC] font-black ${isArgExpanded ? 'rotate-180' : 'rotate-0'}`}>
+                                  ▼
+                                </span>
+                              </div>
+                            </button>
+
+                            {isArgExpanded && (
+                              <div className="mt-2 p-4 bg-gradient-to-br from-purple-50/40 via-white to-sky-50/30 border border-purple-200 rounded-2xl space-y-3 text-xs animate-in fade-in duration-150 shadow-2xs">
+                                <div className="border-b border-purple-100 pb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                                  <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-[#2B017C] flex items-center gap-1.5">
+                                    <span>📋</span> {clinicalArg.headerLabel || 'ARGUMENTACIÓN CLÍNICA PARA ESTE PERFIL EXPLICADO AL PROPIETARIO'}
+                                  </span>
+                                  <span className="text-[10px] font-bold text-purple-700 font-mono bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200 self-start sm:self-auto">
+                                    {clinicalArg.title}
+                                  </span>
+                                </div>
+
+                                <ul className="space-y-2.5 pl-0.5">
+                                  {clinicalArg.points.map((pt, pIdx) => (
+                                    <li key={pIdx} className="flex items-start gap-2.5 text-[12px] text-slate-700 leading-relaxed">
+                                      <span className="w-2 h-2 rounded-full bg-[#6F2BCC] shrink-0 mt-1.5 ring-2 ring-purple-200" />
+                                      <span className="flex-1 font-medium">{pt}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
 
                     </div>
 

@@ -7,6 +7,7 @@ import {
   matchSyndromeTokens,
   qpcrApi,
   parseProfileMatrices,
+  getClinicalArgumentation,
 } from '../services/qpcrApi.js';
 
 /**
@@ -22,6 +23,14 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
   const [groupFilter, setGroupFilter] = useState('all'); // 'all' | 'HEPATOZOON' | 'RICKETTSIALES' ...
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedProfileDetails, setExpandedProfileDetails] = useState({});
+  const [expandedClinicalArg, setExpandedClinicalArg] = useState({});
+
+  const toggleClinicalArg = (id) => {
+    setExpandedClinicalArg((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   // Perfiles y agentes sincronizados con la base de datos Kea Tools (ZZ_PLAT_PERFIL y ZZ_PLAT_AGENTE)
   const [profiles, setProfiles] = useState(LOCAL_QPCR_PROFILES_MASTER);
@@ -721,6 +730,63 @@ export default function VistaCatalogoQpcr({ onNavigateToRequestExam }) {
                         </p>
                       </div>
                     </div>
+                    {/* Argumentación clínica explicada al propietario */}
+                    {(() => {
+                      const clinicalArg = getClinicalArgumentation(profile);
+                      if (!clinicalArg) return null;
+                      const isArgExpanded = Boolean(expandedClinicalArg[profile.id]);
+
+                      return (
+                        <div className="border border-purple-200/90 dark:border-purple-800/50 rounded-2xl overflow-hidden shadow-2xs">
+                          <button
+                            type="button"
+                            onClick={() => toggleClinicalArg(profile.id)}
+                            className={`w-full p-3 flex items-center justify-between text-left transition-colors cursor-pointer select-none ${
+                              isArgExpanded
+                                ? 'bg-purple-100/80 dark:bg-purple-950/70 border-b border-purple-200 dark:border-purple-800'
+                                : 'bg-purple-50/70 hover:bg-purple-100/70 dark:bg-[#1f173d] dark:hover:bg-[#251b47]'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 text-[#2B017C] dark:text-[#c4b5fd] font-bold text-xs flex-wrap">
+                              <span className="text-sm">🩺</span>
+                              <span className="font-extrabold uppercase tracking-wide">
+                                Argumentación clínica
+                              </span>
+                              <span className="text-[11px] font-medium text-purple-700 dark:text-purple-300 hidden sm:inline">
+                                · Explicado al propietario
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[11px] font-bold text-purple-900 dark:text-[#01FADA] shrink-0">
+                              <span>{isArgExpanded ? 'Recoger' : 'Desplegar'}</span>
+                              <span className={`transform transition-transform text-xs text-[#6F2BCC] font-black ${isArgExpanded ? 'rotate-180' : 'rotate-0'}`}>
+                                ▼
+                              </span>
+                            </div>
+                          </button>
+
+                          {isArgExpanded && (
+                            <div className="p-3.5 bg-gradient-to-br from-purple-50/40 via-white to-sky-50/30 dark:from-[#1b1338] dark:via-[#181232] dark:to-[#1a153b] space-y-2.5 text-xs animate-in fade-in duration-150">
+                              <div className="border-b border-purple-100 dark:border-purple-800/40 pb-1.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <span className="text-[10px] font-black uppercase tracking-wider text-[#2B017C] dark:text-[#01FADA]">
+                                  📋 {clinicalArg.headerLabel}
+                                </span>
+                                <span className="text-[10px] font-bold text-purple-700 dark:text-purple-300 font-mono bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-md border border-purple-200 dark:border-purple-800 self-start sm:self-auto">
+                                  {clinicalArg.title}
+                                </span>
+                              </div>
+                              <ul className="space-y-2 pl-0.5">
+                                {clinicalArg.points.map((pt, pIdx) => (
+                                  <li key={pIdx} className="flex items-start gap-2 text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#6F2BCC] dark:bg-[#01FADA] shrink-0 mt-1.5" />
+                                    <span className="flex-1 font-medium">{pt}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Pie de tarjeta con precio e información de entrega */}

@@ -240,6 +240,199 @@ export function parseProfileMatrices(matrixStr) {
   };
 }
 
+/**
+ * Diccionario de argumentación clínica estructurada por perfil qPCR explicada al propietario
+ */
+export const CLINICAL_ARGUMENTATION_DATA = {
+  vectorPlus: {
+    key: 'vectorPlus',
+    title: 'VECTOR PLUS (10 agentes)',
+    headerLabel: 'ARGUMENTACIÓN CLÍNICA PARA ESTE PERFIL EXPLICADO AL PROPIETARIO',
+    points: [
+      'Perfil de amplio espectro que permite el diagnóstico no solo de un agente patógeno, sino de varios (coinfecciones), ya que los agentes que los transmiten pueden portar varios patógenos.',
+      'Diagnóstico temprano sobre presencia de agentes sobre otros tipos de pruebas que solo tienen un alcance de exposición pero que ayudan al mismo tiempo a dirigir y tratar la enfermedad.',
+      'La prueba qPCR es una prueba de precisión y sensibilidad.',
+      'Nos ayuda a tener un manejo racional sobre el uso de antibióticos en nuestro paciente con uso de fundamento.',
+    ],
+  },
+  tetraR: {
+    key: 'tetraR',
+    title: 'TETRA R (Control y Diagnóstico · Resistencia a tetraciclina)',
+    headerLabel: 'ARGUMENTACIÓN CLÍNICA PARA ESTE PERFIL EXPLICADO AL PROPIETARIO',
+    points: [
+      'Es un perfil que nos ayuda a identificar de manera directa genes sobre mecanismo de resistencia a tetraciclina con el fin de poder usar razonablemente este antibiótico para ciertos patógenos.',
+      'Nos puede ayudar a evitar fallas terapéuticas.',
+      'Conociendo los mecanismos expresados por estos grupos de genes podemos saber cómo modificar la terapia cuando hay genes que codifican resistencia reversible.',
+      'Nos permite hacer una vigilancia epidemiológica.',
+    ],
+  },
+  gastroPanel: {
+    key: 'gastroPanel',
+    title: 'GASTRO PANEL CANINO Y FELINO',
+    headerLabel: 'ARGUMENTACIÓN CLÍNICA PARA ESTE PERFIL EXPLICADO AL PROPIETARIO',
+    points: [
+      'Nos permite tener una cobertura íntegra de cuadros gastrointestinales mixtos.',
+      'Diagnóstico rápido y sensible frente a métodos tradicionales que necesitan de procesos intermitentes.',
+      'Nos orienta y dirige a una terapia adecuada sobre el agente responsable de las patologías del cuadro clínico.',
+      'Podemos aprovechar una sola muestra para tener capacidad diagnóstica y terapéutica.',
+    ],
+  },
+  feliVector: {
+    key: 'feliVector',
+    title: 'FELI VECTOR',
+    headerLabel: 'ARGUMENTACIÓN CLÍNICA PARA ESTE PERFIL EXPLICADO AL PROPIETARIO',
+    points: [
+      'Nos permite diagnosticar coinfecciones, pero particularmente este perfil tiene una sinergia inmunológica, ya que su capacidad de tener en cuenta los retrovirales ayuda al proceso diagnóstico, manejo y terapéutico.',
+      'Diagnóstico preciso ante sintomatología solapada de agentes vectoriales que puede ser causada por agentes virales.',
+      'Alta sensibilidad ante bajas cargas de los patógenos lo hace un perfil versátil.',
+      'Mejor toma de decisiones terapéuticas y de manejo clínico.',
+    ],
+  },
+  feliInfecto: {
+    key: 'feliInfecto',
+    title: 'FELI INFECTO / FUSIONAR CON OCULO RESPIRATORIO',
+    headerLabel: 'ARGUMENTACIÓN CLÍNICA PARA ESTE PERFIL EXPLICADO AL PROPIETARIO',
+    points: [
+      'Cobertura amplia en procesos de coinfecciones con signos respiratorios, oculares o sistémicos.',
+      'Mayor utilidad en fases agudas en felinos con signos sistémicos con agentes influyentes en el sistema inmunológico.',
+      'Un perfil determinante para decisiones de aislamiento.',
+      'Un perfil de suma importancia para uso en refugios.',
+    ],
+  },
+  neuroPet: {
+    key: 'neuroPet',
+    title: 'NEURO PET CANINO / FELINO',
+    headerLabel: 'ARGUMENTACIÓN CLÍNICA PARA ESTE PERFIL EXPLICADO AL PROPIETARIO',
+    points: [
+      'Abordaje integral en paciente con signos neurológicos que puedan tener afecciones directas a partir de coinfecciones, con directriz para manejo de paciente convulsivo.',
+      'Alta sensibilidad para diagnosticar fases agudas o tempranas de procesos infecciosos de este sistema.',
+      'Es un perfil que debe ser hecho en la matriz adecuada como es el LCR (Líquido Cefalorraquídeo).',
+      'Un perfil que brinda apoyo decisivo para terapéutica y pronóstico de cada paciente.',
+    ],
+  },
+  icteroPet: {
+    key: 'icteroPet',
+    title: 'ICTERO PET',
+    headerLabel: 'ARGUMENTACIÓN CLÍNICA PARA ESTE PERFIL EXPLICADO AL PROPIETARIO',
+    points: [
+      'Un perfil de abordaje integral ante un signo clínico que necesita diagnóstico pertinente para su manejo.',
+      'Detección de agentes que pueden ser determinantes ante el daño de órganos o células sanguíneas.',
+      'Orientación precisa de soporte y terapia específica ante pacientes graves dando pronóstico.',
+    ],
+  },
+  canResp: {
+    key: 'canResp',
+    title: 'CAN RESP',
+    headerLabel: 'ARGUMENTACIÓN CLÍNICA PARA ESTE PERFIL EXPLICADO AL PROPIETARIO',
+    points: [
+      'Perfil diseñado para evitar solapamiento de otros agentes que tengan participación de vías respiratorias.',
+      'Perfil de importancia en decisiones de aislamiento para un mejor manejo del cuadro clínico y medicina epidemiológica.',
+      'Cobertura diagnóstica, fases agudas y sensibilidad ante agentes decisorios en el cuadro clínico.',
+      'Muestra de mayor importancia para este perfil debe estar asociada al sistema respiratorio.',
+      'Tratamientos dirigidos.',
+    ],
+  },
+  reproPet: {
+    key: 'reproPet',
+    title: 'REPRO PET',
+    headerLabel: 'ARGUMENTACIÓN CLÍNICA PARA ESTE PERFIL EXPLICADO AL PROPIETARIO',
+    points: [
+      'Abordaje integral para pacientes con signos reproductivos tanto aquellos con abortos como pacientes que quieran entrar a un proceso de monta.',
+      'Detección de agentes en coinfecciones asintomáticas o sintomáticas, es un perfil versátil para prevención.',
+      'Control sanitario, prevención de brotes y seguimiento en criaderos de alta exigencia.',
+    ],
+  },
+  canFel360: {
+    key: 'canFel360',
+    title: 'CAN 360 / FEL 360',
+    headerLabel: 'ARGUMENTACIÓN CLÍNICA PARA ESTE PERFIL EXPLICADO AL PROPIETARIO',
+    points: [
+      'Perfil muy versátil para cuadro multisistémico, alta cobertura diagnóstica.',
+      'Capacidad de integrar diagnóstico de coinfecciones y determinantes inmunológicos.',
+      'Mayor sensibilidad y especificidad dentro de las matrices utilizadas.',
+      'Responsabilidad en la elección de tratamiento de antibioticoterapia.',
+    ],
+  },
+  fungiDermapet: {
+    key: 'fungiDermapet',
+    title: 'FUNGI DERMAPET',
+    headerLabel: 'ARGUMENTACIÓN CLÍNICA PARA ESTE PERFIL EXPLICADO AL PROPIETARIO',
+    points: [
+      'Mayor precisión y tiempo oportuno sobre pruebas convencionales como los cultivos.',
+      'Identificación de agentes transmisibles como hongos.',
+      'Diferenciación de cuadros dermatológicos que puedan tener síntomas similares.',
+      'Tratamientos directos a los patógenos diagnosticados.',
+    ],
+  },
+};
+
+/**
+ * Resuelve la argumentación clínica oficial de un perfil dado
+ */
+export function getClinicalArgumentation(profile) {
+  if (!profile) return null;
+  const raw = `${profile.id || ''} ${profile.code || ''} ${profile.title || ''} ${profile.nombrePlataformaPropuesto || ''} ${profile.nombreCesar || ''} ${profile.type || ''}`;
+  const str = raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  // P6 FELI-VECTOR prioritario para evitar colisión con "joe" en su identificador
+  if (profile.code === 'P6' || str.includes('feli-vector') || str.includes('feli vector')) {
+    return CLINICAL_ARGUMENTATION_DATA.feliVector;
+  }
+  if (profile.code === 'P1' || str.includes('vector plus') || str.includes('p1-') || (str.includes('joe') && !str.includes('fiv') && !str.includes('felv'))) {
+    return CLINICAL_ARGUMENTATION_DATA.vectorPlus;
+  }
+  if (profile.code === 'P2' || profile.code === 'P3' || str.includes('tetra') || str.includes('resistencia')) {
+    return CLINICAL_ARGUMENTATION_DATA.tetraR;
+  }
+  if (profile.code === 'P4' || profile.code === 'P5' || str.includes('gastro') || str.includes('digestiv')) {
+    return CLINICAL_ARGUMENTATION_DATA.gastroPanel;
+  }
+  if (
+    profile.code === 'P7' ||
+    profile.code === 'P9' ||
+    profile.code === 'P15' ||
+    str.includes('feli-infect') ||
+    str.includes('feli infect') ||
+    str.includes('ocuresp') ||
+    str.includes('ocular') ||
+    str.includes('viral felin') ||
+    str.includes('viral')
+  ) {
+    return CLINICAL_ARGUMENTATION_DATA.feliInfecto;
+  }
+  if (profile.code === 'P8' || profile.code === 'P17' || str.includes('neuro')) {
+    return CLINICAL_ARGUMENTATION_DATA.neuroPet;
+  }
+  if (profile.code === 'P10' || str.includes('ictero')) {
+    return CLINICAL_ARGUMENTATION_DATA.icteroPet;
+  }
+  if (profile.code === 'P11' || str.includes('can-resp') || str.includes('can resp') || str.includes('respiratorio canin')) {
+    return CLINICAL_ARGUMENTATION_DATA.canResp;
+  }
+  if (profile.code === 'P12' || str.includes('repro')) {
+    return CLINICAL_ARGUMENTATION_DATA.reproPet;
+  }
+  if (profile.code === 'P13' || profile.code === 'P14' || str.includes('360') || str.includes('rutina')) {
+    return CLINICAL_ARGUMENTATION_DATA.canFel360;
+  }
+  if (profile.code === 'P16' || str.includes('fungi') || str.includes('hongo') || str.includes('dermapet') || str.includes('derm')) {
+    return CLINICAL_ARGUMENTATION_DATA.fungiDermapet;
+  }
+
+  // Fallback genérico para cualquier otro perfil molecular
+  return {
+    key: 'qpcrGenerico',
+    title: profile.title || 'Perfil qPCR Especializado',
+    headerLabel: 'ARGUMENTACIÓN CLÍNICA PARA ESTE PERFIL EXPLICADO AL PROPIETARIO',
+    points: [
+      'Diagnóstico molecular avanzado por qPCR con máxima sensibilidad y especificidad analítica.',
+      'Detección precoz y cuantificable de material genético de los patógenos antes de la seroconversión o en fases asintomáticas.',
+      'Permite instaurar tratamientos dirigidos y racionalizar el uso de antimicrobianos con fundamento científico.',
+      'Aprovecha muestras biológicas mínimas con alta capacidad diagnóstica y pronóstica.',
+    ],
+  };
+}
+
 // Re-exportamos la base de datos de agentes y perfiles desde la estructura canónica local
 export {
   OFFICIAL_KEA_AGENTS_DB as LOCAL_INFECTIOUS_AGENTS_DB,
