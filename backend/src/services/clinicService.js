@@ -707,17 +707,48 @@ export const clinicService = {
       }
     }
 
-    if (prevVet.keaId) {
+    let targetKeaId = prevVet.keaId;
+    if (!targetKeaId) {
       try {
-        await keaService.updateVeterinarioInKea(prevVet.keaId, {
+        const vetsRes = await keaService.fetchVeterinariosFromKea({ limit: 100 });
+        const list = vetsRes.veterinarians || [];
+        const clean = (s) => String(s || '').replace(/[^0-9A-Za-z]/g, '').toLowerCase();
+        const found = list.find((v) => {
+          if (clean(v.tarjetaProfesional) && clean(v.tarjetaProfesional) === clean(prevVet.tarjetaProfesional)) return true;
+          if (clean(v.cedula) && clean(v.cedula) === clean(prevVet.cedula)) return true;
+          if (v.email && v.email.toLowerCase() === (prevVet.email || '').toLowerCase()) return true;
+          return false;
+        });
+        if (found) targetKeaId = found.keaId;
+      } catch (_) {}
+    }
+
+    if (targetKeaId) {
+      try {
+        await keaService.updateVeterinarioInKea(targetKeaId, {
           ...updates,
           password: newPassword || prevVet.password,
           contrasena: newPassword || prevVet.contrasena,
           observaciones: updatedVet.observaciones,
         });
-        console.log(`[Kea DB] Veterinario ${prevVet.keaId} actualizado con éxito en Kea Tools DB.`);
+        updatedVet.keaId = targetKeaId;
+        console.log(`[Kea DB] Veterinario ${targetKeaId} actualizado con éxito en Kea Tools DB.`);
       } catch (keaErr) {
         console.warn(`[Kea DB] No se pudo actualizar veterinario en Kea (${keaErr.message}).`);
+      }
+    } else {
+      try {
+        const createdKea = await keaService.createVeterinarioInKea({
+          ...updatedVet,
+          password: newPassword || prevVet.password,
+          contrasena: newPassword || prevVet.contrasena,
+        }, clinic.nit || clinic.cedula);
+        if (createdKea && createdKea.keaId) {
+          updatedVet.keaId = createdKea.keaId;
+          console.log(`[Kea DB] Veterinario creado en Kea Tools DB con ID ${createdKea.keaId}.`);
+        }
+      } catch (keaErr) {
+        console.warn(`[Kea DB] No se pudo crear veterinario en Kea (${keaErr.message}).`);
       }
     }
 

@@ -14,6 +14,228 @@ const API_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VIT
 export const KEA_VETERINARIA_URL = 'https://osd.kea.tools/api/v1/databases/VETERINARIA';
 export const KEA_VETERINARIA_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiZjU1NmE0ZTVmMjEyMDExYTdiMDFlMTg4YzMyNWZlNzEwOTMzMzFmMDE4ZTdjMThlZjUyNjBkZDdlNzdkNGIyN2M2ZjZmNjA0M2I5OTBhODciLCJpYXQiOjE3OTU4MTI3MjcuODgwMzA5LCJuYmYiOjE3OTU4MTI3MjcuODgwMzEzLCJleHAiOjE4MjczNDg3MjcuODczMzM5LCJzdWIiOiI0Iiwic2NvcGVzIjpbImtlYS5kYXRhYmFzZSJdfQ.XzTqOJbQ-Wfp8Sj5XjwhqwiRo-wfyIYM4uJRJDW_z3zqc993fduiKrF8sDi6k8VETi7NkJ-TCVM1UbS1k-CtzdqpwhqbtO7RAaEPtG5cERGwVrlTRZmkb2e4H9qxYkEOGPukb9okHfVdyYeBcRjiRU5gOas52ksdnfe_J2wLIoKvksAXLMo7GbZOjlI20izs8c7tU3or9KSw3_RORWynTaAwQC0JzCPxSGN1tNxgRc9IijUePYTCvo4gAuhVwXoruTL7-u9zsfJ0gpVcAlGilYSPdBomNgvVfWpnzsSODL47RSVsYQPKiEqY_ZvqPQdvs-gsMWdlsh6DBCggdU2__SV8KEllTTeVWRX3_HdMXcFr7Ks4zdCD2euCw-uiEo-Lebdw1vhOR1dSr_8wI7YL9j3vKWSd2hS19ZyFM1-QyrDSucEXevabcfwAhxoUxKEXSbFXtzGUatXI65NcMyTJH9PNeUDN1S0wCIY7Fl-DecWKRVJoiSa7mLbL2_TMG1ANoXD8nAxCzFown2fnWg-L546pmMrpv6jqlvKW6I2xO1zn0Pt6OE58Yy2FoSdRJSPXiYIjp2K-KATVzp68VGSFClwz8cqUcMewqMI949zLQvfS4SekX_YVeQC5UB2AsTo8BuggdnUvHNy4XTlp7H5x4hWOqcqL0iMyme16NG9pspU';
 
+export const KEA_MEDICOS_URL = 'https://osd.kea.tools/api/v1/databases/VETERINARIO';
+export const KEA_MEDICOS_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzIiwianRpIjoiYjdhOGUxOGFmMTAwMzVhNDQxNzcyMjAwNjdmMzNhMWQ2ZjRhZTQ0ZWI3YzY3ODQ4YzdiZmRlZDhhYjEwYTQyZTRmNDY0YjZmMTE5ZmI2YWMiLCJpYXQiOjE3OTQzMzE4OTMuMzE5Mjg0LCJuYmYiOjE3OTQzMzE4OTMuMzE5Mjg3LCJleHAiOjE4MjU4Njc4OTMuMzEyOTQsInN1YiI6IjQiLCJzY29wZXMiOlsia2VhLmRhdGFiYXNlIl19.fAz5YBAaHnHVu9hiHcLnpf-JGuHu4FXcPcphRJ0ZrP3TKmPN06EjRVJs_-49T1wPJOqztJhy7bEOyC6pTobFuVBV8o1eTYdAlbSBiLxzlg-3D6uO3t1TM1RQ9Ekr-i9thZeBt6ddWDdEupC0Z22G21f37Wj_XRIso4sXGXN0k281lLXqHDdoU8sxXRVYk8xZsZ0HlDqB4GqhZPaKveiFALoa8wagoLj9920Uzov_8t6xDVLjXo048_mT-lQPHMk7oXF7E5q9hNXe7oH54o3vFnqmc2AXd-kRaFeLmIFxkFZ2ec2mATbpnc-DLdlx19-cXyVruXRXPvBucBKzxj5VMFM2BQBao4N71Z10nMHACdg37tC_iuYA3tyd0JyARWWJ5PF5k_OSEIwgL2IaLo2vlPIkqYLH6S5ZHF3P6bWbjEPPuepfcem2QwreONdML6yXu94UOsrzSrVZG8Z6zDWB97PRHBPjeIVWrdDShDAhycJBY3H1zJcrKZ73CEXzbFY4EUjUOPv4vk-S_o4MJS9XsxDrKre1PdQacKjTmqAMGAymKti9-LYBBwxnxpkGXcTlmstXv9igoTs0AkZAvzDOl3NiNYhgkFMlpWZY7toGw8C1j_203ebdMyWaQdV3qlrzgDHq7lZw3_-uZXI1sWGmyr3-5UYpWE1kjLYJWg3xN38';
+
+/**
+ * Mapea un registro de la tabla VETERINARIO de Kea Tools a un Veterinario Asociado
+ */
+export function mapKeaRecordToVeterinarian(record, index = 0) {
+  const keaId = record.id || index + 1;
+  const nombre = String(record.NOMBRE || record.nombre || 'Médico Veterinario').trim();
+  const tarjetaProfesional = String(record.TARJETA_PROFESIONAL || record.tarjetaProfesional || '').trim();
+  const cedula = String(record.NIT_CEDULA || record.cedula || '').trim();
+  const clinicaNit = String(record.VETERINARIA || record.veterinaria || '').trim();
+  const sede = String(record.SEDE || record.sede || 'Sede Principal').trim();
+  const email = String(record.EMAIL || record.email || record.CORREO_FACTURACION || '').trim();
+  const telefono = String(record.TELEFONO || record.telefono || '').trim();
+  const ciudad = String(record.CIUDAD || record.ciudad || '').trim();
+  const especialidad = String(record.ESPECIALIDAD || record.especialidad || 'Medicina General').trim();
+  const estado = String(record.ESTADO || record.estado || 'activo').toLowerCase();
+  const obs = String(record.OBSERVACIONES || record.observaciones || '').trim();
+  const pwdMatch = obs.match(/\[PWD:([^\]]+)\]/i);
+  const contrasenaFromObs = pwdMatch ? pwdMatch[1].trim() : '';
+
+  const clinicNitMatch = obs.match(/\[(?:CLINIC_NIT|NIT):([^\]]+)\]/i);
+  const resolvedClinicNit = clinicaNit || (clinicNitMatch ? clinicNitMatch[1].trim() : '');
+
+  const contrasena = String(
+    record.contrasena ||
+    record.CONTRASENA ||
+    record.password ||
+    record.PASSWORD ||
+    record.pin ||
+    record.PIN ||
+    record.CLAVE ||
+    record.clave ||
+    contrasenaFromObs ||
+    ''
+  ).trim();
+
+  return {
+    id: `kea-mv-${keaId}`,
+    keaId: keaId,
+    nombre,
+    tarjetaProfesional,
+    cedula,
+    contrasena,
+    password: contrasena,
+    observaciones: obs,
+    veterinariaNit: resolvedClinicNit,
+    sedeId: 'sede-principal',
+    sedeNombre: sede || 'Sede Principal',
+    email,
+    telefono,
+    ciudad,
+    especialidad,
+    estado: estado === 'inactivo' ? 'inactivo' : (estado === 'bloqueado' ? 'bloqueado' : 'activo'),
+    rol: 'veterinario_planta',
+    rolNombre: 'Veterinario de Planta',
+    esDirector: false,
+    fechaVinculacion: record.FECHA_REGISTRO || new Date().toISOString().slice(0, 10),
+  };
+}
+
+/**
+ * Resuelve el ID numérico de Kea Tools para un profesional médico
+ */
+export async function resolveKeaVeterinarianId(vet, clinicNit) {
+  if (vet.keaId && typeof vet.keaId === 'number') return vet.keaId;
+  const matchId = String(vet.id || '').match(/kea-mv-(\d+)/);
+  if (matchId) return parseInt(matchId[1], 10);
+  if (typeof vet.id === 'number') return vet.id;
+
+  // Buscar en la base de datos VETERINARIO de Kea Tools por TP, Cédula, Email o Nombre
+  try {
+    const res = await fetch(`${KEA_MEDICOS_URL}/records?limit=100`, {
+      headers: { Authorization: `Bearer ${KEA_MEDICOS_TOKEN}`, Accept: 'application/json' },
+    });
+    const json = await res.json();
+    const records = json.data || [];
+    const cleanNum = (v) => String(v || '').replace(/[^0-9A-Za-z]/g, '').trim().toLowerCase();
+    const targetTp = cleanNum(vet.tarjetaProfesional);
+    const targetCed = cleanNum(vet.cedula);
+    const targetEmail = (vet.email || '').toLowerCase().trim();
+    const targetNom = (vet.nombre || '').toLowerCase().trim();
+
+    const found = records.find((r) => {
+      const rTp = cleanNum(r.TARJETA_PROFESIONAL);
+      const rCed = cleanNum(r.NIT_CEDULA);
+      const rEmail = (r.EMAIL || '').toLowerCase().trim();
+      const rNom = (r.NOMBRE || '').toLowerCase().trim();
+
+      if (targetTp && rTp && targetTp === rTp) return true;
+      if (targetCed && rCed && targetCed === rCed) return true;
+      if (targetEmail && rEmail && targetEmail === rEmail) return true;
+      if (targetNom && rNom && (targetNom === rNom || targetNom.includes(rNom) || rNom.includes(targetNom))) return true;
+      return false;
+    });
+
+    if (found) return found.id;
+  } catch (err) {
+    console.warn('[clinicApi] Error al buscar ID del veterinario en Kea Tools:', err.message);
+  }
+  return null;
+}
+
+/**
+ * Sincroniza o actualiza directamente un médico veterinario en la base de datos VETERINARIO de Kea Tools
+ */
+export async function syncVeterinarianToKea(clinic, vet, updates = {}) {
+  const cleanNit = String(clinic?.nit || clinic?.cedula || vet.veterinariaNit || '').replace(/[^0-9]/g, '');
+  const keaId = await resolveKeaVeterinarianId(vet, cleanNit);
+
+  const newPass = String(updates.password || updates.contrasena || updates.newPassword || vet.password || vet.contrasena || '').trim();
+  let rawObs = String(updates.observaciones !== undefined ? updates.observaciones : (vet.observaciones || '')).trim();
+
+  if (newPass) {
+    if (rawObs.includes('[PWD:')) {
+      rawObs = rawObs.replace(/\[PWD:[^\]]+\]/i, `[PWD:${newPass}]`);
+    } else {
+      rawObs = rawObs ? `[PWD:${newPass}] ${rawObs}` : `[PWD:${newPass}]`;
+    }
+  }
+
+  const cleanCedula = String(updates.cedula !== undefined ? updates.cedula : (vet.cedula || '')).replace(/[^0-9]/g, '').trim();
+  const tp = String(updates.tarjetaProfesional !== undefined ? updates.tarjetaProfesional : (vet.tarjetaProfesional || '')).trim();
+  const nombre = String(updates.nombre !== undefined ? updates.nombre : (vet.nombre || '')).trim();
+  const telefono = String(updates.telefono !== undefined ? updates.telefono : (vet.telefono || '')).trim();
+  const email = String(updates.email !== undefined ? updates.email : (vet.email || '')).trim().toLowerCase();
+  const ciudad = String(updates.ciudad !== undefined ? updates.ciudad : (vet.ciudad || clinic?.recoleccion?.ciudad || 'Bogotá')).trim();
+  const especialidad = String(updates.especialidad !== undefined ? updates.especialidad : (vet.especialidad || 'Medicina General')).trim();
+  const estado = String(updates.estado !== undefined ? updates.estado : (vet.estado || 'activo')).toLowerCase();
+
+  if (keaId) {
+    // 1. PATCH a /records/{keaId}
+    const patchPayload = {};
+    if (nombre) patchPayload.NOMBRE = nombre;
+    if (tp) patchPayload.TARJETA_PROFESIONAL = tp;
+    if (cleanCedula) patchPayload.NIT_CEDULA = cleanCedula;
+    if (telefono) patchPayload.TELEFONO = telefono;
+    if (email) patchPayload.EMAIL = email;
+    if (ciudad) patchPayload.CIUDAD = ciudad;
+    if (especialidad) patchPayload.ESPECIALIDAD = especialidad;
+    if (estado) patchPayload.ESTADO = estado;
+    if (cleanNit) patchPayload.VETERINARIA = cleanNit;
+    if (rawObs) patchPayload.OBSERVACIONES = rawObs;
+
+    try {
+      const res = await fetch(`${KEA_MEDICOS_URL}/records/${keaId}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${KEA_MEDICOS_TOKEN}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(patchPayload),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        console.log(`[Kea DB VETERINARIO] Veterinario #${keaId} (${nombre}) actualizado con éxito en Kea Tools.`);
+        return { success: true, keaId, data: data.data || data };
+      }
+      console.warn(`[Kea DB VETERINARIO] Kea Tools rechazó PATCH a #${keaId}:`, data.message || data);
+    } catch (err) {
+      console.warn(`[Kea DB VETERINARIO] Error de red en PATCH #${keaId}:`, err.message);
+    }
+  } else {
+    // 2. POST a /records (crear nuevo registro en Kea Tools)
+    const createPayload = {
+      NOMBRE: nombre,
+      TARJETA_PROFESIONAL: tp || `TP-${Date.now().toString().slice(-6)}`,
+      NIT_CEDULA: cleanCedula,
+      VETERINARIA: cleanNit,
+      SEDE: '',
+      TELEFONO: telefono,
+      EMAIL: email,
+      CORREO_FACTURACION: email,
+      CIUDAD: ciudad,
+      ESPECIALIDAD: especialidad,
+      ESTADO: estado,
+      OBSERVACIONES: rawObs,
+    };
+
+    try {
+      let res = await fetch(`${KEA_MEDICOS_URL}/records`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${KEA_MEDICOS_TOKEN}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(createPayload),
+      });
+      let data = await res.json();
+
+      // Si falla por restricción de FK en VETERINARIA o CIUDAD, reintentar con FK normalizadas
+      if (!res.ok) {
+        console.warn('[Kea DB VETERINARIO] Reintentando inserción sin campos referenciados opcionales...');
+        const fallbackPayload = { ...createPayload, VETERINARIA: '', CIUDAD: '' };
+        res = await fetch(`${KEA_MEDICOS_URL}/records`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${KEA_MEDICOS_TOKEN}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify(fallbackPayload),
+        });
+        data = await res.json();
+      }
+
+      if (res.ok && (data.data?.id || data.id)) {
+        const newKeaId = data.data?.id || data.id;
+        console.log(`[Kea DB VETERINARIO] Veterinario ${nombre} creado con éxito en Kea Tools con ID #${newKeaId}.`);
+        return { success: true, keaId: newKeaId, data: data.data || data };
+      }
+      console.warn('[Kea DB VETERINARIO] Fallo al crear veterinario en Kea Tools:', data.message || data);
+    } catch (err) {
+      console.warn('[Kea DB VETERINARIO] Error de red al crear veterinario en Kea:', err.message);
+    }
+  }
+  return { success: false };
+}
+
 // Almacén en memoria en el cliente sincronizado con localStorage para persistencia offline / Vercel
 const STORAGE_KEY = 'vetlab_clinics_data_v6';
 const ACTIVE_STORAGE_KEY = 'vetlab_active_clinic_id';
@@ -434,12 +656,15 @@ export const clinicApi = {
 
     // 2. Fallback directo a Kea Tools API en navegadores / Vercel
     try {
-      const [res1, res2] = await Promise.all([
+      const [res1, res2, vetsRes] = await Promise.all([
         fetch(`${KEA_VETERINARIA_URL}/records?limit=100&offset=0`, {
           headers: { Authorization: `Bearer ${KEA_VETERINARIA_TOKEN}`, Accept: 'application/json' },
         }).then((r) => r.json()).catch(() => null),
         fetch(`${KEA_VETERINARIA_URL}/records?limit=100&offset=100`, {
           headers: { Authorization: `Bearer ${KEA_VETERINARIA_TOKEN}`, Accept: 'application/json' },
+        }).then((r) => r.json()).catch(() => null),
+        fetch(`${KEA_MEDICOS_URL}/records?limit=100`, {
+          headers: { Authorization: `Bearer ${KEA_MEDICOS_TOKEN}`, Accept: 'application/json' },
         }).then((r) => r.json()).catch(() => null),
       ]);
 
@@ -447,6 +672,8 @@ export const clinicApi = {
         ...(Array.isArray(res1?.data) ? res1.data : []),
         ...(Array.isArray(res2?.data) ? res2.data : []),
       ];
+
+      const keaVets = Array.isArray(vetsRes?.data) ? vetsRes.data.map((r, i) => mapKeaRecordToVeterinarian(r, i)) : [];
 
       if (records.length > 0) {
         const mapped = records.map((r, i) => mapKeaRecordToClinic(r, i));
@@ -467,6 +694,32 @@ export const clinicApi = {
             currentList.push(kc);
           }
         });
+
+        // Vincular los médicos de Kea Tools a su respectiva clínica según NIT
+        if (keaVets.length > 0) {
+          currentList.forEach((cl) => {
+            const clNit = cleanNumber(cl.nit);
+            const matchedVets = keaVets.filter((v) => cleanNumber(v.veterinariaNit) === clNit);
+            if (matchedVets.length > 0) {
+              if (!Array.isArray(cl.veterinariosAsociados)) cl.veterinariosAsociados = [];
+              matchedVets.forEach((mv) => {
+                const vIdx = cl.veterinariosAsociados.findIndex(
+                  (v) => (v.keaId && v.keaId === mv.keaId) || (v.tarjetaProfesional && v.tarjetaProfesional === mv.tarjetaProfesional)
+                );
+                if (vIdx !== -1) {
+                  cl.veterinariosAsociados[vIdx] = {
+                    ...cl.veterinariosAsociados[vIdx],
+                    ...mv,
+                    contrasena: mv.contrasena || cl.veterinariosAsociados[vIdx].contrasena || '',
+                    password: mv.password || cl.veterinariosAsociados[vIdx].password || '',
+                  };
+                } else {
+                  cl.veterinariosAsociados.push(mv);
+                }
+              });
+            }
+          });
+        }
 
         saveStoredClinics(currentList);
         return { success: true, clinics: currentList, count: mapped.length };
@@ -776,13 +1029,16 @@ export const clinicApi = {
   // GESTIÓN DE VETERINARIOS ASOCIADOS
   // ==========================================
   async addVeterinarian(clinicId, vetData) {
-    try {
-      const res = await axios.post(`${API_BASE_URL}/${clinicId}/veterinarians`, vetData, { timeout: 3500 });
-      if (res.data?.success && res.data?.data) {
-        this._updateLocalClinic(clinicId, res.data.data);
-        return res.data.data;
-      }
-    } catch (_) {}
+    let backendClinic = null;
+    if (API_BASE_URL) {
+      try {
+        const res = await axios.post(`${API_BASE_URL}/${clinicId}/veterinarians`, vetData, { timeout: 3500 });
+        if (res.data?.success && res.data?.data) {
+          backendClinic = res.data.data;
+          this._updateLocalClinic(clinicId, backendClinic);
+        }
+      } catch (_) {}
+    }
 
     const list = getStoredClinics();
     const clinic = list.find((c) => c.id === clinicId);
@@ -812,56 +1068,87 @@ export const clinicApi = {
       motivoBloqueo: vetData.estado === 'bloqueado' ? (vetData.motivoBloqueo || 'Bloqueado por el Administrador') : '',
       esDirector: Boolean(vetData.esDirector || vetData.rol === 'director_medico'),
       fechaVinculacion: new Date().toISOString().slice(0, 10),
+      veterinariaNit: clinic.nit || clinic.cedula || '',
     };
+
+    // Sincronizar directamente con la base de datos VETERINARIO de Kea Tools
+    try {
+      const syncResult = await syncVeterinarianToKea(clinic, newVet, newVet);
+      if (syncResult && syncResult.keaId) {
+        newVet.keaId = syncResult.keaId;
+        newVet.id = `kea-mv-${syncResult.keaId}`;
+      }
+    } catch (syncErr) {
+      console.warn('[clinicApi] Error al registrar veterinario en Kea Tools:', syncErr.message);
+    }
 
     if (!clinic.veterinariosAsociados) clinic.veterinariosAsociados = [];
     clinic.veterinariosAsociados.push(newVet);
     clinic.updatedAt = new Date().toISOString();
 
     saveStoredClinics(list);
-    return clinic;
+    return backendClinic || clinic;
   },
 
   async updateVeterinarian(clinicId, vetId, updates) {
-    try {
-      const res = await axios.put(`${API_BASE_URL}/${clinicId}/veterinarians/${vetId}`, updates, { timeout: 3500 });
-      if (res.data?.success && res.data?.data) {
-        this._updateLocalClinic(clinicId, res.data.data);
-        return res.data.data;
-      }
-    } catch (_) {}
+    let backendClinic = null;
+    if (API_BASE_URL) {
+      try {
+        const res = await axios.put(`${API_BASE_URL}/${clinicId}/veterinarians/${vetId}`, updates, { timeout: 3500 });
+        if (res.data?.success && res.data?.data) {
+          backendClinic = res.data.data;
+          this._updateLocalClinic(clinicId, backendClinic);
+        }
+      } catch (_) {}
+    }
 
     const list = getStoredClinics();
     const clinic = list.find((c) => c.id === clinicId);
     if (!clinic) throw new Error('Veterinaria no encontrada');
 
     const vIdx = (clinic.veterinariosAsociados || []).findIndex((v) => v.id === vetId);
-    if (vIdx !== -1) {
-      const prevVet = clinic.veterinariosAsociados[vIdx];
-      const newPass = String(updates.password || updates.contrasena || updates.newPassword || '').trim();
-      const updatedVet = {
-        ...prevVet,
-        ...updates,
-      };
-      if (newPass) {
-        updatedVet.password = newPass;
-        updatedVet.contrasena = newPass;
-      }
-      clinic.veterinariosAsociados[vIdx] = updatedVet;
-      clinic.updatedAt = new Date().toISOString();
-      saveStoredClinics(list);
+    if (vIdx === -1) throw new Error('Veterinario asociado no encontrado');
+
+    const prevVet = clinic.veterinariosAsociados[vIdx];
+    const newPass = String(updates.password || updates.contrasena || updates.newPassword || '').trim();
+    const updatedVet = {
+      ...prevVet,
+      ...updates,
+    };
+    if (newPass) {
+      updatedVet.password = newPass;
+      updatedVet.contrasena = newPass;
     }
-    return clinic;
+
+    // Persistir DIRECTAMENTE en la base de datos VETERINARIO de Kea Tools
+    try {
+      const syncResult = await syncVeterinarianToKea(clinic, prevVet, updates);
+      if (syncResult && syncResult.keaId) {
+        updatedVet.keaId = syncResult.keaId;
+        updatedVet.id = `kea-mv-${syncResult.keaId}`;
+      }
+    } catch (syncErr) {
+      console.warn('[clinicApi] Error al sincronizar veterinario con Kea Tools:', syncErr.message);
+    }
+
+    clinic.veterinariosAsociados[vIdx] = updatedVet;
+    clinic.updatedAt = new Date().toISOString();
+    saveStoredClinics(list);
+
+    return backendClinic || clinic;
   },
 
   async toggleVeterinarianStatus(clinicId, vetId) {
-    try {
-      const res = await axios.patch(`${API_BASE_URL}/${clinicId}/veterinarians/${vetId}/toggle-status`, {}, { timeout: 3500 });
-      if (res.data?.success && res.data?.data) {
-        this._updateLocalClinic(clinicId, res.data.data);
-        return { clinic: res.data.data, vet: res.data.vet };
-      }
-    } catch (_) {}
+    let backendResult = null;
+    if (API_BASE_URL) {
+      try {
+        const res = await axios.patch(`${API_BASE_URL}/${clinicId}/veterinarians/${vetId}/toggle-status`, {}, { timeout: 3500 });
+        if (res.data?.success && res.data?.data) {
+          backendResult = { clinic: res.data.data, vet: res.data.vet };
+          this._updateLocalClinic(clinicId, res.data.data);
+        }
+      } catch (_) {}
+    }
 
     const list = getStoredClinics();
     const clinic = list.find((c) => c.id === clinicId);
@@ -873,42 +1160,63 @@ export const clinicApi = {
     vet.estado = vet.estado === 'activo' ? 'inactivo' : 'activo';
     clinic.updatedAt = new Date().toISOString();
 
+    // Actualizar estado en Kea Tools DB
+    try {
+      await syncVeterinarianToKea(clinic, vet, { estado: vet.estado });
+    } catch (syncErr) {
+      console.warn('[clinicApi] Error al cambiar estado en Kea Tools:', syncErr.message);
+    }
+
     saveStoredClinics(list);
-    return { clinic, vet };
+    return backendResult || { clinic, vet };
   },
 
   async deleteVeterinarian(clinicId, vetId) {
-    try {
-      const res = await axios.delete(`${API_BASE_URL}/${clinicId}/veterinarians/${vetId}`, { timeout: 3500 });
-      if (res.data?.success && res.data?.data) {
-        this._updateLocalClinic(clinicId, res.data.data);
-        return res.data.data;
-      }
-    } catch (_) {}
+    let backendClinic = null;
+    if (API_BASE_URL) {
+      try {
+        const res = await axios.delete(`${API_BASE_URL}/${clinicId}/veterinarians/${vetId}`, { timeout: 3500 });
+        if (res.data?.success && res.data?.data) {
+          backendClinic = res.data.data;
+          this._updateLocalClinic(clinicId, backendClinic);
+        }
+      } catch (_) {}
+    }
 
     const list = getStoredClinics();
     const clinic = list.find((c) => c.id === clinicId);
     if (!clinic) throw new Error('Veterinaria no encontrada');
 
+    const vetToDelete = (clinic.veterinariosAsociados || []).find((v) => v.id === vetId);
+    if (vetToDelete) {
+      // Marcar inactivo en Kea Tools DB
+      try {
+        await syncVeterinarianToKea(clinic, vetToDelete, { estado: 'inactivo' });
+      } catch (_) {}
+    }
+
     clinic.veterinariosAsociados = (clinic.veterinariosAsociados || []).filter((v) => v.id !== vetId);
     clinic.updatedAt = new Date().toISOString();
 
     saveStoredClinics(list);
-    return clinic;
+    return backendClinic || clinic;
   },
 
   async blockVeterinarian(clinicId, vetId, { motivoBloqueo, bloqueadoPor } = {}) {
-    try {
-      const res = await axios.patch(
-        `${API_BASE_URL}/${clinicId}/veterinarians/${vetId}/block`,
-        { motivoBloqueo, bloqueadoPor },
-        { timeout: 3500 }
-      );
-      if (res.data?.success && res.data?.data) {
-        this._updateLocalClinic(clinicId, res.data.data);
-        return { clinic: res.data.data, vet: res.data.vet };
-      }
-    } catch (_) {}
+    let backendResult = null;
+    if (API_BASE_URL) {
+      try {
+        const res = await axios.patch(
+          `${API_BASE_URL}/${clinicId}/veterinarians/${vetId}/block`,
+          { motivoBloqueo, bloqueadoPor },
+          { timeout: 3500 }
+        );
+        if (res.data?.success && res.data?.data) {
+          backendResult = { clinic: res.data.data, vet: res.data.vet };
+          this._updateLocalClinic(clinicId, res.data.data);
+        }
+      } catch (_) {}
+    }
 
     const list = getStoredClinics();
     const clinic = list.find((c) => c.id === clinicId);
@@ -929,23 +1237,34 @@ export const clinicApi = {
     vet.permisosPrevios = { ...(vet.permisos || {}) };
     vet.permisos = Object.keys(vet.permisos || {}).reduce((acc, k) => ({ ...acc, [k]: false }), {});
 
+    // Sincronizar bloqueo en Kea Tools DB
+    try {
+      await syncVeterinarianToKea(clinic, vet, {
+        estado: 'bloqueado',
+        observaciones: `[BLOQUEADO: ${vet.motivoBloqueo}]`,
+      });
+    } catch (_) {}
+
     clinic.updatedAt = new Date().toISOString();
     saveStoredClinics(list);
-    return { clinic, vet };
+    return backendResult || { clinic, vet };
   },
 
   async unblockVeterinarian(clinicId, vetId) {
-    try {
-      const res = await axios.patch(
-        `${API_BASE_URL}/${clinicId}/veterinarians/${vetId}/unblock`,
-        {},
-        { timeout: 3500 }
-      );
-      if (res.data?.success && res.data?.data) {
-        this._updateLocalClinic(clinicId, res.data.data);
-        return { clinic: res.data.data, vet: res.data.vet };
-      }
-    } catch (_) {}
+    let backendResult = null;
+    if (API_BASE_URL) {
+      try {
+        const res = await axios.patch(
+          `${API_BASE_URL}/${clinicId}/veterinarians/${vetId}/unblock`,
+          {},
+          { timeout: 3500 }
+        );
+        if (res.data?.success && res.data?.data) {
+          backendResult = { clinic: res.data.data, vet: res.data.vet };
+          this._updateLocalClinic(clinicId, res.data.data);
+        }
+      } catch (_) {}
+    }
 
     const list = getStoredClinics();
     const clinic = list.find((c) => c.id === clinicId);
@@ -970,23 +1289,31 @@ export const clinicApi = {
       anularOrdenes: false,
     };
 
+    // Sincronizar desbloqueo en Kea Tools DB
+    try {
+      await syncVeterinarianToKea(clinic, vet, { estado: 'activo' });
+    } catch (_) {}
+
     clinic.updatedAt = new Date().toISOString();
     saveStoredClinics(list);
-    return { clinic, vet };
+    return backendResult || { clinic, vet };
   },
 
   async updateVeterinarianPermissions(clinicId, vetId, { permisos, rol } = {}) {
-    try {
-      const res = await axios.put(
-        `${API_BASE_URL}/${clinicId}/veterinarians/${vetId}/permissions`,
-        { permisos, rol },
-        { timeout: 3500 }
-      );
-      if (res.data?.success && res.data?.data) {
-        this._updateLocalClinic(clinicId, res.data.data);
-        return { clinic: res.data.data, vet: res.data.vet };
-      }
-    } catch (_) {}
+    let backendResult = null;
+    if (API_BASE_URL) {
+      try {
+        const res = await axios.put(
+          `${API_BASE_URL}/${clinicId}/veterinarians/${vetId}/permissions`,
+          { permisos, rol },
+          { timeout: 3500 }
+        );
+        if (res.data?.success && res.data?.data) {
+          backendResult = { clinic: res.data.data, vet: res.data.vet };
+          this._updateLocalClinic(clinicId, res.data.data);
+        }
+      } catch (_) {}
+    }
 
     const list = getStoredClinics();
     const clinic = list.find((c) => c.id === clinicId);
@@ -1011,21 +1338,24 @@ export const clinicApi = {
 
     clinic.updatedAt = new Date().toISOString();
     saveStoredClinics(list);
-    return { clinic, vet };
+    return backendResult || { clinic, vet };
   },
 
   async assignVeterinarianSedes(clinicId, vetId, { tipoAsignacion, sedeId, sedeNombre, sedesRotativas, sedesRotativasNombres, diasRotacion } = {}) {
-    try {
-      const res = await axios.put(
-        `${API_BASE_URL}/${clinicId}/veterinarians/${vetId}/sedes`,
-        { tipoAsignacion, sedeId, sedeNombre, sedesRotativas, sedesRotativasNombres, diasRotacion },
-        { timeout: 3500 }
-      );
-      if (res.data?.success && res.data?.data) {
-        this._updateLocalClinic(clinicId, res.data.data);
-        return { clinic: res.data.data, vet: res.data.vet };
-      }
-    } catch (_) {}
+    let backendResult = null;
+    if (API_BASE_URL) {
+      try {
+        const res = await axios.put(
+          `${API_BASE_URL}/${clinicId}/veterinarians/${vetId}/sedes`,
+          { tipoAsignacion, sedeId, sedeNombre, sedesRotativas, sedesRotativasNombres, diasRotacion },
+          { timeout: 3500 }
+        );
+        if (res.data?.success && res.data?.data) {
+          backendResult = { clinic: res.data.data, vet: res.data.vet };
+          this._updateLocalClinic(clinicId, res.data.data);
+        }
+      } catch (_) {}
+    }
 
     const list = getStoredClinics();
     const clinic = list.find((c) => c.id === clinicId);
@@ -1048,21 +1378,63 @@ export const clinicApi = {
 
     clinic.updatedAt = new Date().toISOString();
     saveStoredClinics(list);
-    return { clinic, vet };
+    return backendResult || { clinic, vet };
   },
 
   /**
    * Sincroniza en vivo los veterinarios asociados a una clínica desde la base de datos Kea Tools
    */
   async syncVeterinarians(clinicId) {
+    if (API_BASE_URL) {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/${clinicId}/veterinarians/sync-kea`, { timeout: 6000 });
+        if (res.data?.success && res.data?.data?.clinic) {
+          this._updateLocalClinic(clinicId, res.data.data.clinic);
+          return res.data.data;
+        }
+      } catch (_) {}
+    }
+
+    const list = getStoredClinics();
+    const clinic = list.find((c) => c.id === clinicId);
+    if (!clinic) return { success: false };
+
+    const cleanNit = String(clinic.nit || clinic.cedula || '').replace(/[^0-9]/g, '');
+
     try {
-      const res = await axios.get(`${API_BASE_URL}/${clinicId}/veterinarians/sync-kea`, { timeout: 6000 });
-      if (res.data?.success && res.data?.data?.clinic) {
-        this._updateLocalClinic(clinicId, res.data.data.clinic);
-        return res.data.data;
+      const vetsRes = await fetch(`${KEA_MEDICOS_URL}/records?limit=100`, {
+        headers: { Authorization: `Bearer ${KEA_MEDICOS_TOKEN}`, Accept: 'application/json' },
+      }).then((r) => r.json()).catch(() => null);
+
+      if (Array.isArray(vetsRes?.data)) {
+        const mapped = vetsRes.data.map((r, i) => mapKeaRecordToVeterinarian(r, i));
+        const matched = mapped.filter((v) => {
+          const vNit = String(v.veterinariaNit || '').replace(/[^0-9]/g, '');
+          return vNit && vNit === cleanNit;
+        });
+
+        if (!Array.isArray(clinic.veterinariosAsociados)) clinic.veterinariosAsociados = [];
+        matched.forEach((mv) => {
+          const idx = clinic.veterinariosAsociados.findIndex(
+            (v) => (v.keaId && v.keaId === mv.keaId) || (v.tarjetaProfesional && v.tarjetaProfesional === mv.tarjetaProfesional)
+          );
+          if (idx !== -1) {
+            clinic.veterinariosAsociados[idx] = {
+              ...clinic.veterinariosAsociados[idx],
+              ...mv,
+            };
+          } else {
+            clinic.veterinariosAsociados.push(mv);
+          }
+        });
+        clinic.updatedAt = new Date().toISOString();
+        saveStoredClinics(list);
+        return { success: true, clinic, veterinarians: clinic.veterinariosAsociados };
       }
-    } catch (_) {}
-    return { success: false };
+    } catch (err) {
+      console.warn('[clinicApi] Error al sincronizar veterinarios desde Kea Tools:', err.message);
+    }
+    return { success: false, clinic };
   },
 
   _updateLocalClinic(clinicId, updatedClinic) {
